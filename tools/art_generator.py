@@ -1,0 +1,1289 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Pixel Eternal - 游戏美术资源生成工具
+使用自然语言描述需求，通过 GPT 规划提示词与风格，再调用 Imagen 生成图片并自动写入项目。
+技能/增幅/批量武器贴图等图标类输出经后处理为 EXPORT_ICON_SIZE×EXPORT_ICON_SIZE 的 RGBA 透明底 PNG（默认 68）。
+"""
+
+import os
+import re
+import sys
+import json
+import base64
+import argparse
+from collections import deque
+from pathlib import Path
+from datetime import datetime
+
+# 可被环境变量覆盖
+API_KEY = os.environ.get("PE_ART_API_KEY", "sk-OVNKpYrzUnloOR1F8qhA3KZKMwOQxjX8icaGpO2dUmP5FZj4")
+CHAT_URL = os.environ.get("PE_CHAT_URL", "http://35.220.164.252:3888/v1/chat/completions")
+IMAGE_URL = os.environ.get("PE_IMAGE_URL", "http://35.220.164.252:3888/v1/images/generations")
+CHAT_MODEL = os.environ.get("PE_CHAT_MODEL", "gpt-4o-mini")
+IMAGE_MODEL = os.environ.get("PE_IMAGE_MODEL", "imagen-4.0-ultra-generate-001")
+
+# 项目根目录（脚本在 tools/ 下时，上级为项目根）
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+ART_FOLDER = PROJECT_ROOT / "asset"
+ART_SKILL_ICONS = ART_FOLDER / "skill_icons"
+ART_BUFF_ICONS = ART_FOLDER / "buff_icons"  # 增幅/效果图标，画风与技能图标一致
+SKILL_ICON_EXAMPLES_DIR = ART_SKILL_ICONS / "Examples"  # 风格参考图目录
+EQUIPMENT_CONFIG = PROJECT_ROOT / "config" / "equipment-config.json"
+GAME_MAIN = PROJECT_ROOT / "js" / "game-main.js"
+DATA_CLASSES = PROJECT_ROOT / "js" / "data-classes.js"
+SKILL_ICON_CONFIG = PROJECT_ROOT / "config" / "skill-icon-config.json"
+BUFF_ICON_CONFIG = PROJECT_ROOT / "config" / "buff-icon-config.json"
+SET_CONFIG = PROJECT_ROOT / "config" / "set-config.json"
+MAPPINGS_CONFIG = PROJECT_ROOT / "config" / "mappings.json"
+
+# 导出图标边长（技能/增幅/装备武器等经后处理统一为此尺寸，透明底 RGBA PNG）
+EXPORT_ICON_SIZE = int(os.environ.get("PE_EXPORT_ICON_SIZE", "68"))
+# 与边缘连通的「背景黑」判据（RGB 均不超过此值则从边缘 flood 为透明；主体内闭合黑色会保留）
+CHROMA_KEY_THRESHOLD = int(os.environ.get("PE_CHROMA_KEY_THRESHOLD", "10"))
+
+# 技能图标核心画风模板（生图仍用匀质黑底便于抠透明；保存为 68×68 透明 PNG）
+SKILL_ICON_CORE_TEMPLATE = (
+    "Pixel art skill icon, retro 16-bit style, ultra-detailed pixel clusters, clean central composition, "
+    "solid pure black background (#000000) only behind the subject, flat uniform backdrop, no gradient sky, "
+    "no decorative borders, no text, no stars, no level numbers, no element symbols, "
+    "minimalistic design, razor-sharp edges, no anti-aliasing, fully opaque subject pixels"
+)
+# 三变量拼成 "... {shape} with {texture} in {color} palette"
+SKILL_ICON_NEGATIVE_PROMPT = "text, numbers, stars, borders, UI elements, decorations"
+
+# 武器装备栏贴图：与 tools/装备生图要求.md 一致；远程与近战共用（仅主体由 GPT 描述，避免画风漂移）
+EQUIPMENT_WEAPON_TEXTURE_STYLE_TEMPLATE = (
+    "Pixel art equipment icon, retro 16-bit style, ultra-detailed pixel clusters, "
+    "single weapon centered in frame, inventory item still-life, static pose, no action scene, "
+    "solid pure black background (#000000) flat uniform behind the weapon only, no text, no watermark, no decorative border, no UI frame, "
+    "minimalistic, razor-sharp pixel edges, no anti-aliasing, no photorealism, no 3D render look, "
+    "same art style and pixel density as other melee weapon inventory icons in this game"
+)
+EQUIPMENT_WEAPON_NEGATIVE_PROMPT = (
+    "photorealistic, realistic photo, photograph, 3d render, octane render, unreal engine, cinematic lighting, "
+    "vector illustration, smooth gradients, oil painting, watercolor, sketch, anime screenshot, "
+    "watermarks, text, letters, multiple weapons, character holding weapon, full body, busy background, "
+    "motion blur, flying projectile filling frame, explosion, battlefield scene"
+)
+# 兼容旧逻辑命名：边缘暗像素在透明流程中同样视为可扩展背景
+EDGE_CLEAN_THRESHOLD = 10
+
+# 当 GPT 因内容策略(content_filter)拒绝时，使用硬编码方案直接生成图标，避免敏感词
+SKILL_ICON_FALLBACK_PLANS = {
+    "星坠审判": {
+        "shape": "falling star and meteor silhouette",
+        "texture": "radiating light trails and particle sparks",
+        "color": "golden white and deep blue",
+    },
+}
+
+# 增幅/效果图标提示词（与 tools/图标要求.md 一致，画风与技能图标一致：用 SKILL_ICON_CORE_TEMPLATE + 下表后缀）
+BUFF_ICON_PROMPTS = {
+    # 一、基础属性增幅
+    "attack": "centered upward-thrusting sword with fiery glow, vibrant red color",
+    "defense": "centered sturdy shield with metallic sheen, deep blue color",
+    "health": "centered pulsing heart with soft glow, warm red color",
+    "critRate": "centered lightning bolt inside a circle, electric yellow color",
+    "critDamage": "centered exploding star with sharp rays, bright orange color",
+    "dodge": "centered ghostly silhouette with afterimage, misty purple color",
+    "attackSpeed": "crossed daggers with motion trails, vibrant green color",
+    "moveSpeed": "winged boot with speed lines, swift cyan color",
+    "allStats": "four-pointed star with multicolor glow (red, blue, green, yellow)",
+    # 二、药水/Buff
+    "duration": "centered hourglass with falling sand particles, glowing white color",
+    # 三、武器精炼增幅
+    "damageMultiplier": "sword engulfed in fiery aura, intense red-orange color",
+    "cooldownReduction": "clockwise arrow looping around a gear, cool blue color",
+    "rangeMultiplier": "expanding concentric circles, vibrant purple color",
+    "dodgeInvincibleDuration": "ghost figure with protective halo, ethereal white color",
+    "guaranteedCrit": "bullseye target with lightning strike, electric yellow color",
+    "dotDamage": "toxic droplet with green fumes, venomous green color",
+    "freezeEffect": "sharp snowflake with icy mist, frosty blue color",
+    "healPercent": "plus sign inside a glowing heart, restorative green color",
+    "pierce": "arrow piercing through shield, piercing orange color",
+    "refine_resetSkillCooldownOnKill": "circular arrow with skull motif, dark purple color",
+    # 四、套装特殊效果
+    "killHeal": "skull with green plus sign, necrotic green color",
+    "damageToHeal": "shield absorbing arrow into heart, pink aura",
+    "deathImmunity": "phoenix rising from flames, fiery orange-red color",
+    "flameExplosion": "fireball erupting into smaller flames, blazing red color",
+    "chainLightning": "lightning bolt branching to smaller bolts, electric yellow",
+    "dragonCounter": "dragon head breathing fire at arrow, fierce red color",
+    "dragonRage": "cracked heart with fiery core, burning red color",
+    "damageImmunity": "crossed swords over shield, metallic silver color",
+    "divineProtection": "glowing halo with feather wings, golden white light",
+    "areaFreeze": "snowflake with expanding icy rings, frost blue color",
+    # 五、装备词条（通用）
+    "extra_damage": "sword with extra blade fragment, sharp red color",
+    "heal": "heart with pulsating plus sign, healing green",
+    "freeze": "ice crystal with frost spikes, cold blue",
+    "move_speed": "boot with wind swirls, swift cyan",
+    "kill_heal": "skull with heart in mouth, dark red",
+    "low_hp_buff": "cracked shield with fire, danger orange",
+    "cooldown": "hourglass with lightning, electric blue",
+    "combo": "three swords in sequence, metallic gray",
+    "aoe_damage": "explosion with radial lines, fiery orange",
+    "reflect_damage": "spiked shield, silver with red accents",
+    # 六、炼金（通用）
+    "alchemy_material": "crystal cluster with multicolor glow, mineral texture",
+    "potion_effect": "bubbling flask with glowing liquid, glass texture",
+}
+
+# 装备部位与子文件夹对应（保持项目整洁）
+SLOT_TO_SUBFOLDER = {
+    "weapon": "weapons",
+    "helmet": "helmets",
+    "chest": "chests",
+    "legs": "legs",
+    "boots": "boots",
+    "necklace": "necklaces",
+    "ring": "rings",
+    "belt": "belts",
+}
+
+
+def collect_project_context():
+    """读取项目文件夹下的关键内容，供 GPT 决策使用。"""
+    context = {
+        "project_md": "",
+        "equipment_list": [],
+        "existing_assets": [],
+        "asset_subfolders": [],
+    }
+
+    # PROJECT.md
+    pmd = PROJECT_ROOT / "PROJECT.md"
+    if pmd.exists():
+        context["project_md"] = pmd.read_text(encoding="utf-8")
+
+    # 装备配置：从 equipment-config.json 提取装备名与部位
+    if EQUIPMENT_CONFIG.exists():
+        with open(EQUIPMENT_CONFIG, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            equipment_defs = data.get("EQUIPMENT_DEFINITIONS", [])
+            for eq in equipment_defs:
+                context["equipment_list"].append({"slot": eq.get("slot", ""), "name": eq.get("name", "")})
+
+    # asset 下已有文件（含子文件夹）
+    if ART_FOLDER.exists():
+        for f in ART_FOLDER.rglob("*"):
+            if f.is_file() and f.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp"):
+                rel = f.relative_to(ART_FOLDER)
+                context["existing_assets"].append(rel.as_posix())
+                if len(rel.parts) > 1:
+                    sub = rel.parts[0]
+                    if sub not in context["asset_subfolders"]:
+                        context["asset_subfolders"].append(sub)
+
+    return context
+
+
+def collect_weapon_entries_from_config() -> list:
+    """从 equipment-config.json 读取所有武器定义（名称、weaponType、品质等）。"""
+    if not EQUIPMENT_CONFIG.exists():
+        return []
+    with open(EQUIPMENT_CONFIG, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    out = []
+    for eq in data.get("EQUIPMENT_DEFINITIONS", []):
+        if eq.get("slot") != "weapon":
+            continue
+        wt = (eq.get("weaponType") or "melee").strip().lower()
+        if wt not in ("melee", "ranged"):
+            wt = "melee"
+        out.append(
+            {
+                "name": eq.get("name", "").strip(),
+                "weaponType": wt,
+                "quality": eq.get("quality", "common"),
+                "level": eq.get("level", 1),
+            }
+        )
+    return [w for w in out if w["name"]]
+
+
+def build_weapon_type_by_name() -> dict:
+    """装备中文名 -> 'melee' | 'ranged'（供技能图标规划判断远程）。"""
+    m = {}
+    for w in collect_weapon_entries_from_config():
+        m[w["name"]] = w["weaponType"]
+    return m
+
+
+def get_weapon_asset_relpath(weapon_name: str) -> str:
+    """游戏内装备图相对 asset 的路径（与 AssetManager.getEquipmentImageName 一致）。"""
+    if MAPPINGS_CONFIG.exists():
+        with open(MAPPINGS_CONFIG, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        eq_map = data.get("equipment") or {}
+        if weapon_name in eq_map and eq_map[weapon_name]:
+            return str(eq_map[weapon_name]).strip().replace("\\", "/")
+    return f"{weapon_name}.png"
+
+
+def weapon_texture_resolved_path(weapon_name: str) -> Path:
+    """asset 目录下该武器贴图应存在的绝对路径。"""
+    rel = get_weapon_asset_relpath(weapon_name)
+    return ART_FOLDER / rel
+
+
+def add_equipment_mapping(weapon_name: str, relative_path: str) -> None:
+    """在 mappings.json 的 equipment 中写入或更新 装备名 -> 相对路径。"""
+    MAPPINGS_CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    if not MAPPINGS_CONFIG.exists():
+        data = {"equipment": {}}
+    else:
+        with open(MAPPINGS_CONFIG, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    if "equipment" not in data:
+        data["equipment"] = {}
+    data["equipment"][weapon_name] = relative_path.replace("\\", "/")
+    with open(MAPPINGS_CONFIG, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _get_weapon_skills_js_weapon_block() -> str:
+    """从 data-classes.js 截取 weaponSkills 对象片段（不含 qualitySkills），失败返回空串。"""
+    if not DATA_CLASSES.exists():
+        return ""
+    text = DATA_CLASSES.read_text(encoding="utf-8")
+    start = text.find("getWeaponSkill() {")
+    if start < 0:
+        return ""
+    end = text.find("generateEquipmentTraits()", start)
+    if end < 0:
+        end = len(text)
+    block = text[start:end]
+    weapon_block_end = block.find("if (weaponSkills[this.name])")
+    if weapon_block_end < 0:
+        weapon_block_end = block.find("qualitySkills = {")
+    if weapon_block_end < 0:
+        weapon_block_end = len(block)
+    return block[:weapon_block_end]
+
+
+_WEAPON_SKILL_BY_WEAPON_CACHE = None
+
+
+def get_weapon_skill_lookup() -> dict:
+    """武器中文名 -> {skill_name, description}（来自 weaponSkills，供贴图规划体现技能主题）。"""
+    global _WEAPON_SKILL_BY_WEAPON_CACHE
+    if _WEAPON_SKILL_BY_WEAPON_CACHE is not None:
+        return _WEAPON_SKILL_BY_WEAPON_CACHE
+    _WEAPON_SKILL_BY_WEAPON_CACHE = {}
+    weapon_block = _get_weapon_skills_js_weapon_block()
+    if not weapon_block:
+        return _WEAPON_SKILL_BY_WEAPON_CACHE
+    for m in re.finditer(r"\s*['\"]([^'\"]+)['\"]\s*:\s*\{\s*name\s*:\s*['\"]([^'\"]+)['\"]", weapon_block):
+        wn, skill_name = m.group(1).strip(), m.group(2).strip()
+        desc_m = re.search(r"description\s*:\s*['\"]([^'\"]*)['\"]", weapon_block[m.end() : m.end() + 400])
+        desc = desc_m.group(1).strip() if desc_m else ""
+        _WEAPON_SKILL_BY_WEAPON_CACHE[wn] = {"skill_name": skill_name, "description": desc}
+    return _WEAPON_SKILL_BY_WEAPON_CACHE
+
+
+def collect_weapon_skills() -> list:
+    """从 data-classes.js 的 getWeaponSkill 中解析出所有武器技能（名称、描述、对应武器列表），去重。"""
+    if not DATA_CLASSES.exists():
+        return []
+    text = DATA_CLASSES.read_text(encoding="utf-8")
+    start = text.find("getWeaponSkill() {")
+    if start < 0:
+        return []
+    end = text.find("generateEquipmentTraits()", start)
+    if end < 0:
+        end = len(text)
+    block = text[start:end]
+    # 只从 weaponSkills 段解析「武器名 -> 技能名」，避免把 qualitySkills 的 common/rare 等当武器
+    weapon_block_end = block.find("if (weaponSkills[this.name])")
+    if weapon_block_end < 0:
+        weapon_block_end = block.find("qualitySkills = {")
+    if weapon_block_end < 0:
+        weapon_block_end = len(block)
+    weapon_block = block[:weapon_block_end]
+    by_skill = {}
+    for m in re.finditer(r"\s*['\"]([^'\"]+)['\"]\s*:\s*\{\s*name\s*:\s*['\"]([^'\"]+)['\"]", weapon_block):
+        weapon_name, skill_name = m.group(1).strip(), m.group(2).strip()
+        if not skill_name:
+            continue
+        desc_m = re.search(r"description\s*:\s*['\"]([^'\"]*)['\"]", weapon_block[m.end() : m.end() + 350])
+        desc = desc_m.group(1).strip() if desc_m else ""
+        if skill_name not in by_skill:
+            by_skill[skill_name] = {"description": desc, "weapon_names": []}
+        by_skill[skill_name]["weapon_names"].append(weapon_name)
+        by_skill[skill_name]["description"] = desc
+    # qualitySkills 中出现的技能名（若无武器则 weapon_names 为空）
+    quality_start = block.find("const qualitySkills = {")
+    if quality_start >= 0:
+        quality_block = block[quality_start : quality_start + 2500]
+        for m in re.finditer(r"name\s*:\s*['\"]([^'\"]+)['\"]", quality_block):
+            skill_name = m.group(1).strip()
+            if not skill_name or skill_name in by_skill:
+                continue
+            desc_m = re.search(r"description\s*:\s*['\"]([^'\"]*)['\"]", quality_block[m.end() : m.end() + 250])
+            by_skill[skill_name] = {
+                "description": desc_m.group(1).strip() if desc_m else "",
+                "weapon_names": [],
+            }
+    return [
+        {"name": k, "description": v["description"], "weapon_names": v["weapon_names"]}
+        for k, v in by_skill.items()
+    ]
+
+
+def get_weapon_trait(weapon_name: str) -> str:
+    """从 data-classes.js 的 nameTraits 中读取武器词条描述，无则返回空字符串。"""
+    if not DATA_CLASSES.exists() or not weapon_name:
+        return ""
+    text = DATA_CLASSES.read_text(encoding="utf-8")
+    start = text.find("const nameTraits = {")
+    if start < 0:
+        return ""
+    end = text.find("if (nameTraits[this.name])", start)
+    if end < 0:
+        end = start + 8000
+    block = text[start:end]
+    # 匹配 '武器名': { id: '...', description: '...' }
+    esc = re.escape(weapon_name)
+    m = re.search(r"['\"]" + esc + r"['\"]\s*:\s*\{\s*id\s*:[^}]*description\s*:\s*['\"]([^'\"]*)['\"]", block)
+    if m:
+        return m.group(1).strip()
+    m = re.search(r"['\"]" + esc + r"['\"]\s*:\s*\{[^}]*description\s*:\s*['\"]([^'\"]*)['\"]", block, re.DOTALL)
+    return m.group(1).strip() if m else ""
+
+
+def get_set_for_weapon(weapon_name: str) -> str:
+    """从 set-config.json 的 SET_DEFINITIONS 中读取武器所属套装名称，无则返回空字符串。"""
+    if not SET_CONFIG.exists() or not weapon_name:
+        return ""
+    with open(SET_CONFIG, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+        set_defs = data.get("SET_DEFINITIONS", {})
+        for set_id, set_data in set_defs.items():
+            pieces = set_data.get("pieces", [])
+            if weapon_name in pieces:
+                return set_data.get("name", "")
+    return ""
+
+
+def _skill_icon_filename(skill_name: str) -> str:
+    """用技能中文名生成文件名，剔除非法字符。"""
+    safe = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", skill_name.strip())
+    safe = safe.strip(" .") or "skill"
+    return f"{safe}.png" if not safe.lower().endswith(".png") else safe
+
+
+def collect_existing_skill_icons() -> dict:
+    """返回已有图标的技能名 -> 文件名（从 skill-icon-config.json 的 SKILL_ICON_MAP 读取）。
+    仅当配置中有条目且对应文件存在时，才视为「已配置」。
+    """
+    out = {}
+    if not SKILL_ICON_CONFIG.exists():
+        return out
+    with open(SKILL_ICON_CONFIG, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+        skill_map = data.get("SKILL_ICON_MAP", {})
+        for key, val in skill_map.items():
+            if key and val:
+                # 排除明显不是技能名的键（如纯英文变量名）
+                if not (key.isascii() and len(key) < 2):
+                    out[key] = val
+    return out
+
+
+def detect_batch_skill_icons(user_input: str) -> bool:
+    """判断用户是否在要求「生成/补齐所有武器技能图标」。"""
+    t = user_input.strip()
+    if not t:
+        return False
+    has_all = "所有" in t or "全部" in t or "批量" in t
+    has_skill = "武器技能" in t or "技能" in t
+    has_icon = "图标" in t or "icon" in t.lower() or "图" in t
+    has_generate = "生成" in t or "补齐" in t or "补全" in t or "做" in t
+    return (has_all or "武器技能" in t) and has_skill and (has_icon or has_generate)
+
+
+def _skill_effect_to_english(desc: str) -> str:
+    """把技能描述转成简短英文，用于 content_filter 重试时的中性提示，避免敏感词。"""
+    if not (desc or desc.strip()):
+        return "single-target damage"
+    d = desc.strip()
+    parts = []
+    if "周围" in d or "所有敌人" in d or "范围" in d:
+        parts.append("area damage")
+    elif "目标" in d or "对目标" in d:
+        parts.append("single-target damage")
+    if "恢复生命" in d or "恢复生命值" in d or "治疗" in d:
+        parts.append("heals the caster")
+    if "持续伤害" in d or "附加" in d and "伤害" in d:
+        parts.append("damage over time")
+    if "暴击" in d or "必定暴击" in d:
+        parts.append("critical hit")
+    if "减速" in d or "降低" in d and "速度" in d:
+        parts.append("slows enemies")
+    if "冰冻" in d or "冰冻效果" in d:
+        parts.append("freeze effect")
+    if "提升" in d and ("攻击" in d or "移速" in d or "闪避" in d):
+        parts.append("self buff")
+    if not parts:
+        return "RPG ability effect"
+    return ", ".join(parts)
+
+
+def call_gpt_plan_skill_icon(
+    context: dict,
+    skill_name: str,
+    skill_description: str,
+    weapon_names: list = None,
+    weapon_trait: str = "",
+    set_name: str = "",
+    is_ranged_weapon_skill: bool = False,
+) -> dict:
+    """为单个技能图标向 GPT 要三变量（主体形状、动态纹理、主色调），结合武器特征、套装、技能效果与攻击方式。"""
+    try:
+        import requests
+    except ImportError:
+        sys.exit("请安装 requests: pip install requests")
+
+    weapon_names = weapon_names or []
+    weapon_info = "、".join(weapon_names) if weapon_names else "（通用/品质默认）"
+    extra = []
+    if weapon_trait:
+        extra.append(f"该技能对应武器在游戏中的特征（词条）：{weapon_trait}")
+    if set_name:
+        extra.append(f"所属套装：{set_name}")
+    extra_block = "\n".join(extra) if extra else ""
+    ranged_block = ""
+    if is_ranged_weapon_skill:
+        ranged_block = (
+            "\n【攻击类型】该技能属于远程武器（弓、弩等）：图标必须体现远程作战感（如箭矢、弹道、弓弦张力、瞄准/穿透、飞矢轨迹等），"
+            "避免画成近战挥砍、剑气贴脸、巨剑劈砍；shape 与 texture 应与「从远处命中锁定目标」的玩法一致。\n"
+        )
+
+    base_message = f"""为像素风 RPG 的武器技能「{skill_name}」设计技能图标的三个英文变量，用于拼进固定画风模板。
+
+【技能效果与攻击方式】{skill_description or '无'}
+
+【对应武器】{weapon_info}
+{extra_block}{ranged_block}
+请结合以上：技能效果与攻击方式、对应武器的特征（词条）、所属套装风格，设计出与游戏设定一致的图标视觉（主体形状、动态纹理、主色调）。
+
+请只输出以下 JSON，不要其他文字和 markdown 代码块：
+{{ "shape": "主体形状，名词短语，如 ice crystal / dagger silhouette / flame vortex", "texture": "动态纹理，动词+名词，如 radiating frost spikes / smoky trail effect / pulsing shock rings", "color": "主色调，带质感的颜色词，如 pale blue / deep purple / molten orange / frosty cyan" }}
+
+规则（与 生图要求.md 一致）：
+1. shape：用具体名词短语，避免抽象（如用 lightning spear 不用 powerful weapon）；需与武器/套装/技能效果呼应。
+2. texture：用流动/爆发/粒子感的具体描述，如 swirling energy currents、glowing particle sparks，避免 dynamic effects 等笼统词。
+3. color：用带质感的颜色词，如 frosty cyan、molten orange、ember red，避免单纯 blue/red；可与套装主题一致。"""
+
+    # 当触发内容策略（content_filter）时使用的纯英文、中性描述，避免敏感词
+    effect_english = _skill_effect_to_english(skill_description)
+    ranged_en = ""
+    if is_ranged_weapon_skill:
+        ranged_en = (
+            " This is a RANGED weapon skill (bow/crossbow): the icon must suggest projectiles, arrow flight, "
+            "aiming or piercing at distance—not melee slash or sword clash. "
+        )
+    fallback_english_message = f"""Design a pixel art skill icon for a retro RPG.{ranged_en}The ability effect: {effect_english}.
+
+Output only this JSON, no other text or markdown:
+{{ "shape": "noun phrase, e.g. ice crystal / flame vortex", "texture": "verb+noun, e.g. radiating frost spikes / pulsing shock rings", "color": "color with texture, e.g. frosty cyan / molten orange" }}
+
+Rules: shape = concrete noun; texture = flowing/particle feel; color = textured color phrase."""
+
+    headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
+    last_err_body = ""
+    retry_reason = None  # "content_filter" | "same_request" | None
+    for attempt in range(2):
+        if attempt == 0:
+            user_message = base_message
+        else:
+            if retry_reason == "content_filter":
+                user_message = fallback_english_message
+            else:
+                user_message = base_message + f"\n\n【重试】请再次仅输出上述 JSON。（{datetime.now().isoformat()}）"
+        body = {
+            "model": CHAT_MODEL,
+            "messages": [{"role": "user", "content": user_message}],
+            "temperature": 0.3,
+        }
+        try:
+            resp = requests.post(CHAT_URL, headers=headers, json=body, timeout=60)
+            resp.raise_for_status()
+            data = resp.json()
+            break
+        except requests.exceptions.Timeout as e:
+            raise RuntimeError(f"请求 GPT 超时（60 秒），请检查网络或 {CHAT_URL} 是否可达") from e
+        except requests.exceptions.ConnectionError as e:
+            raise RuntimeError(f"无法连接 GPT 服务（{CHAT_URL}），请检查网络或服务是否启动") from e
+        except requests.exceptions.HTTPError as e:
+            status = e.response.status_code
+            try:
+                last_err_body = e.response.text[:500] if e.response.text else "(无响应体)"
+            except Exception:
+                last_err_body = "(无法读取)"
+            if status != 400:
+                raise RuntimeError(
+                    f"GPT 返回错误状态码: {status}。响应内容: {last_err_body}"
+                ) from e
+            # 400：按原因选择是否重试
+            is_content_filter = "content_filter" in last_err_body or "content management policy" in last_err_body
+            is_same_request = "相同的请求" in last_err_body or "Same request has failed" in last_err_body
+            if attempt == 0 and (is_content_filter or is_same_request):
+                retry_reason = "content_filter" if is_content_filter else "same_request"
+                continue
+            raise RuntimeError(
+                f"GPT 返回错误状态码: 400。响应内容: {last_err_body}"
+            ) from e
+        except ValueError as e:
+            raise RuntimeError(f"GPT 响应不是合法 JSON: {e}") from e
+    # 若上面 break 则 data 已赋值
+
+    try:
+        content = data["choices"][0]["message"]["content"].strip()
+    except (KeyError, IndexError, TypeError) as e:
+        raise RuntimeError(f"GPT 响应结构异常（缺少 choices/message/content），原始键: {list(data.keys())}") from e
+
+    # 去掉 markdown 代码块
+    if "```" in content:
+        content = re.sub(r"^```\w*\n?", "", content)
+        content = re.sub(r"\n?```\s*$", "", content)
+    content = content.strip()
+
+    # 尝试从内容中提取 JSON 对象（应对 GPT 在前后加说明文字）
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError:
+        start = content.find("{")
+        end = content.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            try:
+                return json.loads(content[start : end + 1])
+            except json.JSONDecodeError:
+                pass
+        raise RuntimeError(
+            "GPT 返回内容无法解析为 JSON（请确认只输出 JSON、无多余说明）。"
+            " 可设置环境变量 PE_CHAT_URL / PE_ART_API_KEY 检查接口。"
+            f" 返回前 200 字: {content[:200]!r}"
+        )
+
+
+def add_to_skill_icon_map(skill_name: str, filename: str) -> None:
+    """在 skill-icon-config.json 的 SKILL_ICON_MAP 中增加一条 技能名 -> 文件名。"""
+    if not SKILL_ICON_CONFIG.exists():
+        data = {"SKILL_ICON_MAP": {}}
+    else:
+        with open(SKILL_ICON_CONFIG, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    if "SKILL_ICON_MAP" not in data:
+        data["SKILL_ICON_MAP"] = {}
+    data["SKILL_ICON_MAP"][skill_name] = filename
+    with open(SKILL_ICON_CONFIG, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def collect_existing_buff_icons() -> dict:
+    """从 buff-icon-config.json 的 BUFF_ICON_MAP 读取 增幅键 -> 文件名。"""
+    result = {}
+    if not BUFF_ICON_CONFIG.exists():
+        return result
+    with open(BUFF_ICON_CONFIG, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+        buff_map = data.get("BUFF_ICON_MAP", {})
+        result.update(buff_map)
+    return result
+
+
+def add_to_buff_icon_map(key: str, filename: str) -> None:
+    """在 buff-icon-config.json 的 BUFF_ICON_MAP 中增加一条 增幅键 -> 文件名。"""
+    BUFF_ICON_CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    if not BUFF_ICON_CONFIG.exists():
+        data = {"BUFF_ICON_MAP": {}}
+    else:
+        with open(BUFF_ICON_CONFIG, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    if "BUFF_ICON_MAP" not in data:
+        data["BUFF_ICON_MAP"] = {}
+    # 若该键已存在则跳过，避免重复
+    if key in data["BUFF_ICON_MAP"]:
+        return
+    data["BUFF_ICON_MAP"][key] = filename
+    with open(BUFF_ICON_CONFIG, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def run_batch_buff_icons(dry_run: bool = False) -> None:
+    """根据 图标要求.md 为所有增幅类型生成图标，画风与技能图标一致。"""
+    existing = collect_existing_buff_icons()
+    ART_BUFF_ICONS.mkdir(parents=True, exist_ok=True)
+
+    def is_configured(key: str) -> bool:
+        if key not in existing:
+            return False
+        return (ART_BUFF_ICONS / existing[key]).is_file()
+
+    missing = [k for k in BUFF_ICON_PROMPTS if not is_configured(k)]
+    if not missing:
+        print("所有增幅图标已存在，无需生成。")
+        return
+
+    print(f"共有 {len(BUFF_ICON_PROMPTS)} 种增幅，其中 {len(missing)} 个缺少图标，将为其生成（画风与技能图标一致）。")
+    for i, key in enumerate(missing, 1):
+        prompt_suffix = BUFF_ICON_PROMPTS[key]
+        full_prompt = f"{SKILL_ICON_CORE_TEMPLATE}, {prompt_suffix}".strip()
+        filename = f"{key}.png"
+        print(f"[{i}/{len(missing)}] 增幅: {key} -> {filename}")
+        if dry_run:
+            print(f"  [dry-run] 完整提示词: {full_prompt[:140]}...")
+            continue
+        try:
+            raw_bytes = generate_image(full_prompt, "", for_skill_icon=True)
+            image_bytes = process_skill_icon_image(raw_bytes)
+            save_image(image_bytes, "buff_icons", filename)
+            add_to_buff_icon_map(key, filename)
+            print(f"  已保存并写入映射: {filename}")
+        except Exception as e:
+            print(f"  生成或写入失败: {e}")
+
+    print("批量增幅图标处理完成。")
+
+
+def call_gpt_plan_weapon_texture(context: dict, weapon: dict) -> dict:
+    """为单件武器装备栏贴图规划英文 image_prompt 与 style_notes（文件名由调用方固定为游戏内中文名.png）。"""
+    try:
+        import requests
+    except ImportError:
+        sys.exit("请安装 requests: pip install requests")
+
+    name = weapon.get("name", "")
+    wtype = weapon.get("weaponType", "melee")
+    quality = weapon.get("quality", "common")
+    level = weapon.get("level", 1)
+    trait = get_weapon_trait(name)
+    set_name = get_set_for_weapon(name)
+    ws = get_weapon_skill_lookup().get(name, {})
+    skill_cn_name = (ws.get("skill_name") or "").strip()
+    skill_cn_desc = (ws.get("description") or "").strip()
+    type_hint = (
+        "远程武器（弓/弩）：与近战武器完全相同的「装备栏静物图标」规格——静止展示弓臂、弦、弩身、箭袋或搭在弓上的单支箭；"
+        "禁止弹道拖尾、箭雨、爆炸、战场、写实电影光效；禁止为了强调远程而把画面做成插画场景。"
+        if wtype == "ranged"
+        else "近战武器：静止展示刃、柄、护手与材质，同为装备栏静物图标，不要挥砍动态或人物持握全身像。"
+    )
+    extra = []
+    if trait:
+        extra.append(f"武器词条：{trait}")
+    if set_name:
+        extra.append(f"所属套装：{set_name}")
+    extra_txt = "\n".join(extra) if extra else "（无额外词条/套装说明）"
+    if skill_cn_name or skill_cn_desc:
+        skill_txt = f"技能名称：{skill_cn_name or '（无）'}\n技能效果（游戏内文案）：{skill_cn_desc or '（无）'}"
+    else:
+        skill_txt = "（该武器在 weaponSkills 中无单独条目，请仅从武器中文名与词条推断装饰主题。）"
+
+    user_message = f"""为 Pixel Eternal 生成一件武器的「装备栏道具图标」用的英文主体描述。远程与近战必须与项目中已有武器贴图共用同一套画风（程序会在后面统一追加 pixel art / 黑底 等），你只描述「画什么」。
+
+【武器中文名】{name}
+你必须把中文名的字面意境译成英文造型语言写进 image_prompt（例如「星坠/永夜」→ subtle star chips、meteorite inlay、deep midnight blue metal；「猎风」→ wind-swept engravings、feather fletching motif；不要在画面里写汉字）。
+
+【专属武器技能 — 必须体现在武器本体的纹饰、配色、镶嵌、轮廓细节上，不是画技能特效】
+{skill_txt}
+
+品质 tier：{quality}，等级感约：{level}
+武器类型说明：{type_hint}
+{extra_txt}
+
+项目调性参考（摘要）：{context.get('project_md', '')[:1200]}
+
+请只输出以下 JSON，不要其他文字和 markdown 代码块：
+{{ "image_prompt": "英文，描述武器静物造型，并明确写出如何呼应武器中文名意境与上述技能主题（纹饰/配色/符号）；不要写 pixel art、background、lighting、3d、photo、cinematic、style 等渲染类词汇", "style_notes": "" }}
+
+规则：
+1. image_prompt 必须同时体现：(a) 武器类型与品质；(b) 中文名意境；(c) 专属技能主题在装饰层面的映射（例：高倍伤害技能可用更厚重刃形或能量纹；穿透/贯穿可用脊线、镂空箭槽造型暗示）。仍为单件静物，禁止满屏魔法阵、爆炸、飞行箭幕。
+2. style_notes 必须为空字符串 ""。
+3. 远程武器禁止 trajectory、muzzle flash、arrow streak、explosion 等动态或场景化词汇。"""
+
+    headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
+    body = {
+        "model": CHAT_MODEL,
+        "messages": [{"role": "user", "content": user_message}],
+        "temperature": 0.42,
+    }
+    resp = requests.post(CHAT_URL, headers=headers, json=body, timeout=60)
+    resp.raise_for_status()
+    data = resp.json()
+    content = data["choices"][0]["message"]["content"].strip()
+    if "```" in content:
+        content = re.sub(r"^```\w*\n?", "", content)
+        content = re.sub(r"\n?```\s*$", "", content)
+    content = content.strip()
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError:
+        start = content.find("{")
+        end = content.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            return json.loads(content[start : end + 1])
+        raise RuntimeError(f"武器贴图规划返回非 JSON：{content[:200]!r}")
+
+
+def detect_batch_weapon_textures(user_input: str) -> bool:
+    """判断用户是否要求批量补齐所有武器的装备贴图（与「武器技能图标」区分）。"""
+    t = user_input.strip()
+    if not t or "武器技能" in t:
+        return False
+    # 「武器技能」走技能批处理；含「技能」且不是明确装备贴图时，不误触
+    if "技能" in t and "贴图" not in t and "装备图" not in t:
+        if "装备" not in t or "图标" not in t:
+            return False
+    if "武器" not in t:
+        return False
+    # 装备栏用的武器图：贴图 / 装备图 / 武器图标（排除「技能」相关）
+    has_asset = (
+        "贴图" in t
+        or "装备图" in t
+        or ("装备" in t and "图标" in t)
+        or ("图标" in t and "技能" not in t)
+    )
+    if not has_asset:
+        return False
+    has_all = "所有" in t or "全部" in t or "批量" in t or "每个" in t
+    has_fill = "补齐" in t or "补全" in t or "生成" in t or "做" in t
+    return has_all or has_fill
+
+
+def run_batch_weapon_textures(
+    dry_run: bool = False,
+    force: bool = False,
+    only_ranged: bool = False,
+) -> None:
+    """为 equipment-config 中武器检查 asset 贴图；缺失则规划、生图并写入 mappings.json。
+    force=True 时重绘已有文件（用于统一画风）。only_ranged=True 时仅处理远程武器。
+    """
+    weapons = collect_weapon_entries_from_config()
+    if only_ranged:
+        weapons = [w for w in weapons if w.get("weaponType") == "ranged"]
+    if not weapons:
+        print("未从 equipment-config.json 读取到符合条件的武器。")
+        return
+    if force:
+        missing = list(weapons)
+    else:
+        missing = [w for w in weapons if not weapon_texture_resolved_path(w["name"]).is_file()]
+    if not missing:
+        scope = "远程" if only_ranged else "全部"
+        print(f"共 {len(weapons)} 件武器（{scope}），贴图文件均已存在；若需按新画风替换请使用 --force-weapon-textures。")
+        return
+    mode = "强制重绘" if force else "补缺"
+    scope = "仅远程" if only_ranged else "全部"
+    print(
+        f"武器贴图批量（{scope}，{mode}）：共 {len(weapons)} 件在范围内，本次处理 {len(missing)} 件，将更新 config/mappings.json。"
+    )
+    context = collect_project_context()
+    ART_FOLDER.mkdir(parents=True, exist_ok=True)
+
+    for i, w in enumerate(missing, 1):
+        name = w["name"]
+        rel = get_weapon_asset_relpath(name)
+        dest = ART_FOLDER / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        print(f"[{i}/{len(missing)}] 武器贴图：{name} -> {rel}")
+        if dry_run:
+            print("  [dry-run] 将调用 GPT 规划并生图，未实际请求 API。")
+            continue
+        try:
+            plan = call_gpt_plan_weapon_texture(context, w)
+            subject = (plan.get("image_prompt") or "").strip()
+            if not subject:
+                print("  规划缺少 image_prompt，跳过")
+                continue
+            # 画风统一由固定模板追加，忽略 GPT 的 style_notes，避免远程与近战不一致
+            full_weapon_prompt = f"{subject}. {EQUIPMENT_WEAPON_TEXTURE_STYLE_TEMPLATE}".strip()
+            raw = generate_image(
+                full_weapon_prompt, "", for_skill_icon=False, for_equipment_weapon=True
+            )
+            image_bytes = process_transparent_icon_image(raw)
+            dest.write_bytes(image_bytes)
+            add_equipment_mapping(name, rel)
+            print(f"  已保存并写入 mappings：{rel}")
+        except Exception as e:
+            print(f"  失败: {e}")
+
+    print("批量武器贴图处理完成。")
+
+
+def run_batch_skill_icons(dry_run: bool = False) -> None:
+    """列出所有武器技能、找出缺图标的，逐个生成并写入项目。"""
+    print("正在从 data-classes.js 读取武器技能列表…")
+    weapon_type_by_name = build_weapon_type_by_name()
+    all_skills = collect_weapon_skills()
+    if not all_skills:
+        print("未解析到任何武器技能，请检查 js/data-classes.js 中的 getWeaponSkill。")
+        return
+    print("正在读取已有技能图标配置与 skill_icons 目录…")
+    existing_map = collect_existing_skill_icons()
+    # 未配置 = 配置中无该技能，或配置了但对应文件不存在
+    def is_configured(skill_name: str) -> bool:
+        if skill_name not in existing_map:
+            return False
+        path = ART_SKILL_ICONS / existing_map[skill_name]
+        return path.is_file()
+
+    missing = [s for s in all_skills if not is_configured(s["name"])]
+    if not missing:
+        print("所有武器技能已有图标且文件存在，无需生成。")
+        return
+    print(f"共有 {len(all_skills)} 个武器技能，其中 {len(missing)} 个缺少图标或文件缺失，将为其生成。")
+    context = collect_project_context()
+    ART_SKILL_ICONS.mkdir(parents=True, exist_ok=True)
+
+    for i, skill in enumerate(missing, 1):
+        name = skill["name"]
+        desc = skill.get("description", "")
+        weapon_names = skill.get("weapon_names", [])
+        first_weapon = weapon_names[0] if weapon_names else ""
+        weapon_trait = get_weapon_trait(first_weapon) if first_weapon else ""
+        set_name = get_set_for_weapon(first_weapon) if first_weapon else ""
+        is_ranged_skill = any(weapon_type_by_name.get(wn, "melee") == "ranged" for wn in weapon_names)
+        print(f"[{i}/{len(missing)}] 规划并生成：{name}" + (f"（武器：{first_weapon}）" if first_weapon else ""))
+        if is_ranged_skill:
+            print("  （远程武器技能：图标规划将强调弹道/箭矢等远程特征）")
+        filename = _skill_icon_filename(name)
+        full_prompt = ""
+        try:
+            plan = call_gpt_plan_skill_icon(
+                context, name, desc,
+                weapon_names=weapon_names,
+                weapon_trait=weapon_trait,
+                set_name=set_name,
+                is_ranged_weapon_skill=is_ranged_skill,
+            )
+            shape = (plan.get("shape") or "").strip()
+            texture = (plan.get("texture") or "").strip()
+            color = (plan.get("color") or "").strip()
+            full_prompt = f"{SKILL_ICON_CORE_TEMPLATE}, {shape} with {texture} in {color} palette".strip()
+            if not shape or not texture or not color:
+                print(f"  规划缺少 shape/texture/color，跳过")
+                continue
+        except Exception as e:
+            err_msg = str(e)
+            # 内容策略拦截时，若该技能有硬编码兜底方案则直接用其生成图标
+            if ("content_filter" in err_msg or "content management policy" in err_msg) and name in SKILL_ICON_FALLBACK_PLANS:
+                fallback = SKILL_ICON_FALLBACK_PLANS[name]
+                shape = (fallback.get("shape") or "").strip()
+                texture = (fallback.get("texture") or "").strip()
+                color = (fallback.get("color") or "").strip()
+                full_prompt = f"{SKILL_ICON_CORE_TEMPLATE}, {shape} with {texture} in {color} palette".strip()
+                print(f"  规划被内容策略拦截，使用兜底方案生成：{name}")
+            else:
+                print(f"  规划失败: {e}")
+                print("    常见原因: 1) 网络/服务不可达 2) PE_ART_API_KEY 或 PE_CHAT_URL 未配置/错误 3) GPT 返回了非 JSON")
+                continue
+        if dry_run:
+            print(f"  [dry-run] 将保存为 skill_icons/{filename}（技能名：{name}），不请求生图。")
+            print(f"  完整提示词: {full_prompt[:120]}...")
+            continue
+        try:
+            raw_bytes = generate_image(full_prompt, "", for_skill_icon=True)
+            image_bytes = process_skill_icon_image(raw_bytes)
+            save_image(image_bytes, "skill_icons", filename)
+            add_to_skill_icon_map(name, filename)
+            _log_skill_icon(name, filename, full_prompt, success=True)
+            print(f"  已保存并写入映射：{filename}")
+        except Exception as e:
+            _log_skill_icon(name, filename, full_prompt, success=False, error=str(e))
+            print(f"  生成或写入失败: {e}")
+
+    print("批量技能图标处理完成。")
+
+
+def call_gpt_plan(context: dict, user_input: str) -> dict:
+    """使用 gpt-4o-mini 根据项目上下文和用户输入，决定生图提示词、风格、保存路径等。"""
+    try:
+        import requests
+    except ImportError:
+        sys.exit("请安装 requests: pip install requests")
+
+    system_prompt = """你是 Pixel Eternal 项目的美术资源规划助手。项目是像素风格 RPG，装备贴图放在 asset 目录。
+根据用户自然语言描述和当前项目内容，你必须输出一份严格的 JSON，且只输出该 JSON，不要其他文字。
+
+JSON 格式如下（所有字段必填，除非注明可选）：
+{
+  "image_prompt": "给图像模型用的英文描述，要具体、包含主体与风格，适合 Imagen",
+  "style_notes": "简短风格说明，如 pixel art, game icon, transparent background 等，会拼进 image_prompt",
+  "filename": "保存的文件名，仅英文/数字/下划线，例如 dragon_sword_01.png",
+  "relative_folder": "在 asset 下的子文件夹，如 weapons、helmets、items；若不需要子文件夹则填空字符串 \"\"",
+  "add_to_equipment_config": false,
+  "equipment_entry": null,
+  "add_to_icon_map": false,
+  "display_name_for_icon_map": ""
+}
+
+规则：
+1. image_prompt 必须为英文，描述画面内容；style_notes 会追加到提示词末尾。
+2. filename 不要用中文，用拼音或英文，扩展名必须为 .png。
+3. 若用户明确要“新装备”或“加入游戏装备”，则 add_to_equipment_config 为 true，且 equipment_entry 为对象，格式示例：
+   {"slot": "weapon", "name": "龙炎剑", "level": 5, "quality": "rare", "attack": 28, "critRate": 9, "critDamage": 26}
+   slot 只能是 weapon/helmet/chest/legs/boots/necklace/ring/belt；quality 为 common/rare/fine/epic/legendary。
+4. 若该图要作为游戏内装备图标使用，add_to_icon_map 为 true，display_name_for_icon_map 填游戏内显示的中文名（与 equipment_entry.name 一致或你决定的名称）。
+5. 为保持项目整洁，新装备贴图建议放在对应部位子文件夹：weapons、helmets、chests、legs、boots、necklaces、rings、belts；非装备图可放 items 或根目录（relative_folder 为空）。
+6. 若用户只是“生成一张图”未提装备，则 add_to_equipment_config 和 add_to_icon_map 均为 false，equipment_entry 为 null。
+7. 若生成的是装备/武器栏图标，image_prompt 须便于工具后处理：主体 + 匀质纯黑底 (#000000)；风格为 pixel art equipment icon, retro 16-bit；远程与近战同一像素道具语言。工具会输出透明底 PNG，边长默认为 68 像素（环境变量 PE_EXPORT_ICON_SIZE 可改）。"""
+
+    user_message = f"""当前项目信息：
+- PROJECT.md 摘要：{context['project_md'][:3000]}
+- 已有装备（slot -> name）：{json.dumps(context['equipment_list'], ensure_ascii=False)}
+- 已有资源文件列表：{context['existing_assets'][:200]}
+- 已有子文件夹：{context['asset_subfolders']}
+
+用户描述：{user_input}
+
+请只输出上述格式的 JSON，不要 markdown 代码块包裹。"""
+
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json",
+    }
+    body = {
+        "model": CHAT_MODEL,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_message},
+        ],
+        "temperature": 0.3,
+    }
+
+    resp = requests.post(CHAT_URL, headers=headers, json=body, timeout=60)
+    resp.raise_for_status()
+    data = resp.json()
+    content = data["choices"][0]["message"]["content"].strip()
+    # 去掉可能的 markdown 代码块
+    if content.startswith("```"):
+        content = re.sub(r"^```\w*\n?", "", content)
+        content = re.sub(r"\n?```\s*$", "", content)
+    return json.loads(content)
+
+
+def generate_image(
+    prompt: str,
+    style_notes: str,
+    for_skill_icon: bool = False,
+    for_equipment_weapon: bool = False,
+) -> bytes:
+    """调用 Imagen API 生成图片，返回 PNG 字节。技能图标与武器装备贴图可带专用 negative_prompt。"""
+    try:
+        import requests
+    except ImportError:
+        sys.exit("请安装 requests: pip install requests")
+
+    full_prompt = f"{prompt}. {style_notes}".strip() if style_notes else prompt
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json",
+    }
+    body = {
+        "model": IMAGE_MODEL,
+        "prompt": full_prompt,
+        "n": 1,
+        "size": "1024x1024",
+        "response_format": "b64_json",
+    }
+    if for_skill_icon and SKILL_ICON_NEGATIVE_PROMPT:
+        body["negative_prompt"] = SKILL_ICON_NEGATIVE_PROMPT
+    elif for_equipment_weapon and EQUIPMENT_WEAPON_NEGATIVE_PROMPT:
+        body["negative_prompt"] = EQUIPMENT_WEAPON_NEGATIVE_PROMPT
+    if for_skill_icon:
+        body["quality"] = "ultra-detail"
+        body["style_strength"] = 0.95
+        body["steps"] = 60
+
+    last_err = None
+    for attempt in range(3):
+        try:
+            resp = requests.post(IMAGE_URL, headers=headers, json=body, timeout=120)
+            resp.raise_for_status()
+            data = resp.json()
+            if "data" not in data or not data["data"]:
+                raise RuntimeError("API 未返回图片数据：" + str(data)[:200])
+            item = data["data"][0]
+            if "b64_json" in item:
+                return base64.b64decode(item["b64_json"])
+            if "url" in item:
+                r2 = requests.get(item["url"], timeout=60)
+                r2.raise_for_status()
+                return r2.content
+            raise RuntimeError("API 返回中既无 b64_json 也无 url：" + str(item)[:200])
+        except Exception as e:
+            last_err = e
+            if attempt < 2:
+                import time
+                time.sleep(2 ** attempt)
+            continue
+    raise last_err
+
+
+def process_transparent_icon_image(raw_png_bytes: bytes, size: int = None) -> bytes:
+    """将生图结果缩放为 size×size（默认 EXPORT_ICON_SIZE），NEAREST；从四边对匀质黑底做 flood-fill 为透明，输出 RGBA PNG。"""
+    if size is None:
+        size = EXPORT_ICON_SIZE
+    try:
+        from PIL import Image
+        import io
+    except ImportError:
+        sys.exit("请安装 Pillow: pip install Pillow")
+
+    img = Image.open(io.BytesIO(raw_png_bytes)).convert("RGBA")
+    img = img.resize((size, size), Image.NEAREST)
+    w, h = img.size
+    pixels = img.load()
+    key = CHROMA_KEY_THRESHOLD
+
+    def is_bg(x: int, y: int) -> bool:
+        r, g, b, _a = pixels[x, y]
+        return r <= key and g <= key and b <= key
+
+    visited = [[False] * w for _ in range(h)]
+    q = deque()
+    for x in range(w):
+        for y in (0, h - 1):
+            if not visited[y][x] and is_bg(x, y):
+                visited[y][x] = True
+                q.append((x, y))
+    for y in range(h):
+        for x in (0, w - 1):
+            if not visited[y][x] and is_bg(x, y):
+                visited[y][x] = True
+                q.append((x, y))
+    while q:
+        x, y = q.popleft()
+        pixels[x, y] = (0, 0, 0, 0)
+        for nx, ny in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)):
+            if 0 <= nx < w and 0 <= ny < h and not visited[ny][nx] and is_bg(nx, ny):
+                visited[ny][nx] = True
+                q.append((nx, ny))
+
+    buf = io.BytesIO()
+    img.save(buf, "PNG")
+    return buf.getvalue()
+
+
+def process_skill_icon_image(raw_png_bytes: bytes) -> bytes:
+    """技能/增幅图标：透明底 + EXPORT_ICON_SIZE 方形（与 process_transparent_icon_image 相同）。"""
+    return process_transparent_icon_image(raw_png_bytes)
+
+
+def _log_skill_icon(skill_name: str, filename: str, prompt: str, success: bool, error: str = "") -> None:
+    """生图要求：记录每条技能图标的成功/失败日志到 asset/skill_icons/logs/。"""
+    log_dir = ART_SKILL_ICONS / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / f"generate_{datetime.now().strftime('%Y%m%d')}.log"
+    line = f"{datetime.now().isoformat()} | {'OK' if success else 'FAIL'} | {skill_name} | {filename} | {error or '-'}\n"
+    if not success and prompt:
+        line += f"  prompt: {prompt[:200]}...\n"
+    try:
+        content = log_file.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        content = ""
+    log_file.write_text(content + line, encoding="utf-8")
+
+
+def save_image(image_bytes: bytes, relative_folder: str, filename: str) -> Path:
+    """将图片保存到 asset[/relative_folder]/filename，必要时创建目录。"""
+    if relative_folder:
+        folder = ART_FOLDER / relative_folder.strip()
+    else:
+        folder = ART_FOLDER
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / filename
+    path.write_bytes(image_bytes)
+    return path
+
+
+def add_equipment_to_config(entry: dict) -> None:
+    """在 equipment-config.json 的 EQUIPMENT_DEFINITIONS 中追加一条装备定义。"""
+    if not EQUIPMENT_CONFIG.exists():
+        data = {"EQUIPMENT_DEFINITIONS": []}
+    else:
+        with open(EQUIPMENT_CONFIG, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    if "EQUIPMENT_DEFINITIONS" not in data:
+        data["EQUIPMENT_DEFINITIONS"] = []
+    
+    # 构建装备条目
+    new_entry = {
+        "slot": entry.get("slot", "weapon"),
+        "name": entry.get("name", "未命名"),
+        "level": entry.get("level", 1),
+        "quality": entry.get("quality", "common")
+    }
+    slot = new_entry["slot"]
+    if slot == "weapon":
+        new_entry["attack"] = entry.get("attack", 12)
+        new_entry["critRate"] = entry.get("critRate", 4)
+        new_entry["critDamage"] = entry.get("critDamage", 18)
+    elif slot in ("necklace", "ring", "belt"):
+        new_entry["dodge"] = entry.get("dodge", 1)
+        new_entry["attackSpeed"] = entry.get("attackSpeed", 3)
+        new_entry["moveSpeed"] = entry.get("moveSpeed", 2)
+    else:
+        new_entry["health"] = entry.get("health", 20)
+        new_entry["defense"] = entry.get("defense", 2)
+    
+    data["EQUIPMENT_DEFINITIONS"].append(new_entry)
+    with open(EQUIPMENT_CONFIG, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def add_to_icon_map(display_name: str, image_relative_path: str) -> None:
+    """在 game-main.js 的 nameMap 中增加一条  '显示名': '相对路径'。"""
+    text = GAME_MAIN.read_text(encoding="utf-8")
+    # 最后一条目前无逗号，在其后加逗号并追加新行，再保留 };
+    old_tail = "            '星界纽带': '星界纽带_20260127_090945_106.png'\n        };"
+    new_tail = "            '星界纽带': '星界纽带_20260127_090945_106.png',\n            '{}': '{}'\n        }};".format(
+        display_name.replace("'", "\\'"), image_relative_path.replace("\\", "\\\\")
+    )
+    if old_tail not in text:
+        raise RuntimeError("game-main.js 中 nameMap 结尾未找到预期内容，请手动添加贴图映射")
+    text = text.replace(old_tail, new_tail, 1)
+    GAME_MAIN.write_text(text, encoding="utf-8")
+
+
+def detect_batch_buff_icons(user_input: str) -> bool:
+    """判断用户是否在要求「生成/补齐所有增幅图标」。"""
+    t = user_input.strip()
+    if not t:
+        return False
+    has_buff = "增幅" in t or "效果" in t or "buff" in t.lower()
+    has_icon = "图标" in t or "icon" in t.lower() or "图" in t
+    has_generate = "生成" in t or "补齐" in t or "补全" in t or "做" in t
+    return has_buff and has_icon and (has_generate or "全部" in t or "所有" in t)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="自然语言生成游戏美术资源并写入项目")
+    parser.add_argument("input", nargs="?", help="自然语言描述，例如：为游戏生成一把龙炎剑的装备图标")
+    parser.add_argument("--dry-run", action="store_true", help="只调用 GPT 规划，不请求生图与写文件")
+    parser.add_argument("--list-missing", action="store_true", help="仅列出尚未配置图标的武器技能（不调用 API）")
+    parser.add_argument("--list-missing-buff", action="store_true", help="仅列出尚未配置图标的增幅类型（不调用 API）")
+    parser.add_argument(
+        "--list-missing-weapons",
+        action="store_true",
+        help="仅列出 equipment-config 中缺少贴图文件的武器（不调用 API）",
+    )
+    parser.add_argument(
+        "--force-weapon-textures",
+        action="store_true",
+        help="批量武器贴图时重绘已存在的 PNG（修正画风后与「补齐所有武器贴图」类指令联用）",
+    )
+    parser.add_argument(
+        "--only-ranged-weapon-textures",
+        action="store_true",
+        help="批量武器贴图时仅处理 weaponType 为 ranged 的武器",
+    )
+    args = parser.parse_args()
+
+    if args.list_missing:
+        all_skills = collect_weapon_skills()
+        existing_map = collect_existing_skill_icons()
+        missing = [
+            s for s in all_skills
+            if s["name"] not in existing_map or not (ART_SKILL_ICONS / existing_map[s["name"]]).is_file()
+        ]
+        print(f"武器技能总数: {len(all_skills)}，已配置且文件存在: {len(all_skills) - len(missing)}，缺失: {len(missing)}")
+        for s in missing:
+            status = "无配置" if s["name"] not in existing_map else "配置存在但文件缺失"
+            print(f"  - {s['name']} ({status})")
+        return
+
+    if args.list_missing_buff:
+        existing = collect_existing_buff_icons()
+        missing = [
+            k for k in BUFF_ICON_PROMPTS
+            if k not in existing or not (ART_BUFF_ICONS / existing[k]).is_file()
+        ]
+        print(f"增幅类型总数: {len(BUFF_ICON_PROMPTS)}，已配置且文件存在: {len(BUFF_ICON_PROMPTS) - len(missing)}，缺失: {len(missing)}")
+        for k in missing:
+            status = "无配置" if k not in existing else "配置存在但文件缺失"
+            print(f"  - {k} ({status})")
+        return
+
+    if args.list_missing_weapons:
+        weapons = collect_weapon_entries_from_config()
+        missing = [w for w in weapons if not weapon_texture_resolved_path(w["name"]).is_file()]
+        print(f"武器总数: {len(weapons)}，贴图文件已存在: {len(weapons) - len(missing)}，缺失: {len(missing)}")
+        for w in missing:
+            rel = get_weapon_asset_relpath(w["name"])
+            print(f"  - {w['name']} (期望文件: asset/{rel})")
+        return
+
+    user_input = args.input
+    if not user_input:
+        user_input = input("请用自然语言描述要生成的美术资源（例如：一把传说品质的龙炎剑图标 / 生成所有武器技能的图标 / 生成所有增幅的图标）：\n").strip()
+    if not user_input:
+        print("未输入描述，退出。")
+        sys.exit(1)
+
+    # 识别「生成所有增幅图标」类请求，走批量增幅图标流程
+    if detect_batch_buff_icons(user_input):
+        run_batch_buff_icons(dry_run=args.dry_run)
+        return
+
+    # 识别「生成所有武器技能图标」类请求，走批量补齐流程
+    if detect_batch_skill_icons(user_input):
+        run_batch_skill_icons(dry_run=args.dry_run)
+        return
+
+    # 识别「补齐所有武器贴图 / 装备栏武器图标」类请求
+    if detect_batch_weapon_textures(user_input):
+        run_batch_weapon_textures(
+            dry_run=args.dry_run,
+            force=args.force_weapon_textures,
+            only_ranged=args.only_ranged_weapon_textures,
+        )
+        return
+
+    print("正在收集项目上下文…")
+    context = collect_project_context()
+    print("正在用 GPT 规划提示词与保存位置…")
+    plan = call_gpt_plan(context, user_input)
+
+    print("规划结果：")
+    print(json.dumps(plan, ensure_ascii=False, indent=2))
+
+    if args.dry_run:
+        print("（dry-run，未生图与写文件）")
+        return
+
+    print("正在调用 Imagen 生成图片…")
+    image_bytes = generate_image(plan["image_prompt"], plan.get("style_notes", ""))
+    if plan.get("add_to_equipment_config") or plan.get("add_to_icon_map"):
+        image_bytes = process_transparent_icon_image(image_bytes)
+        print(f"已后处理为 {EXPORT_ICON_SIZE}×{EXPORT_ICON_SIZE} 透明底 PNG。")
+    print("正在保存到项目…")
+    rel_folder = plan.get("relative_folder") or ""
+    filename = plan.get("filename") or f"generated_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    if not filename.lower().endswith(".png"):
+        filename += ".png"
+    saved_path = save_image(image_bytes, rel_folder, filename)
+    print(f"已保存：{saved_path}")
+
+    # 游戏内引用路径：子文件夹/文件名 或 文件名
+    if rel_folder:
+        icon_map_value = f"{rel_folder}/{filename}"
+    else:
+        icon_map_value = filename
+
+    if plan.get("add_to_equipment_config") and plan.get("equipment_entry"):
+        add_equipment_to_config(plan["equipment_entry"])
+        print("已向 equipment-config.json 添加装备条目。")
+
+    if plan.get("add_to_icon_map") and plan.get("display_name_for_icon_map"):
+        add_to_icon_map(plan["display_name_for_icon_map"], icon_map_value)
+        print("已在 game-main.js 的装备贴图映射中添加条目。")
+
+    print("完成。")
+
+
+if __name__ == "__main__":
+    main()

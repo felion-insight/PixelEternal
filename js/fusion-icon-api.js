@@ -1,0 +1,274 @@
+/**
+ * 合铸成功后：调用与 tools/art_generator 相同的 OpenAI 兼容 Chat + Imagen 接口，
+ * 生成与原材料装备名称、词条及新装备名有关联的装备贴图，写入 AssetManager 并持久化。
+ */
+(function () {
+    'use strict';
+
+    const EXPORT_SIZE = 68;
+    const CHROMA_THRESHOLD = 10;
+    const CHAT_MODEL = (typeof CONFIG !== 'undefined' && CONFIG.HEZHU_FUSION_ICON_CHAT_MODEL) ? CONFIG.HEZHU_FUSION_ICON_CHAT_MODEL : 'gpt-4o-mini';
+    const IMAGE_MODEL = (typeof CONFIG !== 'undefined' && CONFIG.HEZHU_FUSION_ICON_IMAGE_MODEL) ? CONFIG.HEZHU_FUSION_ICON_IMAGE_MODEL : 'imagen-4.0-ultra-generate-001';
+
+    const STYLE_SUFFIX_BY_SLOT = {
+        weapon: 'single weapon centered in frame, inventory item still-life, static pose, no action scene',
+        helmet: 'single helmet centered in frame, inventory item still-life, static pose',
+        chest: 'single chest armor centered in frame, inventory item still-life, static pose',
+        legs: 'single leg armor piece centered in frame, inventory item still-life, static pose',
+        boots: 'single boots centered in frame, inventory item still-life, static pose',
+        necklace: 'single necklace or pendant centered in frame, inventory item still-life, static pose',
+        ring: 'single ring centered in frame, inventory item still-life, static pose',
+        belt: 'single belt centered in frame, inventory item still-life, static pose'
+    };
+
+    function styleTemplate(slot) {
+        const mid = STYLE_SUFFIX_BY_SLOT[slot] || 'single equipment item centered in frame, inventory item still-life, static pose';
+        return (
+            'Pixel art equipment icon, retro 16-bit style, ultra-detailed pixel clusters, ' + mid + ', ' +
+            'solid pure black background (#000000) flat uniform behind the subject only, no text, no watermark, no decorative border, no UI frame, ' +
+            'minimalistic, razor-sharp pixel edges, no anti-aliasing, no photorealism, no 3D render look'
+        );
+    }
+
+    const NEGATIVE = (
+        'photorealistic, realistic photo, photograph, 3d render, octane render, unreal engine, cinematic lighting, ' +
+        'vector illustration, smooth gradients, oil painting, watercolor, sketch, anime screenshot, ' +
+        'watermarks, text, letters, multiple items, character holding item, full body, busy background, ' +
+        'motion blur, explosion, battlefield scene'
+    );
+
+    function apiBase() {
+        const b = (typeof CONFIG !== 'undefined' && CONFIG.HEZHU_API_BASE) ? String(CONFIG.HEZHU_API_BASE) : 'http://35.220.164.252:3888';
+        return b.replace(/\/+$/, '');
+    }
+
+    function imageApiKey() {
+        if (typeof CONFIG === 'undefined') return '';
+        return (CONFIG.HEZHU_FUSION_ICON_API_KEY && String(CONFIG.HEZHU_FUSION_ICON_API_KEY).trim()) ||
+            (CONFIG.HEZHU_ART_API_KEY && String(CONFIG.HEZHU_ART_API_KEY).trim()) || '';
+    }
+
+    /** 单件装备身份（与合铸是否成功时的校验字段一致：部位、名、词条 id、武器近战/远程、品质） */
+    function equipmentSideKey(eq) {
+        const slot = String(eq && eq.slot != null ? eq.slot : '');
+        const name = String(eq && eq.name != null ? eq.name : '');
+        const tid = (eq && eq.equipmentTraits && eq.equipmentTraits.id != null) ? String(eq.equipmentTraits.id) : '';
+        const qt = String(eq && eq.quality != null ? eq.quality : '');
+        const wt = (slot === 'weapon') ? String(eq && eq.weaponType != null ? eq.weaponType : '') : '';
+        return slot + '<::>' + name + '<::>' + tid + '<::>' + wt + '<::>' + qt;
+    }
+
+    /** 原材料 A+B 的稳定键（顺序无关），用于同一存档内复用合铸贴图 */
+    function computeFusionPairKey(eqA, eqB) {
+        const a = equipmentSideKey(eqA);
+        const b = equipmentSideKey(eqB);
+        return (a < b) ? (a + '<<||>>' + b) : (b + '<<||>>' + a);
+    }
+
+    function buildPlanPrompt(newName, eqA, eqB, slot, quality, traitDescription) {
+        const descA = (eqA.equipmentTraits && eqA.equipmentTraits.description) ? eqA.equipmentTraits.description : '';
+        const descB = (eqB.equipmentTraits && eqB.equipmentTraits.description) ? eqB.equipmentTraits.description : '';
+        return (
+            '你是 Pixel Eternal 像素风 RPG 的装备图标规划助手。合铸得到一件新装备，需要英文「静物主体描述」供图像模型使用。\n\n' +
+            '【新装备中文名】' + newName + '\n（请把名称的字面意境译成英文造型语言写入 subject，不要在画面里出现汉字。）\n\n' +
+            '【部位 slot】' + slot + ' 【品质】' + quality + '\n\n' +
+            '【原材料 A】名称：' + (eqA.name || '') + '；词条：' + descA + '\n' +
+            '【原材料 B】名称：' + (eqB.name || '') + '；词条：' + descB + '\n\n' +
+            '【新装备词条说明】' + (traitDescription || '') + '\n\n' +
+            '要求：subject 仅描述一件静物的造型、材质、纹饰与配色，必须视觉融合两件原材料的名称意象与词条主题（例如冰霜+火焰可用双色水晶镶边、霜纹与余烬刻痕并存）。\n' +
+            '禁止在 subject 中写 pixel art、background、lighting、3d、photo、cinematic、style 等渲染词。\n\n' +
+            '只输出一个 JSON 对象，不要 markdown：\n{"subject":"英文名词短语与材质描述，一句到三句"}'
+        );
+    }
+
+    async function chatPlanSubject(prompt, apiKey) {
+        const url = apiBase() + '/v1/chat/completions';
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiKey
+            },
+            body: JSON.stringify({
+                model: CHAT_MODEL,
+                messages: [{ role: 'user', content: prompt }],
+                temperature: 0.4
+            })
+        });
+        if (!res.ok) {
+            const t = await res.text();
+            throw new Error('合铸贴图规划失败: ' + res.status + ' ' + t.slice(0, 200));
+        }
+        const data = await res.json();
+        const content = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content)
+            ? data.choices[0].message.content.trim() : '';
+        let jsonStr = content;
+        if (jsonStr.indexOf('```') !== -1) {
+            jsonStr = jsonStr.replace(/^```\w*\n?/, '').replace(/\n?```\s*$/, '');
+        }
+        const start = jsonStr.indexOf('{');
+        const end = jsonStr.lastIndexOf('}');
+        if (start === -1 || end <= start) throw new Error('合铸贴图：规划返回非 JSON');
+        const parsed = JSON.parse(jsonStr.slice(start, end + 1));
+        const subject = String(parsed.subject || '').trim();
+        if (!subject) throw new Error('合铸贴图：规划缺少 subject');
+        return subject;
+    }
+
+    async function generateImageB64(fullPrompt, apiKey) {
+        const url = apiBase() + '/v1/images/generations';
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiKey
+            },
+            body: JSON.stringify({
+                model: IMAGE_MODEL,
+                prompt: fullPrompt,
+                n: 1,
+                size: '1024x1024',
+                response_format: 'b64_json',
+                negative_prompt: NEGATIVE
+            })
+        });
+        if (!res.ok) {
+            const t = await res.text();
+            throw new Error('合铸贴图生图失败: ' + res.status + ' ' + t.slice(0, 200));
+        }
+        const data = await res.json();
+        if (!data.data || !data.data[0]) throw new Error('合铸贴图：无图像数据');
+        const item = data.data[0];
+        if (item.b64_json) return item.b64_json;
+        if (item.url) {
+            const r2 = await fetch(item.url);
+            if (!r2.ok) throw new Error('合铸贴图：下载 url 失败');
+            const buf = await r2.arrayBuffer();
+            let binary = '';
+            const bytes = new Uint8Array(buf);
+            for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+            return btoa(binary);
+        }
+        throw new Error('合铸贴图：响应无 b64_json/url');
+    }
+
+    function b64ToImageData(b64) {
+        const binary = atob(b64);
+        const len = binary.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+        const blob = new Blob([bytes], { type: 'image/png' });
+        return URL.createObjectURL(blob);
+    }
+
+    function floodEdgeTransparent(imageData, w, h) {
+        const d = imageData.data;
+        const thr = CHROMA_THRESHOLD;
+        function isBg(x, y) {
+            const i = (y * w + x) * 4;
+            return d[i] <= thr && d[i + 1] <= thr && d[i + 2] <= thr;
+        }
+        const seen = new Uint8Array(w * h);
+        const q = [];
+        function tryPush(x, y) {
+            if (x < 0 || y < 0 || x >= w || y >= h) return;
+            const k = y * w + x;
+            if (seen[k]) return;
+            if (!isBg(x, y)) return;
+            seen[k] = 1;
+            q.push(x, y);
+        }
+        for (let x = 0; x < w; x++) {
+            tryPush(x, 0);
+            tryPush(x, h - 1);
+        }
+        for (let y = 0; y < h; y++) {
+            tryPush(0, y);
+            tryPush(w - 1, y);
+        }
+        let qi = 0;
+        while (qi < q.length) {
+            const x = q[qi++];
+            const y = q[qi++];
+            const i = (y * w + x) * 4;
+            d[i + 3] = 0;
+            tryPush(x - 1, y);
+            tryPush(x + 1, y);
+            tryPush(x, y - 1);
+            tryPush(x, y + 1);
+        }
+    }
+
+    function processToDataUrl(b64, slot) {
+        return new Promise(function (resolve, reject) {
+            const blobUrl = b64ToImageData(b64);
+            const img = new Image();
+            img.onload = function () {
+                try {
+                    URL.revokeObjectURL(blobUrl);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = EXPORT_SIZE;
+                    canvas.height = EXPORT_SIZE;
+                    const ctx = canvas.getContext('2d');
+                    ctx.imageSmoothingEnabled = false;
+                    ctx.drawImage(img, 0, 0, EXPORT_SIZE, EXPORT_SIZE);
+                    const imageData = ctx.getImageData(0, 0, EXPORT_SIZE, EXPORT_SIZE);
+                    floodEdgeTransparent(imageData, EXPORT_SIZE, EXPORT_SIZE);
+                    ctx.putImageData(imageData, 0, 0);
+                    resolve(canvas.toDataURL('image/png'));
+                } catch (e) {
+                    URL.revokeObjectURL(blobUrl);
+                    reject(e);
+                }
+            };
+            img.onerror = function () {
+                URL.revokeObjectURL(blobUrl);
+                reject(new Error('合铸贴图：无法解码 PNG'));
+            };
+            img.src = blobUrl;
+        });
+    }
+
+    /**
+     * 合铸成功后异步生成并注册贴图（失败仅打日志，不影响游戏）
+     * @param {Game} game
+     * @param {string} newName
+     * @param {Object} eqA
+     * @param {Object} eqB
+     * @param {{ slot: string, quality: string, traitDescription: string }} meta
+     */
+    async function requestAndApply(game, newName, eqA, eqB, meta) {
+        const pairKey = computeFusionPairKey(eqA, eqB);
+        const am = game && game.assetManager;
+        if (am && typeof am.getFusionIconDataUrlByPairKey === 'function' && typeof am.registerFusionEquipmentPairAndName === 'function') {
+            const cached = am.getFusionIconDataUrlByPairKey(pairKey);
+            if (cached) {
+                am.registerFusionEquipmentPairAndName(pairKey, newName, cached);
+                return;
+            }
+        }
+
+        if (typeof CONFIG !== 'undefined' && CONFIG.HEZHU_FUSION_ICON_ENABLE === false) return;
+        const apiKey = imageApiKey();
+        if (!apiKey) {
+            console.warn('合铸装备贴图：未配置 HEZHU_FUSION_ICON_API_KEY 或 HEZHU_ART_API_KEY，已跳过生图');
+            return;
+        }
+        const slot = meta.slot || 'weapon';
+        const quality = meta.quality || 'rare';
+        const traitDescription = meta.traitDescription || '';
+        const planPrompt = buildPlanPrompt(newName, eqA, eqB, slot, quality, traitDescription);
+        const subject = await chatPlanSubject(planPrompt, apiKey);
+        const fullPrompt = subject + '. ' + styleTemplate(slot);
+        const b64 = await generateImageB64(fullPrompt, apiKey);
+        const dataUrl = await processToDataUrl(b64, slot);
+        if (am && typeof am.registerFusionEquipmentPairAndName === 'function') {
+            am.registerFusionEquipmentPairAndName(pairKey, newName, dataUrl);
+        }
+    }
+
+    window.FusionIconAPI = {
+        requestAndApply: requestAndApply,
+        computeFusionPairKey: computeFusionPairKey
+    };
+})();

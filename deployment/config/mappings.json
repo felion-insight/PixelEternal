@@ -1,0 +1,371 @@
+{
+    "equipment": {
+        "\u701a\u6d77\u661f\u5195": "0c7c8d4a-8bd9-4d03-b40b-6ca9aa25c8bc.png",
+        "\u9677\u9635\u91cd\u62a4\u817f": "ffe4381f-58b0-46e7-bef1-dfb113ce1c94.png",
+        "\u86ee\u529b\u4e4b\u6e90": "3804a8c3-e8d8-4693-aa7d-0603d220382a.png",
+        "\u6c38\u6052\u661f\u8fb0": "97ab5ef4-ea06-4ec1-8ba2-2b0bd97194c7.png",
+        "\u94a2\u6263\u76ae\u5e26": "cb3c56d8-6482-4bdc-b7fc-bdb17a66544e.png",
+        "\u94f6\u6cb3\u8f68\u8ff9": "b0dc8ae8-9ee0-4243-ba67-6b2f4e13ff11.png",
+        "\u96c4\u72ee\u677f\u7532": "dfb552b3-7a10-4141-8a3a-4916a9b6caaf.png",
+        "\u8f70\u9e23\u96f7\u51a0": "e3faa0df-d502-4de9-b971-f12fbc5b3cad.png",
+        "\u9006\u9cde\u5c60\u9f99\u950b": "faed51b4-5dfd-44d1-ba3d-8a9d6d231b78.png",
+        "\u94c1\u536b\u62a4\u817f": "babf8c84-b7a0-40b3-84f1-acad353b0bfa.png",
+        "\u53e4\u9057\u9752\u94dc\u73af": "d225426d-f627-4822-b587-e50d87dbb9dc.png",
+        "\u82e6\u884c\u8005\u957f\u886b": "cf7e1879-13c3-4c10-8410-e8afbc69945d.png",
+        "\u7edd\u5c18\u971c\u76d4": "98b0f7ee-01bc-4160-bfd2-870aaba549ba.png",
+        "\u58c1\u5792\u8170\u5e26": "8ddd5889-1834-4c24-8116-1596d93d37a0.png",
+        "\u5760\u661f\u88c1\u51b3": "b8612dd7-1b45-4300-a778-e85b847b753c.png",
+        "\u5954\u96f7\u675f\u7f1a": "d5541aca-72b7-428b-bd2c-6d2dfd913dfd.png",
+        "\u521b\u4e16\u6cd5\u5219": "67fba4f0-61e7-4f42-8b5c-8fb47cdefd46.png",
+        "\u5f8b\u6cd5\u5723\u5e26": "6ffdbcb7-3c04-49af-b07e-a0c4ed52dd49.png",
+        "\u795e\u5a01\u5934\u76d4": "6f6019f9-9375-411f-8563-f82f7959fe8d.png",
+        "\u575a\u6bc5\u94c1\u76d4": "37867bbf-99e8-45a9-a672-504b01b9ea03.png",
+        "\u9f99\u7b4b\u62a4\u817f": "6bbd79ef-a0b6-4d43-a931-e2de2d18c139.png",
+        "\u70ec\u706d\u7ea2\u83b2": "9a345879-56cf-44d2-b1e0-5947325e7901.png",
+        "\u971c\u7eb9\u88d9\u7532": "fd9238da-051a-4e8d-a6cf-ad5b78600d93.png",
+        "\u83b9\u5f7b\u6676\u76d4": "70557f39-5ebb-4deb-9776-bfc1aa6b6906.png",
+        "\u7194\u5ca9\u91cd\u94e0": "989a42a3-d140-4dc0-9d86-13dc74302035.png",
+        "\u4f17\u795e\u51a0\u5195": "b767f642-bda6-4ff3-b2af-57c560127077.png",
+        "\u971c\u9b42\u51dd\u89c6": "b2750b50-4165-4789-8058-e99f5d5df833.png",
+        "\u6708\u5f71\u6d41\u5149": "eb9b783a-c538-4528-901f-b968e385d267.png",
+        "\u6d41\u94f6\u62a4\u80eb": "fa541e74-76ab-4912-af51-1eb27fb4ecae.png",
+        "\u708e\u9b54\u4e4b\u77b3": "0187dfe3-7783-40b0-93d1-b3036ac2191b.png",
+        "\u971c\u51bb\u4e4b\u89e6": "a18ddda1-ffca-41be-bcad-cb7c218f91ca.png",
+        "\u517d\u7eb9\u76ae\u88e4": "8b95a763-5862-430d-918d-110dbae691e9.png",
+        "\u8bf8\u795e\u7737\u987e": "668a1e28-6e62-41bf-bda1-136081fa3c7b.png",
+        "\u9006\u9cde\u9f99\u94e0": "8cc8cce9-112d-40c4-9a87-b73d7faa1be9.png",
+        "\u7409\u7483\u6676\u80eb": "9809d46e-6ba5-433c-bbc2-d227bd03b4eb.png",
+        "\u70bd\u708e\u4e4b\u73af": "40c2c956-89a3-4646-a148-531bbdafbb50.png",
+        "\u6781\u5730\u6c38\u51bb": "66842fd0-1193-4363-82f2-6e68aa4e9c70.png",
+        "\u7480\u74a8\u661f\u56fe": "bcd09f1f-9d7d-4cb3-b828-1e8e62c836ef.png",
+        "\u53e4\u6734\u9752\u94dc\u76d4": "3579024f-85d3-44a1-b2ba-fac954f3da93.png",
+        "\u6c38\u6052\u6218\u7532": "c464c6f8-6394-477e-a95c-6560a1e82842.png",
+        "\u5254\u900f\u6676\u9774": "8d50cef3-f20b-447d-8f70-7ef37396377b.png",
+        "\u7075\u80fd\u8c10\u632f": "6d2bc19d-71fb-49ef-8811-f108ec11cb56.png",
+        "\u65c5\u4eba\u8349\u978b": "06041809-3d37-45ae-9fb4-cb27b3d98701.png",
+        "\u52ab\u706b\u711a\u4f24": "069f19c2-2d02-4540-96a3-55aeb5425352.png",
+        "\u60ca\u96f7\u7834\u6653": "8cdff77f-cbff-4cf0-884a-883a7164a0a4.png",
+        "\u548f\u5492\u5e08\u957f\u888d": "1df11daa-8c20-42b2-837d-132e4dccd5e4.png",
+        "\u9010\u6708\u94f6\u8292\u5251": "2f5eda8f-4cec-4e6d-b393-9bea2dc90c45.png",
+        "\u730e\u624b\u76ae\u5e3d": "69747f7e-e699-4307-9f5d-9b6fb88af648.png",
+        "\u6591\u9a73\u9752\u94dc\u94e0": "3b286c70-9b18-4065-b17c-7453a967727a.png",
+        "\u6781\u661f\u62a4\u4f51": "182045b2-d567-4a1e-869d-3b365c1e1ed0.png",
+        "\u6e38\u4fa0\u5e03\u88e4": "f48a49b6-2e27-4e54-b4bb-f276a089fc99.png",
+        "\u9ec4\u94dc\u52cb\u7ae0": "217dbbb3-5ac3-4280-a275-d48f7520f049.png",
+        "\u8f89\u5149\u79d8\u94f6\u5203": "e1aaf26e-4bcc-4473-b6ef-f40e328149c0.png",
+        "\u8fc5\u5f71\u4e4b\u89e6": "edb42849-1ec6-42d0-b8c7-1cb1601b9311.png",
+        "\u51dd\u971c\u8fdc\u884c": "0c69c517-6c76-4829-9316-9153565ab1e8.png",
+        "\u8346\u68d8\u76ae\u7532": "8f28d2e1-3483-406d-8f7b-73d36005a45d.png",
+        "\u94f6\u7ffc\u675f\u5e26": "4a24e8e6-7212-409d-a4c3-a4708d42112c.png",
+        "\u9f99\u606f\u4e4b\u63e1": "6b320e3a-7509-43b7-8ec4-2b96542d5420.png",
+        "\u91d1\u6743\u6212\u5f8b": "ff43841a-1db4-4511-93e3-9af9a816da55.png",
+        "\u7f16\u7ec7\u8170\u5e26": "f3cb0762-2653-4dc4-acfb-ec03660bb68e.png",
+        "\u9f99\u5fc3\u5782\u9970": "1d468378-4722-4367-a420-e5fb924ecf21.png",
+        "\u9a81\u52c7\u94a2\u76d4": "4e45c13c-a418-4e9f-9f14-7f17bd73f62d.png",
+        "\u88c2\u7a7a\u96f7\u7eb9": "0f155a09-9b22-4d05-ae64-abdff6775422.png",
+        "\u6df7\u6c8c\u4e4b\u5203": "f22a99b8-c9e4-404e-9e15-b22131443114.png",
+        "\u8fc5\u96f7\u95ea\u6b65": "d75fea71-999b-4884-ba6f-ff2b290c0a40.png",
+        "\u70c1\u5149\u94f6\u9774": "f4084d0e-6e92-42d7-b07c-d03471520028.png",
+        "\u9752\u94dc\u7532\u5e26": "b13dc5fd-c92e-4643-91c0-5f3cddbd7564.png",
+        "\u6c89\u91cd\u9752\u94dc\u536b": "07a48143-b7c3-47c5-9faa-2bac6d8909ad.png",
+        "\u8fdc\u53e4\u9f99\u5203": "74aacfa5-9117-45ff-a38b-7e9c5796313c.png",
+        "\u5929\u5ead\u4e4b\u675f": "d81ebf44-2d36-4dc6-bcce-7e2702afca12.png",
+        "\u6dec\u706b\u7cbe\u94a2\u5251": "bd9be7d8-afba-4a01-a0de-c9393897279d.png",
+        "\u575a\u56fa\u9752\u94dc\u9774": "f7e63e9e-f234-44db-ac0b-047c911abf02.png",
+        "\u7ec6\u5bc6\u9501\u5b50\u7532": "456e1884-62d5-4faa-b64e-da6849dd9b29.png",
+        "\u79d8\u6cd5\u6676\u9ad3": "1f53964e-765f-445e-a25d-a2ee667d0a2d.png",
+        "\u7070\u70ec\u62a4\u8db3": "649b3833-f2ce-4b25-98a5-f63f9ec3d540.png",
+        "\u9ec4\u91d1\u5951\u7ea6": "847a8b54-af60-48f3-b0e4-8d608814dd02.png",
+        "\u950b\u9510\u9a91\u58eb\u957f\u5251": "b6299566-6f63-48b3-867b-fe1d48b6e16e.png",
+        "\u94dc\u5236\u6273\u6307": "3a300304-557b-4bf8-83fe-1827a18fc0f3.png",
+        "\u9f99\u9769\u8170\u5e26": "345cfdc7-ee7d-4a7d-984b-aa60fa8aca37.png",
+        "\u5c81\u6708\u9752\u94dc": "713090c3-4c9c-4db3-8179-46496b2a3f94.png",
+        "\u8e0f\u706b\u4f59\u70ec": "94c565a9-40a3-4486-8636-0de834324a6d.png",
+        "\u6676\u66dc\u5bd2\u950b": "45dfbdaf-f6c7-4497-85ad-586d3a7d8b0b.png",
+        "\u5f81\u6218\u94c1\u9774": "6f2eba1c-bf55-4fbd-af28-1bb1f8603a81.png",
+        "\u79d8\u94f6\u6218\u7532": "cdf20321-498f-4460-91db-1ab9ea6cf983.png",
+        "\u6676\u5316\u5185\u886c\u7532": "7b86a2c4-3dfd-4449-9342-813fcec237c9.png",
+        "\u7cbe\u94a2\u957f\u5251": "3e1ddbe1-91dd-4f98-b8b6-cfdf6ebb8989.png",
+        "\u9e23\u971c\u9752\u94dc\u5251": "315a4e15-d337-4c2c-b4d3-a59380f8800f.png",
+        "\u661f\u8f68\u6f2b\u6b65": "7b9552cc-84d7-47d2-91e9-aa4bd29bd732.png",
+        "\u72c2\u96f7\u6012\u543c": "8ca1b529-8212-48e1-81bc-55732f0adcd5.png",
+        "\u9f99\u8e0f\u4e91\u9774": "3c2be1b9-6de6-4c03-b01f-3e71a6aca917.png",
+        "\u5360\u661f\u79d8\u6cd5\u5e3d": "1fa0e8cc-84d4-4132-8a17-b925b5f58f95.png",
+        "\u768e\u6708\u94f6\u51a0": "ef5a1669-fb05-4665-8c7b-7f90de0dee97.png",
+        "\u6c38\u6052\u795e\u5a01": "6dcac6d0-6e77-4f29-b159-0e7aefe31e75.png",
+        "\u9010\u795e\u4e4b\u8ff9": "189bbc4e-526b-40bc-81be-b7c25130797f.png",
+        "\u5723\u8000\u00b7\u65ad\u7f6a": "9c17f41f-bca6-4ab5-9968-c64514224958.png",
+        "\u9f99\u9cde\u62a4\u7532": "1bc60e96-0ca9-4227-adc4-db069a101a46.png",
+        "\u6676\u7eb9\u9970\u5e26": "3f5681ac-f2db-4394-9b52-2df2b2cfe36c.png",
+        "\u8f89\u5149\u94f6\u94e0": "41efe19f-8915-4593-893d-1fc1ced589eb.png",
+        "\u51db\u51ac\u4e4b\u62e5": "dba5c836-7199-433a-b0ac-98f2b1ad5618.png",
+        "\u51db\u98ce\u51b0\u8863": "a1e82295-b6d2-44b2-99d6-836443d33421.png",
+        "\u786c\u9769\u76ae\u9774": "60c932ed-d90d-4309-80d1-91027176b93a.png",
+        "\u75be\u96f7\u817f\u7532": "60c9f32c-6375-4c23-ad4d-4ce7fc81e725.png",
+        "\u70bd\u7130\u91cd\u76d4": "47d61f3d-2dc5-4235-ae38-99b5611494f8.png",
+        "\u94c1\u8d28\u675f\u8170": "e89e20e7-a193-45fb-b147-9a8f259473eb.png",
+        "\u730e\u8c79\u75be\u9774": "cc46a031-9e4d-4ed2-8278-1aef0991d6d8.png",
+        "\u79d8\u94f6\u79c1\u8bed": "24076235-7f7d-49a9-835d-338bafd12914.png",
+        "\u9f99\u606f\u6218\u76d4": "a7da5844-0854-4b88-ae07-19c43c4f0eb1.png",
+        "\u7eaf\u94f6\u540a\u5760": "b289848a-adfa-4b00-9945-826ffe5a87b2.png",
+        "\u6591\u9a73\u94c1\u5251": "60dc87bb-dcc8-471f-ab1f-685bd23f10e7.png",
+        "\u5b64\u661f\u5bd2\u8292": "1149a7bd-b748-4fe3-9bfb-e865c0f30f3e.png",
+        "\u7535\u5149\u6218\u888d": "1c70f7e7-e316-4b2f-9c66-0d30be1e97ab.png",
+        "\u5e7d\u51a5\u7edd\u5f71\u5203": "9ccf8920-4d57-46cb-80d5-f6a9ac8f5b82.png",
+        "\u661f\u754c\u7ebd\u5e26": "7c345093-8ac9-4ee5-a634-48f3a1be1dcc.png",
+        "\u9b54\u6cd5\u6c34\u6676\u5251": "9cdee2f0-392c-4d85-8b7d-8a8a12cfb865.png"
+    },
+    "alchemy_material": {
+        "\u971c\u51dd\u5e7d\u5349": "029ebe68-c74e-4b2f-bc0c-c8d88525afb5.png",
+        "\u51cc\u4e91\u96bc\u7fbd": "48c1efaf-3e60-4333-a31d-90488f533df8.png",
+        "\u70ec\u71c3\u7075\u8349": "16bb9bd6-3e90-4f07-912b-161e96970eaf.png",
+        "\u6467\u575a\u521a\u5ca9": "957dc37e-725e-4fe4-9e0e-d324c7d02c37.png",
+        "\u8352\u53e4\u9f99\u9cde": "8a790947-90ae-4391-b67b-1fbd0edbc95c.png",
+        "\u9707\u5929\u96f7\u67a2": "abcdbf1d-5410-426e-a0cb-d012c043ea26.png",
+        "\u78d0\u77f3\u7470\u6676": "aaf2a7d6-d64b-418c-bd6a-c7894c98f2e0.png",
+        "\u6d85\u69c3\u7075\u7fbd": "3751d7d6-1557-4ed8-a8c5-8ff4e5e3b8e6.png",
+        "\u745e\u547d\u5143\u6839": "9f188d92-31e6-4036-92c2-66b10908d6ef.png",
+        "\u6e6e\u706d\u6e90\u8d28": "68e9c24f-a10d-4501-84ec-2072bd8cce9c.png",
+        "\u66e6\u548c\u5723\u8000": "d9ded72d-0ad6-4e9f-9d0d-9516cc75824b.png",
+        "\u6c38\u591c\u9b42\u9ad3": "d1b60872-d5ab-494c-9ce2-667f8da36de5.png",
+        "\u6714\u98ce\u60ca\u53f6": "042cfaa7-7e89-43f3-b26a-10b998700d6d.png",
+        "\u715e\u8840\u9b54\u73c0": "fd86821e-03fe-4ffd-90ee-cd64fd5fe52f.png"
+    },
+    "building": {
+        "tower_entrance": "44d17985-99db-415d-9770-1fca57b903e4.png",
+        "blacksmith": "e25248b9-5674-4a93-b90c-a79d2f72c6a5.png",
+        "shop": "fe8d3444-a2e7-42a1-8497-144012ef78b8.png",
+        "training_ground": "3ccbe807-b0f2-4682-9a2e-3ad01d41aaf1.png"
+    },
+    "room_entity": {
+        "treasure_chest": "cf6af636-f0c3-463f-951a-2d368a3dab6b.png",
+        "rest_campfire": "e5725dc0-7024-45c2-8eea-e4025775bb68.png",
+        "rest_medkit": "0ddac572-a31a-4d97-87e5-4cfa0604324b.png",
+        "rest_fountain": "c94f7fb5-c795-49bd-92a2-b7fd6bd13886.png",
+        "rest_altar": "233babdb-d206-412b-9b13-6213563ac89f.png",
+        "alchemy_table": "2d49ac03-5717-479b-a0e7-aad166dc8fca.png"
+    },
+    "portal": {
+        "exit": "tile_portal_exit.png",
+        "next": "e76152e3-3f46-4280-982b-2aac9ad9cb88.png",
+        "return_town": "1c91d237-3399-47a6-bc1b-024ea891efd5.png",
+        "fight": "a0f4ea61-2d8e-490f-a2ae-cda0335c4b78.png"
+    },
+    "floor": {
+        "town": "ff57d879-d912-4692-ae07-583736b3825a.png",
+        "tower": "9375ebf7-fd36-4d25-8221-8c09b835b037.png",
+        "training": "6bcf0134-6588-46b6-b118-8ba2d5bb3919.png"
+    },
+    "monster": {
+        "goblin": {
+            "image": "772fb2c6-19b0-42df-b5e7-2aa3906d5d53.png",
+            "scale": 1.2
+        },
+        "goblinWarrior": {
+            "image": "bedf52bf-d3b2-4b0c-bdce-a46095936d84.png",
+            "scale": 1.3
+        },
+        "goblinShaman": {
+            "image": "bd3be8a5-f62e-4c59-82bc-86a65fc3e7c0.png",
+            "scale": 1.1
+        },
+        "goblinScout": {
+            "image": "51878053-5dd2-4ed0-9956-47d40ad83e11.png",
+            "scale": 1.1
+        },
+        "goblinChief": {
+            "image": "fc9dcf69-1710-4daa-94e2-7c26b08d7625.png",
+            "scale": 1.6
+        },
+        "skeleton": {
+            "image": "8f46015e-fe2b-478e-95e2-bdaa85462e41.png",
+            "scale": 1.5
+        },
+        "skeletonArcher": {
+            "image": "ee657973-37dc-42d8-a5f2-fced2fc7f934.png",
+            "scale": 1.3
+        },
+        "skeletonKnight": {
+            "image": "4dbd8495-adbe-453e-b0ce-f871eaf0e465.png",
+            "scale": 2.0
+        },
+        "skeletonMage": {
+            "image": "1bab70b0-c892-4cdc-a53a-3365766abe1e.png",
+            "scale": 1.2
+        },
+        "skeletonLord": {
+            "image": "5e4b68bd-0a16-47ca-b917-be1cf9e990f2.png",
+            "scale": 2.5
+        },
+        "orc": {
+            "image": "2d47b11b-5668-4dcd-b3d1-cf9acd67ef64.png",
+            "scale": 2.2
+        },
+        "orcBerserker": {
+            "image": "55bb1fcb-89c4-4eac-afc9-553b31fc2b2e.png",
+            "scale": 2.0
+        },
+        "orcShaman": {
+            "image": "e5643156-8ad9-4251-9148-a13131d4c953.png",
+            "scale": 2.1
+        },
+        "orcWarrior": {
+            "image": "0560d79b-4c8b-41a4-b282-ac6abe869598.png",
+            "scale": 2.3
+        },
+        "orcWarlord": {
+            "image": "ef46fdc3-85d6-41c2-a3e3-e9dac26b732d.png",
+            "scale": 3.5
+        },
+        "demon": {
+            "image": "485d26d5-e604-4669-a983-13ef1cd42cf7.png",
+            "scale": 2.5
+        },
+        "demonImp": {
+            "image": "99c3fcaf-6c0c-4cb2-aaee-440979f15c10.png",
+            "scale": 1.5
+        },
+        "demonGuardian": {
+            "image": "6afc45e7-990f-418d-8e03-859e061942e3.png",
+            "scale": 3.0
+        },
+        "demonSorcerer": {
+            "image": "776fe69b-8379-4a06-abfd-4b49f559e806.png",
+            "scale": 2.5
+        },
+        "demonGeneral": {
+            "image": "d5198a03-1de4-4c65-bf49-6a9237aa2d76.png",
+            "scale": 3.5
+        },
+        "demonBoss": {
+            "image": "dd6c8dd2-0106-4d9b-a955-d9e17c9128d8.png",
+            "scale": 5.0
+        },
+        "demonPrince": {
+            "image": "8459569d-2c76-4a2d-a913-6d7031fbffad.png",
+            "scale": 3.8
+        },
+        "demonTitan": {
+            "image": "f4a1a3c4-e6f7-48a3-bfb2-b3b217b5ac70.png",
+            "scale": 5.5
+        },
+        "demonArchmage": {
+            "image": "fd916391-3620-4fa8-8c21-186385e14065.png",
+            "scale": 3.0
+        },
+        "demonOverlord": {
+            "image": "a3beede1-a29e-4d5b-a3bf-40584e1d3207.png",
+            "scale": 6.0
+        }
+    },
+    "player": {
+        "player": {
+            "image": "89f48e36-04d6-4cfa-a468-0a291c0a9d62.gif",
+            "scale": 1.5
+        }
+    },
+    "skill_icons": {
+        "\u5d29\u5c71\u51fb": "00f6a434-f7e4-40a8-81fe-b3ce41cb6277.png",
+        "\u94f6\u8292\u8d2f\u523a": "dd59e128-9695-41d5-b70b-6b18eb86883e.png",
+        "\u8d64\u708e\u65a9": "d18c7f54-bb44-4aa5-8392-42c2d7102c65.png",
+        "\u5e7d\u51a5\u95ea\u88ad": "9d16435a-ae29-4bcc-804c-489f975f172b.png",
+        "\u51db\u51ac\u523a": "e2ab507b-4521-41de-be8d-cf0eb25be11f.png",
+        "\u9e23\u96f7\u88c1\u51b3": "56582720-1189-40c4-8057-7699727d10d9.png",
+        "\u94f6\u6708\u5f27\u5149": "6ab78804-964c-4d4a-ab1b-c4547a73f467.png",
+        "\u971c\u534e\u788e\u706d": "8e1ea98c-4504-4fe5-80f0-92fb28219f8f.png",
+        "\u9f99\u708e\u6f29\u6da1": "f6294e6d-bfbe-4c16-94fd-0a3d1dd18217.png",
+        "\u70ec\u706d\u5929\u706b": "e2e4efd1-9121-40b3-8f28-f4dadb7043e4.png",
+        "\u6c38\u51bb\u65b0\u661f": "a28a8b47-3e90-4d12-b408-50694ca6581b.png",
+        "\u795e\u88c1": "9a400736-c8c9-4ff0-b043-582edc2661b5.png",
+        "\u4e07\u94a7\u96f7\u72f1": "e4f992bc-41db-4b3d-b37b-4a88ff892ba4.png",
+        "\u661f\u5760\u5ba1\u5224": "dff8c11a-a5da-4622-bcf7-fb048fe43e43.png",
+        "\u94a2\u9b42\u5d29\u51fb": "72461474-609b-447a-a62c-323c218488da.png",
+        "\u9b54\u6676\u7efd\u88c2": "30188ff8-accd-4209-a878-6fe890049ed3.png",
+        "\u53e4\u9f99\u5410\u606f": "1c6c852c-971a-4797-9e10-dd9a17775ea7.png",
+        "\u865a\u7a7a\u5d29\u89e3": "c58d391e-2a21-47c4-986e-ce0877bee008.png",
+        "\u7834\u52bf\u4e00\u51fb": "a7894e5d-438d-4be3-8137-e3dcb9997957.png",
+        "\u6218\u610f\u8ff8\u53d1": "d45aa625-f680-4cbc-97bc-b675981ee791.png",
+        "\u95ea\u9706": "6d736aab-aeaf-4fae-b172-c080a3b342bc.png",
+        "\u708e\u72f1\u98ce\u66b4": "6096c087-8b40-4614-aa07-24c03148a901.png",
+        "\u5929\u8c34": "4de9573c-42d9-45d4-bbcb-8aa53f985479.png"
+    },
+    "consumable": {
+        "blueprint": "60d0fcff-12ac-4522-8d5d-6a5f225f09e3.png"
+    },
+    "sounds": {
+        "burn": {
+            "file": "52a19984-ac8d-48c1-ab0c-c33df5c1fc75.mp3",
+            "volume": 0.3
+        },
+        "treasure": {
+            "file": "200200b1-b903-488d-b17b-634388316717.mp3",
+            "volume": 0.6
+        },
+        "craft": {
+            "file": "dded9c0d-94eb-4a0d-bb3e-af7f599c8609.mp3",
+            "volume": 0.6
+        },
+        "death": {
+            "file": "4d6ec4ad-3960-4e22-b046-b70b8c6a954c.mp3",
+            "volume": 0.7
+        },
+        "shock": {
+            "file": "27212e62-833f-45d0-bf66-1d86b7932a5b.mp3",
+            "volume": 0.4
+        },
+        "equip": {
+            "file": "de316591-4fe0-44ae-bab4-55a1a1bf5e94.mp3",
+            "volume": 0.5
+        },
+        "freeze": {
+            "file": "f8ed6aa8-5dd1-4bfd-9f16-3cff4913273d.mp3",
+            "volume": 0.4
+        },
+        "heal": {
+            "file": "ba5016a7-013f-4ad1-9a85-9a68585c8c21.mp3",
+            "volume": 0.4
+        },
+        "hit": {
+            "file": "0495cce6-6fcb-4534-b34a-3866bb4cc52a.mp3",
+            "volume": 0.3
+        },
+        "levelup": {
+            "file": "3d8f3ae3-804c-4801-abb8-bc8fe1e442af.mp3",
+            "volume": 0.7
+        },
+        "purchase": {
+            "file": "96e20368-9294-4159-a794-3af5d163bff5.mp3",
+            "volume": 0.5
+        },
+        "star": {
+            "file": "a5b4c3a1-92b2-44e3-8768-ceabadee9439.mp3",
+            "volume": 0.5
+        },
+        "dash": {
+            "file": "45bb10e0-547e-46af-8ed6-76a5143247b8.mp3",
+            "volume": 0.6
+        },
+        "swing": {
+            "file": "97ee3c88-8c17-4559-beea-1bc94cfbc1ff.mp3",
+            "volume": 0.4
+        },
+        "teleport": {
+            "file": "09a5b679-c09e-4191-9328-9545719d6e86.mp3",
+            "volume": 0.5
+        },
+        "walk": {
+            "file": "f8aa46cb-da39-45fd-aecb-973ee972559c.mp3",
+            "volume": 0.3
+        }
+    },
+    "bgm": {
+        "town": {
+            "file": "63b71110-7053-48f9-beb3-79ddce0d87f3.mp3",
+            "volume": 0.5
+        },
+        "battle": {
+            "file": "b478e8c3-edbf-4ff5-9178-3ac00b9afbf8.mp3",
+            "volume": 0.5
+        }
+    }
+}

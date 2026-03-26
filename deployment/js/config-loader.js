@@ -1,0 +1,180 @@
+/**
+ * Pixel Eternal - 配置加载器模块
+ * 负责从 JSON 文件加载所有配置数据
+ */
+
+class ConfigLoader {
+    constructor() {
+        this.configs = {};
+        this.loaded = false;
+    }
+
+    /**
+     * 加载所有配置文件
+     * @returns {Promise<void>}
+     */
+    async loadAll() {
+        if (this.loaded) return;
+
+        try {
+            // 加载基础配置
+            const gameConfig = await this.loadJSON('config/game-config.json');
+            // game-config.json 包含多个配置项，直接合并
+            if (gameConfig && typeof gameConfig === 'object') {
+                Object.assign(this.configs, gameConfig);
+            }
+
+            // 加载其他配置文件
+            const configFiles = [
+                { key: 'MONSTER_TYPES', file: 'config/monster-config.json' },
+                { key: 'EQUIPMENT_DEFINITIONS', file: 'config/equipment-config.json' },
+                { key: 'POTION_DEFINITIONS', file: 'config/potion-config.json' },
+                { key: 'SET_DEFINITIONS', file: 'config/set-config.json' },
+                { key: 'BOSS_DEFINITIONS', file: 'config/boss-config.json' },
+                { key: 'BUFF_ICON_MAP', file: 'config/buff-icon-config.json' },
+                { key: 'SKILL_ICON_MAP', file: 'config/skill-icon-config.json' },
+                { key: 'MAPPINGS', file: 'config/mappings.json' }
+            ];
+
+            for (const { key, file } of configFiles) {
+                try {
+                    const data = await this.loadJSON(file);
+                    // 如果 JSON 对象中有一个与 key 同名的属性，提取该属性的值
+                    // 例如：{EQUIPMENT_DEFINITIONS: [...]} -> 提取数组
+                    if (data && typeof data === 'object' && key in data) {
+                        this.configs[key] = data[key];
+                    } else {
+                        // 否则使用整个对象（向后兼容）
+                        this.configs[key] = data;
+                    }
+                } catch (error) {
+                    console.warn(`Failed to load ${file}:`, error);
+                }
+            }
+
+            // 将配置赋值给全局变量
+            this.assignToGlobals();
+            this.loaded = true;
+        } catch (error) {
+            console.error('Failed to load configurations:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * 加载 JSON 文件
+     * @param {string} path - JSON 文件路径
+     * @returns {Promise<Object>}
+     */
+    async loadJSON(path) {
+        // 检查是否是 file:// 协议
+        if (window.location.protocol === 'file:') {
+            const errorMsg = `
+╔═══════════════════════════════════════════════════════════════╗
+║  CORS 错误：无法在 file:// 协议下加载配置文件                ║
+║                                                               ║
+║  请使用本地服务器运行游戏：                                   ║
+║                                                               ║
+║  方法 1: 运行 start-server.py                                 ║
+║    python3 start-server.py                                    ║
+║                                                               ║
+║  方法 2: 运行 start-server.sh                                 ║
+║    ./start-server.sh                                          ║
+║                                                               ║
+║  方法 3: 使用 Python 内置服务器                               ║
+║    python3 -m http.server 8000                                ║
+║    然后访问: http://localhost:8000/index.html               ║
+╚═══════════════════════════════════════════════════════════════╝
+            `;
+            console.error(errorMsg);
+            throw new Error(`CORS 错误：无法在 file:// 协议下加载 ${path}。请使用本地服务器运行游戏。`);
+        }
+        
+        try {
+            const response = await fetch(path);
+            if (!response.ok) {
+                throw new Error(`Failed to load ${path}: ${response.statusText}`);
+            }
+            return await response.json();
+        } catch (error) {
+            if (error.message.includes('CORS')) {
+                throw error; // 重新抛出 CORS 错误
+            }
+            // 其他错误也抛出
+            throw new Error(`加载 ${path} 失败: ${error.message}`);
+        }
+    }
+
+    /**
+     * 将配置赋值给全局变量
+     */
+    assignToGlobals() {
+        // 基础配置
+        if (this.configs.CONFIG) {
+            // 如果 window.CONFIG 已存在，更新其属性而不是替换整个对象
+            // 这样可以保持其他模块中对 CONFIG 的引用有效
+            if (window.CONFIG && typeof window.CONFIG === 'object') {
+                Object.assign(window.CONFIG, this.configs.CONFIG);
+            } else {
+                window.CONFIG = this.configs.CONFIG;
+            }
+        }
+        if (this.configs.QUALITY_COLORS) {
+            window.QUALITY_COLORS = this.configs.QUALITY_COLORS;
+        }
+        if (this.configs.QUALITY_NAMES) {
+            window.QUALITY_NAMES = this.configs.QUALITY_NAMES;
+        }
+        if (this.configs.SLOT_NAMES) {
+            window.SLOT_NAMES = this.configs.SLOT_NAMES;
+        }
+        if (this.configs.ROOM_TYPES) {
+            window.ROOM_TYPES = this.configs.ROOM_TYPES;
+        }
+        if (this.configs.SCENE_TYPES) {
+            window.SCENE_TYPES = this.configs.SCENE_TYPES;
+        }
+
+        // 其他配置
+        if (this.configs.MONSTER_TYPES) {
+            window.MONSTER_TYPES = this.configs.MONSTER_TYPES;
+        }
+        if (this.configs.EQUIPMENT_DEFINITIONS) {
+            window.EQUIPMENT_DEFINITIONS = this.configs.EQUIPMENT_DEFINITIONS;
+        }
+        if (this.configs.POTION_DEFINITIONS) {
+            window.POTION_DEFINITIONS = this.configs.POTION_DEFINITIONS;
+        }
+        if (this.configs.SET_DEFINITIONS) {
+            window.SET_DEFINITIONS = this.configs.SET_DEFINITIONS;
+        }
+        if (this.configs.BOSS_DEFINITIONS) {
+            window.BOSS_DEFINITIONS = this.configs.BOSS_DEFINITIONS;
+        }
+        window.CRAFTING_MATERIAL_DEFINITIONS = [];
+        window.CRAFTING_RECIPE_DEFINITIONS = [];
+        if (this.configs.BUFF_ICON_MAP) {
+            window.BUFF_ICON_MAP = this.configs.BUFF_ICON_MAP;
+        }
+        if (this.configs.SKILL_ICON_MAP) {
+            window.SKILL_ICON_MAP = this.configs.SKILL_ICON_MAP;
+        }
+
+        // 炼金材料相关配置
+        if (this.configs.TRAIT_RETENTION_RATES) {
+            window.TRAIT_RETENTION_RATES = this.configs.TRAIT_RETENTION_RATES;
+        }
+        if (this.configs.EXTRA_TRAITS_POOL) {
+            window.EXTRA_TRAITS_POOL = this.configs.EXTRA_TRAITS_POOL;
+        }
+
+        // 图片映射配置
+        if (this.configs.MAPPINGS) {
+            window.MAPPINGS = this.configs.MAPPINGS;
+        }
+    }
+}
+
+// 创建全局配置加载器实例
+window.configLoader = new ConfigLoader();
+

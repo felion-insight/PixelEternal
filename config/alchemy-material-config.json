@@ -1,0 +1,173 @@
+{
+  "ALCHEMY_MATERIAL_DEFINITIONS": [
+    {
+      "name": "烬燃灵草",
+      "quality": "common",
+      "baseTraits": {
+        "attack": 3
+      },
+      "description": "生长在火山附近的红色草药，蕴含着火焰的力量，能提升攻击力。"
+    },
+    {
+      "name": "霜凝幽卉",
+      "quality": "common",
+      "baseTraits": {
+        "defense": 2
+      },
+      "description": "在极寒之地绽放的蓝色花朵，能增强防御能力，保护使用者。"
+    },
+    {
+      "name": "朔风惊叶",
+      "quality": "common",
+      "baseTraits": {
+        "moveSpeed": 5
+      },
+      "description": "随风飘舞的绿色叶子，蕴含着风的力量，能大幅提升移动速度。"
+    },
+    {
+      "name": "瑞命元根",
+      "quality": "common",
+      "baseTraits": {
+        "health": 20
+      },
+      "description": "充满生命力的植物根茎，具有强大的恢复效果，能快速治愈伤口。"
+    },
+    {
+      "name": "摧坚刚岩",
+      "quality": "rare",
+      "baseTraits": {
+        "attack": 8,
+        "critRate": 2
+      },
+      "description": "蕴含强大力量的魔法石，能显著提升攻击力和暴击能力，是战士的最爱。"
+    },
+    {
+      "name": "磐石瑰晶",
+      "quality": "rare",
+      "baseTraits": {
+        "defense": 5,
+        "dodge": 3
+      },
+      "description": "散发着守护光芒的水晶，提供强大的防御和闪避加成，让使用者更加灵活。"
+    },
+    {
+      "name": "凌云隼羽",
+      "quality": "rare",
+      "baseTraits": {
+        "attackSpeed": 10,
+        "moveSpeed": 8
+      },
+      "description": "来自天空霸主隼鸟的羽毛，能大幅提升攻击和移动速度，让使用者如风般迅捷。"
+    },
+    {
+      "name": "煞血魔珀",
+      "quality": "rare",
+      "baseTraits": {
+        "critRate": 5,
+        "critDamage": 10
+      },
+      "description": "闪烁着危险光芒的宝石，蕴含着嗜血的力量，能大幅增强暴击能力。"
+    },
+    {
+      "name": "荒古龙鳞",
+      "quality": "fine",
+      "baseTraits": {
+        "attack": 15,
+        "defense": 8,
+        "critRate": 3
+      },
+      "description": "从远古巨龙身上脱落的鳞片，同时提供攻击、防御和暴击加成，是完美的平衡材料。"
+    },
+    {
+      "name": "涅槃灵羽",
+      "quality": "fine",
+      "baseTraits": {
+        "health": 50,
+        "defense": 5,
+        "dodge": 5
+      },
+      "description": "凤凰涅槃时留下的羽毛，具有强大的生命恢复和防御能力，能让人重获新生。"
+    },
+    {
+      "name": "震天雷枢",
+      "quality": "fine",
+      "baseTraits": {
+        "attackSpeed": 20,
+        "critRate": 8,
+        "critDamage": 15
+      },
+      "description": "雷电凝聚而成的核心，蕴含着狂暴的雷霆之力，能大幅提升攻击速度和暴击能力。"
+    },
+    {
+      "name": "永夜魂髓",
+      "quality": "epic",
+      "baseTraits": {
+        "attack": 25,
+        "critRate": 10,
+        "critDamage": 20,
+        "dodge": 8
+      },
+      "description": "来自暗影位面的精华，蕴含着死亡与毁灭的力量，提供强大的攻击和闪避能力。"
+    },
+    {
+      "name": "曦和圣耀",
+      "quality": "epic",
+      "baseTraits": {
+        "defense": 15,
+        "health": 80,
+        "attackSpeed": 15
+      },
+      "description": "神圣力量凝聚的结晶，散发着温暖的光芒，提供全面的防御和生命加成，是守护者的至宝。"
+    },
+    {
+      "name": "湮灭源质",
+      "quality": "legendary",
+      "baseTraits": {
+        "attack": 40,
+        "defense": 20,
+        "critRate": 15,
+        "critDamage": 30,
+        "attackSpeed": 25,
+        "moveSpeed": 15,
+        "health": 100
+      },
+      "description": "混沌力量的源泉，蕴含着创世与毁灭的终极力量，能全面提升所有属性，是最珍贵的炼金材料。"
+    }
+  ],
+  "TRAIT_RETENTION_RATES": {
+    "common": 0.4,
+    "rare": 0.5,
+    "fine": 0.6,
+    "epic": 0.7,
+    "legendary": 0.8
+  },
+  "EXTRA_TRAITS_POOL": [
+    {
+      "attack": 5
+    },
+    {
+      "defense": 3
+    },
+    {
+      "critRate": 2
+    },
+    {
+      "critDamage": 5
+    },
+    {
+      "dodge": 2
+    },
+    {
+      "attackSpeed": 5
+    },
+    {
+      "moveSpeed": 3
+    },
+    {
+      "health": 20
+    },
+    {
+      "duration": 5
+    }
+  ]
+}

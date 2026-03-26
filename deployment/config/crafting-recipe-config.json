@@ -1,0 +1,160 @@
+{
+  "CRAFTING_RECIPE_DEFINITIONS": [
+    {
+      "id": "recipe_1",
+      "name": "精钢长剑图纸",
+      "resultEquipment": {
+        "slot": "weapon",
+        "name": "精钢长剑",
+        "level": 5,
+        "quality": "rare",
+        "attack": 32,
+        "critRate": 12,
+        "critDamage": 32,
+        "isCrafted": true
+      },
+      "requiredMaterials": [],
+      "requiredBaseEquipment": {
+        "name": "斑驳铁剑"
+      },
+      "description": "使用精炼钢锭强化斑驳铁剑，打造出更强大的精钢长剑。",
+      "price": 500
+    },
+    {
+      "id": "recipe_2",
+      "name": "魔法水晶剑图纸",
+      "resultEquipment": {
+        "slot": "weapon",
+        "name": "魔法水晶剑",
+        "level": 10,
+        "quality": "fine",
+        "attack": 50,
+        "critRate": 17,
+        "critDamage": 42,
+        "isCrafted": true
+      },
+      "requiredMaterials": [],
+      "requiredBaseEquipment": {
+        "name": "淬火精钢剑"
+      },
+      "description": "将魔法水晶碎片融入淬火精钢剑，打造出具有魔法力量的水晶剑。",
+      "price": 1000
+    },
+    {
+      "id": "recipe_3",
+      "name": "龙鳞护甲图纸",
+      "resultEquipment": {
+        "slot": "chest",
+        "name": "龙鳞护甲",
+        "level": 10,
+        "quality": "fine",
+        "health": 64,
+        "defense": 9,
+        "isCrafted": true
+      },
+      "requiredMaterials": [],
+      "requiredBaseEquipment": {
+        "name": "荆棘皮甲"
+      },
+      "description": "使用龙鳞碎片强化荆棘皮甲，打造出具有强大防御力的龙鳞护甲。",
+      "price": 1200
+    },
+    {
+      "id": "recipe_4",
+      "name": "秘银战甲图纸",
+      "resultEquipment": {
+        "slot": "chest",
+        "name": "秘银战甲",
+        "level": 15,
+        "quality": "epic",
+        "health": 88,
+        "defense": 13,
+        "isCrafted": true
+      },
+      "requiredMaterials": [],
+      "requiredBaseEquipment": {
+        "name": "雄狮板甲"
+      },
+      "description": "使用秘银矿石和星辰碎片强化雄狮板甲，打造出拥有卓越防御能力的高级战甲。",
+      "price": 2000
+    },
+    {
+      "id": "recipe_5",
+      "name": "远古龙刃图纸",
+      "resultEquipment": {
+        "slot": "weapon",
+        "name": "远古龙刃",
+        "level": 15,
+        "quality": "epic",
+        "attack": 68,
+        "critRate": 23,
+        "critDamage": 56,
+        "isCrafted": true
+      },
+      "requiredMaterials": [],
+      "requiredBaseEquipment": {
+        "name": "辉光秘银刃"
+      },
+      "description": "使用远古龙骨强化辉光秘银刃，打造出蕴含着强大龙族力量的传说武器。",
+      "price": 3000
+    },
+    {
+      "id": "recipe_6",
+      "name": "神威头盔图纸",
+      "resultEquipment": {
+        "slot": "helmet",
+        "name": "神威头盔",
+        "level": 15,
+        "quality": "epic",
+        "health": 86,
+        "defense": 12,
+        "isCrafted": true
+      },
+      "requiredMaterials": [],
+      "requiredBaseEquipment": {
+        "name": "骁勇钢盔"
+      },
+      "description": "使用神之碎片强化骁勇钢盔，打造出拥有强大防护能力的神威头盔。",
+      "price": 2800
+    },
+    {
+      "id": "recipe_7",
+      "name": "混沌之刃图纸",
+      "resultEquipment": {
+        "slot": "weapon",
+        "name": "混沌之刃",
+        "level": 20,
+        "quality": "legendary",
+        "attack": 92,
+        "critRate": 30,
+        "critDamage": 72,
+        "isCrafted": true
+      },
+      "requiredMaterials": [],
+      "requiredBaseEquipment": {
+        "name": "逆鳞屠龙锋"
+      },
+      "description": "使用混沌核心强化逆鳞屠龙锋，打造出拥有毁灭性力量的终极武器。",
+      "price": 5000
+    },
+    {
+      "id": "recipe_8",
+      "name": "永恒战甲图纸",
+      "resultEquipment": {
+        "slot": "chest",
+        "name": "永恒战甲",
+        "level": 20,
+        "quality": "legendary",
+        "health": 118,
+        "defense": 17,
+        "isCrafted": true
+      },
+      "requiredMaterials": [],
+      "requiredBaseEquipment": {
+        "name": "逆鳞龙铠"
+      },
+      "description": "使用永恒之石强化逆鳞龙铠，打造出拥有不朽防御力的终极战甲。",
+      "price": 5500
+    }
+  ]
+}

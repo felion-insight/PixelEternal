@@ -1,0 +1,905 @@
+{
+  "EQUIPMENT_DEFINITIONS": [
+    {
+      "slot": "weapon",
+      "name": "斑驳铁剑",
+      "level": 1,
+      "quality": "common",
+      "attack": 12,
+      "critRate": 4,
+      "critDamage": 18
+    },
+    {
+      "slot": "weapon",
+      "name": "淬火精钢剑",
+      "level": 5,
+      "quality": "rare",
+      "attack": 26,
+      "critRate": 9,
+      "critDamage": 26
+    },
+    {
+      "slot": "weapon",
+      "name": "辉光秘银刃",
+      "level": 10,
+      "quality": "fine",
+      "attack": 42,
+      "critRate": 14,
+      "critDamage": 36
+    },
+    {
+      "slot": "weapon",
+      "name": "逆鳞屠龙锋",
+      "level": 15,
+      "quality": "epic",
+      "attack": 58,
+      "critRate": 19,
+      "critDamage": 48
+    },
+    {
+      "slot": "weapon",
+      "name": "圣耀·断罪",
+      "level": 20,
+      "quality": "legendary",
+      "attack": 75,
+      "critRate": 25,
+      "critDamage": 60
+    },
+    {
+      "slot": "weapon",
+      "name": "锋锐骑士长剑",
+      "level": 5,
+      "quality": "common",
+      "attack": 24,
+      "critRate": 7,
+      "critDamage": 24
+    },
+    {
+      "slot": "weapon",
+      "name": "幽冥绝影刃",
+      "level": 10,
+      "quality": "rare",
+      "attack": 40,
+      "critRate": 12,
+      "critDamage": 34
+    },
+    {
+      "slot": "helmet",
+      "name": "猎手皮帽",
+      "level": 1,
+      "quality": "common",
+      "health": 18,
+      "defense": 2
+    },
+    {
+      "slot": "helmet",
+      "name": "坚毅铁盔",
+      "level": 5,
+      "quality": "rare",
+      "health": 34,
+      "defense": 4
+    },
+    {
+      "slot": "helmet",
+      "name": "骁勇钢盔",
+      "level": 10,
+      "quality": "fine",
+      "health": 54,
+      "defense": 6
+    },
+    {
+      "slot": "helmet",
+      "name": "龙息战盔",
+      "level": 15,
+      "quality": "epic",
+      "health": 74,
+      "defense": 9
+    },
+    {
+      "slot": "helmet",
+      "name": "众神冠冕",
+      "level": 20,
+      "quality": "legendary",
+      "health": 96,
+      "defense": 12
+    },
+    {
+      "slot": "helmet",
+      "name": "占星秘法帽",
+      "level": 5,
+      "quality": "common",
+      "health": 32,
+      "defense": 3
+    },
+    {
+      "slot": "chest",
+      "name": "苦行者长衫",
+      "level": 1,
+      "quality": "common",
+      "health": 20,
+      "defense": 3
+    },
+    {
+      "slot": "chest",
+      "name": "荆棘皮甲",
+      "level": 5,
+      "quality": "rare",
+      "health": 36,
+      "defense": 5
+    },
+    {
+      "slot": "chest",
+      "name": "雄狮板甲",
+      "level": 10,
+      "quality": "fine",
+      "health": 56,
+      "defense": 7
+    },
+    {
+      "slot": "chest",
+      "name": "逆鳞龙铠",
+      "level": 15,
+      "quality": "epic",
+      "health": 76,
+      "defense": 10
+    },
+    {
+      "slot": "chest",
+      "name": "永恒神威",
+      "level": 20,
+      "quality": "legendary",
+      "health": 98,
+      "defense": 13
+    },
+    {
+      "slot": "chest",
+      "name": "细密锁子甲",
+      "level": 5,
+      "quality": "common",
+      "health": 34,
+      "defense": 4
+    },
+    {
+      "slot": "chest",
+      "name": "咏咒师长袍",
+      "level": 10,
+      "quality": "rare",
+      "health": 52,
+      "defense": 6
+    },
+    {
+      "slot": "legs",
+      "name": "游侠布裤",
+      "level": 1,
+      "quality": "common",
+      "health": 16,
+      "defense": 2
+    },
+    {
+      "slot": "legs",
+      "name": "兽纹皮裤",
+      "level": 5,
+      "quality": "rare",
+      "health": 32,
+      "defense": 4
+    },
+    {
+      "slot": "legs",
+      "name": "铁卫护腿",
+      "level": 10,
+      "quality": "fine",
+      "health": 52,
+      "defense": 6
+    },
+    {
+      "slot": "legs",
+      "name": "龙筋护腿",
+      "level": 15,
+      "quality": "epic",
+      "health": 72,
+      "defense": 8
+    },
+    {
+      "slot": "legs",
+      "name": "律法圣带",
+      "level": 20,
+      "quality": "legendary",
+      "health": 94,
+      "defense": 11
+    },
+    {
+      "slot": "legs",
+      "name": "陷阵重护腿",
+      "level": 10,
+      "quality": "rare",
+      "health": 50,
+      "defense": 5
+    },
+    {
+      "slot": "boots",
+      "name": "旅人草鞋",
+      "level": 1,
+      "quality": "common",
+      "health": 14,
+      "defense": 1
+    },
+    {
+      "slot": "boots",
+      "name": "硬革皮靴",
+      "level": 5,
+      "quality": "rare",
+      "health": 30,
+      "defense": 3
+    },
+    {
+      "slot": "boots",
+      "name": "征战铁靴",
+      "level": 10,
+      "quality": "fine",
+      "health": 50,
+      "defense": 5
+    },
+    {
+      "slot": "boots",
+      "name": "龙踏云靴",
+      "level": 15,
+      "quality": "epic",
+      "health": 70,
+      "defense": 7
+    },
+    {
+      "slot": "boots",
+      "name": "逐神之迹",
+      "level": 20,
+      "quality": "legendary",
+      "health": 92,
+      "defense": 10
+    },
+    {
+      "slot": "boots",
+      "name": "猎豹疾靴",
+      "level": 5,
+      "quality": "common",
+      "health": 28,
+      "defense": 2
+    },
+    {
+      "slot": "necklace",
+      "name": "黄铜勋章",
+      "level": 1,
+      "quality": "common",
+      "dodge": 1,
+      "attackSpeed": 3,
+      "moveSpeed": 2
+    },
+    {
+      "slot": "necklace",
+      "name": "纯银吊坠",
+      "level": 5,
+      "quality": "rare",
+      "dodge": 2,
+      "attackSpeed": 6,
+      "moveSpeed": 4
+    },
+    {
+      "slot": "necklace",
+      "name": "黄金契约",
+      "level": 10,
+      "quality": "fine",
+      "dodge": 3,
+      "attackSpeed": 9,
+      "moveSpeed": 6
+    },
+    {
+      "slot": "necklace",
+      "name": "龙心垂饰",
+      "level": 15,
+      "quality": "epic",
+      "dodge": 4,
+      "attackSpeed": 12,
+      "moveSpeed": 8
+    },
+    {
+      "slot": "necklace",
+      "name": "诸神眷顾",
+      "level": 20,
+      "quality": "legendary",
+      "dodge": 5,
+      "attackSpeed": 15,
+      "moveSpeed": 10
+    },
+    {
+      "slot": "necklace",
+      "name": "蛮力之源",
+      "level": 5,
+      "quality": "common",
+      "dodge": 1,
+      "attackSpeed": 5,
+      "moveSpeed": 3
+    },
+    {
+      "slot": "ring",
+      "name": "铜制扳指",
+      "level": 1,
+      "quality": "common",
+      "dodge": 1,
+      "attackSpeed": 4,
+      "moveSpeed": 2
+    },
+    {
+      "slot": "ring",
+      "name": "秘银私语",
+      "level": 5,
+      "quality": "rare",
+      "dodge": 2,
+      "attackSpeed": 7,
+      "moveSpeed": 4
+    },
+    {
+      "slot": "ring",
+      "name": "金权戒律",
+      "level": 10,
+      "quality": "fine",
+      "dodge": 3,
+      "attackSpeed": 10,
+      "moveSpeed": 6
+    },
+    {
+      "slot": "ring",
+      "name": "龙息之握",
+      "level": 15,
+      "quality": "epic",
+      "dodge": 4,
+      "attackSpeed": 13,
+      "moveSpeed": 8
+    },
+    {
+      "slot": "ring",
+      "name": "创世法则",
+      "level": 20,
+      "quality": "legendary",
+      "dodge": 5,
+      "attackSpeed": 16,
+      "moveSpeed": 10
+    },
+    {
+      "slot": "ring",
+      "name": "迅影之触",
+      "level": 10,
+      "quality": "rare",
+      "dodge": 2,
+      "attackSpeed": 8,
+      "moveSpeed": 5
+    },
+    {
+      "slot": "belt",
+      "name": "编织腰带",
+      "level": 1,
+      "quality": "common",
+      "dodge": 1,
+      "attackSpeed": 3,
+      "moveSpeed": 3
+    },
+    {
+      "slot": "belt",
+      "name": "钢扣皮带",
+      "level": 5,
+      "quality": "rare",
+      "dodge": 2,
+      "attackSpeed": 6,
+      "moveSpeed": 5
+    },
+    {
+      "slot": "belt",
+      "name": "铁质束腰",
+      "level": 10,
+      "quality": "fine",
+      "dodge": 3,
+      "attackSpeed": 9,
+      "moveSpeed": 7
+    },
+    {
+      "slot": "belt",
+      "name": "龙革腰带",
+      "level": 15,
+      "quality": "epic",
+      "dodge": 4,
+      "attackSpeed": 12,
+      "moveSpeed": 9
+    },
+    {
+      "slot": "belt",
+      "name": "天庭之束",
+      "level": 20,
+      "quality": "legendary",
+      "dodge": 5,
+      "attackSpeed": 15,
+      "moveSpeed": 11
+    },
+    {
+      "slot": "belt",
+      "name": "壁垒腰带",
+      "level": 15,
+      "quality": "rare",
+      "dodge": 3,
+      "attackSpeed": 10,
+      "moveSpeed": 8
+    },
+    {
+      "slot": "weapon",
+      "name": "鸣霜青铜剑",
+      "level": 1,
+      "quality": "rare",
+      "attack": 14,
+      "critRate": 5,
+      "critDamage": 20
+    },
+    {
+      "slot": "helmet",
+      "name": "古朴青铜盔",
+      "level": 1,
+      "quality": "rare",
+      "health": 20,
+      "defense": 3
+    },
+    {
+      "slot": "chest",
+      "name": "斑驳青铜铠",
+      "level": 1,
+      "quality": "rare",
+      "health": 22,
+      "defense": 4
+    },
+    {
+      "slot": "legs",
+      "name": "沉重青铜卫",
+      "level": 1,
+      "quality": "rare",
+      "health": 18,
+      "defense": 2
+    },
+    {
+      "slot": "boots",
+      "name": "坚固青铜靴",
+      "level": 1,
+      "quality": "rare",
+      "health": 16,
+      "defense": 2
+    },
+    {
+      "slot": "necklace",
+      "name": "古遗青铜环",
+      "level": 1,
+      "quality": "rare",
+      "dodge": 2,
+      "attackSpeed": 4,
+      "moveSpeed": 3
+    },
+    {
+      "slot": "ring",
+      "name": "岁月青铜",
+      "level": 1,
+      "quality": "rare",
+      "dodge": 2,
+      "attackSpeed": 5,
+      "moveSpeed": 3
+    },
+    {
+      "slot": "belt",
+      "name": "青铜甲带",
+      "level": 1,
+      "quality": "rare",
+      "dodge": 2,
+      "attackSpeed": 4,
+      "moveSpeed": 4
+    },
+    {
+      "slot": "weapon",
+      "name": "逐月银芒剑",
+      "level": 1,
+      "quality": "fine",
+      "attack": 16,
+      "critRate": 6,
+      "critDamage": 22
+    },
+    {
+      "slot": "helmet",
+      "name": "皎月银冠",
+      "level": 1,
+      "quality": "fine",
+      "health": 22,
+      "defense": 3
+    },
+    {
+      "slot": "chest",
+      "name": "辉光银铠",
+      "level": 1,
+      "quality": "fine",
+      "health": 24,
+      "defense": 4
+    },
+    {
+      "slot": "legs",
+      "name": "流银护胫",
+      "level": 1,
+      "quality": "fine",
+      "health": 20,
+      "defense": 3
+    },
+    {
+      "slot": "boots",
+      "name": "烁光银靴",
+      "level": 1,
+      "quality": "fine",
+      "health": 18,
+      "defense": 2
+    },
+    {
+      "slot": "necklace",
+      "name": "月影流光",
+      "level": 1,
+      "quality": "fine",
+      "dodge": 2,
+      "attackSpeed": 5,
+      "moveSpeed": 4
+    },
+    {
+      "slot": "ring",
+      "name": "孤星寒芒",
+      "level": 1,
+      "quality": "fine",
+      "dodge": 2,
+      "attackSpeed": 6,
+      "moveSpeed": 4
+    },
+    {
+      "slot": "belt",
+      "name": "银翼束带",
+      "level": 1,
+      "quality": "fine",
+      "dodge": 2,
+      "attackSpeed": 5,
+      "moveSpeed": 5
+    },
+    {
+      "slot": "weapon",
+      "name": "晶曜寒锋",
+      "level": 5,
+      "quality": "fine",
+      "attack": 28,
+      "critRate": 10,
+      "critDamage": 28
+    },
+    {
+      "slot": "helmet",
+      "name": "莹彻晶盔",
+      "level": 5,
+      "quality": "fine",
+      "health": 36,
+      "defense": 5
+    },
+    {
+      "slot": "chest",
+      "name": "晶化内衬甲",
+      "level": 5,
+      "quality": "fine",
+      "health": 38,
+      "defense": 6
+    },
+    {
+      "slot": "legs",
+      "name": "琉璃晶胫",
+      "level": 5,
+      "quality": "fine",
+      "health": 34,
+      "defense": 4
+    },
+    {
+      "slot": "boots",
+      "name": "剔透晶靴",
+      "level": 5,
+      "quality": "fine",
+      "health": 32,
+      "defense": 3
+    },
+    {
+      "slot": "necklace",
+      "name": "秘法晶髓",
+      "level": 5,
+      "quality": "fine",
+      "dodge": 3,
+      "attackSpeed": 7,
+      "moveSpeed": 5
+    },
+    {
+      "slot": "ring",
+      "name": "灵能谐振",
+      "level": 5,
+      "quality": "fine",
+      "dodge": 3,
+      "attackSpeed": 8,
+      "moveSpeed": 5
+    },
+    {
+      "slot": "belt",
+      "name": "晶纹饰带",
+      "level": 5,
+      "quality": "fine",
+      "dodge": 3,
+      "attackSpeed": 7,
+      "moveSpeed": 6
+    },
+    {
+      "slot": "weapon",
+      "name": "劫火焚伤",
+      "level": 5,
+      "quality": "epic",
+      "attack": 30,
+      "critRate": 11,
+      "critDamage": 30
+    },
+    {
+      "slot": "helmet",
+      "name": "炽焰重盔",
+      "level": 5,
+      "quality": "epic",
+      "health": 38,
+      "defense": 6
+    },
+    {
+      "slot": "chest",
+      "name": "熔岩重铠",
+      "level": 5,
+      "quality": "epic",
+      "health": 40,
+      "defense": 7
+    },
+    {
+      "slot": "legs",
+      "name": "灰烬护足",
+      "level": 5,
+      "quality": "epic",
+      "health": 36,
+      "defense": 5
+    },
+    {
+      "slot": "boots",
+      "name": "踏火余烬",
+      "level": 5,
+      "quality": "epic",
+      "health": 34,
+      "defense": 4
+    },
+    {
+      "slot": "necklace",
+      "name": "烬灭红莲",
+      "level": 5,
+      "quality": "epic",
+      "dodge": 3,
+      "attackSpeed": 8,
+      "moveSpeed": 6
+    },
+    {
+      "slot": "ring",
+      "name": "炎魔之瞳",
+      "level": 5,
+      "quality": "epic",
+      "dodge": 3,
+      "attackSpeed": 9,
+      "moveSpeed": 6
+    },
+    {
+      "slot": "belt",
+      "name": "炽炎之环",
+      "level": 5,
+      "quality": "epic",
+      "dodge": 3,
+      "attackSpeed": 8,
+      "moveSpeed": 7
+    },
+    {
+      "slot": "weapon",
+      "name": "凛冬之拥",
+      "level": 10,
+      "quality": "epic",
+      "attack": 44,
+      "critRate": 15,
+      "critDamage": 38
+    },
+    {
+      "slot": "helmet",
+      "name": "绝尘霜盔",
+      "level": 10,
+      "quality": "epic",
+      "health": 56,
+      "defense": 7
+    },
+    {
+      "slot": "chest",
+      "name": "凛风冰衣",
+      "level": 10,
+      "quality": "epic",
+      "health": 58,
+      "defense": 8
+    },
+    {
+      "slot": "legs",
+      "name": "霜纹裙甲",
+      "level": 10,
+      "quality": "epic",
+      "health": 54,
+      "defense": 6
+    },
+    {
+      "slot": "boots",
+      "name": "凝霜远行",
+      "level": 10,
+      "quality": "epic",
+      "health": 52,
+      "defense": 5
+    },
+    {
+      "slot": "necklace",
+      "name": "极地永冻",
+      "level": 10,
+      "quality": "epic",
+      "dodge": 4,
+      "attackSpeed": 10,
+      "moveSpeed": 7
+    },
+    {
+      "slot": "ring",
+      "name": "霜魂凝视",
+      "level": 10,
+      "quality": "epic",
+      "dodge": 4,
+      "attackSpeed": 11,
+      "moveSpeed": 7
+    },
+    {
+      "slot": "belt",
+      "name": "霜冻之触",
+      "level": 10,
+      "quality": "epic",
+      "dodge": 4,
+      "attackSpeed": 10,
+      "moveSpeed": 8
+    },
+    {
+      "slot": "weapon",
+      "name": "惊雷破晓",
+      "level": 10,
+      "quality": "legendary",
+      "attack": 46,
+      "critRate": 16,
+      "critDamage": 40
+    },
+    {
+      "slot": "helmet",
+      "name": "轰鸣雷冠",
+      "level": 10,
+      "quality": "legendary",
+      "health": 58,
+      "defense": 8
+    },
+    {
+      "slot": "chest",
+      "name": "电光战袍",
+      "level": 10,
+      "quality": "legendary",
+      "health": 60,
+      "defense": 9
+    },
+    {
+      "slot": "legs",
+      "name": "疾雷腿甲",
+      "level": 10,
+      "quality": "legendary",
+      "health": 56,
+      "defense": 7
+    },
+    {
+      "slot": "boots",
+      "name": "迅雷闪步",
+      "level": 10,
+      "quality": "legendary",
+      "health": 54,
+      "defense": 6
+    },
+    {
+      "slot": "necklace",
+      "name": "裂空雷纹",
+      "level": 10,
+      "quality": "legendary",
+      "dodge": 4,
+      "attackSpeed": 11,
+      "moveSpeed": 8
+    },
+    {
+      "slot": "ring",
+      "name": "狂雷怒吼",
+      "level": 10,
+      "quality": "legendary",
+      "dodge": 4,
+      "attackSpeed": 12,
+      "moveSpeed": 8
+    },
+    {
+      "slot": "belt",
+      "name": "奔雷束缚",
+      "level": 10,
+      "quality": "legendary",
+      "dodge": 4,
+      "attackSpeed": 11,
+      "moveSpeed": 9
+    },
+    {
+      "slot": "weapon",
+      "name": "坠星裁决",
+      "level": 15,
+      "quality": "legendary",
+      "attack": 62,
+      "critRate": 21,
+      "critDamage": 52
+    },
+    {
+      "slot": "helmet",
+      "name": "瀚海星冕",
+      "level": 15,
+      "quality": "legendary",
+      "health": 78,
+      "defense": 10
+    },
+    {
+      "slot": "chest",
+      "name": "极星护佑",
+      "level": 15,
+      "quality": "legendary",
+      "health": 80,
+      "defense": 11
+    },
+    {
+      "slot": "legs",
+      "name": "银河轨迹",
+      "level": 15,
+      "quality": "legendary",
+      "health": 76,
+      "defense": 9
+    },
+    {
+      "slot": "boots",
+      "name": "星轨漫步",
+      "level": 15,
+      "quality": "legendary",
+      "health": 74,
+      "defense": 8
+    },
+    {
+      "slot": "necklace",
+      "name": "璀璨星图",
+      "level": 15,
+      "quality": "legendary",
+      "dodge": 5,
+      "attackSpeed": 14,
+      "moveSpeed": 10
+    },
+    {
+      "slot": "ring",
+      "name": "永恒星辰",
+      "level": 15,
+      "quality": "legendary",
+      "dodge": 5,
+      "attackSpeed": 15,
+      "moveSpeed": 10
+    },
+    {
+      "slot": "belt",
+      "name": "星界纽带",
+      "level": 15,
+      "quality": "legendary",
+      "dodge": 5,
+      "attackSpeed": 14,
+      "moveSpeed": 11
+    }
+  ]
+}

@@ -1,0 +1,381 @@
+{
+  "equipment": {
+    "瀚海星冕": "瀚海星冕.png",
+    "陷阵重护腿": "陷阵重护腿.png",
+    "蛮力之源": "蛮力之源.png",
+    "永恒星辰": "永恒星辰.png",
+    "钢扣皮带": "钢扣皮带.png",
+    "银河轨迹": "银河轨迹.png",
+    "雄狮板甲": "雄狮板甲.png",
+    "轰鸣雷冠": "轰鸣雷冠.png",
+    "逆鳞屠龙锋": "逆鳞屠龙锋.png",
+    "铁卫护腿": "铁卫护腿.png",
+    "古遗青铜环": "古遗青铜环.png",
+    "苦行者长衫": "苦行者长衫.png",
+    "绝尘霜盔": "绝尘霜盔.png",
+    "壁垒腰带": "壁垒腰带.png",
+    "坠星裁决": "坠星裁决.png",
+    "奔雷束缚": "奔雷束缚.png",
+    "创世法则": "创世法则.png",
+    "律法圣带": "律法圣带.png",
+    "神威头盔": "神威头盔.png",
+    "坚毅铁盔": "坚毅铁盔.png",
+    "龙筋护腿": "龙筋护腿.png",
+    "烬灭红莲": "烬灭红莲.png",
+    "霜纹裙甲": "霜纹裙甲.png",
+    "莹彻晶盔": "莹彻晶盔.png",
+    "熔岩重铠": "熔岩重铠.png",
+    "众神冠冕": "众神冠冕.png",
+    "霜魂凝视": "霜魂凝视.png",
+    "月影流光": "月影流光.png",
+    "流银护胫": "流银护胫.png",
+    "炎魔之瞳": "炎魔之瞳.png",
+    "霜冻之触": "霜冻之触.png",
+    "兽纹皮裤": "兽纹皮裤.png",
+    "诸神眷顾": "诸神眷顾.png",
+    "逆鳞龙铠": "逆鳞龙铠.png",
+    "琉璃晶胫": "琉璃晶胫.png",
+    "炽炎之环": "炽炎之环.png",
+    "极地永冻": "极地永冻.png",
+    "璀璨星图": "璀璨星图.png",
+    "古朴青铜盔": "古朴青铜盔.png",
+    "永恒战甲": "永恒战甲.png",
+    "剔透晶靴": "剔透晶靴.png",
+    "灵能谐振": "灵能谐振.png",
+    "旅人草鞋": "旅人草鞋.png",
+    "劫火焚伤": "劫火焚伤.png",
+    "惊雷破晓": "惊雷破晓.png",
+    "咏咒师长袍": "咏咒师长袍.png",
+    "逐月银芒剑": "逐月银芒剑.png",
+    "猎手皮帽": "猎手皮帽.png",
+    "斑驳青铜铠": "斑驳青铜铠.png",
+    "极星护佑": "极星护佑.png",
+    "游侠布裤": "游侠布裤.png",
+    "黄铜勋章": "黄铜勋章.png",
+    "辉光秘银刃": "辉光秘银刃.png",
+    "迅影之触": "迅影之触.png",
+    "凝霜远行": "凝霜远行.png",
+    "荆棘皮甲": "荆棘皮甲.png",
+    "银翼束带": "银翼束带.png",
+    "龙息之握": "龙息之握.png",
+    "金权戒律": "金权戒律.png",
+    "编织腰带": "编织腰带.png",
+    "龙心垂饰": "龙心垂饰.png",
+    "骁勇钢盔": "骁勇钢盔.png",
+    "裂空雷纹": "裂空雷纹.png",
+    "混沌之刃": "混沌之刃.png",
+    "迅雷闪步": "迅雷闪步.png",
+    "烁光银靴": "烁光银靴.png",
+    "青铜甲带": "青铜甲带.png",
+    "沉重青铜卫": "沉重青铜卫.png",
+    "远古龙刃": "远古龙刃.png",
+    "天庭之束": "天庭之束.png",
+    "淬火精钢剑": "淬火精钢剑.png",
+    "坚固青铜靴": "坚固青铜靴.png",
+    "细密锁子甲": "细密锁子甲.png",
+    "秘法晶髓": "秘法晶髓.png",
+    "灰烬护足": "灰烬护足.png",
+    "黄金契约": "黄金契约.png",
+    "锋锐骑士长剑": "锋锐骑士长剑.png",
+    "铜制扳指": "铜制扳指.png",
+    "龙革腰带": "龙革腰带.png",
+    "岁月青铜": "岁月青铜.png",
+    "踏火余烬": "踏火余烬.png",
+    "晶曜寒锋": "晶曜寒锋.png",
+    "征战铁靴": "征战铁靴.png",
+    "秘银战甲": "秘银战甲.png",
+    "晶化内衬甲": "晶化内衬甲.png",
+    "精钢长剑": "精钢长剑.png",
+    "鸣霜青铜剑": "鸣霜青铜剑.png",
+    "星轨漫步": "星轨漫步.png",
+    "狂雷怒吼": "狂雷怒吼.png",
+    "龙踏云靴": "龙踏云靴.png",
+    "占星秘法帽": "占星秘法帽.png",
+    "皎月银冠": "皎月银冠.png",
+    "永恒神威": "永恒神威.png",
+    "逐神之迹": "逐神之迹.png",
+    "圣耀·断罪": "圣耀·断罪.png",
+    "龙鳞护甲": "龙鳞护甲.png",
+    "晶纹饰带": "晶纹饰带.png",
+    "辉光银铠": "辉光银铠.png",
+    "凛冬之拥": "凛冬之拥.png",
+    "凛风冰衣": "凛风冰衣.png",
+    "硬革皮靴": "硬革皮靴.png",
+    "疾雷腿甲": "疾雷腿甲.png",
+    "炽焰重盔": "炽焰重盔.png",
+    "铁质束腰": "铁质束腰.png",
+    "猎豹疾靴": "猎豹疾靴.png",
+    "秘银私语": "秘银私语.png",
+    "龙息战盔": "龙息战盔.png",
+    "纯银吊坠": "纯银吊坠.png",
+    "斑驳铁剑": "斑驳铁剑.png",
+    "孤星寒芒": "孤星寒芒.png",
+    "电光战袍": "电光战袍.png",
+    "幽冥绝影刃": "幽冥绝影刃.png",
+    "星界纽带": "星界纽带.png",
+    "魔法水晶剑": "魔法水晶剑.png",
+    "猎风短弓": "猎风短弓.png",
+    "幽影弩": "幽影弩.png",
+    "曦光长弓": "曦光长弓.png",
+    "穿云破月": "穿云破月.png",
+    "永夜·星坠": "永夜·星坠.png"
+  },
+  "alchemy_material": {
+    "霜凝幽卉": "霜凝幽卉.png",
+    "凌云隼羽": "凌云隼羽.png",
+    "烬燃灵草": "烬燃灵草.png",
+    "摧坚刚岩": "摧坚刚岩.png",
+    "荒古龙鳞": "荒古龙鳞.png",
+    "震天雷枢": "震天雷枢.png",
+    "磐石瑰晶": "磐石瑰晶.png",
+    "涅槃灵羽": "涅槃灵羽.png",
+    "瑞命元根": "瑞命元根.png",
+    "湮灭源质": "湮灭源质.png",
+    "曦和圣耀": "曦和圣耀.png",
+    "永夜魂髓": "永夜魂髓.png",
+    "朔风惊叶": "朔风惊叶.png",
+    "煞血魔珀": "煞血魔珀.png"
+  },
+  "building": {
+    "tower_entrance": "tile_tower_entrance.png",
+    "blacksmith": "tile_blacksmith.png",
+    "shop": "tile_shop.png",
+    "training_ground": "tile_training_ground.png"
+  },
+  "room_entity": {
+    "treasure_chest": "tile_treasure_chest.png",
+    "rest_campfire": "tile_rest_campfire.png",
+    "rest_medkit": "tile_rest_medkit.png",
+    "rest_fountain": "tile_rest_fountain.png",
+    "rest_altar": "tile_rest_altar.png",
+    "alchemy_table": "tile_alchemy_table.png"
+  },
+  "portal": {
+    "exit": "tile_portal_exit.png",
+    "next": "tile_portal_next.png",
+    "return_town": "tile_portal_return_town.png",
+    "fight": "tile_portal_fight.png"
+  },
+  "floor": {
+    "town": "tile_town_floor.png",
+    "tower": "tile_tower_floor_new.png",
+    "training": "tile_training_floor.png"
+  },
+  "monster": {
+    "goblin": {
+      "image": "monster_goblin.png",
+      "scale": 1.2
+    },
+    "goblinWarrior": {
+      "image": "monster_goblin_warrior.png",
+      "scale": 1.3
+    },
+    "goblinShaman": {
+      "image": "monster_goblin_shaman.png",
+      "scale": 1.1
+    },
+    "goblinScout": {
+      "image": "monster_goblin_scout.png",
+      "scale": 1.1
+    },
+    "goblinChief": {
+      "image": "monster_goblin_chief.png",
+      "scale": 1.6
+    },
+    "skeleton": {
+      "image": "monster_skeleton.png",
+      "scale": 1.5
+    },
+    "skeletonArcher": {
+      "image": "monster_skeleton_archer.png",
+      "scale": 1.3
+    },
+    "skeletonKnight": {
+      "image": "monster_skeleton_knight.png",
+      "scale": 2.0
+    },
+    "skeletonMage": {
+      "image": "monster_skeleton_mage.png",
+      "scale": 1.2
+    },
+    "skeletonLord": {
+      "image": "monster_skeleton_lord.png",
+      "scale": 2.5
+    },
+    "orc": {
+      "image": "monster_orc.png",
+      "scale": 2.2
+    },
+    "orcBerserker": {
+      "image": "monster_orc_berserker.png",
+      "scale": 2.0
+    },
+    "orcShaman": {
+      "image": "monster_orc_shaman.png",
+      "scale": 2.1
+    },
+    "orcWarrior": {
+      "image": "monster_orc_warrior.png",
+      "scale": 2.3
+    },
+    "orcWarlord": {
+      "image": "monster_orc_warlord.png",
+      "scale": 3.5
+    },
+    "demon": {
+      "image": "monster_demon.png",
+      "scale": 2.5
+    },
+    "demonImp": {
+      "image": "monster_demon_imp.png",
+      "scale": 1.5
+    },
+    "demonGuardian": {
+      "image": "monster_demon_guardian.png",
+      "scale": 3.0
+    },
+    "demonSorcerer": {
+      "image": "monster_demon_sorcerer.png",
+      "scale": 2.5
+    },
+    "demonGeneral": {
+      "image": "monster_demon_general.png",
+      "scale": 3.5
+    },
+    "demonBoss": {
+      "image": "monster_demon_boss.png",
+      "scale": 5.0
+    },
+    "demonPrince": {
+      "image": "monster_demon_prince.png",
+      "scale": 3.8
+    },
+    "demonTitan": {
+      "image": "monster_demon_titan.png",
+      "scale": 5.5
+    },
+    "demonArchmage": {
+      "image": "monster_demon_archmage.png",
+      "scale": 3.0
+    },
+    "demonOverlord": {
+      "image": "monster_demon_overlord.png",
+      "scale": 6.0
+    }
+  },
+  "player": {
+    "player": {
+      "image": "player.gif",
+      "scale": 1.5
+    }
+  },
+  "skill_icons": {
+    "崩山击": "崩山击.png",
+    "银芒贯刺": "银芒贯刺.png",
+    "赤炎斩": "赤炎斩.png",
+    "幽冥闪袭": "幽冥闪袭.png",
+    "凛冬刺": "凛冬刺.png",
+    "鸣雷裁决": "鸣雷裁决.png",
+    "银月弧光": "银月弧光.png",
+    "霜华碎灭": "霜华碎灭.png",
+    "龙炎漩涡": "龙炎漩涡.png",
+    "烬灭天火": "烬灭天火.png",
+    "永冻新星": "永冻新星.png",
+    "神裁": "神裁.png",
+    "万钧雷狱": "万钧雷狱.png",
+    "星坠审判": "星坠审判.png",
+    "钢魂崩击": "钢魂崩击.png",
+    "魔晶绽裂": "魔晶绽裂.png",
+    "古龙吐息": "古龙吐息.png",
+    "虚空崩解": "虚空崩解.png",
+    "破势一击": "破势一击.png",
+    "战意迸发": "战意迸发.png",
+    "闪霆": "闪霆.png",
+    "炎狱风暴": "炎狱风暴.png",
+    "天谴": "天谴.png",
+    "追风箭": "skill_icons/追风箭.png",
+    "暗影贯穿": "skill_icons/暗影贯穿.png",
+    "破晓之矢": "skill_icons/破晓之矢.png",
+    "贯月连珠": "skill_icons/贯月连珠.png",
+    "星陨": "skill_icons/星陨.png"
+  },
+  "consumable": {
+    "blueprint": "blueprint.png"
+  },
+  "sounds": {
+    "burn": {
+      "file": "sound_burn.mp3",
+      "volume": 0.3
+    },
+    "treasure": {
+      "file": "sound_treasure.mp3",
+      "volume": 0.6
+    },
+    "craft": {
+      "file": "sound_craft.mp3",
+      "volume": 0.6
+    },
+    "death": {
+      "file": "sound_death.mp3",
+      "volume": 0.7
+    },
+    "shock": {
+      "file": "sound_shock.mp3",
+      "volume": 0.4
+    },
+    "equip": {
+      "file": "sound_equip.mp3",
+      "volume": 0.5
+    },
+    "freeze": {
+      "file": "sound_freeze.mp3",
+      "volume": 0.4
+    },
+    "heal": {
+      "file": "sound_heal.mp3",
+      "volume": 0.4
+    },
+    "hit": {
+      "file": "sound_hit.mp3",
+      "volume": 0.3
+    },
+    "levelup": {
+      "file": "sound_levelup.mp3",
+      "volume": 0.7
+    },
+    "purchase": {
+      "file": "sound_purchase.mp3",
+      "volume": 0.5
+    },
+    "star": {
+      "file": "sound_star.mp3",
+      "volume": 0.5
+    },
+    "dash": {
+      "file": "sound_dash.mp3",
+      "volume": 0.6
+    },
+    "swing": {
+      "file": "sound_swing.mp3",
+      "volume": 0.4
+    },
+    "teleport": {
+      "file": "sound_teleport.mp3",
+      "volume": 0.5
+    },
+    "walk": {
+      "file": "sound_walk.mp3",
+      "volume": 0.3
+    }
+  },
+  "bgm": {
+    "town": {
+      "file": "bgm_town.mp3",
+      "volume": 0.5
+    },
+    "battle": {
+      "file": "bgm_battle.mp3",
+      "volume": 0.5
+    }
+  }
+}

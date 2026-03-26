@@ -1,0 +1,422 @@
+{
+  "SET_DEFINITIONS": {
+    "bronze": {
+      "name": "青铜套装",
+      "pieces": [
+        "鸣霜青铜剑",
+        "古朴青铜盔",
+        "斑驳青铜铠",
+        "沉重青铜卫",
+        "坚固青铜靴",
+        "古遗青铜环",
+        "岁月青铜",
+        "青铜甲带"
+      ],
+      "effects": {
+        "2": {
+          "description": "攻击力+5，防御力+3",
+          "stats": {
+            "attack": 5,
+            "defense": 3
+          }
+        },
+        "4": {
+          "description": "暴击率+5%，生命值+30",
+          "stats": {
+            "critRate": 5,
+            "health": 30
+          }
+        },
+        "6": {
+          "description": "攻击速度+10%，移动速度+5%",
+          "stats": {
+            "attackSpeed": 10,
+            "moveSpeed": 5
+          }
+        },
+        "8": {
+          "description": "所有属性+10%，击杀敌人时恢复5%最大生命值",
+          "stats": {
+            "allStats": 0.1
+          },
+          "special": "killHeal"
+        }
+      }
+    },
+    "silver": {
+      "name": "银月套装",
+      "pieces": [
+        "逐月银芒剑",
+        "皎月银冠",
+        "辉光银铠",
+        "流银护胫",
+        "烁光银靴",
+        "月影流光",
+        "孤星寒芒",
+        "银翼束带"
+      ],
+      "effects": {
+        "2": {
+          "description": "攻击力+8，暴击率+3%",
+          "stats": {
+            "attack": 8,
+            "critRate": 3
+          }
+        },
+        "4": {
+          "description": "防御力+5，闪避率+5%",
+          "stats": {
+            "defense": 5,
+            "dodge": 5
+          }
+        },
+        "6": {
+          "description": "攻击速度+15%，移动速度+10%",
+          "stats": {
+            "attackSpeed": 15,
+            "moveSpeed": 10
+          }
+        },
+        "8": {
+          "description": "所有属性+15%，技能冷却时间减少20%",
+          "stats": {
+            "allStats": 0.15
+          },
+          "special": "cooldownReduction"
+        }
+      }
+    },
+    "crystal": {
+      "name": "晶化套装",
+      "pieces": [
+        "晶曜寒锋",
+        "莹彻晶盔",
+        "晶化内衬甲",
+        "琉璃晶胫",
+        "剔透晶靴",
+        "秘法晶髓",
+        "灵能谐振",
+        "晶纹饰带"
+      ],
+      "effects": {
+        "2": {
+          "description": "攻击力+12，防御力+8",
+          "stats": {
+            "attack": 12,
+            "defense": 8
+          }
+        },
+        "4": {
+          "description": "暴击伤害+15%，生命值+50",
+          "stats": {
+            "critDamage": 15,
+            "health": 50
+          }
+        },
+        "6": {
+          "description": "受到伤害时，有20%概率将30%伤害转化为生命值",
+          "stats": {},
+          "special": "damageToHeal"
+        },
+        "8": {
+          "description": "所有属性+20%，受到致命伤害时有30%概率免疫",
+          "stats": {
+            "allStats": 0.2
+          },
+          "special": "deathImmunity"
+        }
+      }
+    },
+    "flame": {
+      "name": "烈焰套装",
+      "pieces": [
+        "劫火焚伤",
+        "炽焰重盔",
+        "熔岩重铠",
+        "灰烬护足",
+        "踏火余烬",
+        "烬灭红莲",
+        "炎魔之瞳",
+        "炽炎之环"
+      ],
+      "effects": {
+        "2": {
+          "description": "攻击力+15，暴击率+5%",
+          "stats": {
+            "attack": 15,
+            "critRate": 5
+          }
+        },
+        "4": {
+          "description": "攻击时有20%概率触发火焰爆炸，造成50%攻击力伤害",
+          "stats": {},
+          "special": "flameExplosion"
+        },
+        "6": {
+          "description": "攻击速度+20%，移动速度+10%",
+          "stats": {
+            "attackSpeed": 20,
+            "moveSpeed": 10
+          }
+        },
+        "8": {
+          "description": "所有属性+25%，攻击时有30%概率对周围敌人造成持续火焰伤害",
+          "stats": {
+            "allStats": 0.25
+          },
+          "special": "flameAura"
+        }
+      }
+    },
+    "frost": {
+      "name": "霜寒套装",
+      "pieces": [
+        "凛冬之拥",
+        "绝尘霜盔",
+        "凛风冰衣",
+        "霜纹裙甲",
+        "凝霜远行",
+        "极地永冻",
+        "霜魂凝视",
+        "霜冻之触"
+      ],
+      "effects": {
+        "2": {
+          "description": "防御力+10，生命值+60",
+          "stats": {
+            "defense": 10,
+            "health": 60
+          }
+        },
+        "4": {
+          "description": "攻击时有25%概率冰冻目标2秒",
+          "stats": {},
+          "special": "freezeChance"
+        },
+        "6": {
+          "description": "受到攻击时，有30%概率冰冻攻击者1秒",
+          "stats": {},
+          "special": "counterFreeze"
+        },
+        "8": {
+          "description": "所有属性+25%，攻击时有40%概率触发范围冰冻效果",
+          "stats": {
+            "allStats": 0.25
+          },
+          "special": "areaFreeze"
+        }
+      }
+    },
+    "thunder": {
+      "name": "雷霆套装",
+      "pieces": [
+        "惊雷破晓",
+        "轰鸣雷冠",
+        "电光战袍",
+        "疾雷腿甲",
+        "迅雷闪步",
+        "裂空雷纹",
+        "狂雷怒吼",
+        "奔雷束缚"
+      ],
+      "effects": {
+        "2": {
+          "description": "攻击力+20，暴击率+8%",
+          "stats": {
+            "attack": 20,
+            "critRate": 8
+          }
+        },
+        "4": {
+          "description": "攻击时有25%概率触发连锁闪电，对附近敌人造成80%攻击力伤害",
+          "stats": {},
+          "special": "chainLightning"
+        },
+        "6": {
+          "description": "攻击速度+25%，移动速度+15%",
+          "stats": {
+            "attackSpeed": 25,
+            "moveSpeed": 15
+          }
+        },
+        "8": {
+          "description": "所有属性+30%，技能伤害提升50%，技能冷却时间减少30%",
+          "stats": {
+            "allStats": 0.3
+          },
+          "special": "skillBoost"
+        }
+      }
+    },
+    "star": {
+      "name": "星辰套装",
+      "pieces": [
+        "坠星裁决",
+        "瀚海星冕",
+        "极星护佑",
+        "银河轨迹",
+        "星轨漫步",
+        "璀璨星图",
+        "永恒星辰",
+        "星界纽带"
+      ],
+      "effects": {
+        "2": {
+          "description": "攻击力+25，防御力+15",
+          "stats": {
+            "attack": 25,
+            "defense": 15
+          }
+        },
+        "4": {
+          "description": "所有属性+10%，技能冷却时间减少15%",
+          "stats": {
+            "allStats": 0.1
+          },
+          "special": "cooldownReduction"
+        },
+        "6": {
+          "description": "击杀敌人时恢复10%最大生命值，并提升5%所有属性，持续10秒",
+          "stats": {},
+          "special": "killBuff"
+        },
+        "8": {
+          "description": "所有属性+35%，受到致命伤害时有50%概率免疫，每秒恢复2%最大生命值",
+          "stats": {
+            "allStats": 0.35
+          },
+          "special": "ultimate"
+        }
+      }
+    },
+    "basic_1": {
+      "name": "基础套装",
+      "pieces": [
+        "斑驳铁剑",
+        "猎手皮帽",
+        "苦行者长衫",
+        "游侠布裤",
+        "旅人草鞋",
+        "黄铜勋章",
+        "铜制扳指",
+        "编织腰带"
+      ],
+      "effects": {
+        "2": {
+          "description": "攻击力+3，生命值+10",
+          "stats": {
+            "attack": 3,
+            "health": 10
+          }
+        },
+        "4": {
+          "description": "防御力+2，移动速度+3%",
+          "stats": {
+            "defense": 2,
+            "moveSpeed": 3
+          }
+        },
+        "6": {
+          "description": "攻击速度+5%，闪避率+2%",
+          "stats": {
+            "attackSpeed": 5,
+            "dodge": 2
+          }
+        },
+        "8": {
+          "description": "所有属性+5%",
+          "stats": {
+            "allStats": 0.05
+          }
+        }
+      }
+    },
+    "dragon": {
+      "name": "龙族套装",
+      "pieces": [
+        "逆鳞屠龙锋",
+        "龙息战盔",
+        "逆鳞龙铠",
+        "龙筋护腿",
+        "龙踏云靴",
+        "龙心垂饰",
+        "龙息之握",
+        "龙革腰带"
+      ],
+      "effects": {
+        "2": {
+          "description": "攻击力+18，防御力+12",
+          "stats": {
+            "attack": 18,
+            "defense": 12
+          }
+        },
+        "4": {
+          "description": "生命值+80，受到攻击时有15%概率对攻击者造成50%攻击力的火焰伤害",
+          "stats": {
+            "health": 80
+          },
+          "special": "dragonCounter"
+        },
+        "6": {
+          "description": "暴击率+10%，暴击伤害+20%",
+          "stats": {
+            "critRate": 10,
+            "critDamage": 20
+          }
+        },
+        "8": {
+          "description": "所有属性+30%，生命值低于30%时，攻击力提升50%",
+          "stats": {
+            "allStats": 0.3
+          },
+          "special": "dragonRage"
+        }
+      }
+    },
+    "divine": {
+      "name": "圣耀套装",
+      "pieces": [
+        "圣耀·断罪",
+        "众神冠冕",
+        "永恒神威",
+        "律法圣带",
+        "逐神之迹",
+        "诸神眷顾",
+        "创世法则",
+        "天庭之束"
+      ],
+      "effects": {
+        "2": {
+          "description": "攻击力+30，暴击率+10%",
+          "stats": {
+            "attack": 30,
+            "critRate": 10
+          }
+        },
+        "4": {
+          "description": "防御力+20，生命值+100",
+          "stats": {
+            "defense": 20,
+            "health": 100
+          }
+        },
+        "6": {
+          "description": "所有属性+20%，受到伤害时有20%概率免疫",
+          "stats": {
+            "allStats": 0.2
+          },
+          "special": "damageImmunity"
+        },
+        "8": {
+          "description": "所有属性+40%，暴击伤害提升100%，受到致命伤害时有40%概率保留1点生命值",
+          "stats": {
+            "allStats": 0.4,
+            "critDamage": 100
+          },
+          "special": "divineProtection"
+        }
+      }
+    }
+  }
+}

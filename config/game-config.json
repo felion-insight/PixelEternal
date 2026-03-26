@@ -1,0 +1,59 @@
+{
+  "CONFIG": {
+    "CANVAS_WIDTH": 1200,
+    "CANVAS_HEIGHT": 800,
+    "TILE_SIZE": 80,
+    "PLAYER_SIZE": 40,
+    "PLAYER_SPEED": 3,
+    "PLAYER_DASH_SPEED": 8,
+    "PLAYER_DASH_DURATION": 150,
+    "PLAYER_DASH_TRAIL_COLOR": "#00ffff",
+    "PLAYER_ATTACK_RANGE": 50,
+    "PLAYER_ATTACK_COOLDOWN": 800,
+    "PLAYER_VISION": 100,
+    "MONSTER_SIZE": 30,
+    "MONSTER_SPEED": 1.5,
+    "MONSTER_DETECTION_RANGE": 150,
+    "MONSTER_CHASE_RANGE": 250,
+    "MONSTER_ATTACK_RANGE": 40,
+    "MONSTER_ATTACK_COOLDOWN": 2000,
+    "INVENTORY_SIZE": 66,
+    "TICKS_PER_SECOND": 60
+  },
+  "QUALITY_COLORS": {
+    "common": "#ffffff",
+    "rare": "#00ff00",
+    "fine": "#0088ff",
+    "epic": "#aa00ff",
+    "legendary": "#ff8800"
+  },
+  "QUALITY_NAMES": {
+    "common": "普通",
+    "rare": "稀有",
+    "fine": "精良",
+    "epic": "史诗",
+    "legendary": "传说"
+  },
+  "SLOT_NAMES": {
+    "weapon": "武器",
+    "helmet": "头盔",
+    "chest": "胸甲",
+    "legs": "腿甲",
+    "boots": "足具",
+    "necklace": "项链",
+    "ring": "指环",
+    "belt": "腰带"
+  },
+  "ROOM_TYPES": {
+    "BATTLE": "battle",
+    "TREASURE": "treasure",
+    "REST": "rest",
+    "ELITE": "elite"
+  },
+  "SCENE_TYPES": {
+    "TOWN": "town",
+    "TOWER": "tower",
+    "TRAINING": "training"
+  }
+}
+

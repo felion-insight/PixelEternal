@@ -1,0 +1,107 @@
+﻿部位,名称,等级,品质,所属套装,特点,贴图提示词,攻击力,暴击率,暴击伤害,生命值,防御力,闪避率,攻击速度,移动速度
+武器,斑驳铁剑,1,普通,基础套装,长剑/刃；朴素铁皮布，灰褐/暗色，无华丽装饰,"longsword or blade, rusty iron and leather, brown-gray, no decoration, pixel art icon, retro 16-bit style, pure black background, no text",12,4,18,,,,,
+武器,淬火精钢剑,5,稀有,,长剑/刃；通用金属/皮甲，中性色调,"longsword or blade, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",26,9,26,,,,,
+武器,辉光秘银刃,10,精良,,长剑/刃；银月 通用金属/皮甲，中性色调,"longsword or blade, silver moonlight, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",42,14,36,,,,,
+武器,逆鳞屠龙锋,15,史诗,龙族套装,长剑/刃；龙鳞龙纹、暗金赤色，威严,"longsword or blade, dragon scale and dragon pattern, dark gold and red, imposing, pixel art icon, retro 16-bit style, pure black background, no text",58,19,48,,,,,
+武器,圣耀·断罪,20,传说,圣耀套装,长剑/刃；神圣光明、金白圣辉，庄严,"longsword or blade, divine holy light, golden-white radiance, solemn, pixel art icon, retro 16-bit style, pure black background, no text",75,25,60,,,,,
+武器,锋锐骑士长剑,5,普通,,长剑/刃；骑士风格 通用金属/皮甲，中性色调,"longsword or blade, knight style, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",24,7,24,,,,,
+武器,幽冥绝影刃,10,稀有,,长剑/刃；暗影/幽暗 通用金属/皮甲，中性色调,"longsword or blade, shadow dark, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",40,12,34,,,,,
+头盔,猎手皮帽,1,普通,基础套装,头盔/帽/冠；朴素铁皮布，灰褐/暗色，无华丽装饰,"helmet or crown, rusty iron and leather, brown-gray, no decoration, pixel art icon, retro 16-bit style, pure black background, no text",,,,18,2,,,
+头盔,坚毅铁盔,5,稀有,,头盔/帽/冠；通用金属/皮甲，中性色调,"helmet or crown, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,34,4,,,
+头盔,骁勇钢盔,10,精良,,头盔/帽/冠；通用金属/皮甲，中性色调,"helmet or crown, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,54,6,,,
+头盔,龙息战盔,15,史诗,龙族套装,头盔/帽/冠；龙鳞龙纹、暗金赤色，威严,"helmet or crown, dragon scale and dragon pattern, dark gold and red, imposing, pixel art icon, retro 16-bit style, pure black background, no text",,,,74,9,,,
+头盔,众神冠冕,20,传说,圣耀套装,头盔/帽/冠；神圣光明、金白圣辉，庄严,"helmet or crown, divine holy light, golden-white radiance, solemn, pixel art icon, retro 16-bit style, pure black background, no text",,,,96,12,,,
+头盔,占星秘法帽,5,普通,,头盔/帽/冠；法师/秘法 通用金属/皮甲，中性色调,"helmet or crown, stellar cosmic, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,32,3,,,
+胸甲,苦行者长衫,1,普通,基础套装,胸甲/袍/衫；朴素铁皮布，灰褐/暗色，无华丽装饰,"chest plate or robe, rusty iron and leather, brown-gray, no decoration, pixel art icon, retro 16-bit style, pure black background, no text",,,,20,3,,,
+胸甲,荆棘皮甲,5,稀有,,胸甲/袍/衫；通用金属/皮甲，中性色调,"chest plate or robe, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,36,5,,,
+胸甲,雄狮板甲,10,精良,,胸甲/袍/衫；通用金属/皮甲，中性色调,"chest plate or robe, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,56,7,,,
+胸甲,逆鳞龙铠,15,史诗,龙族套装,胸甲/袍/衫；龙鳞龙纹、暗金赤色，威严,"chest plate or robe, dragon scale and dragon pattern, dark gold and red, imposing, pixel art icon, retro 16-bit style, pure black background, no text",,,,76,10,,,
+胸甲,永恒神威,20,传说,圣耀套装,胸甲/袍/衫；神圣光明、金白圣辉，庄严,"chest plate or robe, divine holy light, golden-white radiance, solemn, pixel art icon, retro 16-bit style, pure black background, no text",,,,98,13,,,
+胸甲,细密锁子甲,5,普通,,胸甲/袍/衫；通用金属/皮甲，中性色调,"chest plate or robe, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,34,4,,,
+胸甲,咏咒师长袍,10,稀有,,胸甲/袍/衫；法师/秘法 通用金属/皮甲，中性色调,"chest plate or robe, mage mystic, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,52,6,,,
+腿甲,游侠布裤,1,普通,基础套装,护腿/裤/裙甲；朴素铁皮布，灰褐/暗色，无华丽装饰,"leg guards or greaves, rusty iron and leather, brown-gray, no decoration, pixel art icon, retro 16-bit style, pure black background, no text",,,,16,2,,,
+腿甲,兽纹皮裤,5,稀有,,护腿/裤/裙甲；通用金属/皮甲，中性色调,"leg guards or greaves, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,32,4,,,
+腿甲,铁卫护腿,10,精良,,护腿/裤/裙甲；通用金属/皮甲，中性色调,"leg guards or greaves, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,52,6,,,
+腿甲,龙筋护腿,15,史诗,龙族套装,护腿/裤/裙甲；龙鳞龙纹、暗金赤色，威严,"leg guards or greaves, dragon scale and dragon pattern, dark gold and red, imposing, pixel art icon, retro 16-bit style, pure black background, no text",,,,72,8,,,
+腿甲,律法圣带,20,传说,圣耀套装,护腿/裤/裙甲；神圣光明、金白圣辉，庄严,"leg guards or greaves, divine holy light, golden-white radiance, solemn, pixel art icon, retro 16-bit style, pure black background, no text",,,,94,11,,,
+腿甲,陷阵重护腿,10,稀有,,护腿/裤/裙甲；通用金属/皮甲，中性色调,"leg guards or greaves, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,50,5,,,
+足具,旅人草鞋,1,普通,基础套装,靴/鞋；朴素铁皮布，灰褐/暗色，无华丽装饰,"boots or shoes, rusty iron and leather, brown-gray, no decoration, pixel art icon, retro 16-bit style, pure black background, no text",,,,14,1,,,
+足具,硬革皮靴,5,稀有,,靴/鞋；通用金属/皮甲，中性色调,"boots or shoes, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,30,3,,,
+足具,征战铁靴,10,精良,,靴/鞋；通用金属/皮甲，中性色调,"boots or shoes, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,50,5,,,
+足具,龙踏云靴,15,史诗,龙族套装,靴/鞋；龙鳞龙纹、暗金赤色，威严,"boots or shoes, dragon scale and dragon pattern, dark gold and red, imposing, pixel art icon, retro 16-bit style, pure black background, no text",,,,70,7,,,
+足具,逐神之迹,20,传说,圣耀套装,靴/鞋；神圣光明、金白圣辉，庄严,"boots or shoes, divine holy light, golden-white radiance, solemn, pixel art icon, retro 16-bit style, pure black background, no text",,,,92,10,,,
+足具,猎豹疾靴,5,普通,,靴/鞋；通用金属/皮甲，中性色调,"boots or shoes, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,28,2,,,
+项链,黄铜勋章,1,普通,基础套装,项链/吊坠/勋章；朴素铁皮布，灰褐/暗色，无华丽装饰,"necklace or pendant, rusty iron and leather, brown-gray, no decoration, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,1,3,2
+项链,纯银吊坠,5,稀有,,项链/吊坠/勋章；银月 通用金属/皮甲，中性色调,"necklace or pendant, silver moonlight, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,2,6,4
+项链,黄金契约,10,精良,,项链/吊坠/勋章；通用金属/皮甲，中性色调,"necklace or pendant, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,3,9,6
+项链,龙心垂饰,15,史诗,龙族套装,项链/吊坠/勋章；龙鳞龙纹、暗金赤色，威严,"necklace or pendant, dragon scale and dragon pattern, dark gold and red, imposing, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,4,12,8
+项链,诸神眷顾,20,传说,圣耀套装,项链/吊坠/勋章；神圣光明、金白圣辉，庄严,"necklace or pendant, divine holy light, golden-white radiance, solemn, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,5,15,10
+项链,蛮力之源,5,普通,,项链/吊坠/勋章；通用金属/皮甲，中性色调,"necklace or pendant, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,1,5,3
+指环,铜制扳指,1,普通,基础套装,指环/戒指；朴素铁皮布，灰褐/暗色，无华丽装饰,"ring, rusty iron and leather, brown-gray, no decoration, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,1,4,2
+指环,秘银私语,5,稀有,,指环/戒指；银月 通用金属/皮甲，中性色调,"ring, silver moonlight, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,2,7,4
+指环,金权戒律,10,精良,,指环/戒指；通用金属/皮甲，中性色调,"ring, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,3,10,6
+指环,龙息之握,15,史诗,龙族套装,指环/戒指；龙鳞龙纹、暗金赤色，威严,"ring, dragon scale and dragon pattern, dark gold and red, imposing, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,4,13,8
+指环,创世法则,20,传说,圣耀套装,指环/戒指；神圣光明、金白圣辉，庄严,"ring, divine holy light, golden-white radiance, solemn, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,5,16,10
+指环,迅影之触,10,稀有,,指环/戒指；通用金属/皮甲，中性色调,"ring, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,2,8,5
+腰带,编织腰带,1,普通,基础套装,腰带/束带；朴素铁皮布，灰褐/暗色，无华丽装饰,"belt, rusty iron and leather, brown-gray, no decoration, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,1,3,3
+腰带,钢扣皮带,5,稀有,,腰带/束带；通用金属/皮甲，中性色调,"belt, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,2,6,5
+腰带,铁质束腰,10,精良,,腰带/束带；通用金属/皮甲，中性色调,"belt, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,3,9,7
+腰带,龙革腰带,15,史诗,龙族套装,腰带/束带；龙鳞龙纹、暗金赤色，威严,"belt, dragon scale and dragon pattern, dark gold and red, imposing, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,4,12,9
+腰带,天庭之束,20,传说,圣耀套装,腰带/束带；神圣光明、金白圣辉，庄严,"belt, divine holy light, golden-white radiance, solemn, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,5,15,11
+腰带,壁垒腰带,15,稀有,,腰带/束带；通用金属/皮甲，中性色调,"belt, generic metal or leather, neutral tone, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,3,10,8
+武器,鸣霜青铜剑,1,稀有,青铜套装,长剑/刃；青铜材质、铜绿锈迹，古朴厚重,"longsword or blade, bronze with patina, antique copper-green, heavy, pixel art icon, retro 16-bit style, pure black background, no text",14,5,20,,,,,
+头盔,古朴青铜盔,1,稀有,青铜套装,头盔/帽/冠；青铜材质、铜绿锈迹，古朴厚重,"helmet or crown, bronze with patina, antique copper-green, heavy, pixel art icon, retro 16-bit style, pure black background, no text",,,,20,3,,,
+胸甲,斑驳青铜铠,1,稀有,青铜套装,胸甲/袍/衫；青铜材质、铜绿锈迹，古朴厚重,"chest plate or robe, bronze with patina, antique copper-green, heavy, pixel art icon, retro 16-bit style, pure black background, no text",,,,22,4,,,
+腿甲,沉重青铜卫,1,稀有,青铜套装,护腿/裤/裙甲；青铜材质、铜绿锈迹，古朴厚重,"leg guards or greaves, bronze with patina, antique copper-green, heavy, pixel art icon, retro 16-bit style, pure black background, no text",,,,18,2,,,
+足具,坚固青铜靴,1,稀有,青铜套装,靴/鞋；青铜材质、铜绿锈迹，古朴厚重,"boots or shoes, bronze with patina, antique copper-green, heavy, pixel art icon, retro 16-bit style, pure black background, no text",,,,16,2,,,
+项链,古遗青铜环,1,稀有,青铜套装,项链/吊坠/勋章；青铜材质、铜绿锈迹，古朴厚重,"necklace or pendant, bronze with patina, antique copper-green, heavy, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,2,4,3
+指环,岁月青铜,1,稀有,青铜套装,指环/戒指；青铜材质、铜绿锈迹，古朴厚重,"ring, bronze with patina, antique copper-green, heavy, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,2,5,3
+腰带,青铜甲带,1,稀有,青铜套装,腰带/束带；青铜材质、铜绿锈迹，古朴厚重,"belt, bronze with patina, antique copper-green, heavy, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,2,4,4
+武器,逐月银芒剑,1,精良,银月套装,长剑/刃；银白冷色、月光质感，简洁利落,"longsword or blade, silver-white cold tone, moonlight sheen, clean, pixel art icon, retro 16-bit style, pure black background, no text",16,6,22,,,,,
+头盔,皎月银冠,1,精良,银月套装,头盔/帽/冠；银白冷色、月光质感，简洁利落,"helmet or crown, silver-white cold tone, moonlight sheen, clean, pixel art icon, retro 16-bit style, pure black background, no text",,,,22,3,,,
+胸甲,辉光银铠,1,精良,银月套装,胸甲/袍/衫；银白冷色、月光质感，简洁利落,"chest plate or robe, silver-white cold tone, moonlight sheen, clean, pixel art icon, retro 16-bit style, pure black background, no text",,,,24,4,,,
+腿甲,流银护胫,1,精良,银月套装,护腿/裤/裙甲；银白冷色、月光质感，简洁利落,"leg guards or greaves, silver-white cold tone, moonlight sheen, clean, pixel art icon, retro 16-bit style, pure black background, no text",,,,20,3,,,
+足具,烁光银靴,1,精良,银月套装,靴/鞋；银白冷色、月光质感，简洁利落,"boots or shoes, silver-white cold tone, moonlight sheen, clean, pixel art icon, retro 16-bit style, pure black background, no text",,,,18,2,,,
+项链,月影流光,1,精良,银月套装,项链/吊坠/勋章；银白冷色、月光质感，简洁利落,"necklace or pendant, silver-white cold tone, moonlight sheen, clean, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,2,5,4
+指环,孤星寒芒,1,精良,银月套装,指环/戒指；银白冷色、月光质感，简洁利落,"ring, silver-white cold tone, moonlight sheen, clean, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,2,6,4
+腰带,银翼束带,1,精良,银月套装,腰带/束带；银白冷色、月光质感，简洁利落,"belt, silver-white cold tone, moonlight sheen, clean, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,2,5,5
+武器,晶曜寒锋,5,精良,晶化套装,长剑/刃；水晶/透明晶棱，蓝紫冷光，剔透,"longsword or blade, crystal or transparent prism, blue-purple glow, translucent, pixel art icon, retro 16-bit style, pure black background, no text",28,10,28,,,,,
+头盔,莹彻晶盔,5,精良,晶化套装,头盔/帽/冠；水晶/透明晶棱，蓝紫冷光，剔透,"helmet or crown, crystal or transparent prism, blue-purple glow, translucent, pixel art icon, retro 16-bit style, pure black background, no text",,,,36,5,,,
+胸甲,晶化内衬甲,5,精良,晶化套装,胸甲/袍/衫；水晶/透明晶棱，蓝紫冷光，剔透,"chest plate or robe, crystal or transparent prism, blue-purple glow, translucent, pixel art icon, retro 16-bit style, pure black background, no text",,,,38,6,,,
+腿甲,琉璃晶胫,5,精良,晶化套装,护腿/裤/裙甲；水晶/透明晶棱，蓝紫冷光，剔透,"leg guards or greaves, crystal or transparent prism, blue-purple glow, translucent, pixel art icon, retro 16-bit style, pure black background, no text",,,,34,4,,,
+足具,剔透晶靴,5,精良,晶化套装,靴/鞋；水晶/透明晶棱，蓝紫冷光，剔透,"boots or shoes, crystal or transparent prism, blue-purple glow, translucent, pixel art icon, retro 16-bit style, pure black background, no text",,,,32,3,,,
+项链,秘法晶髓,5,精良,晶化套装,项链/吊坠/勋章；水晶/透明晶棱，蓝紫冷光，剔透,"necklace or pendant, crystal or transparent prism, blue-purple glow, translucent, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,3,7,5
+指环,灵能谐振,5,精良,晶化套装,指环/戒指；水晶/透明晶棱，蓝紫冷光，剔透,"ring, crystal or transparent prism, blue-purple glow, translucent, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,3,8,5
+腰带,晶纹饰带,5,精良,晶化套装,腰带/束带；水晶/透明晶棱，蓝紫冷光，剔透,"belt, crystal or transparent prism, blue-purple glow, translucent, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,3,7,6
+武器,劫火焚伤,5,史诗,烈焰套装,长剑/刃；火焰纹饰、熔岩赤红橙，炽热感,"longsword or blade, flame pattern, lava red-orange, fiery glow, pixel art icon, retro 16-bit style, pure black background, no text",30,11,30,,,,,
+头盔,炽焰重盔,5,史诗,烈焰套装,头盔/帽/冠；火焰纹饰、熔岩赤红橙，炽热感,"helmet or crown, flame pattern, lava red-orange, fiery glow, pixel art icon, retro 16-bit style, pure black background, no text",,,,38,6,,,
+胸甲,熔岩重铠,5,史诗,烈焰套装,胸甲/袍/衫；火焰纹饰、熔岩赤红橙，炽热感,"chest plate or robe, flame pattern, lava red-orange, fiery glow, pixel art icon, retro 16-bit style, pure black background, no text",,,,40,7,,,
+腿甲,灰烬护足,5,史诗,烈焰套装,护腿/裤/裙甲；火焰纹饰、熔岩赤红橙，炽热感,"leg guards or greaves, flame pattern, lava red-orange, fiery glow, pixel art icon, retro 16-bit style, pure black background, no text",,,,36,5,,,
+足具,踏火余烬,5,史诗,烈焰套装,靴/鞋；火焰纹饰、熔岩赤红橙，炽热感,"boots or shoes, flame pattern, lava red-orange, fiery glow, pixel art icon, retro 16-bit style, pure black background, no text",,,,34,4,,,
+项链,烬灭红莲,5,史诗,烈焰套装,项链/吊坠/勋章；火焰纹饰、熔岩赤红橙，炽热感,"necklace or pendant, flame pattern, lava red-orange, fiery glow, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,3,8,6
+指环,炎魔之瞳,5,史诗,烈焰套装,指环/戒指；火焰纹饰、熔岩赤红橙，炽热感,"ring, flame pattern, lava red-orange, fiery glow, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,3,9,6
+腰带,炽炎之环,5,史诗,烈焰套装,腰带/束带；火焰纹饰、熔岩赤红橙，炽热感,"belt, flame pattern, lava red-orange, fiery glow, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,3,8,7
+武器,凛冬之拥,10,史诗,霜寒套装,长剑/刃；冰霜雪纹、冰蓝白色，寒冷雾气,"longsword or blade, frost and snow pattern, ice blue-white, chilly mist, pixel art icon, retro 16-bit style, pure black background, no text",44,15,38,,,,,
+头盔,绝尘霜盔,10,史诗,霜寒套装,头盔/帽/冠；冰霜雪纹、冰蓝白色，寒冷雾气,"helmet or crown, frost and snow pattern, ice blue-white, chilly mist, pixel art icon, retro 16-bit style, pure black background, no text",,,,56,7,,,
+胸甲,凛风冰衣,10,史诗,霜寒套装,胸甲/袍/衫；冰霜雪纹、冰蓝白色，寒冷雾气,"chest plate or robe, frost and snow pattern, ice blue-white, chilly mist, pixel art icon, retro 16-bit style, pure black background, no text",,,,58,8,,,
+腿甲,霜纹裙甲,10,史诗,霜寒套装,护腿/裤/裙甲；冰霜雪纹、冰蓝白色，寒冷雾气,"leg guards or greaves, frost and snow pattern, ice blue-white, chilly mist, pixel art icon, retro 16-bit style, pure black background, no text",,,,54,6,,,
+足具,凝霜远行,10,史诗,霜寒套装,靴/鞋；冰霜雪纹、冰蓝白色，寒冷雾气,"boots or shoes, frost and snow pattern, ice blue-white, chilly mist, pixel art icon, retro 16-bit style, pure black background, no text",,,,52,5,,,
+项链,极地永冻,10,史诗,霜寒套装,项链/吊坠/勋章；冰霜雪纹、冰蓝白色，寒冷雾气,"necklace or pendant, frost and snow pattern, ice blue-white, chilly mist, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,4,10,7
+指环,霜魂凝视,10,史诗,霜寒套装,指环/戒指；冰霜雪纹、冰蓝白色，寒冷雾气,"ring, frost and snow pattern, ice blue-white, chilly mist, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,4,11,7
+腰带,霜冻之触,10,史诗,霜寒套装,腰带/束带；冰霜雪纹、冰蓝白色，寒冷雾气,"belt, frost and snow pattern, ice blue-white, chilly mist, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,4,10,8
+武器,惊雷破晓,10,传说,雷霆套装,长剑/刃；闪电雷纹、黄紫电光，电弧感,"longsword or blade, lightning and thunder pattern, electric yellow-purple, crackling, pixel art icon, retro 16-bit style, pure black background, no text",46,16,40,,,,,
+头盔,轰鸣雷冠,10,传说,雷霆套装,头盔/帽/冠；闪电雷纹、黄紫电光，电弧感,"helmet or crown, lightning and thunder pattern, electric yellow-purple, crackling, pixel art icon, retro 16-bit style, pure black background, no text",,,,58,8,,,
+胸甲,电光战袍,10,传说,雷霆套装,胸甲/袍/衫；闪电雷纹、黄紫电光，电弧感,"chest plate or robe, lightning and thunder pattern, electric yellow-purple, crackling, pixel art icon, retro 16-bit style, pure black background, no text",,,,60,9,,,
+腿甲,疾雷腿甲,10,传说,雷霆套装,护腿/裤/裙甲；闪电雷纹、黄紫电光，电弧感,"leg guards or greaves, lightning and thunder pattern, electric yellow-purple, crackling, pixel art icon, retro 16-bit style, pure black background, no text",,,,56,7,,,
+足具,迅雷闪步,10,传说,雷霆套装,靴/鞋；闪电雷纹、黄紫电光，电弧感,"boots or shoes, lightning and thunder pattern, electric yellow-purple, crackling, pixel art icon, retro 16-bit style, pure black background, no text",,,,54,6,,,
+项链,裂空雷纹,10,传说,雷霆套装,项链/吊坠/勋章；闪电雷纹、黄紫电光，电弧感,"necklace or pendant, lightning and thunder pattern, electric yellow-purple, crackling, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,4,11,8
+指环,狂雷怒吼,10,传说,雷霆套装,指环/戒指；闪电雷纹、黄紫电光，电弧感,"ring, lightning and thunder pattern, electric yellow-purple, crackling, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,4,12,8
+腰带,奔雷束缚,10,传说,雷霆套装,腰带/束带；闪电雷纹、黄紫电光，电弧感,"belt, lightning and thunder pattern, electric yellow-purple, crackling, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,4,11,9
+武器,坠星裁决,15,传说,星辰套装,长剑/刃；星空星芒、深蓝紫金，神秘光泽,"longsword or blade, star and cosmos motif, deep blue-purple-gold, mystical sheen, pixel art icon, retro 16-bit style, pure black background, no text",62,21,52,,,,,
+头盔,瀚海星冕,15,传说,星辰套装,头盔/帽/冠；星空星芒、深蓝紫金，神秘光泽,"helmet or crown, star and cosmos motif, deep blue-purple-gold, mystical sheen, pixel art icon, retro 16-bit style, pure black background, no text",,,,78,10,,,
+胸甲,极星护佑,15,传说,星辰套装,胸甲/袍/衫；星空星芒、深蓝紫金，神秘光泽,"chest plate or robe, star and cosmos motif, deep blue-purple-gold, mystical sheen, pixel art icon, retro 16-bit style, pure black background, no text",,,,80,11,,,
+腿甲,银河轨迹,15,传说,星辰套装,护腿/裤/裙甲；星空星芒、深蓝紫金，神秘光泽,"leg guards or greaves, star and cosmos motif, deep blue-purple-gold, mystical sheen, pixel art icon, retro 16-bit style, pure black background, no text",,,,76,9,,,
+足具,星轨漫步,15,传说,星辰套装,靴/鞋；星空星芒、深蓝紫金，神秘光泽,"boots or shoes, star and cosmos motif, deep blue-purple-gold, mystical sheen, pixel art icon, retro 16-bit style, pure black background, no text",,,,74,8,,,
+项链,璀璨星图,15,传说,星辰套装,项链/吊坠/勋章；星空星芒、深蓝紫金，神秘光泽,"necklace or pendant, star and cosmos motif, deep blue-purple-gold, mystical sheen, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,5,14,10
+指环,永恒星辰,15,传说,星辰套装,指环/戒指；星空星芒、深蓝紫金，神秘光泽,"ring, star and cosmos motif, deep blue-purple-gold, mystical sheen, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,5,15,10
+腰带,星界纽带,15,传说,星辰套装,腰带/束带；星空星芒、深蓝紫金，神秘光泽,"belt, star and cosmos motif, deep blue-purple-gold, mystical sheen, pixel art icon, retro 16-bit style, pure black background, no text",,,,,,5,14,11

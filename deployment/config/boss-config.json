@@ -1,3 +1,181 @@
 {
-  "BOSS_DEFINITIONS": []
+  "BOSS_DEFINITIONS": [
+    {
+      "id": "boss_20",
+      "name": "塔卫·初临",
+      "hp": 2800,
+      "damage": 42,
+      "color": "#ff66aa",
+      "level": 20,
+      "expReward": 800,
+      "goldReward": 400,
+      "skills": [
+        { "name": "裂空冲", "type": "charge", "cooldown": 4500, "speed": 9, "damage": 55, "duration": 550 }
+      ]
+    },
+    {
+      "id": "boss_40",
+      "name": "熔核看守",
+      "hp": 5200,
+      "damage": 62,
+      "color": "#ff4422",
+      "level": 25,
+      "expReward": 1400,
+      "goldReward": 700,
+      "skills": [
+        { "name": "重锤冲", "type": "charge", "cooldown": 4200, "speed": 10, "damage": 70, "duration": 500 },
+        { "name": "地火环", "type": "aoe", "cooldown": 5500, "radius": 100, "damage": 50, "duration": 700 }
+      ]
+    },
+    {
+      "id": "boss_60",
+      "name": "霜渊领主",
+      "hp": 8200,
+      "damage": 78,
+      "color": "#66ccff",
+      "level": 30,
+      "expReward": 2000,
+      "goldReward": 1000,
+      "skills": [
+        { "name": "冰环爆", "type": "aoe", "cooldown": 5000, "radius": 130, "damage": 58, "duration": 750 },
+        { "name": "寒星弹", "type": "projectile", "cooldown": 3800, "count": 4, "speed": 5, "damage": 45, "duration": 4000 }
+      ]
+    },
+    {
+      "id": "boss_80",
+      "name": "雷殛化身",
+      "hp": 11800,
+      "damage": 92,
+      "color": "#ffee44",
+      "level": 35,
+      "expReward": 2800,
+      "goldReward": 1400,
+      "skills": [
+        { "name": "雷球", "type": "projectile", "cooldown": 3200, "count": 6, "speed": 6, "damage": 48, "duration": 3500 },
+        { "name": "狂雷", "type": "berserk", "cooldown": 12000, "duration": 5000, "moveSpeedMultiplier": 1.45 }
+      ]
+    },
+    {
+      "id": "boss_100",
+      "name": "暗影统御",
+      "hp": 16500,
+      "damage": 108,
+      "color": "#8844ff",
+      "level": 40,
+      "expReward": 3600,
+      "goldReward": 1800,
+      "skills": [
+        { "name": "影袭", "type": "charge", "cooldown": 4000, "speed": 11, "damage": 85, "duration": 480 },
+        { "name": "暗潮", "type": "aoe", "cooldown": 5200, "radius": 140, "damage": 65, "duration": 800 },
+        { "name": "幽魂弹", "type": "projectile", "cooldown": 3500, "count": 5, "speed": 5.5, "damage": 52, "duration": 3800 }
+      ]
+    },
+    {
+      "id": "boss_120",
+      "name": "血契暴君",
+      "hp": 21500,
+      "damage": 122,
+      "color": "#cc0044",
+      "level": 45,
+      "expReward": 4500,
+      "goldReward": 2250,
+      "skills": [
+        { "name": "血冲", "type": "charge", "cooldown": 3800, "speed": 12, "damage": 95, "duration": 450 },
+        { "name": "血祭环", "type": "aoe", "cooldown": 4800, "radius": 150, "damage": 72, "duration": 850 },
+        { "name": "血怒", "type": "berserk", "cooldown": 11000, "duration": 5500, "moveSpeedMultiplier": 1.5 }
+      ]
+    },
+    {
+      "id": "boss_140",
+      "name": "炼狱典狱官",
+      "hp": 27500,
+      "damage": 138,
+      "color": "#ff2200",
+      "level": 48,
+      "expReward": 5400,
+      "goldReward": 2700,
+      "skills": [
+        { "name": "狱火冲", "type": "charge", "cooldown": 3600, "speed": 12, "damage": 105, "duration": 420 },
+        { "name": "炼狱池", "type": "aoe", "cooldown": 4500, "radius": 170, "damage": 80, "duration": 900 },
+        { "name": "焚世弹", "type": "projectile", "cooldown": 3000, "count": 8, "speed": 6.5, "damage": 55, "duration": 3200 }
+      ]
+    },
+    {
+      "id": "boss_160",
+      "name": "虚空噬界者",
+      "hp": 34500,
+      "damage": 155,
+      "color": "#aa44cc",
+      "level": 52,
+      "expReward": 6400,
+      "goldReward": 3200,
+      "skills": [
+        { "name": "虚空冲", "type": "charge", "cooldown": 3400, "speed": 13, "damage": 115, "duration": 400 },
+        { "name": "坍缩", "type": "aoe", "cooldown": 4200, "radius": 180, "damage": 88, "duration": 950 },
+        { "name": "虚弹群", "type": "projectile", "cooldown": 2800, "count": 10, "speed": 7, "damage": 48, "duration": 3000 }
+      ]
+    },
+    {
+      "id": "boss_180",
+      "name": "终焉骑士",
+      "hp": 43000,
+      "damage": 172,
+      "color": "#c0c0ff",
+      "level": 55,
+      "expReward": 7600,
+      "goldReward": 3800,
+      "skills": [
+        { "name": "圣裁冲", "type": "charge", "cooldown": 3200, "speed": 14, "damage": 125, "duration": 380 },
+        { "name": "天罚圈", "type": "aoe", "cooldown": 4000, "radius": 190, "damage": 95, "duration": 1000 },
+        { "name": "终焉狂化", "type": "berserk", "cooldown": 10000, "duration": 6000, "moveSpeedMultiplier": 1.55 }
+      ]
+    },
+    {
+      "id": "boss_200",
+      "name": "混沌双生",
+      "hp": 53000,
+      "damage": 190,
+      "color": "#44ffaa",
+      "level": 58,
+      "expReward": 8800,
+      "goldReward": 4400,
+      "skills": [
+        { "name": "双极冲", "type": "charge", "cooldown": 3000, "speed": 14, "damage": 135, "duration": 360 },
+        { "name": "混沌爆", "type": "aoe", "cooldown": 3800, "radius": 200, "damage": 102, "duration": 1050 },
+        { "name": "分裂弹", "type": "projectile", "cooldown": 2600, "count": 12, "speed": 7.5, "damage": 50, "duration": 2800 },
+        { "name": "混沌狂暴", "type": "berserk", "cooldown": 9500, "duration": 6500, "moveSpeedMultiplier": 1.6 }
+      ]
+    },
+    {
+      "id": "boss_220",
+      "name": "星骸君王",
+      "hp": 65000,
+      "damage": 210,
+      "color": "#ffd700",
+      "level": 60,
+      "expReward": 10000,
+      "goldReward": 5000,
+      "skills": [
+        { "name": "星陨冲", "type": "charge", "cooldown": 2800, "speed": 15, "damage": 150, "duration": 340 },
+        { "name": "星爆", "type": "aoe", "cooldown": 3500, "radius": 210, "damage": 110, "duration": 1100 },
+        { "name": "流星雨", "type": "projectile", "cooldown": 2400, "count": 14, "speed": 8, "damage": 52, "duration": 2600 }
+      ]
+    },
+    {
+      "id": "boss_240",
+      "name": "像素永恒之主",
+      "hp": 80000,
+      "damage": 235,
+      "color": "#ff00ff",
+      "level": 60,
+      "expReward": 15000,
+      "goldReward": 8000,
+      "skills": [
+        { "name": "永恒冲锋", "type": "charge", "cooldown": 2600, "speed": 16, "damage": 165, "duration": 320 },
+        { "name": "永恒湮灭", "type": "aoe", "cooldown": 3200, "radius": 220, "damage": 120, "duration": 1200 },
+        { "name": "像素弹幕", "type": "projectile", "cooldown": 2200, "count": 16, "speed": 8.5, "damage": 55, "duration": 2400 },
+        { "name": "终末狂怒", "type": "berserk", "cooldown": 9000, "duration": 7000, "moveSpeedMultiplier": 1.65 }
+      ]
+    }
+  ]
 }

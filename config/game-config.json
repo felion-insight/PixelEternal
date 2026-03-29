@@ -18,7 +18,10 @@
     "MONSTER_ATTACK_RANGE": 40,
     "MONSTER_ATTACK_COOLDOWN": 2000,
     "INVENTORY_SIZE": 66,
-    "TICKS_PER_SECOND": 60
+    "TICKS_PER_SECOND": 60,
+    "TOWER_MAX_FLOOR": 240,
+    "TOWER_BOSS_INTERVAL": 20,
+    "MONSTER_MAX_LEVEL": 60
   },
   "QUALITY_COLORS": {
     "common": "#ffffff",
@@ -48,7 +51,10 @@
     "BATTLE": "battle",
     "TREASURE": "treasure",
     "REST": "rest",
-    "ELITE": "elite"
+    "ELITE": "elite",
+    "ALCHEMY": "alchemy",
+    "GAP_SHOP": "gap_shop",
+    "BOSS": "boss"
   },
   "SCENE_TYPES": {
     "TOWN": "town",

@@ -60,7 +60,7 @@ python tools/art_generator.py --list-missing-buff
 3. **生图**：用 Imagen 接口生成一张图，保存到 `asset/`（或子文件夹如 `weapons/`、`helmets/` 等，保持整洁）。
 4. **写回项目**（按规划结果）：
    - 新装备：在 `config/equipment-config.json` 的 `EQUIPMENT_DEFINITIONS` 中追加一条装备定义。
-   - 需要做图标：在 `game-main.js` 的装备名称→图片文件名映射中增加一条；游戏通过 `asset/文件名` 或 `asset/子文件夹/文件名` 加载。
+   - 需要做图标：在 `config/mappings.json` 的 `equipment` 中写入「装备中文名 → 相对 `asset/` 的路径」；游戏经 `AssetManager` 读取该映射加载 `asset/` 下贴图。
 
 ## 批量生成：所有武器技能图标
 

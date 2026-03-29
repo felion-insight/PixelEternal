@@ -334,6 +334,26 @@
                 </div>
             </div>
         </div>
+        <!-- 恶魔塔隙间商店（Boss 层前一层） -->
+        <div id="gap-shop-modal" class="modal">
+            <div class="modal-content" style="max-width: 560px; max-height: 85vh; overflow-y: auto;">
+                <h2 style="color: #ffd700; margin-bottom: 8px;">隙间商店</h2>
+                <p style="color: #aaa; font-size: 13px; margin-bottom: 12px;">即刻生效，购买不限次数。当前金币：<span id="gap-shop-gold">0</span></p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px;">
+                    <button type="button" id="gap-buy-heal-half" data-kind="healHalf" style="padding: 10px; background: rgba(40,120,80,0.85); color: #fff; border: 2px solid #8f8; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px;">回复 50% 生命<br/><span id="gap-price-heal-half">0</span> 金</button>
+                    <button type="button" id="gap-buy-heal-full" data-kind="healFull" style="padding: 10px; background: rgba(40,100,120,0.85); color: #fff; border: 2px solid #8cf; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px;">回复满生命<br/><span id="gap-price-heal-full">0</span> 金</button>
+                    <button type="button" id="gap-buy-maxhp" data-kind="maxHp" style="padding: 10px; background: rgba(100,60,120,0.85); color: #fff; border: 2px solid #c8c; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px;">生命上限 +5%（本次爬塔）<br/><span id="gap-price-maxhp">0</span> 金</button>
+                    <button type="button" id="gap-buy-boon" data-kind="boon" style="padding: 10px; background: rgba(80,60,140,0.85); color: #fff; border: 2px solid #aaf; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px;">随机精英加护 +1 层<br/><span id="gap-price-boon">0</span> 金</button>
+                    <button type="button" id="gap-buy-revive" data-kind="revive" style="padding: 10px; background: rgba(120,40,40,0.85); color: #fff; border: 2px solid #f88; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; grid-column: 1 / -1;">额外复活 1 次（本次爬塔，优先于十字架提示）<br/><span id="gap-price-revive">0</span> 金</button>
+                </div>
+                <h3 style="color: #ccc; font-size: 14px; margin-bottom: 6px;">出售物品</h3>
+                <div id="gap-shop-sell-list" style="max-height: 180px; overflow-y: auto; margin-bottom: 14px;"></div>
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <button type="button" id="gap-shop-continue-btn" style="padding: 12px 24px; background: #6a0dad; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace;">前往 Boss 层（出现传送门）</button>
+                    <button type="button" id="gap-shop-close-btn" style="padding: 12px 24px; background: #444; color: #fff; border: 2px solid #888; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace;">关闭</button>
+                </div>
+            </div>
+        </div>
         <!-- ESC菜单 -->
         <div id="esc-menu-modal">
             <div class="modal-content" style="max-width: 400px; text-align: center;">
@@ -457,6 +477,14 @@
                                     <option value="10">10级</option>
                                     <option value="15">15级</option>
                                     <option value="20">20级</option>
+                                    <option value="25">25级</option>
+                                    <option value="30">30级</option>
+                                    <option value="35">35级</option>
+                                    <option value="40">40级</option>
+                                    <option value="45">45级</option>
+                                    <option value="50">50级</option>
+                                    <option value="55">55级</option>
+                                    <option value="60">60级</option>
                                 </select>
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 5px;">
@@ -657,7 +685,11 @@
             
             <div class="dev-section">
                 <h4 style="color: #fff; font-size: 14px; margin-bottom: 5px;">玩家属性</h4>
-                <button onclick="game.devLevelUp()">+1 经验等级</button>
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 6px;">
+                    <label for="dev-target-level" style="color: #aaa; font-size: 12px;">升到等级</label>
+                    <input type="number" id="dev-target-level" min="1" max="999" value="10" style="width: 72px; padding: 4px 6px; background: #1a1a1a; color: #fff; border: 1px solid #555; border-radius: 4px;">
+                    <button type="button" onclick="game.devSetPlayerLevelFromInput()">应用</button>
+                </div>
                 <button onclick="game.devAddGold(100)">+100 金币</button>
                 <button onclick="game.devHealPlayer()">恢复满血</button>
             </div>
@@ -854,6 +886,7 @@
     <script src="js/config-loader.js"></script>
     <script src="js/config.js"></script>
     <script src="js/config-helpers.js"></script>
+    <script src="js/trait-id-helpers.js"></script>
     <script src="js/data-classes.js"></script>
     <script src="js/elite-boons.js"></script>
     <script src="js/hezhu-api.js"></script>

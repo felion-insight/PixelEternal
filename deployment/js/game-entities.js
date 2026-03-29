@@ -17,6 +17,8 @@ function isMonsterRangedByName(name) {
     return RANGED_MONSTER_NAMES.includes(name);
 }
 
+/** 词条 id 解析见 trait-id-helpers.js（traitIdBase / traitIdsIncludeBase 等） */
+
 /** 精英技能地面预警持续时间（毫秒），预警播放完毕后再执行技能 */
 const ELITE_TELEGRAPH_MS = 580;
 
@@ -668,7 +670,10 @@ class Portal {
                                 battle: '战斗',
                                 treasure: '宝箱',
                                 rest: '休整',
-                                elite: '精英'
+                                elite: '精英',
+                                alchemy: '炼金',
+                                gap_shop: '隙间商店',
+                                boss: 'Boss'
                             };
                             const typeName = typeNames[this.roomType] || this.roomType;
                             ctx.fillText(`第${this.targetFloor}层`, this.x, this.y - this.size / 2 - 25);
@@ -718,7 +723,10 @@ class Portal {
                     battle: '战斗',
                     treasure: '宝箱',
                     rest: '休整',
-                    elite: '精英'
+                    elite: '精英',
+                    alchemy: '炼金',
+                    gap_shop: '隙间商店',
+                    boss: 'Boss'
                 };
                 const typeName = typeNames[this.roomType] || this.roomType;
                 ctx.fillText(`第${this.targetFloor}层`, this.x, this.y - this.size / 2 - 25);
@@ -2464,6 +2472,49 @@ class TrainingGroundScene {
     }
 }
 
+function getMonsterMaxLevelCap() {
+    return (typeof CONFIG !== 'undefined' && CONFIG.MONSTER_MAX_LEVEL != null) ? CONFIG.MONSTER_MAX_LEVEL : 60;
+}
+
+function maxMonsterLevelForFloor(floor) {
+    const cap = getMonsterMaxLevelCap();
+    const maxF = (typeof window.getTowerMaxFloor === 'function') ? window.getTowerMaxFloor() : 240;
+    if (floor <= 1) return 1;
+    return Math.min(cap, Math.max(1, Math.round(1 + (floor - 1) * (cap - 1) / Math.max(1, maxF - 1))));
+}
+
+/**
+ * 恶魔塔普通战斗房：该怪物类型最早可出现楼层（避免底层刷出高模板血量的骷髅/兽人/恶魔，仅压等级仍像首领）
+ * 哥布林系：1 层起；骷髅系：6 层起；兽人系：16 层起；恶魔 15 档：26 层起；恶魔 20 档：41 层起
+ */
+function towerMinFloorForMonsterType(type, monsterData) {
+    if (!monsterData || monsterData.isElite || (typeof type === 'string' && type.endsWith('_elite'))) return 0;
+    const t = String(type);
+    if (t.startsWith('goblin')) return 1;
+    if (t.startsWith('skeleton')) return 6;
+    if (t.startsWith('orc')) return 16;
+    if (t.startsWith('demon')) {
+        const lv = monsterData.level != null ? monsterData.level : 1;
+        if (lv >= 20) return 41;
+        return 26;
+    }
+    return 1;
+}
+
+function boostMonsterTowardLevel(monster, targetLevel) {
+    const delta = targetLevel - monster.level;
+    if (delta === 0) return;
+    // 低层 maxLevel 为 1～2 时，必须把模板里 5/10/15/20 级的怪「压级」，仅向上 boost 会导致第一层仍出现高级怪
+    const mult = Math.pow(1.082, delta);
+    monster.maxHp = Math.max(1, Math.floor(monster.maxHp * mult));
+    monster.hp = monster.maxHp;
+    monster.damage = Math.max(1, Math.floor(monster.damage * mult));
+    const rewardMult = Math.pow(1.035, delta);
+    monster.expReward = Math.max(0, Math.floor(monster.expReward * rewardMult));
+    monster.goldReward = Math.max(0, Math.floor(monster.goldReward * rewardMult));
+    monster.level = targetLevel;
+}
+
 /**
  * 房间类
  * 用于表示恶魔塔中的房间，包含房间类型、内容生成等功能
@@ -2536,18 +2587,15 @@ class Room {
             const availableMonsters = [];
             const overLevelMonsters = [];
             
-            // 根据楼层限制怪物等级
-            const maxLevelForFloor = this.floor <= 5 ? 1 : 
-                            this.floor <= 10 ? 5 : 
-                            this.floor <= 15 ? 10 : 
-                            this.floor <= 20 ? 15 : 20;
-            // 开发者模式等极高玩家等级会导致筛选池异常、刷出低级怪；用楼层上限钳制用于刷怪的「有效等级」
+            const maxLevelForFloor = maxMonsterLevelForFloor(this.floor);
+            // 开发者模式等极高玩家等级会导致筛选池异常；用楼层上限钳制用于刷怪的「有效等级」
             const spawnPlayerLevel = Math.min(Math.max(playerLevel, 1), maxLevelForFloor + 5);
             
             allMonsterTypes.forEach(type => {
                 const monsterData = MONSTER_TYPES[type];
                 if (monsterData.isElite || (typeof type === 'string' && type.endsWith('_elite'))) return;
-                if (monsterData.level <= maxLevelForFloor) {
+                if (monsterData.level <= 20) {
+                    if (this.floor < towerMinFloorForMonsterType(type, monsterData)) return;
                     availableMonsters.push({ type, level: monsterData.level });
                     // 超过有效玩家等级的怪物
                     if (monsterData.level > spawnPlayerLevel) {
@@ -2562,6 +2610,9 @@ class Room {
                 const x = 100 + Math.random() * (this.width - 200);
                 const y = 100 + Math.random() * (this.height - 200);
                 const monster = new Monster(x, y, selected.type, this.gameInstance);
+                const tLo = Math.max(1, maxLevelForFloor - 10);
+                const tHi = maxLevelForFloor;
+                boostMonsterTowardLevel(monster, tLo + Math.floor(Math.random() * Math.max(1, tHi - tLo + 1)));
                 this.monsters.push(monster);
             }
             
@@ -2577,6 +2628,11 @@ class Room {
                 const x = 100 + Math.random() * (this.width - 200);
                 const y = 100 + Math.random() * (this.height - 200);
                 const monster = new Monster(x, y, selected.type, this.gameInstance);
+                {
+                    const tLo = Math.max(1, maxLevelForFloor - 10);
+                    const tHi = maxLevelForFloor;
+                    boostMonsterTowardLevel(monster, tLo + Math.floor(Math.random() * Math.max(1, tHi - tLo + 1)));
+                }
                 
                 // 当玩家大于20级时，会生成带★的怪物
                 if (spawnPlayerLevel > 20 && Math.random() < 0.3) {
@@ -2601,6 +2657,11 @@ class Room {
                     const x = 100 + Math.random() * (this.width - 200);
                     const y = 100 + Math.random() * (this.height - 200);
                     const monster = new Monster(x, y, selected.type, this.gameInstance);
+                    {
+                        const tLo = Math.max(1, maxLevelForFloor - 10);
+                        const tHi = maxLevelForFloor;
+                        boostMonsterTowardLevel(monster, tLo + Math.floor(Math.random() * Math.max(1, tHi - tLo + 1)));
+                    }
                     if (Math.random() < 0.5) {
                         monster.hasStar = true;
                         monster.starCount = 1;
@@ -2622,17 +2683,31 @@ class Room {
                 top: ['orcWarrior_elite', 'orcWarlord_elite', 'demon_elite', 'demonImp_elite', 'demonBoss_elite']
             };
             let pool = elitePools.low;
-            if (this.floor >= 16) pool = elitePools.top;
-            else if (this.floor >= 11) pool = elitePools.high;
+            if (this.floor >= 120) pool = elitePools.top;
+            else if (this.floor >= 60) pool = elitePools.top;
+            else if (this.floor >= 36) pool = elitePools.high;
+            else if (this.floor >= 16) pool = elitePools.high;
             else if (this.floor >= 6) pool = elitePools.mid;
+            const cap = maxMonsterLevelForFloor(this.floor);
             const monsterCount = 2 + Math.floor(Math.random() * 3);
             for (let i = 0; i < monsterCount; i++) {
                 const eliteType = pool[Math.floor(Math.random() * pool.length)];
                 const x = 100 + Math.random() * (this.width - 200);
                 const y = 100 + Math.random() * (this.height - 200);
                 const monster = new Monster(x, y, eliteType, this.gameInstance);
+                boostMonsterTowardLevel(monster, Math.max(1, cap - Math.floor(Math.random() * 8)));
                 this.monsters.push(monster);
             }
+        } else if (this.type === (ROOM_TYPES && ROOM_TYPES.BOSS) || this.type === 'boss') {
+            const bossId = (typeof window.getTowerBossIdForFloor === 'function')
+                ? window.getTowerBossIdForFloor(this.floor)
+                : ('boss_' + this.floor);
+            const bx = this.width / 2;
+            const by = this.height / 2;
+            this.monsters.push(new Boss(bx, by, bossId, this.gameInstance));
+        } else if (this.type === (ROOM_TYPES && ROOM_TYPES.GAP_SHOP) || this.type === 'gap_shop') {
+            this.monsters = [];
+            this.cleared = false;
         } else if (this.type === ROOM_TYPES.TREASURE) {
             // 宝箱房间：生成宝箱
             this.treasureChest = {
@@ -2680,7 +2755,8 @@ class Room {
 
     update(player) {
         const isEliteRoom = this.type === (ROOM_TYPES && ROOM_TYPES.ELITE) || this.type === 'elite';
-        if (this.type === ROOM_TYPES.BATTLE || isEliteRoom) {
+        const isBossRoom = this.type === (ROOM_TYPES && ROOM_TYPES.BOSS) || this.type === 'boss';
+        if (this.type === ROOM_TYPES.BATTLE || isEliteRoom || isBossRoom) {
             this.monsters.forEach(monster => {
                 if (monster.hp > 0) {
                     monster.update(player);
@@ -2732,6 +2808,14 @@ class Room {
             if (distance < 50) {
                 return { type: 'rest', object: this.restItem, x: this.restItem.x, y: this.restItem.y };
             }
+        } else if ((this.type === (ROOM_TYPES && ROOM_TYPES.GAP_SHOP) || this.type === 'gap_shop') && !this.cleared) {
+            const cx = this.width / 2;
+            const cy = this.height / 2;
+            const dx = cx - player.x;
+            const dy = cy - player.y;
+            if (Math.sqrt(dx * dx + dy * dy) < 90) {
+                return { type: 'gap_shop', object: this, x: cx, y: cy - 30 };
+            }
         }
         return null;
     }
@@ -2776,7 +2860,8 @@ class Room {
         
         // 绘制房间内容
         const isEliteRoom = this.type === (ROOM_TYPES && ROOM_TYPES.ELITE) || this.type === 'elite';
-        if (this.type === ROOM_TYPES.BATTLE || isEliteRoom) {
+        const isBossRoom = this.type === (ROOM_TYPES && ROOM_TYPES.BOSS) || this.type === 'boss';
+        if (this.type === ROOM_TYPES.BATTLE || isEliteRoom || isBossRoom) {
             this.monsters.forEach(monster => {
                 if (monster.hp > 0) {
                     monster.draw(ctx, playerLevel);
@@ -2819,6 +2904,19 @@ class Room {
                     this._drawRestItemFallback(ctx);
                 }
             }
+        } else if ((this.type === (ROOM_TYPES && ROOM_TYPES.GAP_SHOP) || this.type === 'gap_shop')) {
+            ctx.fillStyle = 'rgba(60, 45, 30, 0.92)';
+            ctx.fillRect(this.width / 2 - 140, this.height / 2 - 50, 280, 100);
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(this.width / 2 - 140, this.height / 2 - 50, 280, 100);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 18px "Courier New", monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('隙间商店', this.width / 2, this.height / 2 - 8);
+            ctx.font = '12px "Courier New", monospace';
+            ctx.fillStyle = '#aaa';
+            ctx.fillText('按 E 打开商店', this.width / 2, this.height / 2 + 22);
         }
     }
 
@@ -2843,6 +2941,124 @@ class Room {
         ctx.fill();
     }
 
+}
+
+/**
+ * 弹射/溅射/装备词条特效的伤害目标是否仍有效（灰色训练桩始终可命中；怪型假人非无敌且已死则否）
+ */
+function isCombatTargetAliveForEquipmentProc(m) {
+    if (!m) return false;
+    if (m instanceof TrainingDummy) return true;
+    if (m instanceof MonsterTrainingDummy) {
+        return !!(m.invincible || m.hp > 0);
+    }
+    return m.hp > 0;
+}
+
+/** 武器技能：落点半径内的可命中目标 */
+function collectMonstersInGroundSkillRadius(monsters, cx, cy, radius) {
+    const r2 = radius * radius;
+    const out = [];
+    for (let i = 0; i < monsters.length; i++) {
+        const m = monsters[i];
+        if (!isCombatTargetAliveForEquipmentProc(m)) continue;
+        const dx = m.x - cx;
+        const dy = m.y - cy;
+        if (dx * dx + dy * dy <= r2) out.push(m);
+    }
+    return out;
+}
+
+/**
+ * 锁定施法：优先选取准星方向扇形内最近敌人，否则取距离最近者
+ */
+function pickWeaponSkillLockTarget(monsters, player, range, gameInstance) {
+    const r2 = range * range;
+    const inRange = [];
+    for (let i = 0; i < monsters.length; i++) {
+        const m = monsters[i];
+        if (!isCombatTargetAliveForEquipmentProc(m)) continue;
+        const dx = m.x - player.x;
+        const dy = m.y - player.y;
+        if (dx * dx + dy * dy <= r2) inRange.push(m);
+    }
+    if (!inRange.length) return null;
+    const cx = CONFIG.CANVAS_WIDTH / 2;
+    const cy = CONFIG.CANVAS_HEIGHT / 2;
+    let ax = 0;
+    let ay = 0;
+    if (gameInstance && gameInstance.mouse) {
+        ax = (gameInstance.mouse.x != null ? gameInstance.mouse.x : cx) - cx;
+        ay = (gameInstance.mouse.y != null ? gameInstance.mouse.y : cy) - cy;
+    }
+    if (Math.hypot(ax, ay) < 12) {
+        ax = Math.cos(player.angle);
+        ay = Math.sin(player.angle);
+    } else {
+        const L = Math.hypot(ax, ay) || 1;
+        ax /= L;
+        ay /= L;
+    }
+    const coneCos = Math.cos(Math.PI * 0.46);
+    let best = null;
+    let bestDot = -2;
+    for (let j = 0; j < inRange.length; j++) {
+        const m = inRange[j];
+        const dx = m.x - player.x;
+        const dy = m.y - player.y;
+        const dlen = Math.hypot(dx, dy) || 1;
+        const dot = (dx / dlen) * ax + (dy / dlen) * ay;
+        if (dot >= coneCos && dot > bestDot) {
+            bestDot = dot;
+            best = m;
+        }
+    }
+    if (best) return best;
+    let nearest = inRange[0];
+    let nd = (nearest.x - player.x) ** 2 + (nearest.y - player.y) ** 2;
+    for (let k = 1; k < inRange.length; k++) {
+        const m = inRange[k];
+        const d2 = (m.x - player.x) ** 2 + (m.y - player.y) ** 2;
+        if (d2 < nd) {
+            nd = d2;
+            nearest = m;
+        }
+    }
+    return nearest;
+}
+
+/**
+ * 锁定施法：在技能射程内，选取离「鼠标所指世界点」直线距离最近的敌人（用于右键释放）
+ */
+function pickWeaponSkillLockTargetNearestToMouse(monsters, player, range, gameInstance) {
+    const r2 = range * range;
+    const inRange = [];
+    for (let i = 0; i < monsters.length; i++) {
+        const m = monsters[i];
+        if (!isCombatTargetAliveForEquipmentProc(m)) continue;
+        const dx = m.x - player.x;
+        const dy = m.y - player.y;
+        if (dx * dx + dy * dy <= r2) inRange.push(m);
+    }
+    if (!inRange.length) return null;
+    let wx = player.x;
+    let wy = player.y;
+    if (gameInstance && typeof gameInstance.screenToWorldForAim === 'function' && gameInstance.mouse) {
+        const p = gameInstance.screenToWorldForAim(gameInstance.mouse.x, gameInstance.mouse.y);
+        wx = p.x;
+        wy = p.y;
+    }
+    let best = inRange[0];
+    let bestD = (best.x - wx) ** 2 + (best.y - wy) ** 2;
+    for (let j = 1; j < inRange.length; j++) {
+        const m = inRange[j];
+        const d2 = (m.x - wx) ** 2 + (m.y - wy) ** 2;
+        if (d2 < bestD) {
+            bestD = d2;
+            best = m;
+        }
+    }
+    return best;
 }
 
 /**
@@ -2905,6 +3121,9 @@ class Player {
         
         // 精英房加护：通关精英房获得，仅本次恶魔塔有效（回主城清除）
         this.eliteBoons = []; // { id: string, stacks: number }[]
+        // 隙间商店等：本次恶魔塔内额外复活次数、生命上限百分比（回主城清除）
+        this.towerReviveCharges = 0;
+        this.towerMaxHpBonusPercent = 0;
         
         // 武器技能系统
         this.weaponSkillCooldown = 0; // 武器技能冷却时间
@@ -2925,6 +3144,15 @@ class Player {
         this.combatPower = 0; // 当前战力
         this.lastCombatPower = 0; // 上次战力（用于检测变化）
         this.isInitialized = false; // 标记是否已初始化（避免初始化时触发变化提示）
+        
+        // 高阶装备机制（由 updateStats 从装备汇总）
+        this.lifeStealPercent = 0;
+        this.thornPercent = 0;
+        this.skillHastePercent = 0;
+        this.damageReductionPercent = 0;
+        this.towerGoldBonusPercent = 0;
+        this.voidRiposteMul = 1;
+        this.voidChaseStrike = null;
         
         // 其他属性
         this.lastMoveX = x; // 上次移动X坐标
@@ -3003,9 +3231,14 @@ class Player {
         // 保存当前血量百分比（避免精度损失）
         const hpPercent = oldMaxHp > 0 ? this.hp / oldMaxHp : 1;
         
-        // 重置基础属性
+        // 重置基础属性（等级成长与 gainExp 一致：每级 +20 生命、+2 攻击）
         this.maxHp = 100;
         this.baseAttack = 10;
+        {
+            const lv = Math.max(1, this.level | 0);
+            this.maxHp += (lv - 1) * 20;
+            this.baseAttack += (lv - 1) * 2;
+        }
         this.baseDefense = 0;
         this.baseCritRate = 5;
         this.baseCritDamage = 20;
@@ -3018,6 +3251,12 @@ class Player {
         const baseVision = window.CONFIG ? window.CONFIG.PLAYER_VISION : (CONFIG.PLAYER_VISION || 200);
         this.baseVision = baseVision;
         let moveSpeedPercent = 0; // 移动速度百分比加成
+        
+        this.lifeStealPercent = 0;
+        this.thornPercent = 0;
+        this.skillHastePercent = 0;
+        this.damageReductionPercent = 0;
+        this.towerGoldBonusPercent = 0;
         
         // 应用装备属性
         Object.values(this.equipment).forEach(eq => {
@@ -3033,8 +3272,18 @@ class Player {
                 if (eq.stats.moveSpeed) moveSpeedPercent += eq.stats.moveSpeed;
                 // 视野加成（支持装备提升视野）
                 if (eq.stats.vision) this.baseVision += eq.stats.vision;
+                if (eq.stats.lifeSteal) this.lifeStealPercent += eq.stats.lifeSteal;
+                if (eq.stats.thorn) this.thornPercent += eq.stats.thorn;
+                if (eq.stats.skillHaste) this.skillHastePercent += eq.stats.skillHaste;
+                if (eq.stats.damageReduction) this.damageReductionPercent += eq.stats.damageReduction;
+                if (eq.stats.towerGoldBonus) this.towerGoldBonusPercent += eq.stats.towerGoldBonus;
             }
         });
+        this.lifeStealPercent = Math.min(25, this.lifeStealPercent);
+        this.thornPercent = Math.min(40, this.thornPercent);
+        this.skillHastePercent = Math.min(50, this.skillHastePercent);
+        this.damageReductionPercent = Math.min(35, this.damageReductionPercent);
+        this.towerGoldBonusPercent = Math.min(100, this.towerGoldBonusPercent);
         
         // 应用套装效果
         this.activeSetEffects = getActiveSetEffects(this.equipment);
@@ -3106,15 +3355,15 @@ class Player {
         let traitStatsMultiplier = 1.0;
         
         // 百分比属性加成词条
-        if (traitIds.includes('medal')) traitStatsMultiplier += 0.02;
-        if (traitIds.includes('woven')) traitStatsMultiplier += 0.01;
-        if (traitIds.includes('iron_belt')) traitStatsMultiplier += 0.05;
-        if (traitIds.includes('divine_crown')) traitStatsMultiplier += 0.1;
-        if (traitIds.includes('divine_favor')) traitStatsMultiplier += 0.12;
-        if (traitIds.includes('celestial')) traitStatsMultiplier += 0.12;
-        if (traitIds.includes('law')) traitStatsMultiplier += 0.08;
-        if (traitIds.includes('creation_law')) traitStatsMultiplier += 0.15;
-        if (traitIds.includes('divine_helmet')) traitStatsMultiplier += 0.12; // 神威头盔
+        if (traitIdsIncludeBase(traitIds, 'medal')) traitStatsMultiplier += 0.02;
+        if (traitIdsIncludeBase(traitIds, 'woven')) traitStatsMultiplier += 0.01;
+        if (traitIdsIncludeBase(traitIds, 'iron_belt')) traitStatsMultiplier += 0.05;
+        if (traitIdsIncludeBase(traitIds, 'divine_crown')) traitStatsMultiplier += 0.1;
+        if (traitIdsIncludeBase(traitIds, 'divine_favor')) traitStatsMultiplier += 0.12;
+        if (traitIdsIncludeBase(traitIds, 'celestial')) traitStatsMultiplier += 0.12;
+        if (traitIdsIncludeBase(traitIds, 'law')) traitStatsMultiplier += 0.08;
+        if (traitIdsIncludeBase(traitIds, 'creation_law')) traitStatsMultiplier += 0.15;
+        if (traitIdsIncludeBase(traitIds, 'divine_helmet')) traitStatsMultiplier += 0.12; // 神威头盔
         
         // 应用百分比加成
         if (traitStatsMultiplier > 1.0) {
@@ -3129,95 +3378,95 @@ class Player {
         }
         
         // 固定属性加成词条
-        if (traitIds.includes('armor_belt')) this.baseDefense = Math.floor(this.baseDefense * 1.03);
-        if (traitIds.includes('dragon_scale')) this.baseDefense = Math.floor(this.baseDefense * 1.15); // 龙鳞护甲
-        if (traitIds.includes('mithril_armor')) this.baseDefense = Math.floor(this.baseDefense * 1.2); // 秘银战甲
-        if (traitIds.includes('steel_buckle')) {
+        if (traitIdsIncludeBase(traitIds, 'armor_belt')) this.baseDefense = Math.floor(this.baseDefense * 1.03);
+        if (traitIdsIncludeBase(traitIds, 'dragon_scale')) this.baseDefense = Math.floor(this.baseDefense * 1.15); // 龙鳞护甲
+        if (traitIdsIncludeBase(traitIds, 'mithril_armor')) this.baseDefense = Math.floor(this.baseDefense * 1.2); // 秘银战甲
+        if (traitIdsIncludeBase(traitIds, 'steel_buckle')) {
             this.baseAttack = Math.floor(this.baseAttack * 1.03);
             this.baseDefense = Math.floor(this.baseDefense * 1.03);
         }
-        if (traitIds.includes('fortress')) {
+        if (traitIdsIncludeBase(traitIds, 'fortress')) {
             this.baseDefense = Math.floor(this.baseDefense * 1.1);
             this.baseAttack = Math.floor(this.baseAttack * 0.95);
         }
-        if (traitIds.includes('dragon_leather')) {
+        if (traitIdsIncludeBase(traitIds, 'dragon_leather')) {
             this.maxHp = Math.floor(this.maxHp * 1.15);
             this.baseDefense = Math.floor(this.baseDefense * 1.08);
         }
-        if (traitIds.includes('mottled')) this.baseDefense = Math.floor(this.baseDefense * 1.05);
-        if (traitIds.includes('heavy')) {
+        if (traitIdsIncludeBase(traitIds, 'mottled')) this.baseDefense = Math.floor(this.baseDefense * 1.05);
+        if (traitIdsIncludeBase(traitIds, 'heavy')) {
             this.baseDefense = Math.floor(this.baseDefense * 1.08);
             moveSpeedPercent = Math.max(0, moveSpeedPercent - 5);
         }
-        if (traitIds.includes('sturdy')) {
+        if (traitIdsIncludeBase(traitIds, 'sturdy')) {
             this.baseDefense = Math.floor(this.baseDefense * 1.05);
             moveSpeedPercent += 3;
         }
         
         // 攻击速度加成词条
-        if (traitIds.includes('thumb_ring')) this.baseAttackSpeed += Math.floor(this.baseAttackSpeed * 0.03);
-        if (traitIds.includes('swift_shadow')) {
+        if (traitIdsIncludeBase(traitIds, 'thumb_ring')) this.baseAttackSpeed += Math.floor(this.baseAttackSpeed * 0.03);
+        if (traitIdsIncludeBase(traitIds, 'swift_shadow')) {
             this.baseAttackSpeed += Math.floor(this.baseAttackSpeed * 0.08);
             moveSpeedPercent += 5;
         }
-        if (traitIds.includes('flowing_silver')) this.baseAttackSpeed += Math.floor(this.baseAttackSpeed * 0.05);
-        if (traitIds.includes('silver_wing')) {
+        if (traitIdsIncludeBase(traitIds, 'flowing_silver')) this.baseAttackSpeed += Math.floor(this.baseAttackSpeed * 0.05);
+        if (traitIdsIncludeBase(traitIds, 'silver_wing')) {
             moveSpeedPercent += 5;
             this.baseAttackSpeed += Math.floor(this.baseAttackSpeed * 0.05);
         }
         
         // 移动速度加成词条
-        if (traitIds.includes('ranger')) {
+        if (traitIdsIncludeBase(traitIds, 'ranger')) {
             moveSpeedPercent += 5;
             this.baseDodge += Math.floor(this.baseDodge * 0.03);
         }
-        if (traitIds.includes('traveler')) moveSpeedPercent += 8;
-        if (traitIds.includes('cheetah')) moveSpeedPercent += 10;
-        if (traitIds.includes('god_chase')) moveSpeedPercent += 15;
-        if (traitIds.includes('dragon_tendon')) moveSpeedPercent += 10;
+        if (traitIdsIncludeBase(traitIds, 'traveler')) moveSpeedPercent += 8;
+        if (traitIdsIncludeBase(traitIds, 'cheetah')) moveSpeedPercent += 10;
+        if (traitIdsIncludeBase(traitIds, 'god_chase')) moveSpeedPercent += 15;
+        if (traitIdsIncludeBase(traitIds, 'dragon_tendon')) moveSpeedPercent += 10;
         
         // 暴击相关词条
-        if (traitIds.includes('discipline')) {
+        if (traitIdsIncludeBase(traitIds, 'discipline')) {
             this.baseCritRate += Math.floor(this.baseCritRate * 0.05);
             this.baseCritDamage += Math.floor(this.baseCritDamage * 0.1);
         }
-        if (traitIds.includes('astrology')) {
+        if (traitIdsIncludeBase(traitIds, 'astrology')) {
             this.baseCritRate += Math.floor(this.baseCritRate * 0.05);
         }
-        if (this.getCurrentWeaponTraitId() === 'divine_judgment') {
+        if (traitIdBase(this.getCurrentWeaponTraitId()) === 'divine_judgment') {
             this.baseCritDamage = Math.floor(this.baseCritDamage * 1.5);
         }
         
         // 闪避相关词条
-        if (traitIds.includes('bright_moon') && this.hp < this.maxHp * 0.3) {
+        if (traitIdsIncludeBase(traitIds, 'bright_moon') && this.hp < this.maxHp * 0.3) {
             this.baseDodge += Math.floor(this.baseDodge * 0.15);
             this.baseAttackSpeed += Math.floor(this.baseAttackSpeed * 0.15);
         }
-        if (traitIds.includes('moon_shadow') && this.hp < this.maxHp * 0.3) {
+        if (traitIdsIncludeBase(traitIds, 'moon_shadow') && this.hp < this.maxHp * 0.3) {
             this.baseDodge += Math.floor(this.baseDodge * 0.15);
             this.baseAttackSpeed += Math.floor(this.baseAttackSpeed * 0.15);
         }
         
         // 生命值相关词条
-        if (traitIds.includes('dragon_heart') && this.hp < this.maxHp * 0.3) {
+        if (traitIdsIncludeBase(traitIds, 'dragon_heart') && this.hp < this.maxHp * 0.3) {
             // 每秒恢复5%最大生命值（在update中处理）
         }
         
         // 攻击力相关词条
-        if (traitIds.includes('brute_force')) {
+        if (traitIdsIncludeBase(traitIds, 'brute_force')) {
             this.baseAttack = Math.floor(this.baseAttack * 1.05);
             this.baseDefense = Math.floor(this.baseDefense * 0.97);
         }
-        if (this.getCurrentWeaponTraitId() === 'reverse_scale' && this.hp < this.maxHp * 0.3) {
+        if (traitIdBase(this.getCurrentWeaponTraitId()) === 'reverse_scale' && this.hp < this.maxHp * 0.3) {
             this.baseAttack = Math.floor(this.baseAttack * 1.3);
         }
-        if (traitIds.includes('perseverance') && this.hp < this.maxHp * 0.5) {
+        if (traitIdsIncludeBase(traitIds, 'perseverance') && this.hp < this.maxHp * 0.5) {
             this.baseDefense = Math.floor(this.baseDefense * 1.2);
         }
-        if (traitIds.includes('lion') && this.hp > this.maxHp * 0.7) {
+        if (traitIdsIncludeBase(traitIds, 'lion') && this.hp > this.maxHp * 0.7) {
             this.baseAttack = Math.floor(this.baseAttack * 1.15);
         }
-        if (traitIds.includes('charge') && this.hp < this.maxHp * 0.4) {
+        if (traitIdsIncludeBase(traitIds, 'charge') && this.hp < this.maxHp * 0.4) {
             this.baseAttack = Math.floor(this.baseAttack * 1.2);
             this.baseDefense = Math.floor(this.baseDefense * 1.2);
         }
@@ -3225,6 +3474,9 @@ class Player {
         // 精英房加护（词条之后、移速封顶与恶魔干扰之前）
         if (typeof applyEliteBoonPassivesInUpdateStats === 'function') {
             applyEliteBoonPassivesInUpdateStats(this);
+        }
+        if (this.towerMaxHpBonusPercent > 0) {
+            this.maxHp = Math.floor(this.maxHp * (1 + this.towerMaxHpBonusPercent / 100));
         }
         moveSpeedPercent += this._ebMoveSpeedPercent || 0;
         
@@ -3333,6 +3585,12 @@ class Player {
         const attackSpeedMultiplier = this.baseAttackSpeed / 100;
         const attackSpeedBonus = this.baseAttack * (attackSpeedMultiplier - 1);
         power += attackSpeedBonus * 1.5;
+        
+        power += (this.lifeStealPercent || 0) * 8;
+        power += (this.thornPercent || 0) * 5;
+        power += (this.skillHastePercent || 0) * 4;
+        power += (this.damageReductionPercent || 0) * 10;
+        power += (this.towerGoldBonusPercent || 0) * 2;
         
         // 移动速度贡献（机动性）
         // 移动速度影响走位和生存能力
@@ -3622,11 +3880,46 @@ class Player {
     }
 
     /**
+     * 当前武器若为落点范围技，返回施法距离与伤害半径（与 _executeWeaponSkill 中 refine 对 range 的处理一致）
+     * @returns {{ castRange: number, aoeRadius: number }|null}
+     */
+    resolveGroundAoeSkillRanges() {
+        const weapon = this.equipment.weapon;
+        if (!weapon || !weapon.skill || weapon.skill.castMode !== 'ground_aoe') return null;
+        const skill = Object.assign({}, weapon.skill);
+        const refineLevel = weapon.refineLevel || 0;
+        const refineEffect = refineLevel > 0 ? weapon.getRefineEffect(refineLevel) : null;
+        if (refineEffect && refineEffect.rangeMultiplier) {
+            skill.range = skill.range * (1 + refineEffect.rangeMultiplier);
+        }
+        const castRange = skill.groundCastRange != null ? skill.groundCastRange : skill.range * 1.08;
+        const aoeRadius = skill.groundAoERadius != null ? skill.groundAoERadius : skill.range * 0.64;
+        return { castRange, aoeRadius };
+    }
+
+    /**
+     * 当前武器若为锁定技，返回技能射程（与 _executeWeaponSkill 中 refine 对 range 的处理一致）
+     * @returns {{ range: number }|null}
+     */
+    resolveTargetLockSkillRange() {
+        const weapon = this.equipment.weapon;
+        if (!weapon || !weapon.skill || weapon.skill.castMode !== 'target_lock') return null;
+        const skill = Object.assign({}, weapon.skill);
+        const refineLevel = weapon.refineLevel || 0;
+        const refineEffect = refineLevel > 0 ? weapon.getRefineEffect(refineLevel) : null;
+        if (refineEffect && refineEffect.rangeMultiplier) {
+            skill.range = skill.range * (1 + refineEffect.rangeMultiplier);
+        }
+        return { range: skill.range };
+    }
+
+    /**
      * 释放武器技能
      * @param {Array} monsters - 怪物列表
+     * @param {{ groundPoint?: { x: number, y: number }, lockPickMode?: 'mouse_nearest', lockTarget?: object }} [options] - 落点坐标 / 锁定目标（长按瞄准时指定）
      * @returns {boolean} 是否成功释放技能
      */
-    useWeaponSkill(monsters) {
+    useWeaponSkill(monsters, options = {}) {
         // 如果正在冲刺，不能释放技能
         if (this.isDashing) {
             return false;
@@ -3655,7 +3948,7 @@ class Player {
         // 使用 0ms 延迟确保在下一个事件循环中执行，不会阻塞当前帧
         setTimeout(() => {
             try {
-                this._executeWeaponSkill(monsters, weapon, now);
+                this._executeWeaponSkill(monsters, weapon, now, options);
             } catch (error) {
                 console.error('技能释放出错:', error, error.stack);
             } finally {
@@ -3671,7 +3964,7 @@ class Player {
      * 执行武器技能效果（内部方法）
      * @private
      */
-    _executeWeaponSkill(monsters, weapon, now) {
+    _executeWeaponSkill(monsters, weapon, now, options = {}) {
         // 获取精炼效果
         const refineLevel = weapon.refineLevel || 0;
         const refineEffect = refineLevel > 0 ? weapon.getRefineEffect(refineLevel) : null;
@@ -3679,10 +3972,10 @@ class Player {
         // 应用技能冷却时间减少词条
         const traitIds = this.getEquipmentTraitIds();
         let cooldownReduction = 1.0;
-        if (traitIds.includes('star_sea')) cooldownReduction -= 0.15;
-        if (traitIds.includes('arcane_core')) cooldownReduction -= 0.1;
-        if (traitIds.includes('star_bond')) cooldownReduction -= 0.15;
-        if (traitIds.includes('creation_law')) cooldownReduction -= 0.2;
+        if (traitIdsIncludeBase(traitIds, 'star_sea')) cooldownReduction -= 0.15;
+        if (traitIdsIncludeBase(traitIds, 'arcane_core')) cooldownReduction -= 0.1;
+        if (traitIdsIncludeBase(traitIds, 'star_bond')) cooldownReduction -= 0.15;
+        if (traitIdsIncludeBase(traitIds, 'creation_law')) cooldownReduction -= 0.2;
         cooldownReduction = Math.max(0.1, cooldownReduction); // 最少10%冷却时间
         
         // 应用精炼效果的冷却时间减少
@@ -3694,9 +3987,15 @@ class Player {
         // 设置冷却时间（记录冷却结束时间）
         const actualCooldown = Math.floor(weapon.skill.cooldown * cooldownReduction);
         this.weaponSkillCooldown = now + actualCooldown;
-        
+        if (traitIdsIncludeBase(traitIds, 'void_n_skill') && typeof deepTraitBand === 'function') {
+            const vns = voidTraitTierFromList(traitIds, 'void_n_skill');
+            if (deepTraitBand(vns) >= 3) {
+                this.weaponSkillCooldown = Math.max(now, this.weaponSkillCooldown - (420 + 45 * vns));
+            }
+        }
+
         // 咏咒词条：使用技能后，下次攻击伤害提升30%
-        if (traitIds.includes('chant')) {
+        if (traitIdsIncludeBase(traitIds, 'chant')) {
             this.skillDamageBoost = 1.3;
         }
         
@@ -3853,20 +4152,89 @@ class Player {
         const killedMonsters = [];
         let skillVisualAoeDone = false;  // 范围技能特效只播一次
         let skillVisualDragonDone = false;
-        
-        monsters.forEach(monster => {
+
+        const castMode = skill.castMode || 'radial';
+        let groundCx = null;
+        let groundCy = null;
+        let groundGar = 0;
+        let targetsHit = [];
+
+        if (castMode === 'ground_aoe' && this.gameInstance && typeof this.gameInstance.getSkillGroundAimPoint === 'function') {
+            const gcr = skill.groundCastRange != null ? skill.groundCastRange : skill.range * 1.08;
+            groundGar = skill.groundAoERadius != null ? skill.groundAoERadius : skill.range * 0.64;
+            let pt;
+            const gp = options.groundPoint;
+            if (gp && Number.isFinite(gp.x) && Number.isFinite(gp.y) && typeof this.gameInstance.clampGroundSkillAimWorldPoint === 'function') {
+                pt = this.gameInstance.clampGroundSkillAimWorldPoint(gp.x, gp.y, this, gcr);
+            } else {
+                pt = this.gameInstance.getSkillGroundAimPoint(this, gcr);
+            }
+            groundCx = pt.x;
+            groundCy = pt.y;
+            targetsHit = collectMonstersInGroundSkillRadius(monsters, groundCx, groundCy, groundGar);
+            this.gameInstance.addEquipmentEffect('ground_sigil', groundCx, groundCy, { radius: groundGar, duration: 520 });
+            if (skill.aoeDamage && !skillVisualAoeDone) {
+                skillVisualAoeDone = true;
+                this.gameInstance.addEquipmentEffect('magic_explosion', groundCx, groundCy, {
+                    radius: Math.max(96, groundGar * 1.08),
+                    duration: 500
+                });
+            }
+            if (weapon.name === '远古龙刃' && targetsHit.length) {
+                skillVisualDragonDone = true;
+                const breathRange = skill.range * 0.6;
+                const effectX = this.x + Math.cos(this.angle) * breathRange;
+                const effectY = this.y + Math.sin(this.angle) * breathRange;
+                this.gameInstance.addEquipmentEffect('dragon_breath', effectX, effectY, {
+                    radius: skill.range,
+                    angle: this.angle,
+                    duration: 600
+                });
+            }
+        } else if (castMode === 'target_lock') {
+            const r2 = skill.range * skill.range;
+            let primary = null;
+            const lt = options.lockTarget;
+            if (lt && isCombatTargetAliveForEquipmentProc(lt)) {
+                const dx = lt.x - this.x;
+                const dy = lt.y - this.y;
+                if (dx * dx + dy * dy <= r2) primary = lt;
+            }
+            if (!primary && options.lockPickMode === 'mouse_nearest') {
+                primary = pickWeaponSkillLockTargetNearestToMouse(monsters, this, skill.range, this.gameInstance);
+            }
+            if (!primary) {
+                primary = pickWeaponSkillLockTarget(monsters, this, skill.range, this.gameInstance);
+            }
+            if (primary) {
+                targetsHit = [primary];
+                if (skill.showLockMarker !== false && this.gameInstance) {
+                    const lockMs = Math.min(950, Math.max(420, Math.floor((skill.cooldown || 8000) * 0.055 + 380)));
+                    this.gameInstance.addEquipmentEffect('skill_lock_marker', primary.x, primary.y, {
+                        duration: lockMs,
+                        followTarget: primary
+                    });
+                }
+            }
+        } else {
+            const r2 = skill.range * skill.range;
+            targetsHit = monsters.filter(m => {
+                const isD = m instanceof TrainingDummy || m instanceof MonsterTrainingDummy;
+                if (!isD && m.hp <= 0) return false;
+                const dx = m.x - this.x;
+                const dy = m.y - this.y;
+                return dx * dx + dy * dy <= r2;
+            });
+        }
+
+        targetsHit.forEach(monster => {
             // 检查是否是训练桩（包括怪物类型训练假人）
             const isDummy = monster instanceof TrainingDummy || monster instanceof MonsterTrainingDummy;
             
             // 对于普通怪物，检查是否已死亡
             if (!isDummy && monster.hp <= 0) return;
             
-            const dx = monster.x - this.x;
-            const dy = monster.y - this.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance <= skill.range) {
-                hit = true;
+            hit = true;
                 
                 // 通用技能命中特效（所有武器技能命中时显示）
                 if (this.gameInstance) {
@@ -3876,16 +4244,16 @@ class Player {
                         angle: this.angle
                     });
                 }
-                // 打造武器·魔法水晶剑：技能范围伤害时显示魔法爆炸
-                if (skill.aoeDamage && this.gameInstance && !skillVisualAoeDone) {
+                // 打造武器·魔法水晶剑：技能范围伤害时显示魔法爆炸（非落点施法时仍按首目标）
+                if (skill.aoeDamage && this.gameInstance && !skillVisualAoeDone && castMode !== 'ground_aoe') {
                     skillVisualAoeDone = true;
                     this.gameInstance.addEquipmentEffect('magic_explosion', monster.x, monster.y, {
                         radius: 120,
                         duration: 500
                     });
                 }
-                // 打造武器·远古龙刃：扇形龙息特效（只播一次）
-                if (weapon.name === '远古龙刃' && this.gameInstance && !skillVisualDragonDone) {
+                // 打造武器·远古龙刃：扇形龙息特效（只播一次；落点施法已在上方处理）
+                if (weapon.name === '远古龙刃' && this.gameInstance && !skillVisualDragonDone && castMode !== 'ground_aoe') {
                     skillVisualDragonDone = true;
                     const breathRange = skill.range * 0.6;
                     const effectX = this.x + Math.cos(this.angle) * breathRange;
@@ -3907,22 +4275,31 @@ class Player {
                 // 应用技能效果提升词条
                 const traitIds = this.getEquipmentTraitIds();
                 let skillEffectMultiplier = 1.0;
-                if (traitIds.includes('star_map')) skillEffectMultiplier += 0.2;
-                if (traitIds.includes('eternal_star')) skillEffectMultiplier += 0.25;
-                if (traitIds.includes('resonance')) skillEffectMultiplier += 0.15;
+                if (traitIdsIncludeBase(traitIds, 'star_map')) skillEffectMultiplier += 0.2;
+                if (traitIdsIncludeBase(traitIds, 'eternal_star')) skillEffectMultiplier += 0.25;
+                if (traitIdsIncludeBase(traitIds, 'resonance')) skillEffectMultiplier += 0.15;
+                if (traitIdsIncludeBase(traitIds, 'void_n_skill')) {
+                    const ts = voidTraitTierFromList(traitIds, 'void_n_skill');
+                    skillEffectMultiplier += (5 + 0.65 * ts) / 100;
+                    if (typeof deepTraitBand === 'function') {
+                        const nsb = deepTraitBand(ts);
+                        if (nsb >= 1) skillEffectMultiplier += 0.02;
+                        if (nsb >= 2) skillEffectMultiplier += 0.035;
+                    }
+                }
                 
                 // 计算伤害
                 let damage = this.baseAttack * skill.damageMultiplier * skillEffectMultiplier;
                 
-                // 处理范围伤害（魔法水晶剑）- 对周围敌人造成额外伤害
-                if (skill.aoeDamage && this.gameInstance) {
+                // 处理范围伤害（魔法水晶剑）- 对周围敌人造成额外伤害（落点施法已在落点圈内打满主伤害，不再以各目标为中心二次爆炸）
+                if (skill.aoeDamage && this.gameInstance && castMode !== 'ground_aoe') {
                     const aoeRange = skill.range * 1.2; // 范围伤害的范围稍大
                     const aoeDamageMultiplier = skill.aoeDamage + (skill.refine_aoeDamageBonus || 0);
                     const aoeDamage = this.baseAttack * skill.damageMultiplier * aoeDamageMultiplier * skillEffectMultiplier;
                     
                     monsters.forEach(m => {
                         if (m === monster) return; // 跳过主目标
-                        if (!isDummy && m.hp <= 0) return;
+                        if (!isCombatTargetAliveForEquipmentProc(m)) return;
                         
                         const dx = m.x - monster.x;
                         const dy = m.y - monster.y;
@@ -3953,7 +4330,7 @@ class Player {
                                 const chainExplosionDamage = aoeDmg * (skill.refine_chainExplosionDamage || 0.5);
                                 monsters.forEach(m2 => {
                                     if (m2 === m || m2 === monster) return;
-                                    if (!isDummy && m2.hp <= 0) return;
+                                    if (!isCombatTargetAliveForEquipmentProc(m2)) return;
                                     
                                     const dx2 = m2.x - m.x;
                                     const dy2 = m2.y - m.y;
@@ -4028,7 +4405,9 @@ class Player {
                 }
                 
                 // 造成伤害
-                const killed = monster.takeDamage(Math.floor(damage));
+                const mainSkillDmg = Math.floor(damage);
+                const killed = monster.takeDamage(mainSkillDmg);
+                if (!isDummy && mainSkillDmg > 0) this.applyLifeStealFromHit(mainSkillDmg);
                 // 播放打击音效
                 if (this.gameInstance && this.gameInstance.soundManager) {
                     this.gameInstance.soundManager.playSound('hit');
@@ -4081,7 +4460,7 @@ class Player {
                         
                         monsters.forEach(m => {
                             if (m === currentChainTarget || chainedMonsters.includes(m)) return;
-                            if (!isDummy && m.hp <= 0) return;
+                            if (!isCombatTargetAliveForEquipmentProc(m)) return;
                             
                             const dx = m.x - currentChainTarget.x;
                             const dy = m.y - currentChainTarget.y;
@@ -4117,7 +4496,7 @@ class Player {
                     const spreadRange = skill.refine_freezeSpreadRange || CONFIG.PLAYER_ATTACK_RANGE * 1.5;
                     monsters.forEach(m => {
                         if (m === monster) return;
-                        if (!isDummy && m.hp <= 0) return;
+                        if (!isCombatTargetAliveForEquipmentProc(m)) return;
                         
                         const dx = m.x - monster.x;
                         const dy = m.y - monster.y;
@@ -4151,7 +4530,7 @@ class Player {
                     
                     monsters.forEach(m => {
                         if (m === monster) return;
-                        if (!isDummy && m.hp <= 0) return;
+                        if (!isCombatTargetAliveForEquipmentProc(m)) return;
                         
                         const dx = m.x - monster.x;
                         const dy = m.y - monster.y;
@@ -4200,7 +4579,7 @@ class Player {
                             
                             // 对周围敌人造成伤害
                             monsters.forEach(m => {
-                                if (m === monster || (!isDummy && m.hp <= 0)) return;
+                                if (m === monster || !isCombatTargetAliveForEquipmentProc(m)) return;
                                 
                                 const dx = m.x - monster.x;
                                 const dy = m.y - monster.y;
@@ -4469,7 +4848,6 @@ class Player {
                     const fontSize = isCrit ? 28 : 20;
                     this.gameInstance.addFloatingText(monster.x, monster.y, damageNum.toString(), color, 1500, fontSize, true, direction);
                 }
-            }
         });
         
         // 应用玩家自身的buff效果（如果有）
@@ -4784,6 +5162,7 @@ class Player {
                 }
                 
                 const killed = monster.takeDamage(damage);
+                if (!isDummy && damage > 0) this.applyLifeStealFromHit(Math.floor(damage));
                 if (!isDummy && this._ebOnHitHeal > 0 && damage > 0) {
                     this.heal(this._ebOnHitHeal, { playSound: false });
                 }
@@ -4852,7 +5231,7 @@ class Player {
             const dodgeSuccess = Math.random() * 100 < this.baseDodge;
             if (dodgeSuccess) {
                 // 暗影词条：闪避后下次攻击必定暴击（须手持幽冥绝影刃）
-                if (this.getCurrentWeaponTraitId() === 'shadow') {
+                if (traitIdBase(this.getCurrentWeaponTraitId()) === 'shadow') {
                     this.nextAttackCrit = true;
                     if (this.gameInstance) {
                         this.gameInstance.addFloatingText(this.x, this.y, '暗影!', '#9900ff');
@@ -4862,6 +5241,37 @@ class Player {
                 this.invincibleUntil = Date.now() + 200;
                 if (this.gameInstance) {
                     this.gameInstance.addFloatingText(this.x, this.y, '闪避!', '#00ff00');
+                }
+                const tFlash = this.getEquipmentTraitIds();
+                if (traitIdsIncludeBase(tFlash, 'void_f_flash') && Math.random() < (0.14 + voidTraitTierFromList(tFlash, 'void_f_flash') * 0.01)) {
+                    const tf = voidTraitTierFromList(tFlash, 'void_f_flash');
+                    const fb = typeof deepTraitBand === 'function' ? deepTraitBand(tf) : 0;
+                    const hh = Math.floor(this.maxHp * (0.019 + 0.0022 * tf) * (1 + 0.12 * fb));
+                    if (hh > 0) {
+                        this.hp = Math.min(this.maxHp, this.hp + hh);
+                        if (this.gameInstance) {
+                            this.gameInstance.addFloatingText(this.x, this.y, `虚步 +${hh}`, '#88ffcc');
+                        }
+                    }
+                    if (fb >= 1) {
+                        this.invincibleUntil = Math.max(this.invincibleUntil || 0, Date.now() + 120 + 50 * fb);
+                    }
+                    if (fb >= 2) {
+                        this.buffs.push({ effects: { moveSpeed: 8 + 3 * fb }, expireTime: Date.now() + 2800 });
+                        this.updateStats();
+                    }
+                    if (fb >= 3 && this.gameInstance) {
+                        const sd = Math.floor(this.baseAttack * (0.22 + 0.025 * tf));
+                        this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                            if (m.hp <= 0) return;
+                            const dx = m.x - this.x;
+                            const dy = m.y - this.y;
+                            if (Math.sqrt(dx * dx + dy * dy) <= 100) {
+                                this.damageMonsterFromEnvironment(m, sd);
+                                this.gameInstance.addFloatingText(m.x, m.y, `步罡 ${sd}`, '#aaffee', 1400, 13, true);
+                            }
+                        });
+                    }
                 }
                 return false; // 闪避成功
             }
@@ -4895,9 +5305,21 @@ class Player {
             // 防御力200时，减伤 = 100 / (100 + 200 * 0.2) = 100 / 140 ≈ 0.71，受到71%伤害
             // 最大减伤不超过50%（即至少受到50%伤害）
             const defenseReduction = Math.max(0.5, 100 / (100 + this.baseDefense * 0.2));
-            const damageAfterDefense = amount * defenseReduction;
+            const drEquip = Math.min(35, this.damageReductionPercent || 0);
+            const damageAfterDefense = amount * defenseReduction * (1 - drEquip / 100);
             // 确保至少造成1点伤害（除非完全免疫），并向下取整
             const actualDamage = Math.max(1, Math.floor(damageAfterDefense));
+            
+            const tp = Math.min(40, this.thornPercent || 0);
+            if (tp > 0 && attacker && typeof attacker.takeDamage === 'function' && attacker.hp > 0) {
+                const refDmg = Math.floor(actualDamage * (tp / 100));
+                if (refDmg > 0) {
+                    attacker.takeDamage(refDmg);
+                    if (this.gameInstance) {
+                        this.gameInstance.addFloatingText(attacker.x, attacker.y, `荆棘 ${refDmg}`, '#66ddaa', 1200, 16, true);
+                    }
+                }
+            }
             
             // 扣血
             this.hp -= actualDamage;
@@ -4959,7 +5381,7 @@ class Player {
         
         let damageType = 'physical'; // 默认物理伤害
         
-        const isDummy = monster instanceof TrainingDummy;
+        const isStoolDummy = monster instanceof TrainingDummy;
         
         for (const [setId, setEffect] of Object.entries(this.setSpecialEffects)) {
             const setData = SET_DEFINITIONS[setId];
@@ -4971,7 +5393,7 @@ class Player {
             // 火焰爆炸效果（烈焰套装4件）
             if (effect.special === 'flameExplosion' && Math.random() < 0.2) {
                 const explosionDamage = this.baseAttack * 0.5;
-                if (isDummy) {
+                if (isStoolDummy) {
                     // 对于训练假人，将额外伤害合并到主伤害中
                     damage += explosionDamage;
                     damageType = 'fire'; // 标记为火焰伤害
@@ -5001,7 +5423,7 @@ class Player {
                 if (this.gameInstance) {
                     const chainTargets = this.gameInstance.getCurrentSceneTargets();
                     chainTargets.forEach(m => {
-                        if ((m instanceof TrainingDummy || m instanceof MonsterTrainingDummy || m.hp > 0) && m !== monster) {
+                        if (m !== monster && isCombatTargetAliveForEquipmentProc(m)) {
                             const dx = m.x - monster.x;
                             const dy = m.y - monster.y;
                             if (Math.sqrt(dx * dx + dy * dy) <= 100) {
@@ -5023,7 +5445,7 @@ class Player {
                 }
                 const now = Date.now();
                 monster.frozenUntil = now + 2000; // 冰冻2秒
-                if (isDummy) {
+                if (isStoolDummy) {
                     damageType = 'ice'; // 标记为冰冻伤害
                 }
                 if (this.gameInstance) {
@@ -5166,15 +5588,20 @@ class Player {
         }
     }
 
+    /** 按「吸血」比例，根据本次造成的伤害回复生命（训练桩不计） */
+    applyLifeStealFromHit(damageDealt) {
+        const pct = this.lifeStealPercent || 0;
+        if (pct <= 0 || damageDealt <= 0) return;
+        const h = Math.floor(damageDealt * pct / 100);
+        if (h > 0) this.heal(h, { playSound: false });
+    }
+
     gainExp(amount) {
         this.exp += amount;
         while (this.exp >= this.expNeeded) {
             this.exp -= this.expNeeded;
             this.level++;
             this.expNeeded = Math.floor(this.expNeeded * 1.3); // 降低经验增长倍数（从1.5改为1.3）
-            this.maxHp += 20;
-            this.hp = this.maxHp;
-            this.baseAttack += 2;
             
             // 播放升级音效
             if (this.gameInstance && this.gameInstance.soundManager) {
@@ -5185,6 +5612,8 @@ class Player {
             if (this.gameInstance) {
                 this.gameInstance.onPlayerLevelUp(this.level);
             }
+            this.updateStats();
+            this.hp = this.maxHp;
         }
     }
     
@@ -5235,12 +5664,12 @@ class Player {
         if (weaponTouched) {
             this.weaponSkillCooldown = 0;
             this.weaponSkillDots = [];
-            if (this.getCurrentWeaponTraitId() !== 'shadow') {
+            if (traitIdBase(this.getCurrentWeaponTraitId()) !== 'shadow') {
                 this.nextAttackCrit = false;
             }
         }
         if (chestTouched || all) {
-            if (!this.getEquipmentTraitIds().includes('chant')) {
+            if (!traitIdsIncludeBase(this.getEquipmentTraitIds(), 'chant')) {
                 this.skillDamageBoost = 1.0;
             }
         }
@@ -5257,11 +5686,137 @@ class Player {
         const traitIds = this.getEquipmentTraitIds();
         const weaponTrait = this.getCurrentWeaponTraitId();
         const now = Date.now();
-        const isDummy = monster instanceof TrainingDummy;
+        const isStoolDummy = monster instanceof TrainingDummy;
         let damageType = 'physical'; // 默认物理伤害
+        const meleeW = this.equipment.weapon && !isPlayerWeaponRanged(this.equipment.weapon);
+        const rangedW = this.equipment.weapon && isPlayerWeaponRanged(this.equipment.weapon);
+        const wB = voidEquipTraitBase(weaponTrait);
+        const wT = voidEquipTraitTier(weaponTrait);
+        const vbd = typeof deepTraitBand === 'function' ? deepTraitBand(wT) : 0;
+        const stdProc = Math.min(1.18, 1 + 0.045 * traitIdTier(weaponTrait));
+
+        let voidStrikeMul = 1;
+        if (this.voidChaseStrike && this.voidChaseStrike.until > now) {
+            voidStrikeMul *= this.voidChaseStrike.mul;
+            this.voidChaseStrike = null;
+        }
+        if (this.voidRiposteMul && this.voidRiposteMul > 1) {
+            voidStrikeMul *= this.voidRiposteMul;
+            this.voidRiposteMul = 1;
+        }
+        if (voidStrikeMul > 1) {
+            damage = Math.floor(damage * voidStrikeMul);
+        }
+
+        if (isStoolDummy || monster.hp > 0) {
+            if (monster.voidSigilExpire && now > monster.voidSigilExpire) {
+                monster.voidSigilStacks = 0;
+                monster.voidSigilPerStack = undefined;
+            }
+            if (monster.voidShredExpire && now > monster.voidShredExpire) {
+                monster.voidShredStacks = 0;
+            }
+            if (monster.voidOathUntil && now > monster.voidOathUntil) {
+                monster.voidOathMul = undefined;
+                monster.voidOathUntil = undefined;
+            }
+            // 终幕·誓刃：本击消耗标记并增伤（仅当前武器为誓刃档时触发）
+            if (meleeW && wB === 'void_w_sigil' && wT === 4 && monster.voidOathMul && monster.voidOathMul > 1) {
+                damage = Math.floor(damage * monster.voidOathMul);
+                monster.voidOathMul = undefined;
+                monster.voidOathUntil = undefined;
+                if (this.gameInstance) {
+                    this.gameInstance.addFloatingText(monster.x, monster.y, '誓刃!', '#ffaaee', 1200, 14, true);
+                }
+            }
+            // 渊隙～腐噬·魔印：仅持魔印档武器时叠层增伤生效
+            const vst = (meleeW && wB === 'void_w_sigil' && wT <= 2) ? (monster.voidSigilStacks || 0) : 0;
+            if (vst > 0) {
+                const perS = monster.voidSigilPerStack != null ? monster.voidSigilPerStack : 0.035;
+                damage = Math.floor(damage * (1 + perS * vst));
+            }
+            // 黑曜·溃印：仅持溃印档武器
+            if (meleeW && wB === 'void_w_sigil' && wT === 3) {
+                const sh = Math.min(2, monster.voidShredStacks || 0);
+                if (sh > 0) {
+                    damage = Math.floor(damage * (1 + (0.065 + 0.008 * wT) * sh));
+                }
+            }
+        }
+
+        if (meleeW && traitIdsIncludeBase(traitIds, 'void_l_ram') && this.dashEndTime) {
+            const tr = voidTraitTierFromList(traitIds, 'void_l_ram');
+            const ramMs = 420 + tr * 40;
+            if (now - this.dashEndTime < ramMs) {
+                damage = Math.floor(damage * (1 + (6 + 0.65 * tr) / 100));
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_r_sever') && monster.maxHp > 0) {
+            const ts = voidTraitTierFromList(traitIds, 'void_r_sever');
+            if (monster.hp / monster.maxHp < (31 - 0.55 * ts) / 100) {
+                damage = Math.floor(damage * (1 + (9 + 0.9 * ts) / 100));
+            }
+        }
+
+        if (meleeW && wB === 'void_w_cull' && monster.maxHp > 0) {
+            const th = (32 - 0.9 * wT - (vbd >= 2 ? 3 : 0)) / 100;
+            if (monster.hp / monster.maxHp < th) {
+                let cm = 1 + (8 + 1.2 * wT) / 100;
+                if (vbd >= 3) cm *= 1.1;
+                damage = Math.floor(damage * cm);
+                if (vbd >= 1) {
+                    const lh = Math.floor(damage * (0.04 + 0.015 * vbd));
+                    if (lh > 0) this.hp = Math.min(this.maxHp, this.hp + lh);
+                }
+                if (vbd >= 2 && !isStoolDummy && monster.baseAttack != null) {
+                    if (!monster.debuffs) monster.debuffs = [];
+                    monster.debuffs.push({
+                        effects: { attack: -Math.floor((monster.baseAttack || 0) * (0.06 + 0.02 * vbd)) },
+                        expireTime: now + 3500
+                    });
+                }
+                if (vbd >= 3 && this.gameInstance && monster.hp / monster.maxHp < 0.18) {
+                    const er = 70 + 5 * wT;
+                    const ed = Math.floor(this.baseAttack * (0.35 + 0.02 * wT));
+                    this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                        if (m === monster || !isCombatTargetAliveForEquipmentProc(m)) return;
+                        const dx = m.x - monster.x;
+                        const dy = m.y - monster.y;
+                        if (Math.sqrt(dx * dx + dy * dy) <= er) {
+                            this.damageMonsterFromEnvironment(m, ed);
+                        }
+                    });
+                }
+            }
+        }
+
+        if (rangedW && wB === 'void_b_snipe' && monster.maxHp > 0 && monster.hp / monster.maxHp > (84 - 0.6 * wT) / 100) {
+            let snMul = 1 + (7 + 0.8 * wT) / 100;
+            if (vbd >= 3) snMul *= 1.08;
+            damage = Math.floor(damage * snMul);
+            if (vbd >= 1) {
+                const hh = Math.floor(this.maxHp * (0.004 + 0.002 * vbd));
+                if (hh > 0) this.hp = Math.min(this.maxHp, this.hp + hh);
+            }
+            if (vbd >= 2 && this.gameInstance) {
+                const others = this.gameInstance.getCurrentSceneTargets().filter(m => m !== monster && isCombatTargetAliveForEquipmentProc(m));
+                const near = others.filter(m => {
+                    const dx = m.x - monster.x;
+                    const dy = m.y - monster.y;
+                    return Math.sqrt(dx * dx + dy * dy) <= 100;
+                });
+                if (near.length) {
+                    const t2 = near[Math.floor(Math.random() * near.length)];
+                    const pd = Math.floor(this.baseAttack * (18 + 2 * wT) / 100);
+                    this.damageMonsterFromEnvironment(t2, pd);
+                    this.gameInstance.addFloatingText(t2.x, t2.y, `穿虹 ${pd}`, '#aaddff', 1400, 13, true);
+                }
+            }
+        }
         
         // 暗影词条：闪避后下次攻击必定暴击（由本函数消耗标记，避免远程攻击提前清掉标记）
-        if (this.nextAttackCrit && weaponTrait === 'shadow') {
+        if (this.nextAttackCrit && traitIdBase(weaponTrait) === 'shadow') {
             this.nextAttackCrit = false;
             if (!isCrit) {
                 damage += this.baseCritDamage;
@@ -5270,17 +5825,26 @@ class Player {
         }
         
         // 圣耀词条：暴击伤害提升50%
-        if (isCrit && weaponTrait === 'divine_judgment') {
+        if (isCrit && traitIdBase(weaponTrait) === 'divine_judgment') {
             damage = Math.floor(damage * 1.5);
+        }
+
+        if (isCrit && traitIdsIncludeBase(traitIds, 'void_r_fervor')) {
+            const tf = voidTraitTierFromList(traitIds, 'void_r_fervor');
+            this.buffs.push({
+                effects: { attack: Math.floor(this.baseAttack * (0.065 + 0.009 * tf)) },
+                expireTime: now + 4800 + 120 * tf
+            });
+            this.updateStats();
         }
         
         // 淬火词条：暴击时有8%概率触发额外伤害（降低频率）
-        if (isCrit && weaponTrait === 'quench' && Math.random() < 0.2) {
+        if (isCrit && traitIdBase(weaponTrait) === 'quench' && Math.random() < 0.2 * stdProc) {
             const extraDamage = Math.floor(this.baseAttack * 0.5);
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('fire_spark', monster.x, monster.y, { radius: 35, duration: 400 });
             }
-            if (isDummy) {
+            if (isStoolDummy) {
                 // 对于训练假人，将额外伤害合并到主伤害中
                 damage += extraDamage;
                 damageType = 'fire'; // 淬火是火焰伤害
@@ -5293,11 +5857,11 @@ class Player {
         }
         
         // 霜寒词条：攻击时有15%概率降低目标移动速度（鸣霜青铜剑，仅当前武器）
-        if (weaponTrait === 'frost' && Math.random() < 0.15) {
+        if (traitIdBase(weaponTrait) === 'frost' && Math.random() < 0.15 * stdProc) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('freeze_ring', monster.x, monster.y, { radius: 40, duration: 350 });
             }
-            if (isDummy) {
+            if (isStoolDummy) {
                 monster.addStatusEffect('slowed', { multiplier: 0.8, duration: 2000 });
             } else {
                 if (!monster.slowEffects) monster.slowEffects = [];
@@ -5309,7 +5873,7 @@ class Player {
         }
         
         // 冰晶词条：仅手持晶曜寒锋时生效
-        if (weaponTrait === 'ice_crystal' && Math.random() < 0.2) {
+        if (traitIdBase(weaponTrait) === 'ice_crystal' && Math.random() < 0.2 * stdProc) {
             // 播放冰冻音效
             if (this.gameInstance && this.gameInstance.soundManager) {
                 this.gameInstance.soundManager.playSound('freeze');
@@ -5317,7 +5881,7 @@ class Player {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('freeze_ring', monster.x, monster.y, { radius: 45, duration: 450 });
             }
-            if (isDummy) {
+            if (isStoolDummy) {
                 monster.addStatusEffect('frozen', { duration: 1000 });
             } else {
                 monster.frozenUntil = now + 1000;
@@ -5328,14 +5892,14 @@ class Player {
         }
         
         // 圣耀词条：暴击时有30%概率触发范围伤害
-        if (isCrit && weaponTrait === 'divine_judgment' && Math.random() < 0.3) {
+        if (isCrit && traitIdBase(weaponTrait) === 'divine_judgment' && Math.random() < 0.3) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('holy_blast', monster.x, monster.y, { radius: 100, duration: 450 });
             }
             const rangeDamage = Math.floor(damage * 0.5);
             const targets = this.gameInstance ? this.gameInstance.getCurrentSceneTargets() : [];
             targets.forEach(m => {
-                if ((isDummy && (m instanceof TrainingDummy || m instanceof MonsterTrainingDummy)) || (!isDummy && m.hp > 0)) {
+                if (isCombatTargetAliveForEquipmentProc(m)) {
                     if (m === monster) return;
                     const dx = m.x - monster.x;
                     const dy = m.y - monster.y;
@@ -5350,7 +5914,7 @@ class Player {
         }
         
         // 雷神词条：攻击时有20%概率触发连锁闪电，对附近敌人造成80%攻击力伤害
-        if (weaponTrait === 'thunder_god' && Math.random() < 0.2) {
+        if (traitIdBase(weaponTrait) === 'thunder_god' && Math.random() < 0.2 * stdProc) {
             // 播放感电音效
             if (this.gameInstance && this.gameInstance.soundManager) {
                 this.gameInstance.soundManager.playSound('shock');
@@ -5361,7 +5925,7 @@ class Player {
             const lightningDamage = Math.floor(this.baseAttack * 0.8);
             const targetsThunder = this.gameInstance ? this.gameInstance.getCurrentSceneTargets() : [];
             targetsThunder.forEach(m => {
-                if ((isDummy && (m instanceof TrainingDummy || m instanceof MonsterTrainingDummy)) || (!isDummy && m.hp > 0)) {
+                if (isCombatTargetAliveForEquipmentProc(m)) {
                     if (m === monster) return;
                     const dx = m.x - monster.x;
                     const dy = m.y - monster.y;
@@ -5376,7 +5940,7 @@ class Player {
         }
         
         // 辉光词条：每次攻击有10%概率提升攻击速度
-        if (weaponTrait === 'radiance' && Math.random() < 0.1) {
+        if (traitIdBase(weaponTrait) === 'radiance' && Math.random() < 0.1 * stdProc) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('speed_aura', this.x, this.y, { radius: 35, duration: 350 });
             }
@@ -5388,7 +5952,7 @@ class Player {
         }
         
         // 骑士精神词条：攻击时有15%概率提升防御力
-        if (weaponTrait === 'knight_spirit' && Math.random() < 0.15) {
+        if (traitIdBase(weaponTrait) === 'knight_spirit' && Math.random() < 0.15 * stdProc) {
             this.buffs.push({
                 effects: { defense: Math.floor(this.baseDefense * 0.1) },
                 expireTime: now + 3000
@@ -5397,7 +5961,7 @@ class Player {
         }
         
         // 兽纹皮裤词条：攻击时有10%概率提升15%移动速度，持续3秒
-        if (traitIds.includes('beast_pattern') && Math.random() < 0.1) {
+        if (traitIdsIncludeBase(traitIds, 'beast_pattern') && Math.random() < 0.1) {
             this.buffs.push({
                 effects: { moveSpeed: 15 },
                 expireTime: now + 3000
@@ -5406,7 +5970,7 @@ class Player {
         }
         
         // 征战铁靴词条：攻击时有15%概率提升20%移动速度，持续3秒
-        if (traitIds.includes('war') && Math.random() < 0.15) {
+        if (traitIdsIncludeBase(traitIds, 'war') && Math.random() < 0.15) {
             this.buffs.push({
                 effects: { moveSpeed: 20 },
                 expireTime: now + 3000
@@ -5415,12 +5979,12 @@ class Player {
         }
         
         // 古遗词条：攻击时有10%概率触发额外伤害
-        if (traitIds.includes('ancient_relic') && Math.random() < 0.1) {
+        if (traitIdsIncludeBase(traitIds, 'ancient_relic') && Math.random() < 0.1) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('relic_spark', monster.x, monster.y, { radius: 30, duration: 350 });
             }
             const extraDamage = Math.floor(damage * 0.3);
-            if (isDummy) {
+            if (isStoolDummy) {
                 // 对于训练假人，将额外伤害合并到主伤害中
                 damage += extraDamage;
             } else {
@@ -5432,12 +5996,12 @@ class Player {
         }
         
         // 占星词条：暴击时有5%概率触发额外暴击（降低频率）
-        if (isCrit && traitIds.includes('astrology') && Math.random() < 0.1) {
+        if (isCrit && traitIdsIncludeBase(traitIds, 'astrology') && Math.random() < 0.1) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('crit_spark', monster.x, monster.y, { radius: 28, duration: 320 });
             }
             const extraCritDamage = this.baseCritDamage;
-            if (isDummy) {
+            if (isStoolDummy) {
                 // 对于训练假人，将额外伤害合并到主伤害中
                 damage += extraCritDamage;
             } else {
@@ -5449,11 +6013,11 @@ class Player {
         }
         
         // 炽焰重盔词条：攻击时有5%概率造成持续火焰伤害（降低频率）
-        if (traitIds.includes('blazing_helmet') && Math.random() < 0.1) {
+        if (traitIdsIncludeBase(traitIds, 'blazing_helmet') && Math.random() < 0.1) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('fire_spark', monster.x, monster.y, { radius: 38, duration: 420 });
             }
-            if (isDummy) {
+            if (isStoolDummy) {
                 monster.addStatusEffect('burning', {
                     damage: Math.floor(this.baseAttack * 0.1),
                     duration: 3000
@@ -5474,14 +6038,14 @@ class Player {
         }
         
         // 雷鸣词条：攻击时有15%概率触发雷电，对周围敌人造成伤害
-        if (traitIds.includes('thunder_crown') && Math.random() < 0.15) {
+        if (traitIdsIncludeBase(traitIds, 'thunder_crown') && Math.random() < 0.15) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('lightning_chain', this.x, this.y, { radius: 80, duration: 380 });
             }
             const thunderDamage = Math.floor(this.baseAttack * 0.6);
             const targetsCrown = this.gameInstance ? this.gameInstance.getCurrentSceneTargets() : [];
             targetsCrown.forEach(m => {
-                const alive = isDummy ? (m instanceof TrainingDummy || m instanceof MonsterTrainingDummy) : m.hp > 0;
+                const alive = isCombatTargetAliveForEquipmentProc(m);
                 if (alive) {
                     const dx = m.x - this.x;
                     const dy = m.y - this.y;
@@ -5496,12 +6060,12 @@ class Player {
         }
         
         // 流银词条：攻击时有6%概率触发连击（降低频率）
-        if (traitIds.includes('flowing_silver') && Math.random() < 0.15) {
+        if (traitIdsIncludeBase(traitIds, 'flowing_silver') && Math.random() < 0.15) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('combo_slash', monster.x, monster.y, { radius: 32, duration: 300 });
             }
             const comboDamage = Math.floor(damage * 0.5);
-            if (isDummy) {
+            if (isStoolDummy) {
                 // 对于训练假人，将额外伤害合并到主伤害中
                 damage += comboDamage;
             } else {
@@ -5513,12 +6077,12 @@ class Player {
         }
         
         // 猎豹疾靴词条：攻击时有5%概率触发额外攻击（降低频率）
-        if (traitIds.includes('cheetah') && Math.random() < 0.1) {
+        if (traitIdsIncludeBase(traitIds, 'cheetah') && Math.random() < 0.1) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('combo_slash', monster.x, monster.y, { radius: 34, duration: 320 });
             }
             const extraAttackDamage = Math.floor(damage * 0.7);
-            if (isDummy) {
+            if (isStoolDummy) {
                 // 对于训练假人，将额外伤害合并到主伤害中
                 damage += extraAttackDamage;
             } else {
@@ -5530,9 +6094,9 @@ class Player {
         }
         
         // 秘银私语词条：攻击时有5%概率触发额外攻击（降低频率）
-        if (traitIds.includes('whisper') && Math.random() < 0.1) {
+        if (traitIdsIncludeBase(traitIds, 'whisper') && Math.random() < 0.1) {
             const extraAttackDamage = Math.floor(damage * 0.8);
-            if (isDummy) {
+            if (isStoolDummy) {
                 // 对于训练假人，将额外伤害合并到主伤害中
                 damage += extraAttackDamage;
             } else {
@@ -5544,11 +6108,11 @@ class Player {
         }
         
         // 逐神之迹词条：攻击时有20%概率触发范围伤害
-        if (traitIds.includes('god_chase') && Math.random() < 0.2) {
+        if (traitIdsIncludeBase(traitIds, 'god_chase') && Math.random() < 0.2) {
             const rangeDamage = Math.floor(damage * 0.6);
             const targetsGod = this.gameInstance ? this.gameInstance.getCurrentSceneTargets() : [];
             targetsGod.forEach(m => {
-                if ((isDummy && (m instanceof TrainingDummy || m instanceof MonsterTrainingDummy)) || (!isDummy && m.hp > 0)) {
+                if (isCombatTargetAliveForEquipmentProc(m)) {
                     if (m === monster) return;
                     const dx = m.x - monster.x;
                     const dy = m.y - monster.y;
@@ -5563,11 +6127,11 @@ class Player {
         }
         
         // 红莲词条：攻击时有15%概率触发火焰爆炸（范围伤害）
-        if (traitIds.includes('crimson_lotus') && Math.random() < 0.15) {
+        if (traitIdsIncludeBase(traitIds, 'crimson_lotus') && Math.random() < 0.15) {
             const explosionDamage = Math.floor(this.baseAttack * 0.8);
             const targetsLotus = this.gameInstance ? this.gameInstance.getCurrentSceneTargets() : [];
             targetsLotus.forEach(m => {
-                const alive = isDummy ? (m instanceof TrainingDummy || m instanceof MonsterTrainingDummy) : m.hp > 0;
+                const alive = isCombatTargetAliveForEquipmentProc(m);
                 if (alive) {
                     const dx = m.x - monster.x;
                     const dy = m.y - monster.y;
@@ -5582,12 +6146,12 @@ class Player {
         }
         
         // 永冻词条：攻击时有20%概率冰冻目标
-        if (traitIds.includes('eternal_freeze') && Math.random() < 0.2) {
+        if (traitIdsIncludeBase(traitIds, 'eternal_freeze') && Math.random() < 0.2) {
             // 播放冰冻音效
             if (this.gameInstance && this.gameInstance.soundManager) {
                 this.gameInstance.soundManager.playSound('freeze');
             }
-            if (isDummy) {
+            if (isStoolDummy) {
                 monster.addStatusEffect('frozen', { duration: 2000 });
             } else {
                 monster.frozenUntil = now + 2000;
@@ -5598,7 +6162,7 @@ class Player {
         }
         
         // 雷纹词条：攻击时有20%概率触发连锁闪电
-        if (traitIds.includes('thunder_pattern') && Math.random() < 0.2) {
+        if (traitIdsIncludeBase(traitIds, 'thunder_pattern') && Math.random() < 0.2) {
             // 播放感电音效
             if (this.gameInstance && this.gameInstance.soundManager) {
                 this.gameInstance.soundManager.playSound('shock');
@@ -5606,7 +6170,7 @@ class Player {
             const chainDamage = Math.floor(this.baseAttack * 0.7);
             const targetsPattern = this.gameInstance ? this.gameInstance.getCurrentSceneTargets() : [];
             targetsPattern.forEach(m => {
-                if ((isDummy && (m instanceof TrainingDummy || m instanceof MonsterTrainingDummy)) || (!isDummy && m.hp > 0)) {
+                if (isCombatTargetAliveForEquipmentProc(m)) {
                     if (m === monster) return;
                     const dx = m.x - monster.x;
                     const dy = m.y - monster.y;
@@ -5621,12 +6185,12 @@ class Player {
         }
         
         // 龙息之握词条：攻击时有6%概率触发火焰伤害（降低频率）
-        if (traitIds.includes('dragon_breath_ring') && Math.random() < 0.15) {
+        if (traitIdsIncludeBase(traitIds, 'dragon_breath_ring') && Math.random() < 0.15) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('small_fire_breath', monster.x, monster.y, { radius: 45, duration: 400 });
             }
             const fireDamage = Math.floor(this.baseAttack * 0.5);
-            if (isDummy) {
+            if (isStoolDummy) {
                 // 对于训练假人，将额外伤害合并到主伤害中
                 damage += fireDamage;
                 damageType = 'fire'; // 火焰伤害
@@ -5639,11 +6203,11 @@ class Player {
         }
         
         // 寒芒词条：攻击时有20%概率冰冻目标
-        if (traitIds.includes('cold_star') && Math.random() < 0.2) {
+        if (traitIdsIncludeBase(traitIds, 'cold_star') && Math.random() < 0.2) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('freeze_ring', monster.x, monster.y, { radius: 42, duration: 400 });
             }
-            if (isDummy) {
+            if (isStoolDummy) {
                 monster.addStatusEffect('frozen', { duration: 1500 });
             } else {
                 monster.frozenUntil = now + 1500;
@@ -5654,14 +6218,14 @@ class Player {
         }
         
         // 炎魔之瞳词条：攻击时有15%概率触发火焰爆炸（范围）
-        if (traitIds.includes('demon_eye') && Math.random() < 0.15) {
+        if (traitIdsIncludeBase(traitIds, 'demon_eye') && Math.random() < 0.15) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('fire_spark', monster.x, monster.y, { radius: 95, duration: 450 });
             }
             const explosionDamage = Math.floor(this.baseAttack * 0.75);
             const targetsEye = this.gameInstance ? this.gameInstance.getCurrentSceneTargets() : [];
             targetsEye.forEach(m => {
-                const alive = isDummy ? (m instanceof TrainingDummy || m instanceof MonsterTrainingDummy) : m.hp > 0;
+                const alive = isCombatTargetAliveForEquipmentProc(m);
                 if (alive) {
                     const dx = m.x - monster.x;
                     const dy = m.y - monster.y;
@@ -5676,7 +6240,7 @@ class Player {
         }
         
         // 霜魂凝视词条：攻击时有25%概率冰冻目标
-        if (traitIds.includes('frost_soul') && Math.random() < 0.25) {
+        if (traitIdsIncludeBase(traitIds, 'frost_soul') && Math.random() < 0.25) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('freeze_ring', monster.x, monster.y, { radius: 48, duration: 500 });
             }
@@ -5687,14 +6251,14 @@ class Player {
         }
         
         // 狂雷怒吼词条：攻击时有20%概率触发雷电，对周围敌人造成伤害
-        if (traitIds.includes('thunder_roar') && Math.random() < 0.2) {
+        if (traitIdsIncludeBase(traitIds, 'thunder_roar') && Math.random() < 0.2) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('lightning_chain', this.x, this.y, { radius: 85, duration: 400 });
             }
             const thunderDamage = Math.floor(this.baseAttack * 0.7);
             const targetsRoar = this.gameInstance ? this.gameInstance.getCurrentSceneTargets() : [];
             targetsRoar.forEach(m => {
-                const alive = isDummy ? (m instanceof TrainingDummy || m instanceof MonsterTrainingDummy) : m.hp > 0;
+                const alive = isCombatTargetAliveForEquipmentProc(m);
                 if (alive) {
                     const dx = m.x - this.x;
                     const dy = m.y - this.y;
@@ -5709,9 +6273,9 @@ class Player {
         }
         
         // 炽炎之环词条：攻击时有5%概率触发火焰伤害（降低频率）
-        if (traitIds.includes('blazing_ring') && Math.random() < 0.1) {
+        if (traitIdsIncludeBase(traitIds, 'blazing_ring') && Math.random() < 0.1) {
             const fireDamage = Math.floor(this.baseAttack * 0.4);
-            if (isDummy) {
+            if (isStoolDummy) {
                 // 对于训练假人，将额外伤害合并到主伤害中
                 damage += fireDamage;
                 damageType = 'fire'; // 火焰伤害
@@ -5724,7 +6288,7 @@ class Player {
         }
         
         // 霜冻之触词条：攻击时有15%概率冰冻目标（保持，非伤害效果）
-        if (traitIds.includes('frost_touch') && Math.random() < 0.15) {
+        if (traitIdsIncludeBase(traitIds, 'frost_touch') && Math.random() < 0.15) {
             monster.frozenUntil = now + 1500;
             if (this.gameInstance) {
                 this.gameInstance.addFloatingText(monster.x, monster.y, '冰冻!', '#00ffff', 2000, 18, true);
@@ -5732,7 +6296,7 @@ class Player {
         }
         
         // 精钢长剑词条：攻击时有20%概率提升15%攻击力，持续5秒，可叠加2层
-        if (weaponTrait === 'steel_blade' && Math.random() < 0.2) {
+        if (traitIdBase(weaponTrait) === 'steel_blade' && Math.random() < 0.2 * stdProc) {
             if (!this.traitStacks['steel_blade']) this.traitStacks['steel_blade'] = 0;
             if (this.traitStacks['steel_blade'] < 2) {
                 this.traitStacks['steel_blade']++;
@@ -5748,7 +6312,7 @@ class Player {
         }
         
         // 魔法水晶剑词条：攻击时有25%概率触发魔法爆炸
-        if (weaponTrait === 'crystal_magic' && Math.random() < 0.25) {
+        if (traitIdBase(weaponTrait) === 'crystal_magic' && Math.random() < 0.25 * stdProc) {
             const magicDamage = Math.floor(this.baseAttack * 1.0);
             // 添加魔法爆炸特效
             if (this.gameInstance) {
@@ -5759,12 +6323,12 @@ class Player {
             }
             const targetsMagic = this.gameInstance ? this.gameInstance.getCurrentSceneTargets() : [];
             targetsMagic.forEach(m => {
-                const alive = isDummy ? (m instanceof TrainingDummy || m instanceof MonsterTrainingDummy) : m.hp > 0;
+                const alive = isCombatTargetAliveForEquipmentProc(m);
                 if (alive) {
                     const dx = m.x - monster.x;
                     const dy = m.y - monster.y;
                     if (Math.sqrt(dx * dx + dy * dy) <= 120) {
-                        if (isDummy && m === monster) {
+                        if (isStoolDummy && m === monster) {
                             damage += magicDamage;
                         } else {
                             this.damageMonsterFromEnvironment(m, magicDamage);
@@ -5779,7 +6343,7 @@ class Player {
         }
         
         // 远古龙刃词条：每次攻击有15%概率召唤龙息（扇形范围）
-        if (weaponTrait === 'ancient_dragon' && Math.random() < 0.15) {
+        if (traitIdBase(weaponTrait) === 'ancient_dragon' && Math.random() < 0.15 * stdProc) {
             const dragonBreathDamage = Math.floor(this.baseAttack * 1.5);
             const angle = this.angle;
             const range = 150;
@@ -5794,7 +6358,7 @@ class Player {
             }
             const targetsDragon = this.gameInstance ? this.gameInstance.getCurrentSceneTargets() : [];
             targetsDragon.forEach(m => {
-                const alive = isDummy ? (m instanceof TrainingDummy || m instanceof MonsterTrainingDummy) : m.hp > 0;
+                const alive = isCombatTargetAliveForEquipmentProc(m);
                 if (!alive) return;
                 const dx = m.x - this.x;
                 const dy = m.y - this.y;
@@ -5804,7 +6368,7 @@ class Player {
                     const angleDiff = Math.abs(targetAngle - angle);
                     const normalizedAngleDiff = Math.min(angleDiff, Math.PI * 2 - angleDiff);
                     if (normalizedAngleDiff < Math.PI / 3) {
-                        if (isDummy && m === monster) {
+                        if (isStoolDummy && m === monster) {
                             damage += dragonBreathDamage;
                         } else {
                             this.damageMonsterFromEnvironment(m, dragonBreathDamage);
@@ -5819,7 +6383,7 @@ class Player {
         }
         
         // 混沌之刃词条：攻击时有30%概率触发混沌之力
-        if (weaponTrait === 'chaos_blade' && Math.random() < 0.3) {
+        if (traitIdBase(weaponTrait) === 'chaos_blade' && Math.random() < 0.3 * stdProc) {
             const chaosDamage = Math.floor(damage * 2.0);
             // 添加混沌爆炸特效
             if (this.gameInstance) {
@@ -5828,7 +6392,7 @@ class Player {
                     duration: 600
                 });
             }
-            if (isDummy) {
+            if (isStoolDummy) {
                 damage = chaosDamage;
             } else {
                 this.damageMonsterFromEnvironment(monster, chaosDamage);
@@ -5846,7 +6410,7 @@ class Player {
         }
         
         // 奔雷束缚词条：攻击时有6%概率触发雷电（降低频率）
-        if (traitIds.includes('thunder_bind') && Math.random() < 0.15) {
+        if (traitIdsIncludeBase(traitIds, 'thunder_bind') && Math.random() < 0.15) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('lightning_chain', monster.x, monster.y, { radius: 40, duration: 350 });
             }
@@ -5856,9 +6420,530 @@ class Player {
                 this.gameInstance.addFloatingText(monster.x, monster.y, `雷电! ${thunderDamage}`, '#00ffff', 2000, 18, true);
             }
         }
+
+        // ---------- 恶魔塔深阶·武器与饰品（普攻/远程），档位 0～7 与装备 id 后缀一致 ----------
+        if (meleeW && wB === 'void_w_rend' && isCrit && Math.random() < Math.min(0.92, ((18 + 2 * wT) / 100) * (1 + 0.04 * vbd))) {
+            let ratio = (20 + 2.5 * wT) / 100;
+            if (vbd >= 3) ratio *= 1.12;
+            const rd = Math.floor(damage * ratio);
+            if (rd > 0) {
+                if (isStoolDummy) {
+                    damage += rd;
+                } else {
+                    this.damageMonsterFromEnvironment(monster, rd);
+                }
+                if (vbd >= 1) {
+                    const hh = Math.floor(this.maxHp * (0.006 + 0.003 * vbd));
+                    if (hh > 0) this.hp = Math.min(this.maxHp, this.hp + hh);
+                }
+                if (vbd >= 2 && this.gameInstance) {
+                    const others = this.gameInstance.getCurrentSceneTargets().filter(m => m !== monster && isCombatTargetAliveForEquipmentProc(m));
+                    const near = others.filter(m => {
+                        const dx = m.x - monster.x;
+                        const dy = m.y - monster.y;
+                        return Math.sqrt(dx * dx + dy * dy) <= 75;
+                    });
+                    if (near.length) {
+                        const t2 = near[Math.floor(Math.random() * near.length)];
+                        const sd = Math.floor(rd * 0.42);
+                        if (sd > 0) {
+                            this.damageMonsterFromEnvironment(t2, sd);
+                            this.gameInstance.addFloatingText(t2.x, t2.y, `裂潮 ${sd}`, '#dd88ff', 1600, 14, true);
+                        }
+                    }
+                }
+                if (vbd >= 3 && monster.maxHp > 0 && monster.hp / monster.maxHp < 0.4 && this.gameInstance) {
+                    const ex = Math.floor(this.baseAttack * (32 + 2 * wT) / 100);
+                    this.damageMonsterFromEnvironment(monster, ex);
+                    this.gameInstance.addFloatingText(monster.x, monster.y, `终裂 ${ex}`, '#ffccff', 1700, 15, true);
+                }
+                if (this.gameInstance) {
+                    this.gameInstance.addFloatingText(monster.x, monster.y, `裂伤 ${rd}`, '#cc66ff', 1800, 16, true);
+                }
+            }
+        }
+
+        if (meleeW && wB === 'void_w_mire' && Math.random() < Math.min(0.92, ((9 + wT) / 100) * (1 + 0.035 * vbd))) {
+            const mult = (90 - wT - (vbd >= 2 ? 2 : 0)) / 100;
+            const dur = 2000 + 80 * wT + (vbd >= 3 ? 400 : 0);
+            if (isStoolDummy && monster.addStatusEffect) {
+                monster.addStatusEffect('slowed', { multiplier: mult, duration: dur });
+            } else if (!isStoolDummy) {
+                if (!monster.slowEffects) monster.slowEffects = [];
+                monster.slowEffects.push({ multiplier: mult, expireTime: now + dur });
+            }
+            if (vbd >= 1) {
+                const dot = Math.floor(this.baseAttack * (0.06 + 0.02 * vbd));
+                if (dot > 0) this.damageMonsterFromEnvironment(monster, dot);
+            }
+            if (vbd >= 2 && this.gameInstance) {
+                this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                    if (m === monster || !isCombatTargetAliveForEquipmentProc(m)) return;
+                    const dx = m.x - monster.x;
+                    const dy = m.y - monster.y;
+                    if (Math.sqrt(dx * dx + dy * dy) <= 55) {
+                        if (m instanceof TrainingDummy && m.addStatusEffect) {
+                            m.addStatusEffect('slowed', { multiplier: 0.92, duration: 800 });
+                        } else {
+                            if (!m.slowEffects) m.slowEffects = [];
+                            m.slowEffects.push({ multiplier: 0.92, expireTime: now + 800 });
+                        }
+                    }
+                });
+            }
+            if (vbd >= 3) {
+                if (isStoolDummy && monster.addStatusEffect) {
+                    monster.addStatusEffect('frozen', { duration: 120 });
+                } else {
+                    monster.frozenUntil = Math.max(monster.frozenUntil || 0, now + 120);
+                }
+            }
+            if (this.gameInstance) {
+                this.gameInstance.addFloatingText(monster.x, monster.y, vbd >= 1 ? '虚淤' : '淤滞', '#8866aa', 1500, 14, true);
+            }
+        }
+
+        if (meleeW && wB === 'void_w_fork' && Math.random() < Math.min(0.92, ((12 + wT) / 100) * (1 + 0.035 * vbd)) && this.gameInstance) {
+            const forkR = 90 + 5 * wT + (vbd >= 2 ? 25 : 0);
+            const others = this.gameInstance.getCurrentSceneTargets().filter(m => m !== monster && isCombatTargetAliveForEquipmentProc(m));
+            const near = others.filter(m => {
+                const dx = m.x - monster.x;
+                const dy = m.y - monster.y;
+                return Math.sqrt(dx * dx + dy * dy) <= forkR;
+            });
+            if (near.length) {
+                const t = near[Math.floor(Math.random() * near.length)];
+                let fd = Math.floor(this.baseAttack * (30 + 1.8 * wT) / 100);
+                if (vbd >= 3) fd = Math.floor(fd * 1.2);
+                this.damageMonsterFromEnvironment(t, fd);
+                this.gameInstance.addFloatingText(t.x, t.y, `分岔 ${fd}`, '#aa88ff', 1800, 16, true);
+                if (vbd >= 1) {
+                    this.buffs.push({ effects: { moveSpeed: 6 + 2 * vbd }, expireTime: now + 2000 });
+                    this.updateStats();
+                }
+                if (vbd >= 2 && near.length > 1) {
+                    const t2 = near.filter(x => x !== t)[Math.floor(Math.random() * (near.length - 1))];
+                    if (t2) {
+                        const fd2 = Math.floor(fd * 0.55);
+                        this.damageMonsterFromEnvironment(t2, fd2);
+                        this.gameInstance.addFloatingText(t2.x, t2.y, `连环 ${fd2}`, '#ccaaee', 1600, 14, true);
+                    }
+                }
+            }
+        }
+
+        if (rangedW && wB === 'void_b_ricochet' && Math.random() < Math.min(0.92, ((12 + wT) / 100) * (1 + 0.035 * vbd)) && this.gameInstance) {
+            const ricR = 80 + 4 * wT + (vbd >= 3 ? 30 : 0);
+            const others = this.gameInstance.getCurrentSceneTargets().filter(m => m !== monster && isCombatTargetAliveForEquipmentProc(m));
+            const near = others.filter(m => {
+                const dx = m.x - monster.x;
+                const dy = m.y - monster.y;
+                return Math.sqrt(dx * dx + dy * dy) <= ricR;
+            });
+            if (near.length) {
+                const t = near[Math.floor(Math.random() * near.length)];
+                let fd = Math.floor(this.baseAttack * (28 + 1.2 * wT) / 100);
+                this.damageMonsterFromEnvironment(t, fd);
+                this.gameInstance.addFloatingText(t.x, t.y, `跳弹 ${fd}`, '#88ccff', 1800, 16, true);
+                if (vbd >= 1 && !isStoolDummy) {
+                    monster.debuffs = monster.debuffs || [];
+                    monster.debuffs.push({ effects: { defense: -Math.floor((monster.baseDefense || 5) * (0.05 + 0.02 * vbd)) }, expireTime: now + 4000 });
+                }
+                if (vbd >= 2 && near.length > 1) {
+                    const t2 = near.filter(x => x !== t)[0];
+                    if (t2) {
+                        const fd2 = Math.floor(fd * 0.5);
+                        this.damageMonsterFromEnvironment(t2, fd2);
+                        this.gameInstance.addFloatingText(t2.x, t2.y, `连弹 ${fd2}`, '#99ddff', 1600, 14, true);
+                    }
+                }
+                if (vbd >= 3) {
+                    const boom = Math.floor(fd * 0.45);
+                    this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                        if (m === t || !isCombatTargetAliveForEquipmentProc(m)) return;
+                        const dx = m.x - t.x;
+                        const dy = m.y - t.y;
+                        if (Math.sqrt(dx * dx + dy * dy) <= 55) this.damageMonsterFromEnvironment(m, boom);
+                    });
+                }
+            }
+        }
+
+        if (rangedW && wB === 'void_b_weaken' && Math.random() < Math.min(0.92, ((11 + wT) / 100) * (1 + 0.03 * vbd))) {
+            const mult = (91 - 0.8 * wT - (vbd >= 2 ? 2 : 0)) / 100;
+            const dur = 1850 + 70 * wT + (vbd >= 3 ? 500 : 0);
+            if (isStoolDummy && monster.addStatusEffect) {
+                monster.addStatusEffect('slowed', { multiplier: mult, duration: dur });
+            } else if (!isStoolDummy) {
+                if (!monster.slowEffects) monster.slowEffects = [];
+                monster.slowEffects.push({ multiplier: mult, expireTime: now + dur });
+            }
+            if (vbd >= 1 && !isStoolDummy) {
+                monster.debuffs = monster.debuffs || [];
+                monster.debuffs.push({ effects: { attack: -Math.floor((monster.baseAttack || 8) * 0.08) }, expireTime: now + dur });
+            }
+            if (vbd >= 2 && this.gameInstance) {
+                this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                    if (m === monster || !isCombatTargetAliveForEquipmentProc(m)) return;
+                    const dx = m.x - monster.x;
+                    const dy = m.y - monster.y;
+                    if (Math.sqrt(dx * dx + dy * dy) <= 70) {
+                        if (m instanceof TrainingDummy && m.addStatusEffect) {
+                            m.addStatusEffect('slowed', { multiplier: 0.94, duration: 600 });
+                        } else {
+                            if (!m.slowEffects) m.slowEffects = [];
+                            m.slowEffects.push({ multiplier: 0.94, expireTime: now + 600 });
+                        }
+                    }
+                });
+            }
+            if (vbd >= 3) {
+                if (isStoolDummy && monster.addStatusEffect) {
+                    monster.addStatusEffect('frozen', { duration: 180 });
+                } else if (!isStoolDummy) {
+                    monster.frozenUntil = Math.max(monster.frozenUntil || 0, now + 180);
+                }
+            }
+            if (this.gameInstance) {
+                this.gameInstance.addFloatingText(monster.x, monster.y, vbd >= 1 ? '蚀印' : '蚀弦', '#6699cc', 1500, 14, true);
+            }
+        }
+
+        if (rangedW && wB === 'void_b_volley' && Math.random() < Math.min(0.92, ((10 + wT) / 100) * (1 + 0.035 * vbd)) && this.gameInstance) {
+            const volR = 55 + 4 * wT;
+            let splash = Math.floor(this.baseAttack * (40 + 2 * wT) / 100);
+            if (vbd >= 3) splash = Math.floor(splash * 1.15);
+            this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                if (m === monster || !isCombatTargetAliveForEquipmentProc(m)) return;
+                const dx = m.x - monster.x;
+                const dy = m.y - monster.y;
+                if (Math.sqrt(dx * dx + dy * dy) <= volR) {
+                    this.damageMonsterFromEnvironment(m, splash);
+                    this.gameInstance.addFloatingText(m.x, m.y, `散矢 ${splash}`, '#99aaff', 1600, 14, true);
+                }
+            });
+            if (vbd >= 1) {
+                const cx = Math.floor(this.baseAttack * (0.12 + 0.04 * vbd));
+                if (cx > 0) this.damageMonsterFromEnvironment(monster, cx);
+            }
+            if (vbd >= 2) {
+                this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                    if (m === monster || !isCombatTargetAliveForEquipmentProc(m)) return;
+                    const dx = m.x - monster.x;
+                    const dy = m.y - monster.y;
+                    if (Math.sqrt(dx * dx + dy * dy) <= volR * 0.6) {
+                        const bd = Math.floor(splash * 0.25);
+                        if (bd > 0) this.damageMonsterFromEnvironment(m, bd);
+                    }
+                });
+            }
+        }
+
+        if (rangedW && wB === 'void_b_star' && isCrit && Math.random() < Math.min(0.92, ((19 + 2 * wT) / 100) * (1 + 0.03 * vbd)) && this.gameInstance) {
+            const starR = 72 + 5 * wT;
+            let nova = Math.floor(this.baseAttack * (48 + 2.2 * wT) / 100);
+            this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                if (!isCombatTargetAliveForEquipmentProc(m)) return;
+                const dx = m.x - monster.x;
+                const dy = m.y - monster.y;
+                if (Math.sqrt(dx * dx + dy * dy) <= starR) {
+                    this.damageMonsterFromEnvironment(m, nova);
+                    this.gameInstance.addFloatingText(m.x, m.y, `星落 ${nova}`, '#ddddff', 1800, 15, true);
+                }
+            });
+            if (vbd >= 1) {
+                const hh = Math.floor(this.maxHp * (0.005 + 0.002 * vbd));
+                if (hh > 0) this.hp = Math.min(this.maxHp, this.hp + hh);
+            }
+            if (vbd >= 2) {
+                const sn = Math.floor(nova * 0.55);
+                if (sn > 0) this.damageMonsterFromEnvironment(monster, sn);
+            }
+            if (vbd >= 3) {
+                const big = Math.floor(nova * 1.1);
+                this.damageMonsterFromEnvironment(monster, big);
+                this.gameInstance.addFloatingText(monster.x, monster.y, `星殒 ${big}`, '#ffffff', 1900, 16, true);
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_r_twin') && Math.random() < (5 + voidTraitTierFromList(traitIds, 'void_r_twin')) / 100) {
+            const tt = voidTraitTierFromList(traitIds, 'void_r_twin');
+            const tb = typeof deepTraitBand === 'function' ? deepTraitBand(tt) : 0;
+            let td = Math.floor(damage * (24 + 2 * tt) / 100);
+            if (tb >= 3) td = Math.floor(td * 1.15);
+            if (td > 0) {
+                if (isStoolDummy) {
+                    damage += td;
+                } else {
+                    this.damageMonsterFromEnvironment(monster, td);
+                }
+                if (this.gameInstance) {
+                    this.gameInstance.addFloatingText(monster.x, monster.y, tb >= 2 ? `叠环 ${td}` : `双环 ${td}`, '#ffcc66', 1600, 15, true);
+                }
+                if (tb >= 1) {
+                    const ls = Math.max(1, Math.floor(td * (0.25 + 0.08 * tb)));
+                    this.hp = Math.min(this.maxHp, this.hp + ls);
+                    if (this.gameInstance) this.gameInstance.addFloatingText(this.x, this.y, `环汲 +${ls}`, '#ffeeaa', 1100, 12, true);
+                }
+                if (tb >= 2 && this.gameInstance) {
+                    const others = this.gameInstance.getCurrentSceneTargets().filter(m => m !== monster && isCombatTargetAliveForEquipmentProc(m));
+                    const near = others.filter(m => {
+                        const dx = m.x - monster.x;
+                        const dy = m.y - monster.y;
+                        return Math.sqrt(dx * dx + dy * dy) <= 95;
+                    });
+                    if (near.length) {
+                        const t2 = near[Math.floor(Math.random() * near.length)];
+                        const td2 = Math.floor(td * 0.42);
+                        if (td2 > 0) {
+                            this.damageMonsterFromEnvironment(t2, td2);
+                            this.gameInstance.addFloatingText(t2.x, t2.y, `余环 ${td2}`, '#ffdd88', 1500, 14, true);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_n_mend') && Math.random() < (7 + voidTraitTierFromList(traitIds, 'void_n_mend')) / 100) {
+            const tm = voidTraitTierFromList(traitIds, 'void_n_mend');
+            const mb = typeof deepTraitBand === 'function' ? deepTraitBand(tm) : 0;
+            let h = Math.floor(this.maxHp * (1.2 + 0.2 * tm) / 100);
+            if (mb >= 2) h = Math.floor(h * 1.35);
+            if (h > 0) {
+                this.hp = Math.min(this.maxHp, this.hp + h);
+                if (this.gameInstance) {
+                    this.gameInstance.addFloatingText(this.x, this.y, mb >= 1 ? `双泉 +${h}` : `涌泉 +${h}`, '#66ffaa');
+                }
+            }
+            if (mb >= 1 && this.slowEffects && this.slowEffects.length) {
+                this.slowEffects = this.slowEffects.filter(e => e.expireTime > now);
+                if (this.slowEffects.length) {
+                    this.slowEffects.pop();
+                    this.updateStats();
+                }
+            }
+            if (mb >= 3 && h > 0) {
+                const h2 = Math.floor(h * 0.4);
+                if (h2 > 0) {
+                    this.hp = Math.min(this.maxHp, this.hp + h2);
+                    if (this.gameInstance) this.gameInstance.addFloatingText(this.x, this.y, `链泉 +${h2}`, '#44ff99', 1000, 12, true);
+                }
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_n_snare') && Math.random() < (6 + voidTraitTierFromList(traitIds, 'void_n_snare')) / 100) {
+            const tn = voidTraitTierFromList(traitIds, 'void_n_snare');
+            const nb = typeof deepTraitBand === 'function' ? deepTraitBand(tn) : 0;
+            let fz = 420 + 35 * tn + (nb >= 2 ? 120 + 40 * nb : 0);
+            if (isStoolDummy && monster.addStatusEffect) {
+                monster.addStatusEffect('frozen', { duration: fz });
+                if (nb >= 1) monster.addStatusEffect('slowed', { multiplier: 0.78, duration: fz });
+            } else {
+                monster.frozenUntil = now + fz;
+                if (nb >= 1) {
+                    if (!monster.slowEffects) monster.slowEffects = [];
+                    monster.slowEffects.push({ multiplier: 0.78, expireTime: now + fz });
+                }
+            }
+            if (this.gameInstance) {
+                this.gameInstance.addFloatingText(monster.x, monster.y, nb >= 3 ? '渊缚' : '缚链', '#66ccff', 1200, 14, true);
+                if (nb >= 3) {
+                    const others = this.gameInstance.getCurrentSceneTargets().filter(m => m !== monster && isCombatTargetAliveForEquipmentProc(m));
+                    others.forEach(m => {
+                        const dx = m.x - monster.x;
+                        const dy = m.y - monster.y;
+                        if (Math.sqrt(dx * dx + dy * dy) <= 88) {
+                            if (m instanceof TrainingDummy && m.addStatusEffect) {
+                                m.addStatusEffect('slowed', { multiplier: 0.85, duration: 1800 });
+                            } else {
+                                if (!m.slowEffects) m.slowEffects = [];
+                                m.slowEffects.push({ multiplier: 0.85, expireTime: now + 1800 });
+                            }
+                            this.gameInstance.addFloatingText(m.x, m.y, '缚散', '#88ddff', 900, 11, true);
+                        }
+                    });
+                }
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_n_arc') && Math.random() < (5 + voidTraitTierFromList(traitIds, 'void_n_arc')) / 100 && this.gameInstance) {
+            const ta = voidTraitTierFromList(traitIds, 'void_n_arc');
+            const ab = typeof deepTraitBand === 'function' ? deepTraitBand(ta) : 0;
+            const arcR = 92 + 5 * ta;
+            const others = this.gameInstance.getCurrentSceneTargets().filter(m => m !== monster && isCombatTargetAliveForEquipmentProc(m));
+            const near = others.filter(m => {
+                const dx = m.x - monster.x;
+                const dy = m.y - monster.y;
+                return Math.sqrt(dx * dx + dy * dy) <= arcR;
+            });
+            if (near.length) {
+                const t = near[Math.floor(Math.random() * near.length)];
+                let ad = Math.floor(this.baseAttack * (28 + 1.2 * ta) / 100);
+                if (ab >= 3) ad = Math.floor(ad * 1.12);
+                this.damageMonsterFromEnvironment(t, ad);
+                this.gameInstance.addFloatingText(t.x, t.y, ab >= 2 ? `折弧 ${ad}` : `弧光 ${ad}`, '#aaddff', 1700, 15, true);
+                if (ab >= 1) {
+                    const sh = Math.floor(this.maxHp * (0.006 + 0.003 * ab));
+                    if (sh > 0) {
+                        this.hp = Math.min(this.maxHp, this.hp + sh);
+                        this.gameInstance.addFloatingText(this.x, this.y, `弧愈 +${sh}`, '#99ffdd', 1000, 11, true);
+                    }
+                }
+                if (ab >= 2) {
+                    const rest = near.filter(m => m !== t);
+                    if (rest.length) {
+                        const t2 = rest[Math.floor(Math.random() * rest.length)];
+                        const ad2 = Math.floor(ad * 0.52);
+                        if (ad2 > 0) {
+                            this.damageMonsterFromEnvironment(t2, ad2);
+                            this.gameInstance.addFloatingText(t2.x, t2.y, `回弧 ${ad2}`, '#cceeff', 1600, 14, true);
+                        }
+                    }
+                }
+                if (ab >= 3 && !(t instanceof TrainingDummy)) {
+                    if (!t.burningDots) t.burningDots = [];
+                    t.burningDots.push({
+                        damagePerSecond: Math.max(1, Math.floor(ad * 0.12)),
+                        duration: 2200,
+                        startTime: now,
+                        lastTick: now
+                    });
+                }
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_l_overdrive') && Math.random() < (8 + voidTraitTierFromList(traitIds, 'void_l_overdrive')) / 100) {
+            const to = voidTraitTierFromList(traitIds, 'void_l_overdrive');
+            const ob = typeof deepTraitBand === 'function' ? deepTraitBand(to) : 0;
+            const asp = Math.floor(this.baseAttackSpeed * (6 + 0.9 * to) / 100);
+            this.buffs.push({
+                effects: { attackSpeed: asp, moveSpeed: ob >= 1 ? 6 + 2 * ob : 0 },
+                expireTime: now + 4800 + 120 * to + (ob >= 2 ? 500 : 0)
+            });
+            this.updateStats();
+            if (ob >= 3 && this.gameInstance) {
+                const pd = Math.floor(this.baseAttack * (0.2 + 0.02 * to));
+                this.damageMonsterFromEnvironment(monster, pd);
+                this.gameInstance.addFloatingText(monster.x, monster.y, `过载 ${pd}`, '#ffaa66', 1400, 14, true);
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_f_trace') && Math.random() < (8 + voidTraitTierFromList(traitIds, 'void_f_trace')) / 100) {
+            const ttr = voidTraitTierFromList(traitIds, 'void_f_trace');
+            const trb = typeof deepTraitBand === 'function' ? deepTraitBand(ttr) : 0;
+            const asp2 = Math.floor(this.baseAttackSpeed * (7.5 + 0.9 * ttr) / 100);
+            this.buffs.push({
+                effects: { attackSpeed: asp2, moveSpeed: trb >= 1 ? 8 + 2 * trb : 0 },
+                expireTime: now + 3600 + 100 * ttr + (trb >= 2 ? 400 : 0)
+            });
+            this.updateStats();
+            if (trb >= 3 && this.gameInstance) {
+                if (isStoolDummy && monster.addStatusEffect) {
+                    monster.addStatusEffect('slowed', { multiplier: 0.8, duration: 2400 });
+                } else {
+                    if (!monster.slowEffects) monster.slowEffects = [];
+                    monster.slowEffects.push({ multiplier: 0.8, expireTime: now + 2400 });
+                }
+                this.gameInstance.addFloatingText(monster.x, monster.y, '滞痕', '#99ccff', 1200, 13, true);
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_r_tempo') && Math.random() < (7 + voidTraitTierFromList(traitIds, 'void_r_tempo')) / 100 && this.weaponSkillCooldown > now) {
+            const ttp = voidTraitTierFromList(traitIds, 'void_r_tempo');
+            const rtb = typeof deepTraitBand === 'function' ? deepTraitBand(ttp) : 0;
+            let red = 320 + 35 * ttp + (rtb >= 1 ? 40 + 20 * rtb : 0);
+            if (rtb >= 3) red = Math.floor(red * 1.12);
+            this.weaponSkillCooldown = Math.max(now, this.weaponSkillCooldown - red);
+            if (rtb >= 2) {
+                this.buffs.push({ effects: { moveSpeed: 10 + 2 * rtb }, expireTime: now + 3000 });
+                this.updateStats();
+            }
+        }
+
+        if (meleeW && wB === 'void_w_sigil') {
+            if (wT === 7) {
+                monster.voidRuinHits = (monster.voidRuinHits || 0) + 1;
+                if (monster.voidRuinHits >= 3) {
+                    monster.voidRuinHits = 0;
+                    if (this.gameInstance) {
+                        const ruinR = 88 + 4 * wT;
+                        const nova = Math.floor(this.baseAttack * (55 + 3 * wT) / 100);
+                        this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                            if (m === monster || !isCombatTargetAliveForEquipmentProc(m)) return;
+                            const dx = m.x - monster.x;
+                            const dy = m.y - monster.y;
+                            if (Math.sqrt(dx * dx + dy * dy) <= ruinR) {
+                                this.damageMonsterFromEnvironment(m, nova);
+                                this.gameInstance.addFloatingText(m.x, m.y, `墟印 ${nova}`, '#dd99ff', 1800, 15, true);
+                            }
+                        });
+                        this.gameInstance.addFloatingText(monster.x, monster.y, '归墟!', '#eeccff', 1400, 16, true);
+                    }
+                }
+            }
+            if (wT <= 2 && Math.random() < 0.22 + 0.01 * wT) {
+                const cap = Math.min(6, 4 + Math.floor(wT / 2));
+                monster.voidSigilStacks = Math.min(cap, (monster.voidSigilStacks || 0) + 1);
+                monster.voidSigilPerStack = (3.5 + 0.3 * wT) / 100;
+                monster.voidSigilExpire = now + (5 + Math.floor(wT / 2)) * 1000;
+                if (this.gameInstance) {
+                    this.gameInstance.addFloatingText(monster.x, monster.y, `印×${monster.voidSigilStacks}`, '#bbaaff', 1200, 13, true);
+                }
+            } else if (wT === 3 && Math.random() < 0.24 + 0.01 * wT) {
+                monster.voidShredStacks = Math.min(2, (monster.voidShredStacks || 0) + 1);
+                monster.voidShredExpire = now + 4500;
+                if (this.gameInstance) {
+                    this.gameInstance.addFloatingText(monster.x, monster.y, `溃×${monster.voidShredStacks}`, '#ccaa88', 1200, 13, true);
+                }
+            } else if (wT === 4 && Math.random() < 0.2 + 0.01 * wT) {
+                monster.voidOathMul = 1.28 + 0.015 * wT;
+                monster.voidOathUntil = now + 3200;
+                if (this.gameInstance) {
+                    this.gameInstance.addFloatingText(monster.x, monster.y, '誓印', '#ff99cc', 1200, 13, true);
+                }
+            } else if (wT === 5 && this.gameInstance && Math.random() < 0.22 + 0.01 * wT) {
+                const linkR = 80 + 5 * wT;
+                const others = this.gameInstance.getCurrentSceneTargets().filter(m => m !== monster && isCombatTargetAliveForEquipmentProc(m));
+                const near = others.filter(m => {
+                    const dx = m.x - monster.x;
+                    const dy = m.y - monster.y;
+                    return Math.sqrt(dx * dx + dy * dy) <= linkR;
+                });
+                if (near.length) {
+                    const t = near[Math.floor(Math.random() * near.length)];
+                    const ld = Math.floor(this.baseAttack * (38 + 2 * wT) / 100);
+                    this.damageMonsterFromEnvironment(t, ld);
+                    this.gameInstance.addFloatingText(t.x, t.y, `星链 ${ld}`, '#99ddff', 1800, 15, true);
+                }
+            } else if (wT === 6 && Math.random() < 0.2 + 0.01 * wT) {
+                const vd = Math.floor(this.baseAttack * (30 + 2.5 * wT) / 100);
+                if (vd > 0) {
+                    this.damageMonsterFromEnvironment(monster, vd);
+                    if (this.gameInstance) {
+                        this.gameInstance.addEquipmentEffect('void_vein_burst', monster.x, monster.y, {
+                            radius: 48,
+                            duration: 450
+                        });
+                        // 与普攻白字错开：上移 + 高对比色 + 更大字号，突出「独立结算」裂脉段
+                        this.gameInstance.addFloatingText(
+                            monster.x,
+                            monster.y - 22,
+                            `裂脉 ${vd}`,
+                            '#ea80fc',
+                            2800,
+                            22,
+                            true
+                        );
+                        if (this.gameInstance.soundManager) {
+                            this.gameInstance.soundManager.playSound('shock');
+                        }
+                    }
+                }
+            }
+        }
         
         // 已卸下幽冥刃等仍保留「下次必暴」标记时清掉，避免永久残留
-        if (this.nextAttackCrit && this.getCurrentWeaponTraitId() !== 'shadow') {
+        if (this.nextAttackCrit && traitIdBase(this.getCurrentWeaponTraitId()) !== 'shadow') {
             this.nextAttackCrit = false;
         }
         
@@ -5906,8 +6991,8 @@ class Player {
         }
         
         // 检查是否有轨迹词条或套装效果
-        const hasGalaxyTrail = traitIds.includes('galaxy_trail');
-        const hasFireTrail = traitIds.includes('fire_trail');
+        const hasGalaxyTrail = traitIdsIncludeBase(traitIds, 'galaxy_trail');
+        const hasFireTrail = traitIdsIncludeBase(traitIds, 'fire_trail');
         
         // 检查是否有套装效果（套装效果也会产生轨迹，只是颜色不同）
         let hasSetTrail = false;
@@ -5962,7 +7047,7 @@ class Player {
         
         // 电光战袍词条：移动时有3%概率触发闪电（降低频率，添加冷却）
         const lightningRobeKey = 'lightning_robe';
-        if (traitIds.includes('lightning_robe')) {
+        if (traitIdsIncludeBase(traitIds, 'lightning_robe')) {
             if (!this.moveTraitCooldowns[lightningRobeKey] || now > this.moveTraitCooldowns[lightningRobeKey]) {
                 if (Math.random() < 0.03) {
                     this.moveTraitCooldowns[lightningRobeKey] = now + 500; // 0.5秒冷却
@@ -5970,7 +7055,7 @@ class Player {
                     if (this.gameInstance) {
                         const targetsRobe = this.gameInstance.getCurrentSceneTargets();
                         targetsRobe.forEach(m => {
-                            const alive = m instanceof TrainingDummy || m instanceof MonsterTrainingDummy || m.hp > 0;
+                            const alive = isCombatTargetAliveForEquipmentProc(m);
                             if (alive) {
                                 const dx = m.x - this.x;
                                 const dy = m.y - this.y;
@@ -5989,7 +7074,7 @@ class Player {
         
         // 疾雷腿甲词条：移动时有3%概率触发雷电（对周围敌人造成伤害）
         const swiftThunderKey = 'swift_thunder';
-        if (traitIds.includes('swift_thunder')) {
+        if (traitIdsIncludeBase(traitIds, 'swift_thunder')) {
             if (!this.moveTraitCooldowns[swiftThunderKey] || now > this.moveTraitCooldowns[swiftThunderKey]) {
                 if (Math.random() < 0.03) {
                     this.moveTraitCooldowns[swiftThunderKey] = now + 500;
@@ -5997,7 +7082,7 @@ class Player {
                     if (this.gameInstance) {
                         const targetsSwift = this.gameInstance.getCurrentSceneTargets();
                         targetsSwift.forEach(m => {
-                            const alive = m instanceof TrainingDummy || m instanceof MonsterTrainingDummy || m.hp > 0;
+                            const alive = isCombatTargetAliveForEquipmentProc(m);
                             if (alive) {
                                 const dx = m.x - this.x;
                                 const dy = m.y - this.y;
@@ -6016,7 +7101,7 @@ class Player {
         
         // 星轨漫步词条：移动时有3%概率触发星辰（对周围敌人造成伤害）
         const starTrailKey = 'star_trail';
-        if (traitIds.includes('star_trail')) {
+        if (traitIdsIncludeBase(traitIds, 'star_trail')) {
             if (!this.moveTraitCooldowns[starTrailKey] || now > this.moveTraitCooldowns[starTrailKey]) {
                 if (Math.random() < 0.03) {
                     this.moveTraitCooldowns[starTrailKey] = now + 500;
@@ -6024,7 +7109,7 @@ class Player {
                     if (this.gameInstance) {
                         const targetsStar = this.gameInstance.getCurrentSceneTargets();
                         targetsStar.forEach(m => {
-                            const alive = m instanceof TrainingDummy || m instanceof MonsterTrainingDummy || m.hp > 0;
+                            const alive = isCombatTargetAliveForEquipmentProc(m);
                             if (alive) {
                                 const dx = m.x - this.x;
                                 const dy = m.y - this.y;
@@ -6043,7 +7128,7 @@ class Player {
         
         // 龙踏云靴词条：移动时有3%概率触发瞬移伤害（降低频率，添加冷却）
         const cloudStepKey = 'cloud_step';
-        if (traitIds.includes('cloud_step')) {
+        if (traitIdsIncludeBase(traitIds, 'cloud_step')) {
             if (!this.moveTraitCooldowns[cloudStepKey] || now > this.moveTraitCooldowns[cloudStepKey]) {
                 if (Math.random() < 0.03) {
                     this.moveTraitCooldowns[cloudStepKey] = now + 500; // 0.5秒冷却
@@ -6057,18 +7142,16 @@ class Player {
                         if (this.lastMoveY === undefined) this.lastMoveY = this.y;
                         if (Math.abs(dx) > 0.001 || Math.abs(dy) > 0.001) {
                             targets.forEach(m => {
-                                const isDummy = m instanceof TrainingDummy || m instanceof MonsterTrainingDummy;
-                                if (isDummy || m.hp > 0) {
-                                    const dx2 = m.x - this.lastMoveX;
-                                    const dy2 = m.y - this.lastMoveY;
-                                    const distSq = dx * dx + dy * dy;
-                                    if (distSq > 0.001) {
-                                        const distToPath = Math.abs(dx2 * dy - dy2 * dx) / Math.sqrt(distSq);
-                                        if (distToPath <= 30 && Math.abs(dx2 * dx + dy2 * dy) >= 0) {
-                                            this.damageMonsterFromEnvironment(m, dashDamage);
-                                            if (this.gameInstance) {
-                                                this.gameInstance.addFloatingText(m.x, m.y, `瞬移! ${dashDamage}`, '#ff00ff', 2000, 18, true);
-                                            }
+                                if (!isCombatTargetAliveForEquipmentProc(m)) return;
+                                const dx2 = m.x - this.lastMoveX;
+                                const dy2 = m.y - this.lastMoveY;
+                                const distSq = dx * dx + dy * dy;
+                                if (distSq > 0.001) {
+                                    const distToPath = Math.abs(dx2 * dy - dy2 * dx) / Math.sqrt(distSq);
+                                    if (distToPath <= 30 && Math.abs(dx2 * dx + dy2 * dy) >= 0) {
+                                        this.damageMonsterFromEnvironment(m, dashDamage);
+                                        if (this.gameInstance) {
+                                            this.gameInstance.addFloatingText(m.x, m.y, `瞬移! ${dashDamage}`, '#ff00ff', 2000, 18, true);
                                         }
                                     }
                                 }
@@ -6081,7 +7164,7 @@ class Player {
         
         // 烁光银靴词条：移动时有3%概率触发闪光（降低频率，添加冷却）
         const shimmerKey = 'shimmer';
-        if (traitIds.includes('shimmer')) {
+        if (traitIdsIncludeBase(traitIds, 'shimmer')) {
             if (!this.moveTraitCooldowns[shimmerKey] || now > this.moveTraitCooldowns[shimmerKey]) {
                 if (Math.random() < 0.03) {
                     this.moveTraitCooldowns[shimmerKey] = now + 500; // 0.5秒冷却
@@ -6089,7 +7172,7 @@ class Player {
                     if (this.gameInstance) {
                         const targetsShimmer = this.gameInstance.getCurrentSceneTargets();
                         targetsShimmer.forEach(m => {
-                            const alive = m instanceof TrainingDummy || m instanceof MonsterTrainingDummy || m.hp > 0;
+                            const alive = isCombatTargetAliveForEquipmentProc(m);
                             if (alive) {
                                 const dx = m.x - this.x;
                                 const dy = m.y - this.y;
@@ -6109,7 +7192,7 @@ class Player {
         
         // 凝霜远行词条：移动时有5%概率冰冻路径上的敌人（降低频率，添加冷却）
         const frostWalkKey = 'frost_walk';
-        if (traitIds.includes('frost_walk')) {
+        if (traitIdsIncludeBase(traitIds, 'frost_walk')) {
             if (!this.moveTraitCooldowns[frostWalkKey] || now > this.moveTraitCooldowns[frostWalkKey]) {
                 if (Math.random() < 0.03) {
                     this.moveTraitCooldowns[frostWalkKey] = now + 500; // 0.5秒冷却
@@ -6123,7 +7206,7 @@ class Player {
                             const distSq = dx * dx + dy * dy;
                             if (distSq > 0.001) {
                                 targetsFrost.forEach(m => {
-                                    const alive = m instanceof TrainingDummy || m instanceof MonsterTrainingDummy || m.hp > 0;
+                                    const alive = isCombatTargetAliveForEquipmentProc(m);
                                     if (alive) {
                                         const dx2 = m.x - this.lastMoveX;
                                         const dy2 = m.y - this.lastMoveY;
@@ -6149,7 +7232,7 @@ class Player {
         
         // 迅雷闪步词条：移动时有4%概率触发闪电（对周围敌人造成伤害）
         const thunderStepKey = 'thunder_step';
-        if (traitIds.includes('thunder_step')) {
+        if (traitIdsIncludeBase(traitIds, 'thunder_step')) {
             if (!this.moveTraitCooldowns[thunderStepKey] || now > this.moveTraitCooldowns[thunderStepKey]) {
                 if (Math.random() < 0.04) {
                     this.moveTraitCooldowns[thunderStepKey] = now + 500;
@@ -6164,7 +7247,7 @@ class Player {
                     if (this.gameInstance) {
                         const targetsStep = this.gameInstance.getCurrentSceneTargets();
                         targetsStep.forEach(m => {
-                            const alive = m instanceof TrainingDummy || m instanceof MonsterTrainingDummy || m.hp > 0;
+                            const alive = isCombatTargetAliveForEquipmentProc(m);
                             if (alive) {
                                 const dx = m.x - this.x;
                                 const dy = m.y - this.y;
@@ -6208,7 +7291,7 @@ class Player {
             const now = Date.now();
         
         // 坚韧词条：受到伤害时，有10%概率恢复生命值（斑驳铁剑，仅当前武器）
-        if (this.getCurrentWeaponTraitId() === 'toughness' && Math.random() < 0.1) {
+        if (traitIdBase(this.getCurrentWeaponTraitId()) === 'toughness' && Math.random() < 0.1) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('heal_aura', this.x, this.y, { radius: 28, duration: 350 });
             }
@@ -6220,7 +7303,7 @@ class Player {
         }
         
         // 永恒神威词条（胸甲）：受到伤害时提升20%防御力，持续5秒
-        if (traitIds.includes('eternal_divine') && damage > 0) {
+        if (traitIdsIncludeBase(traitIds, 'eternal_divine') && damage > 0) {
             this.buffs.push({
                 effects: { defense: Math.floor(this.baseDefense * 0.2) },
                 expireTime: now + 5000
@@ -6229,7 +7312,7 @@ class Player {
         }
         
         // 极星护佑词条：受到伤害时，有15%概率恢复5%最大生命值（抗性体现）
-        if (traitIds.includes('star_guard') && Math.random() < 0.15) {
+        if (traitIdsIncludeBase(traitIds, 'star_guard') && Math.random() < 0.15) {
             const healAmount = Math.floor(this.maxHp * 0.05);
             this.hp = Math.min(this.hp + healAmount, this.maxHp);
             if (this.gameInstance) {
@@ -6238,7 +7321,7 @@ class Player {
         }
         
         // 古朴词条：受到暴击时，有20%概率免疫
-        if (isCrit && traitIds.includes('ancient') && Math.random() < 0.2) {
+        if (isCrit && traitIdsIncludeBase(traitIds, 'ancient') && Math.random() < 0.2) {
             if (this.gameInstance) {
                 this.gameInstance.addFloatingText(this.x, this.y, '免疫!', '#ffff00');
             }
@@ -6246,7 +7329,7 @@ class Player {
         }
         
         // 龙息战盔词条：受到攻击时，有15%概率对攻击者造成火焰伤害
-        if (attacker && traitIds.includes('dragon_breath_helmet') && Math.random() < 0.15) {
+        if (attacker && traitIdsIncludeBase(traitIds, 'dragon_breath_helmet') && Math.random() < 0.15) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('small_fire_breath', attacker.x, attacker.y, { radius: 40, duration: 380 });
             }
@@ -6258,7 +7341,7 @@ class Player {
         }
         
         // 苦行词条：受到伤害时，有5%概率恢复生命值
-        if (traitIds.includes('ascetic') && Math.random() < 0.05) {
+        if (traitIdsIncludeBase(traitIds, 'ascetic') && Math.random() < 0.05) {
             const healAmount = Math.floor(this.maxHp * 0.1);
             this.hp = Math.min(this.hp + healAmount, this.maxHp);
             if (this.gameInstance) {
@@ -6267,7 +7350,7 @@ class Player {
         }
         
         // 斑驳词条：受到攻击时有10%概率反弹伤害
-        if (attacker && traitIds.includes('mottled') && Math.random() < 0.1) {
+        if (attacker && traitIdsIncludeBase(traitIds, 'mottled') && Math.random() < 0.1) {
             const reflectDamage = Math.floor(damage * 0.3);
             attacker.takeDamage(reflectDamage);
             if (this.gameInstance) {
@@ -6276,7 +7359,7 @@ class Player {
         }
         
         // 荆棘词条：受到近战攻击时，反弹20%伤害（降低反弹伤害比例）
-        if (attacker && traitIds.includes('thorn')) {
+        if (attacker && traitIdsIncludeBase(traitIds, 'thorn')) {
             const reflectDamage = Math.floor(damage * 0.1); // 从20%降低到10%
             attacker.takeDamage(reflectDamage);
             if (this.gameInstance) {
@@ -6285,7 +7368,7 @@ class Player {
         }
         
         // 锁链词条：受到攻击时，有15%概率降低攻击者攻击速度
-        if (attacker && traitIds.includes('chain') && Math.random() < 0.15) {
+        if (attacker && traitIdsIncludeBase(traitIds, 'chain') && Math.random() < 0.15) {
             if (!attacker.attackSpeedDebuffs) attacker.attackSpeedDebuffs = [];
             attacker.attackSpeedDebuffs.push({
                 multiplier: 0.85,
@@ -6294,7 +7377,7 @@ class Player {
         }
         
         // 逆鳞龙铠词条：受到致命伤害时，有40%概率免疫
-        if (traitIds.includes('reverse_scale_armor') && this.hp - damage <= 0) {
+        if (traitIdsIncludeBase(traitIds, 'reverse_scale_armor') && this.hp - damage <= 0) {
             const cooldownKey = 'reverse_scale_armor_cooldown';
             if (!this.traitCooldowns[cooldownKey] || now > this.traitCooldowns[cooldownKey]) {
                 if (Math.random() < 0.4) {
@@ -6308,7 +7391,7 @@ class Player {
         }
         
         // 晶化内衬甲词条：受到伤害时，有25%概率将伤害降低50%
-        if (traitIds.includes('crystal_chest') && Math.random() < 0.25) {
+        if (traitIdsIncludeBase(traitIds, 'crystal_chest') && Math.random() < 0.25) {
             damage = Math.floor(damage * 0.5);
             if (this.gameInstance) {
                 this.gameInstance.addFloatingText(this.x, this.y, '晶化减伤!', '#00ffff');
@@ -6316,7 +7399,7 @@ class Player {
         }
         
         // 熔岩重铠词条：受到攻击时，对周围敌人造成持续火焰伤害（降低触发频率和伤害）
-        if (attacker && traitIds.includes('lava')) {
+        if (attacker && traitIdsIncludeBase(traitIds, 'lava')) {
             const lavaKey = 'lava_cooldown';
             if (!this.traitCooldowns[lavaKey] || now > this.traitCooldowns[lavaKey]) {
                 if (Math.random() < 0.3) { // 30%概率触发
@@ -6324,19 +7407,23 @@ class Player {
                     if (this.gameInstance) {
                         const lavaTargets = this.gameInstance.getCurrentSceneTargets();
                         lavaTargets.forEach(m => {
-                            if ((m instanceof TrainingDummy || m instanceof MonsterTrainingDummy || m.hp > 0) && m !== attacker) {
+                            if (m === attacker || !isCombatTargetAliveForEquipmentProc(m)) return;
                                 const dx = m.x - this.x;
                                 const dy = m.y - this.y;
                                 if (Math.sqrt(dx * dx + dy * dy) <= 70) {
-                                    if (!m.burningDots) m.burningDots = [];
-                                    m.burningDots.push({
-                                        damagePerSecond: Math.floor(this.baseAttack * 0.08),
-                                        duration: 2000,
-                                        startTime: now,
-                                        lastTick: now
-                                    });
+                                    const dps = Math.floor(this.baseAttack * 0.08);
+                                    if (m instanceof TrainingDummy && m.addStatusEffect) {
+                                        m.addStatusEffect('burning', { damage: dps, duration: 2000 });
+                                    } else {
+                                        if (!m.burningDots) m.burningDots = [];
+                                        m.burningDots.push({
+                                            damagePerSecond: dps,
+                                            duration: 2000,
+                                            startTime: now,
+                                            lastTick: now
+                                        });
+                                    }
                                 }
-                            }
                         });
                     }
                 }
@@ -6344,7 +7431,7 @@ class Player {
         }
         
         // 凛风冰衣词条：受到攻击时，有30%概率冰冻攻击者（仅对怪物生效，避免误伤玩家对象）
-        if (attacker instanceof Monster && traitIds.includes('cold_wind') && Math.random() < 0.3) {
+        if (attacker instanceof Monster && traitIdsIncludeBase(traitIds, 'cold_wind') && Math.random() < 0.3) {
             attacker.frozenUntil = now + 1000;
             if (this.gameInstance) {
                 this.gameInstance.addFloatingText(attacker.x, attacker.y, '冰冻!', '#00ffff', 2000, 18, true);
@@ -6352,7 +7439,7 @@ class Player {
         }
         
         // 绝尘霜盔词条：受到攻击时，有25%概率降低攻击者移动速度
-        if (attacker && traitIds.includes('frost_helmet') && Math.random() < 0.25) {
+        if (attacker && traitIdsIncludeBase(traitIds, 'frost_helmet') && Math.random() < 0.25) {
             if (!attacker.slowEffects) attacker.slowEffects = [];
             attacker.slowEffects.push({
                 multiplier: 0.7,
@@ -6361,7 +7448,7 @@ class Player {
         }
         
         // 晶化词条（头盔）：受到伤害时，有20%概率将30%伤害转化为生命值恢复
-        if (traitIds.includes('crystal_helmet') && Math.random() < 0.2) {
+        if (traitIdsIncludeBase(traitIds, 'crystal_helmet') && Math.random() < 0.2) {
             const healAmount = Math.floor(damage * 0.3);
             this.hp = Math.min(this.hp + healAmount, this.maxHp);
             damage = Math.floor(damage * 0.7);
@@ -6371,7 +7458,7 @@ class Player {
         }
         
         // 纯银吊坠词条：受到伤害时，有10%概率恢复生命值
-        if (traitIds.includes('silver') && Math.random() < 0.1) {
+        if (traitIdsIncludeBase(traitIds, 'silver') && Math.random() < 0.1) {
             const healAmount = Math.floor(this.maxHp * 0.05);
             this.hp = Math.min(this.hp + healAmount, this.maxHp);
             if (this.gameInstance) {
@@ -6380,7 +7467,7 @@ class Player {
         }
         
         // 神威头盔词条：受到伤害时有25%概率免疫
-        if (traitIds.includes('divine_helmet') && Math.random() < 0.25) {
+        if (traitIdsIncludeBase(traitIds, 'divine_helmet') && Math.random() < 0.25) {
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('divine_shield', this.x, this.y, {
                     radius: 40,
@@ -6392,7 +7479,7 @@ class Player {
         }
         
         // 龙鳞护甲词条：受到攻击时有30%概率反弹50%伤害，并恢复反弹伤害50%的生命值
-        if (attacker && traitIds.includes('dragon_scale') && Math.random() < 0.3) {
+        if (attacker && traitIdsIncludeBase(traitIds, 'dragon_scale') && Math.random() < 0.3) {
             const reflectDamage = Math.floor(damage * 0.5);
             attacker.takeDamage(reflectDamage);
             const healAmount = Math.floor(reflectDamage * 0.5);
@@ -6408,7 +7495,7 @@ class Player {
         }
         
         // 秘银战甲词条：受到伤害时有35%概率将伤害降低60%，并提升10%攻击力，持续5秒
-        if (traitIds.includes('mithril_armor') && Math.random() < 0.35) {
+        if (traitIdsIncludeBase(traitIds, 'mithril_armor') && Math.random() < 0.35) {
             damage = Math.floor(damage * 0.4);
             this.buffs.push({
                 effects: { attack: Math.floor(this.baseAttack * 0.1) },
@@ -6425,7 +7512,7 @@ class Player {
         }
         
         // 永恒战甲词条：受到伤害时提升30%防御力
-        if (traitIds.includes('eternal_armor')) {
+        if (traitIdsIncludeBase(traitIds, 'eternal_armor')) {
             this.buffs.push({
                 effects: { defense: Math.floor(this.baseDefense * 0.3) },
                 expireTime: now + 3000
@@ -6441,7 +7528,7 @@ class Player {
         }
         
         // 铁卫护腿词条：受到攻击时，有15%概率提升防御力
-        if (traitIds.includes('iron_guard') && Math.random() < 0.15) {
+        if (traitIdsIncludeBase(traitIds, 'iron_guard') && Math.random() < 0.15) {
             this.buffs.push({
                 effects: { defense: Math.floor(this.baseDefense * 0.2) },
                 expireTime: now + 5000
@@ -6450,7 +7537,7 @@ class Player {
         }
         
         // 硬革皮靴词条：受到攻击时，有10%概率提升移动速度
-        if (traitIds.includes('hard_leather') && Math.random() < 0.1) {
+        if (traitIdsIncludeBase(traitIds, 'hard_leather') && Math.random() < 0.1) {
             this.buffs.push({
                 effects: { moveSpeed: 15 },
                 expireTime: now + 3000
@@ -6459,7 +7546,7 @@ class Player {
         }
         
         // 琉璃晶胫词条：受到伤害时，有20%概率将伤害转化为护盾（这里简化为减伤）
-        if (traitIds.includes('glazed') && Math.random() < 0.2) {
+        if (traitIdsIncludeBase(traitIds, 'glazed') && Math.random() < 0.2) {
             damage = Math.floor(damage * 0.5);
             if (this.gameInstance) {
                 this.gameInstance.addFloatingText(this.x, this.y, '护盾!', '#00ffff');
@@ -6467,7 +7554,7 @@ class Player {
         }
         
         // 晶纹饰带词条：受到伤害时，有20%概率将伤害降低30%
-        if (traitIds.includes('crystal_pattern') && Math.random() < 0.2) {
+        if (traitIdsIncludeBase(traitIds, 'crystal_pattern') && Math.random() < 0.2) {
             damage = Math.floor(damage * 0.7);
             if (this.gameInstance) {
                 this.gameInstance.addFloatingText(this.x, this.y, '晶纹减伤!', '#00ffff');
@@ -6475,7 +7562,7 @@ class Player {
         }
         
         // 极地词条：受到攻击时，有25%概率降低攻击者攻击速度
-        if (attacker && traitIds.includes('winter') && Math.random() < 0.25) {
+        if (attacker && traitIdsIncludeBase(traitIds, 'winter') && Math.random() < 0.25) {
             if (!attacker.attackSpeedDebuffs) attacker.attackSpeedDebuffs = [];
             attacker.attackSpeedDebuffs.push({
                 multiplier: 0.7,
@@ -6484,7 +7571,7 @@ class Player {
         }
         
         // 神威词条：受到致命伤害时，有30%概率保留1点生命值
-        if (traitIds.includes('divine_crown') && this.hp - damage <= 0 && Math.random() < 0.3) {
+        if (traitIdsIncludeBase(traitIds, 'divine_crown') && this.hp - damage <= 0 && Math.random() < 0.3) {
             this.hp = 1;
             damage = this.hp - 1;
             if (this.gameInstance) {
@@ -6493,7 +7580,7 @@ class Player {
         }
         
         // 眷顾词条：受到致命伤害时，有25%概率免疫
-        if (traitIds.includes('divine_favor') && this.hp - damage <= 0 && Math.random() < 0.25) {
+        if (traitIdsIncludeBase(traitIds, 'divine_favor') && this.hp - damage <= 0 && Math.random() < 0.25) {
             if (this.gameInstance) {
                 this.gameInstance.addFloatingText(this.x, this.y, '眷顾免疫!', '#ffff00');
             }
@@ -6501,7 +7588,7 @@ class Player {
         }
         
         // 天庭之束词条：受到伤害时，有15%概率免疫
-        if (traitIds.includes('celestial') && Math.random() < 0.15) {
+        if (traitIdsIncludeBase(traitIds, 'celestial') && Math.random() < 0.15) {
             if (this.gameInstance) {
                 this.gameInstance.addFloatingText(this.x, this.y, '免疫!', '#ffff00');
             }
@@ -6509,11 +7596,385 @@ class Player {
         }
         
         // 律法圣带词条：受到伤害时，有20%概率免疫
-        if (traitIds.includes('law') && Math.random() < 0.2) {
+        if (traitIdsIncludeBase(traitIds, 'law') && Math.random() < 0.2) {
             if (this.gameInstance) {
                 this.gameInstance.addFloatingText(this.x, this.y, '律法免疫!', '#ffff00');
             }
             return 0;
+        }
+
+        // ---------- 恶魔塔深阶·防具受击（四段机制带 deepTraitBand + 独立特效） ----------
+        const voidDefBand = (base) => (typeof deepTraitBand === 'function' ? deepTraitBand(voidTraitTierFromList(traitIds, base)) : 0);
+
+        if (traitIdsIncludeBase(traitIds, 'void_h_aegis') && damage > 0 && Math.random() < Math.min(0.92, ((8 + voidTraitTierFromList(traitIds, 'void_h_aegis')) / 100) * (1 + 0.03 * voidDefBand('void_h_aegis')))) {
+            const ta = voidTraitTierFromList(traitIds, 'void_h_aegis');
+            const ab = voidDefBand('void_h_aegis');
+            const cut = (4 + 0.35 * ta) / 100;
+            const after = Math.floor(damage * (1 - cut));
+            const absorbed = damage - after;
+            damage = after;
+            if (this.gameInstance) {
+                this.gameInstance.addFloatingText(this.x, this.y, ab >= 1 ? '反盾' : '虚盾', '#aaaaff', 900, 14, true);
+            }
+            if (ab >= 1 && attacker && typeof attacker.takeDamage === 'function' && attacker.hp > 0 && absorbed > 0) {
+                const rf = Math.max(1, Math.floor(absorbed * (0.12 + 0.04 * ab)));
+                attacker.takeDamage(rf);
+                if (this.gameInstance) this.gameInstance.addFloatingText(attacker.x, attacker.y, `反噬 ${rf}`, '#9999ff', 900, 12, true);
+            }
+            if (ab >= 2) {
+                this.buffs.push({ effects: { defense: Math.floor(this.baseDefense * (0.04 + 0.02 * ab)) }, expireTime: now + 3500 });
+                this.updateStats();
+            }
+            if (ab >= 3 && attacker) {
+                if (!attacker.slowEffects) attacker.slowEffects = [];
+                attacker.slowEffects.push({ multiplier: 0.88, expireTime: now + 2000 });
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_h_bastion') && damage > 0 && Math.random() < Math.min(0.92, ((10 + voidTraitTierFromList(traitIds, 'void_h_bastion')) / 100) * (1 + 0.03 * voidDefBand('void_h_bastion')))) {
+            const tb = voidTraitTierFromList(traitIds, 'void_h_bastion');
+            const bb = voidDefBand('void_h_bastion');
+            this.buffs.push({
+                effects: { defense: Math.floor(this.baseDefense * (8 + 0.7 * tb) / 100) },
+                expireTime: now + 3600 + 120 * tb + (bb >= 2 ? 800 : 0)
+            });
+            if (bb >= 1) {
+                const hh = Math.floor(this.maxHp * (0.008 + 0.004 * bb));
+                if (hh > 0) this.hp = Math.min(this.maxHp, this.hp + hh);
+            }
+            if (bb >= 2) {
+                this.buffs.push({ effects: { attackSpeed: Math.floor(this.baseAttackSpeed * 0.05) }, expireTime: now + 4000 });
+            }
+            this.updateStats();
+            if (this.gameInstance) {
+                this.gameInstance.addFloatingText(this.x, this.y, bb >= 3 ? '震垒' : '固守', '#8888cc', 1200, 14, true);
+                if (bb >= 3) {
+                    const qd = Math.floor(this.baseAttack * (0.22 + 0.03 * tb));
+                    this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                        if (m.hp <= 0) return;
+                        const dx = m.x - this.x;
+                        const dy = m.y - this.y;
+                        if (Math.sqrt(dx * dx + dy * dy) <= 110) {
+                            this.damageMonsterFromEnvironment(m, qd);
+                            this.gameInstance.addFloatingText(m.x, m.y, `垒震 ${qd}`, '#aaaadd', 1400, 13, true);
+                        }
+                    });
+                }
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_h_pulse') && damage > 0 && Math.random() < Math.min(0.92, ((6 + voidTraitTierFromList(traitIds, 'void_h_pulse')) / 100) * (1 + 0.035 * voidDefBand('void_h_pulse')))) {
+            const tp = voidTraitTierFromList(traitIds, 'void_h_pulse');
+            const pb = voidDefBand('void_h_pulse');
+            let hh = Math.floor(this.maxHp * (1.8 + 0.22 * tp) / 100);
+            if (pb >= 2) hh = Math.floor(hh * 1.45);
+            if (hh > 0) {
+                this.hp = Math.min(this.maxHp, this.hp + hh);
+                if (this.gameInstance) {
+                    this.gameInstance.addFloatingText(this.x, this.y, pb >= 1 ? `链脉 +${hh}` : `脉动 +${hh}`, '#99ffcc');
+                }
+            }
+            if (pb >= 1) {
+                this.buffs.push({ effects: { moveSpeed: 8 + 2 * pb }, expireTime: now + 2800 });
+                this.updateStats();
+            }
+            if (pb >= 3 && this.gameInstance) {
+                const ed = Math.floor(this.baseAttack * (0.18 + 0.02 * tp));
+                this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                    if (m.hp <= 0) return;
+                    const dx = m.x - this.x;
+                    const dy = m.y - this.y;
+                    if (Math.sqrt(dx * dx + dy * dy) <= 95) {
+                        this.damageMonsterFromEnvironment(m, ed);
+                        this.gameInstance.addFloatingText(m.x, m.y, `溢脉 ${ed}`, '#88ffdd', 1300, 12, true);
+                    }
+                });
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_h_mirror') && damage > 0 && attacker && typeof attacker.takeDamage === 'function' && attacker.hp > 0 && Math.random() < Math.min(0.92, ((7 + voidTraitTierFromList(traitIds, 'void_h_mirror')) / 100) * (1 + 0.03 * voidDefBand('void_h_mirror')))) {
+            const tm = voidTraitTierFromList(traitIds, 'void_h_mirror');
+            const mb = voidDefBand('void_h_mirror');
+            let rd = Math.floor(this.baseAttack * (28 + 2 * tm) / 100);
+            if (mb >= 3) rd = Math.floor(rd * 1.2);
+            if (rd > 0) {
+                attacker.takeDamage(rd);
+                if (this.gameInstance) {
+                    this.gameInstance.addFloatingText(attacker.x, attacker.y, `折光 ${rd}`, '#ccccff', 1600, 15, true);
+                }
+                if (mb >= 1) {
+                    const lh = Math.floor(rd * (0.35 + 0.1 * mb));
+                    if (lh > 0) this.hp = Math.min(this.maxHp, this.hp + lh);
+                }
+                if (mb >= 2 && this.gameInstance) {
+                    const others = this.gameInstance.getCurrentSceneTargets().filter(m => m !== attacker && m.hp > 0);
+                    const near = others.filter(m => {
+                        const dx = m.x - attacker.x;
+                        const dy = m.y - attacker.y;
+                        return Math.sqrt(dx * dx + dy * dy) <= 100;
+                    });
+                    if (near.length) {
+                        const t2 = near[Math.floor(Math.random() * near.length)];
+                        const rd2 = Math.floor(rd * 0.42);
+                        if (rd2 > 0) {
+                            this.damageMonsterFromEnvironment(t2, rd2);
+                            this.gameInstance.addFloatingText(t2.x, t2.y, `双折 ${rd2}`, '#ddeeff', 1400, 13, true);
+                        }
+                    }
+                }
+                if (mb >= 3 && attacker.frozenUntil !== undefined) {
+                    attacker.frozenUntil = Math.max(attacker.frozenUntil || 0, now + 280);
+                }
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_h_last') && damage > 0) {
+            const tl = voidTraitTierFromList(traitIds, 'void_h_last');
+            const lb = voidDefBand('void_h_last');
+            if (this.hp - damage < this.maxHp * (23 - 0.4 * tl) / 100) {
+                const ck = 'void_h_last_cd';
+                if (!this.traitCooldowns[ck] || now > this.traitCooldowns[ck]) {
+                    if (Math.random() < Math.min(0.95, ((10 + tl) / 100) * (1 + 0.025 * lb))) {
+                        damage = Math.floor(damage * 0.5);
+                        this.traitCooldowns[ck] = now + 30000 - 1500 * tl;
+                        if (lb >= 1) this.invincibleUntil = Math.max(this.invincibleUntil || 0, now + 120 + 40 * lb);
+                        if (lb >= 2) {
+                            const rh = Math.floor(this.maxHp * (0.015 + 0.005 * lb));
+                            if (rh > 0) this.hp = Math.min(this.maxHp, this.hp + rh);
+                        }
+                        if (this.gameInstance) {
+                            this.gameInstance.addFloatingText(this.x, this.y, lb >= 3 ? '墟照' : '残照', '#ffccff', 1400, 16, true);
+                            if (lb >= 3) {
+                                const ud = Math.floor(this.baseAttack * (0.3 + 0.03 * tl));
+                                this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                                    if (m.hp <= 0) return;
+                                    const dx = m.x - this.x;
+                                    const dy = m.y - this.y;
+                                    if (Math.sqrt(dx * dx + dy * dy) <= 125) {
+                                        this.damageMonsterFromEnvironment(m, ud);
+                                        this.gameInstance.addFloatingText(m.x, m.y, `照破 ${ud}`, '#ffddff', 1500, 13, true);
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_c_spike') && damage > 0 && attacker && typeof attacker.takeDamage === 'function' && attacker.hp > 0 && Math.random() < Math.min(0.92, ((9 + voidTraitTierFromList(traitIds, 'void_c_spike')) / 100) * (1 + 0.03 * voidDefBand('void_c_spike')))) {
+            const ts = voidTraitTierFromList(traitIds, 'void_c_spike');
+            const sb = voidDefBand('void_c_spike');
+            let sp = Math.max(1, Math.floor(damage * (7 + 0.6 * ts) / 100));
+            if (sb >= 3) sp = Math.floor(sp * 1.35);
+            attacker.takeDamage(sp);
+            if (this.gameInstance) {
+                this.gameInstance.addFloatingText(attacker.x, attacker.y, sb >= 1 ? `血棘 ${sp}` : `棘反 ${sp}`, '#ffaa88', 1600, 14, true);
+            }
+            if (sb >= 1 && !attacker.burningDots) attacker.burningDots = [];
+            if (sb >= 1) {
+                attacker.burningDots.push({
+                    damagePerSecond: Math.max(1, Math.floor(sp * 0.15)),
+                    duration: 1500 + 400 * sb,
+                    startTime: now,
+                    lastTick: now
+                });
+            }
+            if (sb >= 2 && this.gameInstance) {
+                const others = this.gameInstance.getCurrentSceneTargets().filter(m => m !== attacker && m.hp > 0);
+                const near = others.filter(m => {
+                    const dx = m.x - attacker.x;
+                    const dy = m.y - attacker.y;
+                    return Math.sqrt(dx * dx + dy * dy) <= 95;
+                });
+                if (near.length) {
+                    const t2 = near[Math.floor(Math.random() * near.length)];
+                    const sp2 = Math.floor(sp * 0.5);
+                    if (sp2 > 0) {
+                        this.damageMonsterFromEnvironment(t2, sp2);
+                        this.gameInstance.addFloatingText(t2.x, t2.y, `链棘 ${sp2}`, '#ffccaa', 1400, 13, true);
+                    }
+                }
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_c_dampen') && damage > 16 + 2 * voidTraitTierFromList(traitIds, 'void_c_dampen') && Math.random() < Math.min(0.92, ((11 + voidTraitTierFromList(traitIds, 'void_c_dampen')) / 100) * (1 + 0.03 * voidDefBand('void_c_dampen')))) {
+            const td = voidTraitTierFromList(traitIds, 'void_c_dampen');
+            const db = voidDefBand('void_c_dampen');
+            damage = Math.floor(damage * (90 - 0.9 * td) / 100);
+            if (db >= 1) {
+                const dh = Math.floor(this.maxHp * (0.012 + 0.004 * db));
+                if (dh > 0) this.hp = Math.min(this.maxHp, this.hp + dh);
+            }
+            if (db >= 2 && attacker) {
+                if (!attacker.slowEffects) attacker.slowEffects = [];
+                attacker.slowEffects.push({ multiplier: 0.82, expireTime: now + 2200 });
+            }
+            if (this.gameInstance) {
+                this.gameInstance.addFloatingText(this.x, this.y, db >= 3 ? '震缓' : '缓冲', '#aabbff', 1000, 13, true);
+                if (db >= 3) {
+                    const sh = Math.floor(this.baseAttack * (0.2 + 0.02 * td));
+                    this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                        if (m.hp <= 0) return;
+                        const dx = m.x - this.x;
+                        const dy = m.y - this.y;
+                        if (Math.sqrt(dx * dx + dy * dy) <= 100) {
+                            this.damageMonsterFromEnvironment(m, sh);
+                            this.gameInstance.addFloatingText(m.x, m.y, `缓震 ${sh}`, '#aaccff', 1300, 12, true);
+                        }
+                    });
+                }
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_c_echo') && damage > 0 && Math.random() < Math.min(0.92, ((7 + voidTraitTierFromList(traitIds, 'void_c_echo')) / 100) * (1 + 0.03 * voidDefBand('void_c_echo'))) && this.gameInstance) {
+            const te = voidTraitTierFromList(traitIds, 'void_c_echo');
+            const eb = voidDefBand('void_c_echo');
+            let ed = Math.floor(this.baseAttack * (23 + 1.2 * te) / 100);
+            const echoR = 95 + 5 * te;
+            const dealEcho = (mult, tag) => {
+                const d = Math.floor(ed * mult);
+                this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                    if (m.hp <= 0) return;
+                    const dx = m.x - this.x;
+                    const dy = m.y - this.y;
+                    if (Math.sqrt(dx * dx + dy * dy) <= echoR) {
+                        this.damageMonsterFromEnvironment(m, d);
+                        if (eb >= 1 && !m.slowEffects) m.slowEffects = [];
+                        if (eb >= 1) {
+                            if (!m.slowEffects) m.slowEffects = [];
+                            m.slowEffects.push({ multiplier: 0.9, expireTime: now + 1500 });
+                        }
+                        this.gameInstance.addFloatingText(m.x, m.y, `${tag} ${d}`, '#bbaaff', 1600, 14, true);
+                    }
+                });
+            };
+            dealEcho(1, eb >= 2 ? '双响' : '回响');
+            if (eb >= 2) dealEcho(0.55, '余震');
+            if (eb >= 3) {
+                const targets = this.gameInstance.getCurrentSceneTargets().filter(m => m.hp > 0);
+                let closest = null;
+                let best = 1e9;
+                targets.forEach(m => {
+                    const dx = m.x - this.x;
+                    const dy = m.y - this.y;
+                    const d = dx * dx + dy * dy;
+                    if (d < best && d > 1) {
+                        best = d;
+                        closest = m;
+                    }
+                });
+                if (closest) {
+                    const ex = Math.floor(ed * 0.85);
+                    this.damageMonsterFromEnvironment(closest, ex);
+                    this.gameInstance.addFloatingText(closest.x, closest.y, `涡响 ${ex}`, '#ddd0ff', 1700, 15, true);
+                }
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_c_riposte') && damage > 0 && Math.random() < Math.min(0.92, ((6 + voidTraitTierFromList(traitIds, 'void_c_riposte')) / 100) * (1 + 0.03 * voidDefBand('void_c_riposte')))) {
+            const trp = voidTraitTierFromList(traitIds, 'void_c_riposte');
+            const rb = voidDefBand('void_c_riposte');
+            let mul = 1 + (12 + 1.2 * trp) / 100;
+            if (rb >= 2) mul *= 1.06;
+            this.voidRiposteMul = mul;
+            if (rb >= 1) {
+                this.buffs.push({ effects: { moveSpeed: 10 + 3 * rb }, expireTime: now + 3200 });
+                this.updateStats();
+            }
+            if (this.gameInstance) {
+                this.gameInstance.addFloatingText(this.x, this.y, rb >= 3 ? '斩势' : '蓄势', '#ffddaa', 1200, 14, true);
+                if (rb >= 3) {
+                    const sd = Math.floor(this.baseAttack * (0.25 + 0.02 * trp));
+                    this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                        if (m.hp <= 0) return;
+                        const dx = m.x - this.x;
+                        const dy = m.y - this.y;
+                        if (Math.sqrt(dx * dx + dy * dy) <= 90) {
+                            this.damageMonsterFromEnvironment(m, sd);
+                            this.gameInstance.addFloatingText(m.x, m.y, `势斩 ${sd}`, '#ffeecc', 1400, 13, true);
+                        }
+                    });
+                }
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_c_bulwark') && damage > 0 && damage > this.maxHp * (16 - 0.9 * voidTraitTierFromList(traitIds, 'void_c_bulwark')) / 100 && Math.random() < Math.min(0.92, ((9 + voidTraitTierFromList(traitIds, 'void_c_bulwark')) / 100) * (1 + 0.03 * voidDefBand('void_c_bulwark')))) {
+            const tbu = voidTraitTierFromList(traitIds, 'void_c_bulwark');
+            const wb = voidDefBand('void_c_bulwark');
+            damage = Math.floor(damage * (85 - 0.7 * tbu) / 100);
+            if (wb >= 1) {
+                const bh = Math.floor(this.maxHp * (0.018 + 0.006 * wb));
+                if (bh > 0) this.hp = Math.min(this.maxHp, this.hp + bh);
+            }
+            if (wb >= 2 && attacker) {
+                if (!attacker.attackSpeedDebuffs) attacker.attackSpeedDebuffs = [];
+                attacker.attackSpeedDebuffs.push({ multiplier: 0.75, expireTime: now + 3500 });
+            }
+            if (this.gameInstance) {
+                this.gameInstance.addFloatingText(this.x, this.y, wb >= 3 ? '裂锚' : '重锚', '#8899dd', 1200, 14, true);
+                if (wb >= 3) {
+                    const gd = Math.floor(this.baseAttack * (0.28 + 0.03 * tbu));
+                    this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                        if (m.hp <= 0) return;
+                        const dx = m.x - this.x;
+                        const dy = m.y - this.y;
+                        if (Math.sqrt(dx * dx + dy * dy) <= 115) {
+                            this.damageMonsterFromEnvironment(m, gd);
+                            this.gameInstance.addFloatingText(m.x, m.y, `地裂 ${gd}`, '#99aadd', 1500, 13, true);
+                        }
+                    });
+                }
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_l_grit') && damage > 0 && Math.random() < Math.min(0.92, ((8 + voidTraitTierFromList(traitIds, 'void_l_grit')) / 100) * (1 + 0.03 * voidDefBand('void_l_grit')))) {
+            const tg = voidTraitTierFromList(traitIds, 'void_l_grit');
+            const gb = voidDefBand('void_l_grit');
+            this.buffs.push({
+                effects: { defense: Math.floor(this.baseDefense * (7.5 + 0.7 * tg) / 100) },
+                expireTime: now + 4800 + 150 * tg + (gb >= 2 ? 600 : 0)
+            });
+            this.updateStats();
+            if (gb >= 1 && attacker && typeof attacker.takeDamage === 'function' && attacker.hp > 0) {
+                const th = Math.max(1, Math.floor(damage * (0.06 + 0.03 * gb)));
+                attacker.takeDamage(th);
+                if (this.gameInstance) this.gameInstance.addFloatingText(attacker.x, attacker.y, `刺胫 ${th}`, '#ccaa88', 1200, 12, true);
+            }
+            if (gb >= 3 && this.gameInstance) {
+                const jd = Math.floor(this.baseAttack * (0.2 + 0.02 * tg));
+                this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                    if (m.hp <= 0) return;
+                    const dx = m.x - this.x;
+                    const dy = m.y - this.y;
+                    if (Math.sqrt(dx * dx + dy * dy) <= 85) {
+                        this.damageMonsterFromEnvironment(m, jd);
+                        this.gameInstance.addFloatingText(m.x, m.y, `震胫 ${jd}`, '#ddbb99', 1300, 12, true);
+                    }
+                });
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_f_rush') && damage > 0 && Math.random() < Math.min(0.92, ((9 + voidTraitTierFromList(traitIds, 'void_f_rush')) / 100) * (1 + 0.03 * voidDefBand('void_f_rush')))) {
+            const tfu = voidTraitTierFromList(traitIds, 'void_f_rush');
+            const fb = voidDefBand('void_f_rush');
+            const ms = Math.round(12 + tfu + (fb >= 2 ? 6 + 2 * fb : 0));
+            this.buffs.push({
+                effects: { moveSpeed: ms },
+                expireTime: now + 1600 + 80 * tfu + (fb >= 2 ? 400 : 0)
+            });
+            if (fb >= 1) {
+                this.buffs.push({ effects: { attackSpeed: Math.floor(this.baseAttackSpeed * (0.05 + 0.02 * fb)) }, expireTime: now + 3500 });
+            }
+            this.updateStats();
+            if (this.gameInstance) {
+                this.gameInstance.addFloatingText(this.x, this.y, fb >= 3 ? '旋撤' : '疾撤', '#99ddff', 1200, 14, true);
+                if (fb >= 3 && attacker && typeof attacker.takeDamage === 'function' && attacker.hp > 0) {
+                    const kd = Math.floor(this.baseAttack * (0.24 + 0.02 * tfu));
+                    attacker.takeDamage(kd);
+                    this.gameInstance.addFloatingText(attacker.x, attacker.y, `旋踢 ${kd}`, '#ffddaa', 1400, 14, true);
+                }
+            }
         }
         
         return damage;
@@ -6535,6 +7996,7 @@ class Player {
         }
         if (monster.hp <= 0) return;
         const killed = monster.takeDamage(damage);
+        if (damage > 0) this.applyLifeStealFromHit(Math.floor(damage));
         if (!killed || !this.gameInstance) return;
         this.processKillRewards([monster]);
     }
@@ -6559,8 +8021,11 @@ class Player {
             this.gameInstance.addFloatingText(this.gameInstance.player.x, this.gameInstance.player.y, `+${monster.goldReward} 金币`, '#ffd700');
             if (Math.random() < 0.3) {
                 const allEquipments = generateEquipments();
-                const levelMap = { 1: [1], 5: [1, 5], 10: [1, 5, 10], 15: [5, 10, 15], 20: [10, 15, 20] };
-                const availableLevels = levelMap[monster.level] || levelMap[1];
+                const tierLevels = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
+                const M = monster.level;
+                let availableLevels = tierLevels.filter(L => L <= M && L >= M - 22);
+                if (!availableLevels.length) availableLevels = tierLevels.filter(L => L <= M);
+                if (!availableLevels.length) availableLevels = [1];
                 const levelEquipments = allEquipments.filter(eq => availableLevels.includes(eq.level) && !eq.isCrafted);
                 if (levelEquipments.length > 0) {
                     const randomEq = levelEquipments[Math.floor(Math.random() * levelEquipments.length)];
@@ -6593,7 +8058,7 @@ class Player {
         const now = Date.now();
         
         // 神威头盔词条：击杀敌人后恢复15%最大生命值
-        if (traitIds.includes('divine_helmet')) {
+        if (traitIdsIncludeBase(traitIds, 'divine_helmet')) {
             const healAmount = Math.floor(this.maxHp * 0.15);
             this.hp = Math.min(this.hp + healAmount, this.maxHp);
             if (this.gameInstance) {
@@ -6606,7 +8071,7 @@ class Player {
         }
         
         // 坠星裁决词条：每次击杀恢复生命值并提升属性
-        if (this.getCurrentWeaponTraitId() === 'starfall') {
+        if (traitIdBase(this.getCurrentWeaponTraitId()) === 'starfall') {
             const healAmount = Math.floor(this.maxHp * 0.1);
             this.hp = Math.min(this.hp + healAmount, this.maxHp);
             this.buffs.push({
@@ -6628,7 +8093,7 @@ class Player {
         }
         
         // 焚天词条：击杀后攻击力提升，最多叠加5层
-        if (this.getCurrentWeaponTraitId() === 'flame_burn') {
+        if (traitIdBase(this.getCurrentWeaponTraitId()) === 'flame_burn') {
             if (!this.traitStacks['flame_burn']) this.traitStacks['flame_burn'] = 0;
             if (this.traitStacks['flame_burn'] < 5) {
                 this.traitStacks['flame_burn']++;
@@ -6644,7 +8109,7 @@ class Player {
         }
         
         // 骁勇词条：击杀后攻击力提升，最多叠加3层
-        if (traitIds.includes('brave')) {
+        if (traitIdsIncludeBase(traitIds, 'brave')) {
             if (!this.traitStacks['brave']) this.traitStacks['brave'] = 0;
             if (this.traitStacks['brave'] < 3) {
                 this.traitStacks['brave']++;
@@ -6657,7 +8122,7 @@ class Player {
         }
         
         // 猎手词条：攻击怪物时，有10%概率获得额外经验
-        if (traitIds.includes('hunter') && Math.random() < 0.1) {
+        if (traitIdsIncludeBase(traitIds, 'hunter') && Math.random() < 0.1) {
             const extraExp = Math.floor(monster.expReward * 0.5);
             if (this.gameInstance) {
                 this.gameInstance.gainExp(extraExp);
@@ -6666,7 +8131,7 @@ class Player {
         }
         
         // 黄金契约词条：击杀后获得额外金币和经验
-        if (traitIds.includes('golden_contract')) {
+        if (traitIdsIncludeBase(traitIds, 'golden_contract')) {
             const extraGold = Math.floor(monster.goldReward * 0.3);
             const extraExp = Math.floor(monster.expReward * 0.3);
             if (this.gameInstance) {
@@ -6677,7 +8142,7 @@ class Player {
         }
         
         // 灰烬护足词条：击杀后移动速度提升
-        if (traitIds.includes('ash')) {
+        if (traitIdsIncludeBase(traitIds, 'ash')) {
             this.buffs.push({
                 effects: { moveSpeed: 10 },
                 expireTime: now + 5000
@@ -6686,59 +8151,217 @@ class Player {
         }
         
         // 岁月青铜词条：击杀后有10%概率获得额外经验
-        if (traitIds.includes('years') && Math.random() < 0.1) {
+        if (traitIdsIncludeBase(traitIds, 'years') && Math.random() < 0.1) {
             const extraExp = Math.floor(monster.expReward * 0.4);
             if (this.gameInstance) {
                 this.gameInstance.gainExp(extraExp);
                 this.gameInstance.addFloatingText(this.x, this.y, `岁月! +${extraExp}`, '#00ff00');
             }
         }
+
+        const killVoidBand = (base) => (typeof deepTraitBand === 'function' ? deepTraitBand(voidTraitTierFromList(traitIds, base)) : 0);
+
+        if (traitIdsIncludeBase(traitIds, 'void_l_surge') && Math.random() < (15 + voidTraitTierFromList(traitIds, 'void_l_surge')) / 100) {
+            const tls = voidTraitTierFromList(traitIds, 'void_l_surge');
+            const kb = killVoidBand('void_l_surge');
+            const ms = Math.round(18 + 1.2 * tls + (kb >= 2 ? 4 + 2 * kb : 0));
+            const eff = { moveSpeed: ms };
+            if (kb >= 1) eff.attackSpeed = Math.floor(this.baseAttackSpeed * (0.05 + 0.02 * kb));
+            this.buffs.push({
+                effects: eff,
+                expireTime: now + 2700 + 120 * tls + (kb >= 2 ? 400 : 0)
+            });
+            this.updateStats();
+            if (this.gameInstance) {
+                this.gameInstance.addFloatingText(this.x, this.y, kb >= 3 ? '猎潮' : '追猎', '#88ddff', 1200, 14, true);
+                if (kb >= 3) {
+                    const kd = Math.floor(this.baseAttack * (0.22 + 0.02 * tls));
+                    this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                        if (m.hp <= 0) return;
+                        const dx = m.x - monster.x;
+                        const dy = m.y - monster.y;
+                        if (Math.sqrt(dx * dx + dy * dy) <= 105) {
+                            this.damageMonsterFromEnvironment(m, kd);
+                            this.gameInstance.addFloatingText(m.x, m.y, `猎爆 ${kd}`, '#99eeff', 1300, 12, true);
+                        }
+                    });
+                }
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_l_strike') && Math.random() < (12 + voidTraitTierFromList(traitIds, 'void_l_strike')) / 100) {
+            const tlk = voidTraitTierFromList(traitIds, 'void_l_strike');
+            const sb = killVoidBand('void_l_strike');
+            let atkPct = (10 + tlk) / 100;
+            if (sb >= 3) atkPct *= 1.1;
+            const eff = { attack: Math.floor(this.baseAttack * atkPct) };
+            if (sb >= 1) eff.critRate = Math.floor(this.baseCritRate * (0.04 + 0.02 * sb));
+            this.buffs.push({
+                effects: eff,
+                expireTime: now + 3600 + 120 * tlk + (sb >= 2 ? 500 : 0)
+            });
+            this.updateStats();
+            if (sb >= 3 && this.gameInstance) {
+                const sd = Math.floor(this.baseAttack * (0.18 + 0.02 * tlk));
+                this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                    if (m.hp <= 0) return;
+                    const dx = m.x - this.x;
+                    const dy = m.y - this.y;
+                    if (Math.sqrt(dx * dx + dy * dy) <= 95) {
+                        this.damageMonsterFromEnvironment(m, sd);
+                        this.gameInstance.addFloatingText(m.x, m.y, `斩环 ${sd}`, '#ffccaa', 1300, 12, true);
+                    }
+                });
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_f_chase') && Math.random() < (18 + voidTraitTierFromList(traitIds, 'void_f_chase')) / 100) {
+            const tfc = voidTraitTierFromList(traitIds, 'void_f_chase');
+            const cb = killVoidBand('void_f_chase');
+            let mul = 1 + (15 + 1.1 * tfc) / 100;
+            if (cb >= 2) mul *= 1 + 0.025 * cb;
+            let dur = (5 + Math.floor(tfc / 4)) * 1000 + (cb >= 1 ? 400 + 200 * cb : 0);
+            this.voidChaseStrike = { mul, until: now + dur };
+            if (this.gameInstance) {
+                this.gameInstance.addFloatingText(this.x, this.y, cb >= 3 ? '掠影' : '追影', '#ffdd99', 1200, 14, true);
+            }
+            if (cb >= 3) {
+                this.buffs.push({ effects: { moveSpeed: 12 + 2 * cb }, expireTime: now + 3500 });
+                this.updateStats();
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_f_surge') && Math.random() < (14 + voidTraitTierFromList(traitIds, 'void_f_surge')) / 100) {
+            const tfs = voidTraitTierFromList(traitIds, 'void_f_surge');
+            const fsb = killVoidBand('void_f_surge');
+            const eff = {
+                attack: Math.floor(this.baseAttack * (12 + tfs) / 100),
+                attackSpeed: fsb >= 1 ? Math.floor(this.baseAttackSpeed * (0.045 + 0.015 * fsb)) : 0
+            };
+            if (!eff.attackSpeed) delete eff.attackSpeed;
+            this.buffs.push({
+                effects: eff,
+                expireTime: now + 3200 + 120 * tfs + (fsb >= 2 ? 450 : 0)
+            });
+            this.updateStats();
+            if (fsb >= 3) {
+                const rh = Math.floor(this.maxHp * (0.012 + 0.004 * tfs));
+                if (rh > 0) {
+                    this.hp = Math.min(this.maxHp, this.hp + rh);
+                    if (this.gameInstance) this.gameInstance.addFloatingText(this.x, this.y, `涌愈 +${rh}`, '#ffeecc', 1100, 12, true);
+                }
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_r_greed') && Math.random() < (6 + voidTraitTierFromList(traitIds, 'void_r_greed')) / 100 && this.gameInstance) {
+            const tgr = voidTraitTierFromList(traitIds, 'void_r_greed');
+            const gb = killVoidBand('void_r_greed');
+            let glo = 9 + 2 * tgr + (gb >= 1 ? 2 + gb : 0);
+            let ghi = 16 + 2 * tgr + (gb >= 2 ? 4 + 2 * gb : 0);
+            if (gb >= 3) ghi += 6;
+            const gg = glo + Math.floor(Math.random() * (ghi - glo + 1));
+            this.gameInstance.gainGold(gg);
+            this.gameInstance.addFloatingText(this.x, this.y, gb >= 2 ? `深噬 +${gg}金` : `贪噬 +${gg}金`, '#ffd700');
+            if (gb >= 3 && monster.type && String(monster.type).includes('_elite') && Math.random() < 0.35) {
+                const eg = 5 + tgr;
+                this.gameInstance.gainGold(eg);
+                this.gameInstance.addFloatingText(this.x, this.y, `爵赏 +${eg}`, '#ffee88', 1200, 13, true);
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_g_tithe') && Math.random() < (9 + voidTraitTierFromList(traitIds, 'void_g_tithe')) / 100 && this.gameInstance) {
+            const tgt = voidTraitTierFromList(traitIds, 'void_g_tithe');
+            const tb = killVoidBand('void_g_tithe');
+            let lo = 8 + 2 * tgt;
+            let hi = 17 + 2 * tgt;
+            if (tb >= 2) {
+                lo += 2 + tb;
+                hi += 4 + tb;
+            }
+            let g = lo + Math.floor(Math.random() * (hi - lo + 1));
+            this.gameInstance.gainGold(g);
+            this.gameInstance.addFloatingText(this.x, this.y, tb >= 1 ? `深课 +${g}` : `课金 +${g}`, '#ffd700');
+            if (tb >= 3 && Math.random() < 0.22) {
+                const g2 = 4 + tgt;
+                this.gameInstance.gainGold(g2);
+                this.gameInstance.addFloatingText(this.x, this.y, `再课 +${g2}`, '#fff0aa', 1000, 11, true);
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_g_elite') && this.gameInstance && monster.type && String(monster.type).includes('_elite')) {
+            const tge = voidTraitTierFromList(traitIds, 'void_g_elite');
+            const eb = killVoidBand('void_g_elite');
+            let ge = 12 + 2 * tge + (eb >= 1 ? 2 + 2 * eb : 0);
+            if (eb >= 3) ge = Math.floor(ge * 1.12);
+            this.gameInstance.gainGold(ge);
+            this.gameInstance.addFloatingText(this.x, this.y, eb >= 2 ? `深爵 +${ge}金` : `猎爵 +${ge}金`, '#ffdd44');
+            if (eb >= 3 && this.gameInstance) {
+                const splash = Math.max(1, Math.floor(ge * 0.25));
+                this.gameInstance.getCurrentSceneTargets().forEach(m => {
+                    if (m.hp <= 0 || m === monster) return;
+                    const dx = m.x - monster.x;
+                    const dy = m.y - monster.y;
+                    if (Math.sqrt(dx * dx + dy * dy) <= 90) {
+                        this.damageMonsterFromEnvironment(m, splash);
+                        this.gameInstance.addFloatingText(m.x, m.y, `爵压 ${splash}`, '#ffeeaa', 1200, 11, true);
+                    }
+                });
+            }
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'void_g_fortune') && Math.random() < (6 + voidTraitTierFromList(traitIds, 'void_g_fortune')) / 100 && this.gameInstance) {
+            const tf = voidTraitTierFromList(traitIds, 'void_g_fortune');
+            const fb = killVoidBand('void_g_fortune');
+            this.gameInstance.gainGold(monster.goldReward);
+            this.gameInstance.addFloatingText(this.x, this.y, fb >= 2 ? '洪运!' : '洪福!', '#fff0aa');
+            if (fb >= 1 && Math.random() < 0.35 + 0.08 * fb) {
+                const eg = Math.floor(monster.goldReward * (0.12 + 0.06 * fb));
+                if (eg > 0) {
+                    this.gameInstance.gainGold(eg);
+                    this.gameInstance.addFloatingText(this.x, this.y, `余财 +${eg}`, '#ffe8aa', 1100, 12, true);
+                }
+            }
+            if (fb >= 3 && this.gameInstance.gainExp) {
+                const ex = Math.floor(monster.expReward * 0.15);
+                if (ex > 0) {
+                    this.gameInstance.gainExp(ex);
+                    this.gameInstance.addFloatingText(this.x, this.y, `洪慧 +${ex}`, '#aaffcc', 1100, 12, true);
+                }
+            }
+        }
     }
 
     /**
-     * 检查点是否在剑气范围内（扇形范围，从玩家位置出发）
+     * 近战普攻剑气外沿半径（与 draw 中圆弧一致）
+     * @returns {number}
+     */
+    meleeSlashArcRadius() {
+        return this.size / 2 + 20;
+    }
+
+    /**
+     * 检查点是否在剑气扇形内：从角色中心到剑气特效弧外沿（与绘制同角度、同外径）
      * @param {number} x - 点的X坐标
      * @param {number} y - 点的Y坐标
      * @returns {boolean} 是否在剑气范围内
      */
     checkSlashRange(x, y) {
         if (this.slashStartTime === 0) return false;
-        
+
         const dx = x - this.x;
         const dy = y - this.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        // 剑气范围：扇形，从玩家位置出发，最大距离
-        const maxDistance = this.size / 2 + 20 + 30; // 与绘制半径一致，加上一些误差范围
-        
-        if (distance > maxDistance || distance < 0) {
-            return false;
-        }
-        
-        // 检查角度是否在剑气扇形范围内（60度）
-        const targetAngle = Math.atan2(dy, dx);
-        const arcStartAngle = this.slashAngle - Math.PI / 6; // 起始角度（右侧，60度范围）
-        const arcEndAngle = this.slashAngle + Math.PI / 6; // 结束角度（左侧）
-        
-        // 标准化角度到[0, 2π]范围
-        const normalizeAngle = (angle) => {
-            while (angle < 0) angle += Math.PI * 2;
-            while (angle >= Math.PI * 2) angle -= Math.PI * 2;
-            return angle;
-        };
-        
-        const normalizedTarget = normalizeAngle(targetAngle);
-        const normalizedStart = normalizeAngle(arcStartAngle);
-        const normalizedEnd = normalizeAngle(arcEndAngle);
-        
-        // 检查角度是否在范围内
-        if (normalizedStart <= normalizedEnd) {
-            // 正常情况：起始角度小于结束角度
-            return normalizedTarget >= normalizedStart && normalizedTarget <= normalizedEnd;
-        } else {
-            // 跨越0度的情况：起始角度大于结束角度
-            return normalizedTarget >= normalizedStart || normalizedTarget <= normalizedEnd;
-        }
+        const distSq = dx * dx + dy * dy;
+        const arcR = this.meleeSlashArcRadius();
+        const outerSlop = 12; // 怪物体积中心略超出弧外沿时仍算命中
+        const maxDist = arcR + outerSlop;
+        if (distSq > maxDist * maxDist) return false;
+
+        const PI = Math.PI;
+        let angleDiff = Math.atan2(dy, dx) - this.slashAngle;
+        while (angleDiff > PI) angleDiff -= 2 * PI;
+        while (angleDiff < -PI) angleDiff += 2 * PI;
+        // 与绘制一致：slashAngle ± π/6，共 60°
+        return Math.abs(angleDiff) <= PI / 6;
     }
 
     draw(ctx) {
@@ -6941,8 +8564,8 @@ class Player {
                 const fadeProgress = slashElapsed / slashDuration;
                 ctx.globalAlpha = 1.0 - fadeProgress;
                 
-                // 绘制圆弧（像素加宽）
-                const arcRadius = this.size / 2 + 20; // 圆弧半径
+                // 绘制圆弧（像素加宽）；半径与 checkSlashRange / meleeSlashArcRadius 一致
+                const arcRadius = this.meleeSlashArcRadius();
                 const arcStartAngle = this.slashAngle - Math.PI / 6; // 起始角度（右侧，60度范围）
                 const arcEndAngle = this.slashAngle + Math.PI / 6; // 结束角度（左侧，60度范围）
                 const arcSegments = 40; // 圆弧分段数（保持40，不增加平滑度）

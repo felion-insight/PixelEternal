@@ -27,17 +27,24 @@ if (typeof window.CONFIG === 'undefined') {
         MONSTER_ATTACK_COOLDOWN: 2000,
         INVENTORY_SIZE: 66,
         TICKS_PER_SECOND: 60,
-        // 合铸功能：API Key（见合铸.md）
-        // 合铸功能（对应 docs/合铸.md）：API 根地址、API Key、模型名
+        // 合铸功能（对应 docs/合铸.md 第5-7行）：API 根地址、API Key、模型名
         HEZHU_API_BASE: 'http://35.220.164.252:3888',
         HEZHU_API_KEY: 'sk-KIok6ajQEs9IMRfrCoMXwFYEs2kL3EDgJwCYdN7vgaTnWbV2',
         HEZHU_MODEL: 'gemini-3.1-flash-lite-preview',
+        // 设为 true 时合铸始终使用本地规则（不请求外网），无需 VPN
         HEZHU_USE_LOCAL: false,
+        // 合铸成功后是否调用与 art_generator 相同的接口生成装备贴图（需可访问 HEZHU_API_BASE 的 /v1/chat 与 /v1/images）
         HEZHU_FUSION_ICON_ENABLE: true,
+        // 生图与规划用的 Key（与 tools/art_generator.py 的 PE_ART_API_KEY 一致）；可单独覆盖 HEZHU_FUSION_ICON_API_KEY
         HEZHU_FUSION_ICON_API_KEY: '',
+        // 与 PE_ART_API_KEY 默认一致，供合铸成功后 Chat+Imagen；可用环境或此处覆盖
         HEZHU_ART_API_KEY: 'sk-OVNKpYrzUnloOR1F8qhA3KZKMwOQxjX8icaGpO2dUmP5FZj4',
         HEZHU_FUSION_ICON_CHAT_MODEL: 'gpt-4o-mini',
-        HEZHU_FUSION_ICON_IMAGE_MODEL: 'imagen-4.0-ultra-generate-001'
+        HEZHU_FUSION_ICON_IMAGE_MODEL: 'imagen-4.0-ultra-generate-001',
+        // 恶魔塔：层数上限、Boss 间隔（每 N 层 Boss，其前一层为隙间商店）
+        TOWER_MAX_FLOOR: 240,
+        TOWER_BOSS_INTERVAL: 20,
+        MONSTER_MAX_LEVEL: 60
     };
 }
 
@@ -79,9 +86,35 @@ if (typeof window.ROOM_TYPES === 'undefined') {
         BATTLE: 'battle',
         TREASURE: 'treasure',
         REST: 'rest',
-        ELITE: 'elite'
+        ELITE: 'elite',
+        ALCHEMY: 'alchemy',
+        GAP_SHOP: 'gap_shop',
+        BOSS: 'boss'
     };
 }
+
+/** 恶魔塔层数规则（供 game-main / game-entities 共用） */
+window.getTowerMaxFloor = function () {
+    const c = window.CONFIG || {};
+    return c.TOWER_MAX_FLOOR != null ? c.TOWER_MAX_FLOOR : 240;
+};
+window.getTowerBossInterval = function () {
+    const c = window.CONFIG || {};
+    return c.TOWER_BOSS_INTERVAL != null ? c.TOWER_BOSS_INTERVAL : 20;
+};
+window.isTowerGapShopFloor = function (floor) {
+    const I = window.getTowerBossInterval();
+    const M = window.getTowerMaxFloor();
+    return floor > 0 && floor < M && floor % I === (I - 1);
+};
+window.isTowerBossFloor = function (floor) {
+    const I = window.getTowerBossInterval();
+    const M = window.getTowerMaxFloor();
+    return floor > 0 && floor <= M && floor % I === 0;
+};
+window.getTowerBossIdForFloor = function (floor) {
+    return 'boss_' + floor;
+};
 
 if (typeof window.SCENE_TYPES === 'undefined') {
     window.SCENE_TYPES = {

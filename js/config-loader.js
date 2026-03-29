@@ -52,6 +52,36 @@ class ConfigLoader {
                 }
             }
 
+            // 高阶装备（独立命名与机制属性），合并进 EQUIPMENT_DEFINITIONS
+            try {
+                const deepData = await this.loadJSON('config/equipment-deep-config.json');
+                const extra = (deepData && deepData.EQUIPMENT_DEEP_DEFINITIONS) || [];
+                if (Array.isArray(extra) && extra.length && Array.isArray(this.configs.EQUIPMENT_DEFINITIONS)) {
+                    this.configs.EQUIPMENT_DEFINITIONS = this.configs.EQUIPMENT_DEFINITIONS.concat(extra);
+                }
+            } catch (e) {
+                console.warn('equipment-deep-config.json 未加载或合并失败（可忽略）:', e);
+            }
+
+            try {
+                const deepSetData = await this.loadJSON('config/set-deep-config.json');
+                const extraSets = (deepSetData && deepSetData.SET_DEEP_DEFINITIONS) || {};
+                if (this.configs.SET_DEFINITIONS && typeof this.configs.SET_DEFINITIONS === 'object' && Object.keys(extraSets).length) {
+                    this.configs.SET_DEFINITIONS = Object.assign({}, this.configs.SET_DEFINITIONS, extraSets);
+                }
+            } catch (e) {
+                console.warn('set-deep-config.json 未加载或合并失败（可忽略）:', e);
+            }
+
+            try {
+                const deepSuffix = await this.loadJSON('config/deep-suffix-table.json');
+                if (deepSuffix && typeof deepSuffix === 'object') {
+                    this.configs.DEEP_SUFFIX_TABLE = deepSuffix;
+                }
+            } catch (e) {
+                console.warn('deep-suffix-table.json 未加载（深阶装备词条名将无法解析）:', e);
+            }
+
             // 将配置赋值给全局变量
             this.assignToGlobals();
             this.loaded = true;
@@ -171,6 +201,9 @@ class ConfigLoader {
         // 图片映射配置
         if (this.configs.MAPPINGS) {
             window.MAPPINGS = this.configs.MAPPINGS;
+        }
+        if (this.configs.DEEP_SUFFIX_TABLE) {
+            window.DEEP_SUFFIX_TABLE = this.configs.DEEP_SUFFIX_TABLE;
         }
     }
 }

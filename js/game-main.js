@@ -127,6 +127,12 @@ class Game {
         this.keys = {};
         this.lastEKeyState = false; // 上次E键状态，用于检测按键按下事件
         this.mouse = { x: 0, y: 0, left: false };
+        /** 落点技/锁定技：长按 Q、技能键或右键蓄力，松手释放；null 表示未在蓄力 */
+        this.weaponSkillAim = null;
+        this._weaponSkillGlobalMouseUp = (e) => {
+            if (e.button === 0) this._onWeaponSkillInputUp('btn');
+            else if (e.button === 2) this._onWeaponSkillInputUp('rmb');
+        };
         
         // 工具提示管理器
         this.tooltipManager = new TooltipManager(this);
@@ -547,18 +553,19 @@ class Game {
                 return;
             }
             
-            // Q键处理：释放武器技能（如果正在冲刺，不能释放技能）
-            if (e.key.toLowerCase() === 'q' && !this.player.isDashing) {
-                if (this.currentScene === SCENE_TYPES.TOWER && this.currentRoom && (this.currentRoom.type === ROOM_TYPES.BATTLE || this.currentRoom.type === ROOM_TYPES.ELITE)) {
-                    this.player.useWeaponSkill(this.currentRoom.monsters);
-                } else if (this.currentScene === SCENE_TYPES.TRAINING && this.trainingGroundScene) {
-                    this.player.useWeaponSkill(this.trainingGroundScene.dummies);
-                }
+            // Q键：非落点技立即释放；落点技按下开始蓄力瞄准（松开后短按仍瞬发）
+            if (e.key.toLowerCase() === 'q' && !e.repeat && !this.player.isDashing) {
+                this._onWeaponSkillInputDown('q');
             }
             
             // ESC键处理：关闭打开的界面或显示菜单
             if (e.key === 'Escape' || e.key === 'Esc') {
                 e.preventDefault();
+                
+                if (this.weaponSkillAim) {
+                    this.cancelWeaponSkillAim();
+                    return;
+                }
                 
                 const escMenuModal = document.getElementById('esc-menu-modal');
                 const towerExitConfirmModal = document.getElementById('tower-exit-confirm-modal');
@@ -593,6 +600,11 @@ class Game {
                 }
                 if (importSaveModal && importSaveModal.classList.contains('show')) {
                     this.closeImportSaveModal();
+                    return;
+                }
+                const gapShopModal = document.getElementById('gap-shop-modal');
+                if (gapShopModal && gapShopModal.classList.contains('show')) {
+                    this.closeGapShopModal();
                     return;
                 }
                 if (shopModal && shopModal.classList.contains('show')) {
@@ -687,6 +699,9 @@ class Game {
         });
         
         document.addEventListener('keyup', (e) => {
+            if (e.key.toLowerCase() === 'q') {
+                this._onWeaponSkillInputUp('q');
+            }
             // 处理k键（冲刺键）
             if (e.key.toLowerCase() === 'k') {
                 this.keys['k'] = false;
@@ -696,16 +711,24 @@ class Game {
         });
         
         this.canvas.addEventListener('mousemove', (e) => {
-            const rect = this.canvas.getBoundingClientRect();
-            // 由于 canvas 分辨率是原来的2倍，需要将鼠标坐标除以2
-            this.mouse.x = (e.clientX - rect.left) / 2;
-            this.mouse.y = (e.clientY - rect.top) / 2;
+            this.updateMouseFromEvent(e);
         });
         
-        // 鼠标左键按下
+        this.canvas.addEventListener('contextmenu', (e) => {
+            if (this.currentScene === SCENE_TYPES.TOWER || this.currentScene === SCENE_TYPES.TRAINING) {
+                e.preventDefault();
+            }
+        });
+        
+        // 鼠标左键攻击；右键与 Q 相同：落点技/锁定技均为长按瞄准、松手释放
         this.canvas.addEventListener('mousedown', (e) => {
-            if (e.button === 0) { // 左键
+            if (e.button === 0) {
+                this.updateMouseFromEvent(e);
                 this.mouse.left = true;
+            } else if (e.button === 2) {
+                e.preventDefault();
+                this.updateMouseFromEvent(e);
+                this._onWeaponSkillInputDown('rmb');
             }
         });
         
@@ -807,6 +830,7 @@ class Game {
         // 初始化铁匠铺和商店界面
         this.initBlacksmith();
         this.initShop();
+        this.initGapShop();
         this.initTrainingAndCapacity();
         this.initLevelUpCapacity();
         this.initDungeonSelection();
@@ -2462,6 +2486,8 @@ class Game {
     resetDemonTowerTransientPlayerState() {
         if (!this.player) return;
         this.player.eliteBoons = [];
+        this.player.towerReviveCharges = 0;
+        this.player.towerMaxHpBonusPercent = 0;
         this.player.demonDebuffs = {};
         this.demonEffectStatusText = '';
         this.demonInterferenceFlags = {};
@@ -2484,12 +2510,22 @@ class Game {
      */
     generateNewRoom(forcedType = null) {
         if (forcedType === 'alchemy') forcedType = null;
+        const maxF = typeof window.getTowerMaxFloor === 'function' ? window.getTowerMaxFloor() : 240;
+        this.floor = Math.min(this.floor, maxF);
         // 清空掉落物、传送门和怪物子弹
         this.droppedItems = [];
         this.portals = [];
         this.monsterProjectiles = [];
         
         let selectedType = forcedType;
+        
+        if (!selectedType && this.currentScene === SCENE_TYPES.TOWER) {
+            if (typeof window.isTowerBossFloor === 'function' && window.isTowerBossFloor(this.floor)) {
+                selectedType = ROOM_TYPES.BOSS;
+            } else if (typeof window.isTowerGapShopFloor === 'function' && window.isTowerGapShopFloor(this.floor)) {
+                selectedType = ROOM_TYPES.GAP_SHOP;
+            }
+        }
         
         if (!selectedType) {
             const types = [ROOM_TYPES.BATTLE, ROOM_TYPES.TREASURE, ROOM_TYPES.REST];
@@ -2530,10 +2566,17 @@ class Game {
             battle: '战斗',
             treasure: '宝箱',
             rest: '休整',
-            elite: '精英'
+            elite: '精英',
+            alchemy: '炼金',
+            gap_shop: '隙间商店',
+            boss: 'Boss'
         };
         document.getElementById('room-type').textContent = typeNames[selectedType] || selectedType;
         document.getElementById('floor-number').textContent = this.floor;
+        
+        if (selectedType === ROOM_TYPES.GAP_SHOP) {
+            setTimeout(() => this.openGapShopModal(), 100);
+        }
     }
 
     gainExp(amount) {
@@ -2546,11 +2589,53 @@ class Game {
      * @param {number} amount - 金币数量
      */
     gainGold(amount) {
-        this.player.gold += amount;
+        let gained = amount;
+        if (amount > 0 && this.player && typeof this.player.getEquipmentTraitIds === 'function') {
+            const gt = this.player.getEquipmentTraitIds();
+            if (typeof traitIdsIncludeBase === 'function' && typeof voidTraitTierFromList === 'function') {
+                if (this.currentScene === SCENE_TYPES.TOWER && traitIdsIncludeBase(gt, 'void_g_hoard')) {
+                    const th = voidTraitTierFromList(gt, 'void_g_hoard');
+                    const hb = typeof deepTraitBand === 'function' ? deepTraitBand(th) : 0;
+                    gained = Math.floor(gained * (1 + (4 + 0.75 * th) / 100 + 0.012 * hb));
+                    if (hb >= 2) gained += Math.max(1, Math.floor(amount * (0.008 + 0.004 * hb)));
+                    if (hb >= 3 && Math.random() < 0.14) {
+                        const burst = Math.max(1, Math.floor(gained * 0.22));
+                        gained += burst;
+                        if (this.player) this.addFloatingText(this.player.x, this.player.y, `囤金 +${burst}`, '#ffe066', 1600, 15, true);
+                    }
+                }
+                if (traitIdsIncludeBase(gt, 'void_g_covet')) {
+                    const tc = voidTraitTierFromList(gt, 'void_g_covet');
+                    const cb = typeof deepTraitBand === 'function' ? deepTraitBand(tc) : 0;
+                    let covetP = (4.5 + 0.75 * tc) / 100;
+                    if (cb >= 1) covetP *= 1 + 0.045 * cb;
+                    if (Math.random() < covetP) {
+                        const pre = gained;
+                        gained = Math.floor(gained * 2);
+                        if (cb >= 2) gained += Math.max(0, Math.floor(pre * (0.04 + 0.03 * cb)));
+                        if (cb >= 3 && Math.random() < 0.1) {
+                            gained = Math.floor(gained * 1.18);
+                            if (this.player) this.addFloatingText(this.player.x, this.player.y, '贪潮!', '#ffcc44', 1700, 16, true);
+                        }
+                    }
+                }
+            } else {
+                if (this.currentScene === SCENE_TYPES.TOWER && gt.includes('void_g_hoard')) {
+                    gained = Math.floor(gained * 1.055);
+                }
+                if (gt.includes('void_g_covet') && Math.random() < 0.06) {
+                    gained = Math.floor(gained * 2);
+                }
+            }
+        }
+        if (amount > 0 && this.currentScene === SCENE_TYPES.TOWER && this.player) {
+            const b = this.player.towerGoldBonusPercent || 0;
+            if (b > 0) gained = Math.floor(gained * (1 + b / 100));
+        }
+        this.player.gold += gained;
         
-        // 如果当前在恶魔塔中，记录获得的金币
         if (this.currentScene === SCENE_TYPES.TOWER) {
-            this.towerGoldGained += amount;
+            this.towerGoldGained += gained;
         }
         
         this.updateHUD();
@@ -2561,15 +2646,12 @@ class Game {
      */
     initWeaponSkillButton() {
         const skillBtn = document.getElementById('weapon-skill-btn');
-        skillBtn.addEventListener('click', () => {
-            // 如果正在冲刺，不能释放技能
-            if (this.player.isDashing) {
-                return;
-            }
-            if (this.currentScene === SCENE_TYPES.TOWER && this.currentRoom && (this.currentRoom.type === ROOM_TYPES.BATTLE || this.currentRoom.type === ROOM_TYPES.ELITE)) {
-                this.player.useWeaponSkill(this.currentRoom.monsters);
-            }
+        if (!skillBtn) return;
+        skillBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            this._onWeaponSkillInputDown('btn');
         });
+        window.addEventListener('mouseup', this._weaponSkillGlobalMouseUp, true);
     }
 
     /**
@@ -3058,7 +3140,12 @@ class Game {
                 skillBtn.style.opacity = '0.5';
                 skillBtn.style.cursor = 'not-allowed';
             } else {
-                skillCooldown.textContent = '按Q释放';
+                const ground = typeof this.player.resolveGroundAoeSkillRanges === 'function' && this.player.resolveGroundAoeSkillRanges();
+                const lock = typeof this.player.resolveTargetLockSkillRange === 'function' && this.player.resolveTargetLockSkillRange();
+                let hint = '按Q释放';
+                if (ground) hint = '长按瞄准落点，松手释放';
+                else if (lock) hint = '长按选择锁定，松手释放';
+                skillCooldown.textContent = hint;
                 skillBtn.disabled = false;
                 skillBtn.style.opacity = '1';
                 skillBtn.style.cursor = 'pointer';
@@ -3116,7 +3203,7 @@ class Game {
             // 攻击：J键或鼠标左键
             const attackPressed = this.keys['j'] || this.mouse.left;
             if (attackPressed && !this.player.isDashing) {
-                if (this.currentScene === SCENE_TYPES.TOWER && this.currentRoom && (this.currentRoom.type === ROOM_TYPES.BATTLE || this.currentRoom.type === ROOM_TYPES.ELITE)) {
+                if (this.currentScene === SCENE_TYPES.TOWER && this.currentRoom && (this.currentRoom.type === ROOM_TYPES.BATTLE || this.currentRoom.type === ROOM_TYPES.ELITE || this.currentRoom.type === ROOM_TYPES.BOSS)) {
                     this.player.attack(this.currentRoom.monsters);
                 } else if (this.currentScene === SCENE_TYPES.TRAINING && this.trainingGroundScene) {
                     this.player.attack(this.trainingGroundScene.dummies);
@@ -3164,6 +3251,7 @@ class Game {
         try {
             // 如果游戏暂停，只更新飘浮文字和UI，不更新游戏逻辑
             if (this.paused) {
+                this.cancelWeaponSkillAim();
                 // 更新飘浮文字（让它们继续显示）
                 this.floatingTexts = this.floatingTexts.filter(text => {
                     if (text.fixedPosition) {
@@ -3184,6 +3272,7 @@ class Game {
             
             // 更新玩家
             this.handleInput();
+            this.updateWeaponSkillAimState();
             
             // 保存当前E键状态（用于检测按键按下事件，而不是持续按住）
             const currentEKeyState = this.keys['e'] || false;
@@ -3354,7 +3443,7 @@ class Game {
             
             // 处理龙心垂饰词条：低血量时每秒恢复生命值
             const traitIds = this.player.getEquipmentTraitIds();
-            if (traitIds.includes('dragon_heart') && this.player.hp < this.player.maxHp * 0.3) {
+            if (traitIdsIncludeBase(traitIds, 'dragon_heart') && this.player.hp < this.player.maxHp * 0.3) {
                 const now = Date.now();
                 if (!this.player.lastDragonHeartHeal) this.player.lastDragonHeartHeal = 0;
                 if (now - this.player.lastDragonHeartHeal >= 1000) {
@@ -3366,7 +3455,7 @@ class Game {
             }
             
             // 处理永恒神威词条（胸甲）：每秒恢复1%最大生命值
-            if (traitIds.includes('eternal_divine') || traitIds.includes('eternal')) {
+            if (traitIdsIncludeBase(traitIds, 'eternal_divine') || traitIdsIncludeBase(traitIds, 'eternal')) {
                 const now = Date.now();
                 if (!this.player.lastEternalHeal) this.player.lastEternalHeal = 0;
                 if (now - this.player.lastEternalHeal >= 1000) {
@@ -3376,7 +3465,7 @@ class Game {
                 }
             }
             // 处理永恒战甲词条（胸甲）：每秒恢复2%最大生命值
-            if (traitIds.includes('eternal_armor')) {
+            if (traitIdsIncludeBase(traitIds, 'eternal_armor')) {
                 const now = Date.now();
                 if (!this.player.lastEternalArmorHeal) this.player.lastEternalArmorHeal = 0;
                 if (now - this.player.lastEternalArmorHeal >= 1000) {
@@ -3407,7 +3496,7 @@ class Game {
             }
             
             // 处理游侠词条：脱离战斗后恢复生命值
-            if (traitIds.includes('ranger')) {
+            if (traitIdsIncludeBase(traitIds, 'ranger')) {
                 const now = Date.now();
                 if (!this.player.lastCombatTime) this.player.lastCombatTime = 0;
                 if (now - this.player.lastCombatTime > 5000 && this.player.hp < this.player.maxHp) {
@@ -3421,7 +3510,7 @@ class Game {
             }
             
             // 处理旅人词条：脱离战斗后恢复生命值（每3秒恢复3%最大生命值）
-            if (traitIds.includes('traveler')) {
+            if (traitIdsIncludeBase(traitIds, 'traveler')) {
                 const now = Date.now();
                 if (!this.player.lastCombatTime) this.player.lastCombatTime = 0;
                 if (now - this.player.lastCombatTime > 5000 && this.player.hp < this.player.maxHp) {
@@ -3430,6 +3519,69 @@ class Game {
                         const healAmount = Math.floor(this.player.maxHp * 0.03);
                         this.player.hp = Math.min(this.player.hp + healAmount, this.player.maxHp);
                         this.player.lastTravelerHeal = now;
+                    }
+                }
+            }
+
+            if (typeof traitIdsIncludeBase === 'function' && traitIdsIncludeBase(traitIds, 'void_n_well')) {
+                const now = Date.now();
+                const tw = voidTraitTierFromList(traitIds, 'void_n_well');
+                const wb = typeof deepTraitBand === 'function' ? deepTraitBand(tw) : 0;
+                let wellTick = 3000 - 80 * tw;
+                if (wb >= 1) wellTick = Math.max(1600, wellTick - 60 - 25 * wb);
+                let wellPct = (0.85 + 0.12 * tw) / 100;
+                if (wb >= 2) wellPct *= 1 + 0.06 + 0.04 * wb;
+                if (!this.player.lastCombatTime) this.player.lastCombatTime = 0;
+                if (now - this.player.lastCombatTime < 8000 && this.player.hp < this.player.maxHp) {
+                    if (!this.player.lastVoidWellHeal) this.player.lastVoidWellHeal = 0;
+                    if (now - this.player.lastVoidWellHeal >= wellTick) {
+                        const healAmount = Math.floor(this.player.maxHp * wellPct);
+                        this.player.hp = Math.min(this.player.hp + healAmount, this.player.maxHp);
+                        this.player.lastVoidWellHeal = now;
+                        if (wb >= 1) {
+                            this.player.buffs = this.player.buffs || [];
+                            this.player.buffs.push({
+                                effects: { attackSpeed: Math.floor((this.player.baseAttackSpeed || 100) * (0.04 + 0.015 * wb)) },
+                                expireTime: now + 3200
+                            });
+                            if (typeof this.player.updateStats === 'function') this.player.updateStats();
+                        }
+                        if (wb >= 3 && typeof this.player.damageMonsterFromEnvironment === 'function') {
+                            this.player.voidWellStrike = (this.player.voidWellStrike || 0) + 1;
+                            if (this.player.voidWellStrike % 4 === 0) {
+                                const targets = this.getCurrentSceneTargets();
+                                let pick = null;
+                                let best = 1e9;
+                                targets.forEach(m => {
+                                    if (!m || m.hp <= 0) return;
+                                    const dx = m.x - this.player.x;
+                                    const dy = m.y - this.player.y;
+                                    const d2 = dx * dx + dy * dy;
+                                    if (d2 < best && d2 < 140 * 140) {
+                                        best = d2;
+                                        pick = m;
+                                    }
+                                });
+                                if (pick) {
+                                    const wd = Math.floor((this.player.baseAttack || 0) * (0.16 + 0.02 * tw));
+                                    if (wd > 0) {
+                                        this.player.damageMonsterFromEnvironment(pick, wd);
+                                        this.addFloatingText(pick.x, pick.y, `井涌 ${wd}`, '#99ddff', 1400, 14, true);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (traitIdsIncludeBase(traitIds, 'void_n_well')) {
+                const now = Date.now();
+                if (!this.player.lastCombatTime) this.player.lastCombatTime = 0;
+                if (now - this.player.lastCombatTime < 8000 && this.player.hp < this.player.maxHp) {
+                    if (!this.player.lastVoidWellHeal) this.player.lastVoidWellHeal = 0;
+                    if (now - this.player.lastVoidWellHeal >= 3000) {
+                        const healAmount = Math.floor(this.player.maxHp * 0.01);
+                        this.player.hp = Math.min(this.player.hp + healAmount, this.player.maxHp);
+                        this.player.lastVoidWellHeal = now;
                     }
                 }
             }
@@ -3503,13 +3655,20 @@ class Game {
                 });
             
                 // 检查房间交互
-                if (this.currentRoom.type === ROOM_TYPES.BATTLE || this.currentRoom.type === ROOM_TYPES.ELITE) {
+                if (this.currentRoom.type === ROOM_TYPES.BATTLE || this.currentRoom.type === ROOM_TYPES.ELITE || this.currentRoom.type === ROOM_TYPES.BOSS) {
                     // 怪物攻击玩家
                     let playerDied = false;
                     this.currentRoom.monsters.forEach(monster => {
                         if (monster.hp > 0 && monster.attack(this.player)) {
                             const killed = this.player.takeDamage(monster.damage, monster, false);
                             if (killed) playerDied = true;
+                        }
+                        if (typeof Boss !== 'undefined' && monster instanceof Boss && monster.hp > 0) {
+                            const hits = monster.checkSkillHit(this.player);
+                            hits.forEach(h => {
+                                const killed = this.player.takeDamage(h.damage, monster, false);
+                                if (killed) playerDied = true;
+                            });
                         }
                     });
                     this.updateMonsterProjectiles();
@@ -3522,8 +3681,10 @@ class Game {
                             this.soundManager.playSound('death');
                         }
                         this.isPlayerDead = true; // 标记玩家死亡
-                        // 检查是否有神圣十字架
-                        const resurrectionItem = this.findResurrectionItem();
+                        let resurrectionItem = this.findResurrectionItem();
+                        if (!resurrectionItem && this.player.towerReviveCharges > 0) {
+                            resurrectionItem = { towerCharge: true };
+                        }
                         if (resurrectionItem) {
                             // 有神圣十字架，询问是否使用
                             this.showResurrectionDialog(resurrectionItem);
@@ -3699,6 +3860,33 @@ class Game {
                         const distance = Math.sqrt(dx * dx + dy * dy);
                         
                         // 如果玩家在传送门范围内且按了E键，触发传送
+                        if (distance < portal.size / 2 + 30) {
+                            if (portal.type === 'next' && portal.roomType) {
+                                this.isTransitioning = true;
+                                this.floor++;
+                                this.hasClearedFloor = true;
+                                this.generateNewRoom(portal.roomType);
+                                this.portals = [];
+                                this.isTransitioning = false;
+                            } else if (portal.type === 'exit') {
+                                this.returnToTown();
+                            }
+                        }
+                    });
+                }
+            } else if (this.currentRoom.type === ROOM_TYPES.GAP_SHOP) {
+                const cx = this.currentRoom.width / 2;
+                const cy = this.currentRoom.height / 2;
+                const dx = cx - this.player.x;
+                const dy = cy - this.player.y;
+                if (eKeyPressed && Math.sqrt(dx * dx + dy * dy) < 95 && !this.currentRoom.cleared) {
+                    this.openGapShopModal();
+                }
+                if (this.portals.length > 0 && !this.isTransitioning && eKeyPressed) {
+                    this.portals.forEach(portal => {
+                        const pdx = portal.x - this.player.x;
+                        const pdy = portal.y - this.player.y;
+                        const distance = Math.sqrt(pdx * pdx + pdy * pdy);
                         if (distance < portal.size / 2 + 30) {
                             if (portal.type === 'next' && portal.roomType) {
                                 this.isTransitioning = true;
@@ -3967,16 +4155,21 @@ class Game {
         // 返回主城
         this.returnToTown();
         
-        // 恢复游戏状态（确保可以移动）
+        // 恢复游戏状态（确保可以移动）；元素可能不存在，需防空
         const inventoryModal = document.getElementById('inventory-modal');
         const codexModal = document.getElementById('codex-modal');
         const shopModal = document.getElementById('shop-modal');
         const blacksmithModal = document.getElementById('blacksmith-modal');
         const guideModal = document.getElementById('guide-modal');
-        if (!this.devMode && !inventoryModal.classList.contains('show') && 
-            !codexModal.classList.contains('show') && !shopModal.classList.contains('show') && 
-            !blacksmithModal.classList.contains('show') &&
-            !guideModal.classList.contains('show')) {
+        const escStillOpen = document.getElementById('esc-menu-modal');
+        const noBlockingModal =
+            (!escStillOpen || !escStillOpen.classList.contains('show')) &&
+            (!inventoryModal || !inventoryModal.classList.contains('show')) &&
+            (!codexModal || !codexModal.classList.contains('show')) &&
+            (!shopModal || !shopModal.classList.contains('show')) &&
+            (!blacksmithModal || !blacksmithModal.classList.contains('show')) &&
+            (!guideModal || !guideModal.classList.contains('show'));
+        if (!this.devMode && noBlockingModal) {
             this.paused = false;
         }
         
@@ -4303,10 +4496,9 @@ class Game {
      * @param {Object} resurrectionData - 包含item和index的对象
      */
     showResurrectionDialog(resurrectionData) {
-        // 暂停游戏
+        this._pendingResurrection = resurrectionData;
         this.paused = true;
         
-        // 创建或获取对话框
         let modal = document.getElementById('resurrection-modal');
         if (!modal) {
             modal = document.createElement('div');
@@ -4316,19 +4508,18 @@ class Game {
                 <div class="modal-content" style="max-width: 500px; text-align: center;">
                     <h2 style="color: #ffd700; margin-bottom: 20px;">死亡</h2>
                     <p style="color: #fff; font-size: 16px; margin-bottom: 30px;">你已死亡！</p>
-                    <p style="color: #aaa; font-size: 14px; margin-bottom: 30px;">检测到你拥有神圣十字架，是否使用它复活？</p>
+                    <p id="resurrection-detail-text" style="color: #aaa; font-size: 14px; margin-bottom: 30px;"></p>
                     <p style="color: #88ff88; font-size: 12px; margin-bottom: 30px;">复活后将恢复满血并获得3秒无敌</p>
                     <div style="display: flex; gap: 15px; justify-content: center;">
-                        <button id="resurrection-confirm-btn" style="padding: 12px 30px; background: #4a9eff; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold;">使用神圣十字架复活</button>
+                        <button id="resurrection-confirm-btn" style="padding: 12px 30px; background: #4a9eff; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold;">确认复活</button>
                         <button id="resurrection-cancel-btn" style="padding: 12px 30px; background: #666; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">返回主城</button>
                     </div>
                 </div>
             `;
             document.body.appendChild(modal);
             
-            // 添加事件监听
             document.getElementById('resurrection-confirm-btn').addEventListener('click', () => {
-                this.useResurrection(resurrectionData);
+                this.useResurrection(this._pendingResurrection);
             });
             
             document.getElementById('resurrection-cancel-btn').addEventListener('click', () => {
@@ -4336,7 +4527,19 @@ class Game {
             });
         }
         
-        // 显示对话框
+        const detail = document.getElementById('resurrection-detail-text');
+        const confirmBtn = document.getElementById('resurrection-confirm-btn');
+        if (detail) {
+            detail.textContent = resurrectionData && resurrectionData.towerCharge
+                ? '检测到你拥有隙间商店购买的额外复活次数，是否使用？'
+                : '检测到你拥有神圣十字架，是否使用它复活？';
+        }
+        if (confirmBtn) {
+            confirmBtn.textContent = resurrectionData && resurrectionData.towerCharge
+                ? '使用额外复活'
+                : '使用神圣十字架复活';
+        }
+        
         modal.classList.add('show');
     }
     
@@ -4345,8 +4548,11 @@ class Game {
      * @param {Object} resurrectionData - 包含item和index的对象
      */
     useResurrection(resurrectionData) {
-        // 移除神圣十字架
-        this.player.inventory[resurrectionData.index] = null;
+        if (resurrectionData && resurrectionData.towerCharge) {
+            this.player.towerReviveCharges = Math.max(0, (this.player.towerReviveCharges || 0) - 1);
+        } else if (resurrectionData && resurrectionData.index != null) {
+            this.player.inventory[resurrectionData.index] = null;
+        }
         
         // 恢复玩家生命值
         this.player.hp = this.player.maxHp;
@@ -4523,12 +4729,20 @@ class Game {
         // 这里不设置paused，让窗口关闭时处理
         
         // 关闭所有打开的界面
+        const alchemyModal = document.getElementById('alchemy-modal');
+        const escMenuModalRt = document.getElementById('esc-menu-modal');
+        const towerExitModalRt = document.getElementById('tower-exit-confirm-modal');
         const shopModal = document.getElementById('shop-modal');
         const blacksmithModal = document.getElementById('blacksmith-modal');
         const inventoryModal = document.getElementById('inventory-modal');
         const codexModal = document.getElementById('codex-modal');
         const trainingGroundModal = document.getElementById('training-ground-modal');
         
+        if (escMenuModalRt) {
+            escMenuModalRt.classList.remove('show');
+            escMenuModalRt.style.display = 'none';
+        }
+        if (towerExitModalRt) towerExitModalRt.classList.remove('show');
         if (alchemyModal) alchemyModal.classList.remove('show');
         if (shopModal) shopModal.classList.remove('show');
         if (blacksmithModal) blacksmithModal.classList.remove('show');
@@ -4594,6 +4808,8 @@ class Game {
         this.isPlayerDead = false;
         this.player.demonDebuffs = {};
         this.player.eliteBoons = [];
+        this.player.towerReviveCharges = 0;
+        this.player.towerMaxHpBonusPercent = 0;
         this.player.updateStats();
         this.demonEffectStatusText = '';
         this.demonInterferenceFlags = {};
@@ -7502,6 +7718,7 @@ class Game {
         
         // 绘制打造装备特效 - 需要应用相机偏移
         this.ctx.translate(-this.cameraX, -this.cameraY);
+        this.drawWeaponSkillAimPreview(this.ctx);
         this.drawEquipmentEffects(this.ctx);
         this.drawMonsterProjectiles(this.ctx);
         this.ctx.translate(this.cameraX, this.cameraY);
@@ -7671,9 +7888,290 @@ class Game {
             angle: options.angle || 0,
             color: options.color || '#ffffff',
             targetX: options.targetX,
-            targetY: options.targetY
+            targetY: options.targetY,
+            followTarget: options.followTarget || null
         };
         this.equipmentEffects.push(effect);
+    }
+    
+    /**
+     * 武器技能「落点施法」：以鼠标相对屏幕中心的方向，在玩家周围 maxDist 内取世界坐标（无有效方向时用面朝角）
+     */
+    /**
+     * 将指针事件映射到逻辑画布坐标（与 draw 中 scale(2) 后的坐标系一致，0…CANVAS_*），修正 CSS 缩放导致的偏差
+     */
+    updateMouseFromEvent(e) {
+        if (!this.canvas || !e) return;
+        const rect = this.canvas.getBoundingClientRect();
+        const rw = rect.width > 0.5 ? rect.width : 1;
+        const rh = rect.height > 0.5 ? rect.height : 1;
+        this.mouse.x = (e.clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rw);
+        this.mouse.y = (e.clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rh);
+    }
+
+    getSkillGroundAimPoint(player, maxDist) {
+        if (!player || maxDist <= 0) return { x: player.x, y: player.y };
+        const cx = CONFIG.CANVAS_WIDTH / 2;
+        const cy = CONFIG.CANVAS_HEIGHT / 2;
+        let mx = cx;
+        let my = cy;
+        if (this.mouse && this.mouse.x != null && this.mouse.y != null) {
+            mx = this.mouse.x;
+            my = this.mouse.y;
+        }
+        let dx = mx - cx;
+        let dy = my - cy;
+        let len = Math.sqrt(dx * dx + dy * dy);
+        if (len < 12) {
+            dx = Math.cos(player.angle);
+            dy = Math.sin(player.angle);
+            len = 1;
+        } else {
+            dx /= len;
+            dy /= len;
+        }
+        const d = Math.min(maxDist, Math.max(48, maxDist * 0.92));
+        return {
+            x: player.x + dx * d,
+            y: player.y + dy * d
+        };
+    }
+
+    _getVisionScaleForAim() {
+        const configVision = window.CONFIG ? window.CONFIG.PLAYER_VISION : (CONFIG.PLAYER_VISION || 200);
+        const baseVision = 200;
+        return baseVision / Math.max(1, configVision);
+    }
+
+    /**
+     * 逻辑画布坐标（与 mouse 一致）→ 世界坐标，与 draw() 中视野缩放一致
+     */
+    screenToWorldForAim(logicalMx, logicalMy) {
+        const cx = CONFIG.CANVAS_WIDTH / 2;
+        const cy = CONFIG.CANVAS_HEIGHT / 2;
+        const S = this._getVisionScaleForAim();
+        return {
+            x: this.player.x + (logicalMx - cx) / S,
+            y: this.player.y + (logicalMy - cy) / S
+        };
+    }
+
+    /**
+     * 将落点限制在以玩家为圆心、maxDist 为半径的圆内；圆内时与鼠标世界坐标重合，圆外时压在圆周上
+     */
+    clampGroundSkillAimWorldPoint(wx, wy, player, maxDist) {
+        if (!player || maxDist <= 0) return { x: player.x, y: player.y };
+        const dx = wx - player.x;
+        const dy = wy - player.y;
+        const d = Math.hypot(dx, dy);
+        if (d <= 1e-4) {
+            const r = Math.min(maxDist, 1);
+            return {
+                x: player.x + Math.cos(player.angle) * r,
+                y: player.y + Math.sin(player.angle) * r
+            };
+        }
+        if (d > maxDist) {
+            const k = maxDist / d;
+            return { x: player.x + dx * k, y: player.y + dy * k };
+        }
+        return { x: wx, y: wy };
+    }
+
+    _canUseWeaponSkillForBattle() {
+        if (this.currentScene === SCENE_TYPES.TOWER && this.currentRoom &&
+            (this.currentRoom.type === ROOM_TYPES.BATTLE || this.currentRoom.type === ROOM_TYPES.ELITE || this.currentRoom.type === ROOM_TYPES.BOSS)) {
+            return true;
+        }
+        if (this.currentScene === SCENE_TYPES.TRAINING && this.trainingGroundScene) return true;
+        return false;
+    }
+
+    _getSkillMonsters() {
+        if (this.currentScene === SCENE_TYPES.TOWER && this.currentRoom &&
+            (this.currentRoom.type === ROOM_TYPES.BATTLE || this.currentRoom.type === ROOM_TYPES.ELITE || this.currentRoom.type === ROOM_TYPES.BOSS)) {
+            return this.currentRoom.monsters;
+        }
+        if (this.currentScene === SCENE_TYPES.TRAINING && this.trainingGroundScene) {
+            return this.trainingGroundScene.dummies;
+        }
+        return null;
+    }
+
+    cancelWeaponSkillAim() {
+        this.weaponSkillAim = null;
+    }
+
+    _onWeaponSkillInputDown(source) {
+        if (this.paused) return;
+        if (!this._canUseWeaponSkillForBattle()) return;
+        if (this.player.isDashing || this.player.isCastingSkill) return;
+        const now = Date.now();
+        if (this.player.dashEndTime && now - this.player.dashEndTime < 500) return;
+        if (this.player.weaponSkillCooldown > now) return;
+
+        const gr = typeof this.player.resolveGroundAoeSkillRanges === 'function' ? this.player.resolveGroundAoeSkillRanges() : null;
+        const lr = typeof this.player.resolveTargetLockSkillRange === 'function' ? this.player.resolveTargetLockSkillRange() : null;
+        if (!gr && !lr) {
+            if (source === 'rmb') return;
+            const mon = this._getSkillMonsters();
+            if (mon) this.player.useWeaponSkill(mon);
+            return;
+        }
+        if (!this.weaponSkillAim) {
+            if (gr) {
+                this.weaponSkillAim = {
+                    mode: 'ground_aoe',
+                    hold: new Set(),
+                    startTime: Date.now(),
+                    active: false,
+                    castRange: gr.castRange,
+                    aoeRadius: gr.aoeRadius,
+                    aimX: this.player.x,
+                    aimY: this.player.y
+                };
+            } else {
+                this.weaponSkillAim = {
+                    mode: 'target_lock',
+                    hold: new Set(),
+                    startTime: Date.now(),
+                    active: false,
+                    lockRange: lr.range,
+                    lockTarget: null
+                };
+            }
+        }
+        this.weaponSkillAim.hold.add(source);
+    }
+
+    _onWeaponSkillInputUp(source) {
+        if (!this.weaponSkillAim) return;
+        const g = this.weaponSkillAim;
+        if (!g.hold.has(source)) return;
+        g.hold.delete(source);
+        if (g.hold.size > 0) return;
+        const wasActive = g.active;
+        const mode = g.mode;
+        const aimX = g.aimX;
+        const aimY = g.aimY;
+        const lockTarget = g.lockTarget;
+        this.weaponSkillAim = null;
+        if (!wasActive) return;
+        const mon = this._getSkillMonsters();
+        if (!mon) return;
+        if (mode === 'ground_aoe') {
+            this.player.useWeaponSkill(mon, { groundPoint: { x: aimX, y: aimY } });
+        } else if (mode === 'target_lock' && lockTarget) {
+            this.player.useWeaponSkill(mon, { lockTarget });
+        }
+    }
+
+    updateWeaponSkillAimState() {
+        const g = this.weaponSkillAim;
+        if (!g) return;
+        if (this.player.isDashing || !this._canUseWeaponSkillForBattle()) {
+            this.cancelWeaponSkillAim();
+            return;
+        }
+        const now = Date.now();
+        if (this.player.weaponSkillCooldown > now) {
+            this.cancelWeaponSkillAim();
+            return;
+        }
+        if (g.mode === 'ground_aoe') {
+            const pr = typeof this.player.resolveGroundAoeSkillRanges === 'function' ? this.player.resolveGroundAoeSkillRanges() : null;
+            if (!pr) {
+                this.cancelWeaponSkillAim();
+                return;
+            }
+            g.castRange = pr.castRange;
+            g.aoeRadius = pr.aoeRadius;
+        } else {
+            const lr = typeof this.player.resolveTargetLockSkillRange === 'function' ? this.player.resolveTargetLockSkillRange() : null;
+            if (!lr) {
+                this.cancelWeaponSkillAim();
+                return;
+            }
+            g.lockRange = lr.range;
+        }
+        const holdMs = 160;
+        if (!g.active && now - g.startTime >= holdMs) {
+            g.active = true;
+        }
+        if (!g.active) return;
+        if (g.mode === 'ground_aoe') {
+            const w = this.screenToWorldForAim(this.mouse.x, this.mouse.y);
+            const c = this.clampGroundSkillAimWorldPoint(w.x, w.y, this.player, g.castRange);
+            g.aimX = c.x;
+            g.aimY = c.y;
+        } else {
+            const mon = this._getSkillMonsters();
+            g.lockTarget = mon && typeof pickWeaponSkillLockTargetNearestToMouse === 'function'
+                ? pickWeaponSkillLockTargetNearestToMouse(mon, this.player, g.lockRange, this)
+                : null;
+        }
+    }
+
+    /** 锁定技瞄准时：目标身上青绿虚线菱形 + 黄圈（与命中后的 skill_lock_marker 区分） */
+    drawSkillLockPreviewMarker(ctx, x, y, now) {
+        const pulse = 0.88 + 0.12 * Math.sin(now * 0.02);
+        const lr = 21 * pulse;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(now * 0.0016);
+        ctx.strokeStyle = 'rgba(120, 255, 200, 0.92)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath();
+        ctx.moveTo(0, -lr);
+        ctx.lineTo(lr, 0);
+        ctx.lineTo(0, lr);
+        ctx.lineTo(-lr, 0);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.strokeStyle = 'rgba(255, 245, 160, 0.88)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, lr * 1.28, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    drawWeaponSkillAimPreview(ctx) {
+        const g = this.weaponSkillAim;
+        if (!g || !g.active || this.paused) return;
+        const px = this.player.x;
+        const py = this.player.y;
+        const now = Date.now();
+        ctx.save();
+        if (g.mode === 'ground_aoe') {
+            ctx.strokeStyle = 'rgba(120, 200, 255, 0.65)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 5]);
+            ctx.beginPath();
+            ctx.arc(px, py, g.castRange, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.strokeStyle = 'rgba(255, 200, 90, 0.9)';
+            ctx.fillStyle = 'rgba(255, 200, 90, 0.14)';
+            ctx.beginPath();
+            ctx.arc(g.aimX, g.aimY, g.aoeRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        } else {
+            ctx.strokeStyle = 'rgba(200, 120, 255, 0.65)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 5]);
+            ctx.beginPath();
+            ctx.arc(px, py, g.lockRange, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            if (g.lockTarget && g.lockTarget.x != null && g.lockTarget.y != null) {
+                this.drawSkillLockPreviewMarker(ctx, g.lockTarget.x, g.lockTarget.y, now);
+            }
+        }
+        ctx.restore();
     }
     
     /**
@@ -7756,6 +8254,11 @@ class Game {
                 return false; // 移除过期特效
             }
             
+            if (effect.followTarget && typeof effect.followTarget.x === 'number' && typeof effect.followTarget.y === 'number') {
+                effect.x = effect.followTarget.x;
+                effect.y = effect.followTarget.y;
+            }
+            
             const progress = elapsed / effect.duration; // 0-1
             const alpha = 1 - progress * 0.5; // 逐渐消失，但保持一定可见度
             
@@ -7772,6 +8275,50 @@ class Game {
                     ctx.stroke();
                     ctx.fillStyle = 'rgba(255, 200, 80, ' + Math.max(0.15, alpha * 0.4) + ')';
                     ctx.fill();
+                    break;
+                    
+                case 'ground_sigil': // 落点范围技能：地面符文圈 + 内环脉冲
+                    const gRad = Math.max(24, (effect.radius || 90) * (0.35 + progress * 0.92));
+                    ctx.strokeStyle = 'rgba(120, 200, 255, ' + Math.max(0.45, alpha) + ')';
+                    ctx.lineWidth = 5;
+                    ctx.setLineDash([10, 8]);
+                    ctx.beginPath();
+                    ctx.arc(effect.x, effect.y, gRad, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, ' + Math.max(0.35, alpha * 0.85) + ')';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(effect.x, effect.y, gRad * (0.55 + 0.08 * Math.sin(elapsed * 0.02)), 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.fillStyle = 'rgba(80, 160, 255, ' + Math.max(0.12, alpha * 0.28) + ')';
+                    ctx.beginPath();
+                    ctx.arc(effect.x, effect.y, gRad * 0.35, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+                    
+                case 'skill_lock_marker': // 锁定技：目标身上菱形准星 + 旋转角标
+                    const pulse = 0.85 + 0.15 * Math.sin(elapsed * 0.018);
+                    const lr = 22 * pulse;
+                    ctx.strokeStyle = 'rgba(255, 80, 120, ' + Math.max(0.65, alpha) + ')';
+                    ctx.lineWidth = 3;
+                    ctx.save();
+                    ctx.translate(effect.x, effect.y);
+                    ctx.rotate(elapsed * 0.0022);
+                    ctx.beginPath();
+                    ctx.moveTo(0, -lr);
+                    ctx.lineTo(lr, 0);
+                    ctx.lineTo(0, lr);
+                    ctx.lineTo(-lr, 0);
+                    ctx.closePath();
+                    ctx.stroke();
+                    ctx.rotate(Math.PI / 4);
+                    ctx.strokeStyle = 'rgba(255, 220, 100, ' + Math.max(0.5, alpha * 0.9) + ')';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, lr * 1.35, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.restore();
                     break;
                     
                 case 'magic_explosion': // 魔法水晶剑 - 紫色圆形爆炸
@@ -7963,6 +8510,24 @@ class Game {
                     ctx.arc(effect.x, effect.y, comboR, 0, Math.PI * 2);
                     ctx.stroke();
                     break;
+                    
+                case 'void_vein_burst': // 深阶魔印·裂脉：紫粉脉裂环（独立伤害段）
+                    const vvR = (effect.radius || 48) * (0.32 + progress * 1.05);
+                    ctx.strokeStyle = 'rgba(224, 64, 251, ' + Math.max(0.55, alpha) + ')';
+                    ctx.lineWidth = 5;
+                    ctx.beginPath();
+                    ctx.arc(effect.x, effect.y, vvR, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.strokeStyle = 'rgba(255, 210, 255, ' + Math.max(0.4, alpha * 0.9) + ')';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(effect.x, effect.y, vvR * 0.52, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.fillStyle = 'rgba(186, 104, 200, ' + Math.max(0.2, alpha * 0.45) + ')';
+                    ctx.beginPath();
+                    ctx.arc(effect.x, effect.y, vvR * 0.42, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
             }
             
             ctx.restore();
@@ -7981,9 +8546,9 @@ class Game {
         const traitIds = this.player.getEquipmentTraitIds();
         let trailColor = '#ffffff'; // 默认白色
         
-        if (traitIds.includes('galaxy_trail')) {
+        if (traitIdsIncludeBase(traitIds, 'galaxy_trail')) {
             trailColor = '#9900ff'; // 银河轨迹 - 紫色
-        } else if (traitIds.includes('fire_trail')) {
+        } else if (traitIdsIncludeBase(traitIds, 'fire_trail')) {
             trailColor = '#ff4400'; // 踏火余烬 - 红色
         }
         
@@ -8283,6 +8848,192 @@ class Game {
     }
     
     /**
+     * Boss 被击败：发放经验、金币与掉落（普通击杀流程不会处理 Boss）
+     */
+    onBossDefeated(monster) {
+        if (!monster) return;
+        if (monster._bossRewardGranted) return;
+        monster._bossRewardGranted = true;
+        this.gainExp(monster.expReward);
+        this.gainGold(monster.goldReward);
+        this.addFloatingText(this.player.x, this.player.y, `+${monster.expReward} 经验`, '#00ff00');
+        this.addFloatingText(this.player.x, this.player.y, `+${monster.goldReward} 金币`, '#ffd700');
+        const maxF = typeof window.getTowerMaxFloor === 'function' ? window.getTowerMaxFloor() : 240;
+        if (this.floor >= maxF) {
+            this.addFloatingText(this.player.x, this.player.y, '恭喜通关恶魔塔！', '#ffdd00');
+        }
+        const allEquipments = generateEquipments();
+        const tierLevels = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
+        const M = monster.level || 20;
+        let availableLevels = tierLevels.filter(L => L <= M && L >= M - 18);
+        if (!availableLevels.length) availableLevels = tierLevels.filter(L => L <= M);
+        if (!availableLevels.length) availableLevels = [60];
+        const levelEquipments = allEquipments.filter(eq => availableLevels.includes(eq.level) && !eq.isCrafted && (eq.quality === 'epic' || eq.quality === 'legendary'));
+        const pool = levelEquipments.length ? levelEquipments : allEquipments.filter(eq => availableLevels.includes(eq.level) && !eq.isCrafted);
+        if (pool.length > 0) {
+            const randomEq = pool[Math.floor(Math.random() * pool.length)];
+            const newEq = new Equipment({
+                id: randomEq.id,
+                name: randomEq.name,
+                slot: randomEq.slot,
+                weaponType: randomEq.weaponType,
+                quality: randomEq.quality,
+                level: randomEq.level,
+                stats: JSON.parse(JSON.stringify(randomEq.stats)),
+                refineLevel: 0
+            });
+            const dropAngle = Math.random() * Math.PI * 2;
+            const dropDistance = 30 + Math.random() * 50;
+            this.droppedItems.push(new DroppedItem(
+                monster.x + Math.cos(dropAngle) * dropDistance,
+                monster.y + Math.sin(dropAngle) * dropDistance,
+                newEq,
+                this
+            ));
+        }
+        this.updateHUD();
+    }
+    
+    initGapShop() {
+        const contBtn = document.getElementById('gap-shop-continue-btn');
+        const closeBtn = document.getElementById('gap-shop-close-btn');
+        if (contBtn) contBtn.addEventListener('click', () => this.finishGapShopLeave());
+        if (closeBtn) closeBtn.addEventListener('click', () => this.closeGapShopModal());
+        ['gap-buy-heal-half', 'gap-buy-heal-full', 'gap-buy-maxhp', 'gap-buy-boon', 'gap-buy-revive'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            const kind = btn.getAttribute('data-kind');
+            if (kind) btn.addEventListener('click', () => this.tryGapShopBuy(kind));
+        });
+    }
+    
+    openGapShopModal() {
+        if (!this.currentRoom || this.currentRoom.type !== ROOM_TYPES.GAP_SHOP || this.currentRoom.cleared) return;
+        const modal = document.getElementById('gap-shop-modal');
+        if (!modal) return;
+        this.paused = true;
+        modal.classList.add('show');
+        this.renderGapShopPanel();
+    }
+    
+    closeGapShopModal() {
+        const modal = document.getElementById('gap-shop-modal');
+        if (modal) modal.classList.remove('show');
+        if (this.currentRoom && this.currentRoom.type === ROOM_TYPES.GAP_SHOP && !this.currentRoom.cleared) {
+            this.paused = false;
+        }
+    }
+    
+    finishGapShopLeave() {
+        if (!this.currentRoom || this.currentRoom.type !== ROOM_TYPES.GAP_SHOP) return;
+        this.currentRoom.cleared = true;
+        const modal = document.getElementById('gap-shop-modal');
+        if (modal) modal.classList.remove('show');
+        this.paused = false;
+        if (!this.demonInterferenceActive) {
+            if (this.currentScene === SCENE_TYPES.TOWER && Math.random() < this.demonInterferenceTriggerChance) {
+                this.startDemonInterference();
+            } else {
+                this.generatePortals();
+            }
+        }
+        this.addFloatingText(this.player.x, this.player.y, '已离开隙间商店', '#ffd700');
+    }
+    
+    gapShopPriceMult() {
+        return Math.max(1, this.floor | 0);
+    }
+    
+    tryGapShopBuy(kind) {
+        if (!this.player || this.currentScene !== SCENE_TYPES.TOWER) return;
+        const m = this.gapShopPriceMult();
+        const costs = {
+            healHalf: 8 * m,
+            healFull: 22 * m,
+            maxHp: 28 * m,
+            boon: 40 * m,
+            revive: 95 * m
+        };
+        const price = costs[kind];
+        if (price == null) return;
+        if (this.player.gold < price) {
+            this.addFloatingText(this.player.x, this.player.y, '金币不足', '#ff6666');
+            return;
+        }
+        this.player.gold -= price;
+        if (kind === 'healHalf') {
+            this.player.heal(Math.floor(this.player.maxHp * 0.5));
+        } else if (kind === 'healFull') {
+            this.player.hp = this.player.maxHp;
+        } else if (kind === 'maxHp') {
+            this.player.towerMaxHpBonusPercent = (this.player.towerMaxHpBonusPercent || 0) + 5;
+            this.player.updateStats();
+        } else if (kind === 'boon') {
+            this.grantRandomEliteBoon();
+        } else if (kind === 'revive') {
+            this.player.towerReviveCharges = (this.player.towerReviveCharges || 0) + 1;
+        }
+        this.updateHUD();
+        this.addFloatingText(this.player.x, this.player.y, '已购买', '#88ff88');
+        this.renderGapShopPanel();
+    }
+    
+    renderGapShopPanel() {
+        const m = this.gapShopPriceMult();
+        const setPrice = (id, n) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = String(n);
+        };
+        setPrice('gap-price-heal-half', 8 * m);
+        setPrice('gap-price-heal-full', 22 * m);
+        setPrice('gap-price-maxhp', 28 * m);
+        setPrice('gap-price-boon', 40 * m);
+        setPrice('gap-price-revive', 95 * m);
+        const goldEl = document.getElementById('gap-shop-gold');
+        if (goldEl && this.player) goldEl.textContent = this.player.gold;
+        const list = document.getElementById('gap-shop-sell-list');
+        if (!list || !this.player) return;
+        const sellable = [];
+        this.player.inventory.forEach((item, index) => {
+            if (!item) return;
+            if (this.player.equipment && Object.values(this.player.equipment).includes(item)) return;
+            sellable.push({ item, index });
+        });
+        if (!sellable.length) {
+            list.innerHTML = '<p style="color:#888;font-size:12px;">暂无可出售物品</p>';
+            return;
+        }
+        list.innerHTML = '';
+        sellable.forEach(({ item, index }) => {
+            let sellPrice = 0;
+            if (item.slot) {
+                const statSum = item.stats ? Object.values(item.stats).reduce((a, b) => a + b, 0) : 0;
+                const baseValue = (item.level || 1) * 20 + statSum * 2;
+                const qm = (['common', 'rare', 'fine', 'epic', 'legendary'].indexOf(item.quality) + 1) || 1;
+                sellPrice = Math.floor(baseValue * qm * 0.4);
+            } else if (item.type === 'potion') {
+                const buyPrice = item.buyPrice || item.price || 50;
+                sellPrice = Math.floor(buyPrice * 0.5);
+            } else {
+                const buyPrice = item.buyPrice || item.price || 30;
+                sellPrice = Math.floor(buyPrice * 0.5);
+            }
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #444;font-size:12px;color:#ddd;';
+            row.innerHTML = `<span>${item.name}</span><span>${sellPrice} 金 <button type="button" class="gap-sell-one" data-i="${index}" data-p="${sellPrice}">出售</button></span>`;
+            list.appendChild(row);
+        });
+        list.querySelectorAll('.gap-sell-one').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const i = parseInt(btn.getAttribute('data-i'), 10);
+                const p = parseInt(btn.getAttribute('data-p'), 10);
+                this.sellItem(i, p);
+                this.renderGapShopPanel();
+            });
+        });
+    }
+    
+    /**
      * 生成传送门
      */
     generatePortals() {
@@ -8291,62 +9042,66 @@ class Game {
         const centerY = CONFIG.CANVAS_HEIGHT / 2;
         const distance = 250; // 传送门距离中心的距离
         
-        // 根据当前房间类型决定传送门生成逻辑
-        const isBattleRoom = this.currentRoom && (this.currentRoom.type === ROOM_TYPES.BATTLE || this.currentRoom.type === ROOM_TYPES.ELITE);
+        const maxF = typeof window.getTowerMaxFloor === 'function' ? window.getTowerMaxFloor() : 240;
+        const nextFloor = this.floor + 1;
         
-        let nextPortals = []; // 下一层传送门列表
+        const isCombatRoom = this.currentRoom && (
+            this.currentRoom.type === ROOM_TYPES.BATTLE ||
+            this.currentRoom.type === ROOM_TYPES.ELITE ||
+            this.currentRoom.type === ROOM_TYPES.BOSS
+        );
         
-        if (isBattleRoom) {
-            // 战斗房间：随机生成2~3个下一层传送门（四种类型都可能生成）
-            const portalCount = 2 + Math.floor(Math.random() * 2); // 2或3个
+        let nextPortals = [];
+        
+        if (isCombatRoom && this.currentRoom.type === ROOM_TYPES.BOSS && this.currentRoom.cleared && nextFloor > maxF) {
+            // 通关最高层 Boss：不再生成向上传送门
+        } else if (isCombatRoom && typeof window.isTowerGapShopFloor === 'function' && window.isTowerGapShopFloor(nextFloor)) {
+            nextPortals.push(new Portal(centerX, centerY - distance, nextFloor, 'next', ROOM_TYPES.GAP_SHOP));
+        } else if (isCombatRoom) {
+            const portalCount = 2 + Math.floor(Math.random() * 2);
             const availableTypes = [ROOM_TYPES.BATTLE, ROOM_TYPES.TREASURE, ROOM_TYPES.REST, ROOM_TYPES.ALCHEMY, ROOM_TYPES.ELITE];
-            // 随机选择2-3个不同的房间类型
             const selectedTypes = [];
             const shuffledTypes = [...availableTypes].sort(() => Math.random() - 0.5);
             for (let i = 0; i < portalCount && i < shuffledTypes.length; i++) {
                 selectedTypes.push(shuffledTypes[i]);
             }
-            
-            const targetFloor = this.floor + 1;
-            
             if (portalCount === 1) {
-                // 1个传送门：在正上方
-                nextPortals.push(new Portal(centerX, centerY - distance, targetFloor, 'next', selectedTypes[0]));
+                nextPortals.push(new Portal(centerX, centerY - distance, nextFloor, 'next', selectedTypes[0]));
             } else if (portalCount === 2) {
-                // 2个传送门：在左上方和右上方
-                const offsetX = distance * 0.7; // 左右偏移
-                nextPortals.push(new Portal(centerX - offsetX, centerY - distance, targetFloor, 'next', selectedTypes[0]));
-                nextPortals.push(new Portal(centerX + offsetX, centerY - distance, targetFloor, 'next', selectedTypes[1]));
+                const offsetX = distance * 0.7;
+                nextPortals.push(new Portal(centerX - offsetX, centerY - distance, nextFloor, 'next', selectedTypes[0]));
+                nextPortals.push(new Portal(centerX + offsetX, centerY - distance, nextFloor, 'next', selectedTypes[1]));
             } else if (portalCount === 3) {
-                // 3个传送门：在左上方、正上方、右上方
-                const offsetX = distance * 0.7; // 左右偏移
-                nextPortals.push(new Portal(centerX - offsetX, centerY - distance, targetFloor, 'next', selectedTypes[0]));
-                nextPortals.push(new Portal(centerX, centerY - distance, targetFloor, 'next', selectedTypes[1]));
-                nextPortals.push(new Portal(centerX + offsetX, centerY - distance, targetFloor, 'next', selectedTypes[2]));
+                const offsetX = distance * 0.7;
+                nextPortals.push(new Portal(centerX - offsetX, centerY - distance, nextFloor, 'next', selectedTypes[0]));
+                nextPortals.push(new Portal(centerX, centerY - distance, nextFloor, 'next', selectedTypes[1]));
+                nextPortals.push(new Portal(centerX + offsetX, centerY - distance, nextFloor, 'next', selectedTypes[2]));
             }
+        } else if (this.currentRoom && this.currentRoom.type === ROOM_TYPES.GAP_SHOP && this.currentRoom.cleared) {
+            nextPortals.push(new Portal(centerX, centerY - distance, nextFloor, 'next', ROOM_TYPES.BOSS));
         } else {
-            // 非战斗房间：只生成一个战斗房间的传送门
-            const targetFloor = this.floor + 1;
-            // 1个传送门：在正上方
-            nextPortals.push(new Portal(centerX, centerY - distance, targetFloor, 'next', ROOM_TYPES.BATTLE));
+            const roomType = (typeof window.isTowerGapShopFloor === 'function' && window.isTowerGapShopFloor(nextFloor))
+                ? ROOM_TYPES.GAP_SHOP
+                : ROOM_TYPES.BATTLE;
+            nextPortals.push(new Portal(centerX, centerY - distance, nextFloor, 'next', roomType));
         }
         
-        // 恶魔干扰效果b：修改下一层房间类型
-        if (this.demonInterferenceFlags && this.demonInterferenceFlags.forceRoomTypes) {
+        const skipDemonOverride = (typeof window.isTowerGapShopFloor === 'function' && window.isTowerGapShopFloor(nextFloor)) ||
+            (this.currentRoom && this.currentRoom.type === ROOM_TYPES.GAP_SHOP && this.currentRoom.cleared);
+        if (!skipDemonOverride && this.demonInterferenceFlags && this.demonInterferenceFlags.forceRoomTypes) {
             nextPortals = [];
             const types = this.demonInterferenceFlags.forceRoomTypes;
-            const targetFloor = this.floor + 1;
             if (types.length === 1) {
-                nextPortals.push(new Portal(centerX, centerY - distance, targetFloor, 'next', types[0]));
+                nextPortals.push(new Portal(centerX, centerY - distance, nextFloor, 'next', types[0]));
             } else if (types.length === 2) {
                 const offsetX = distance * 0.7;
-                nextPortals.push(new Portal(centerX - offsetX, centerY - distance, targetFloor, 'next', types[0]));
-                nextPortals.push(new Portal(centerX + offsetX, centerY - distance, targetFloor, 'next', types[1]));
+                nextPortals.push(new Portal(centerX - offsetX, centerY - distance, nextFloor, 'next', types[0]));
+                nextPortals.push(new Portal(centerX + offsetX, centerY - distance, nextFloor, 'next', types[1]));
             } else {
                 const offsetX = distance * 0.7;
-                nextPortals.push(new Portal(centerX - offsetX, centerY - distance, targetFloor, 'next', types[0]));
-                nextPortals.push(new Portal(centerX, centerY - distance, targetFloor, 'next', types[1]));
-                nextPortals.push(new Portal(centerX + offsetX, centerY - distance, targetFloor, 'next', types[2]));
+                nextPortals.push(new Portal(centerX - offsetX, centerY - distance, nextFloor, 'next', types[0]));
+                nextPortals.push(new Portal(centerX, centerY - distance, nextFloor, 'next', types[1]));
+                nextPortals.push(new Portal(centerX + offsetX, centerY - distance, nextFloor, 'next', types[2]));
             }
         }
         
@@ -8725,8 +9480,9 @@ class Game {
             if (this.currentScene === 'dungeon') {
                 this.currentScene = SCENE_TYPES.TOWN;
             }
-            this.floor = saveData.game.floor || 1;
-            this.lastDeathFloor = saveData.game.lastDeathFloor || 1;
+            const maxF = typeof window.getTowerMaxFloor === 'function' ? window.getTowerMaxFloor() : 240;
+            this.floor = Math.min(saveData.game.floor || 1, maxF);
+            this.lastDeathFloor = Math.min(saveData.game.lastDeathFloor || 1, maxF);
             this.needFloorRollback = saveData.game.needFloorRollback || false;
             
             // 恢复商店状态
@@ -9681,7 +10437,9 @@ class Game {
                 treasure: '宝箱',
                 rest: '休整',
                 alchemy: '炼金',
-                elite: '精英'
+                elite: '精英',
+                gap_shop: '隙间商店',
+                boss: 'Boss'
             };
             const roomTypeEl = document.getElementById('dev-room-type');
             if (roomTypeEl) {
@@ -9726,15 +10484,48 @@ class Game {
         this.addFloatingText(this.player.x, this.player.y, `恢复满血 (DEV)`, '#00ff00');
     }
 
-    // 开发者功能：升级
-    devLevelUp() {
-        this.player.level++;
-        this.player.expNeeded = Math.floor(this.player.expNeeded * 1.3); // 与正常升级保持一致
-        this.player.maxHp += 20;
+    /**
+     * 与正常升级链一致：升到 level 时所需「下一级」经验条上限
+     */
+    computePlayerExpNeededForLevel(level) {
+        let e = 50;
+        const Lv = Math.max(1, Math.floor(Number(level)) || 1);
+        for (let L = 2; L <= Lv; L++) {
+            e = Math.floor(e * 1.3);
+        }
+        return e;
+    }
+
+    /**
+     * 开发者：将玩家设为指定等级（1～999），并重算经验条、属性与满血
+     */
+    devSetPlayerLevel(targetLevel) {
+        const t = Math.min(999, Math.max(1, Math.floor(Number(targetLevel)) || 1));
+        const was = this.player.level;
+        if (t === was) {
+            this.addFloatingText(this.player.x, this.player.y, `当前已是 ${t} 级`, '#888888');
+            this.updateHUD();
+            return;
+        }
+        this.player.level = t;
+        this.player.expNeeded = this.computePlayerExpNeededForLevel(t);
+        this.player.exp = 0;
+        this.player.updateStats();
         this.player.hp = this.player.maxHp;
-        this.player.baseAttack += 2;
         this.updateHUD();
-        this.addFloatingText(this.player.x, this.player.y, `升级到 ${this.player.level} 级 (DEV)`, '#00aaff');
+        this.addFloatingText(this.player.x, this.player.y, `等级 ${was} → ${t} (DEV)`, '#00aaff');
+    }
+
+    /** 从开发者面板输入框读取目标等级 */
+    devSetPlayerLevelFromInput() {
+        const inp = document.getElementById('dev-target-level');
+        const raw = inp && inp.value;
+        const n = parseInt(String(raw).trim(), 10);
+        if (!Number.isFinite(n) || n < 1) {
+            this.addFloatingText(this.player.x, this.player.y, '请输入有效等级（≥1）', '#ff6666');
+            return;
+        }
+        this.devSetPlayerLevel(n);
     }
 
     // 开发者功能：添加随机装备
@@ -9760,7 +10551,7 @@ class Game {
 
     // 开发者功能：清空当前房间
     devClearRoom() {
-        if (this.currentRoom && (this.currentRoom.type === ROOM_TYPES.BATTLE || this.currentRoom.type === ROOM_TYPES.ELITE)) {
+        if (this.currentRoom && (this.currentRoom.type === ROOM_TYPES.BATTLE || this.currentRoom.type === ROOM_TYPES.ELITE || this.currentRoom.type === ROOM_TYPES.BOSS)) {
             this.currentRoom.monsters.forEach(monster => {
                 monster.hp = 0;
             });
@@ -9771,7 +10562,8 @@ class Game {
 
     // 开发者功能：下一层
     devNextFloor() {
-        this.floor++;
+        const maxF = typeof window.getTowerMaxFloor === 'function' ? window.getTowerMaxFloor() : 240;
+        this.floor = Math.min(this.floor + 1, maxF);
         this.hasClearedFloor = true; // 标记已通关至少一层
         this.generateNewRoom();
         this.isTransitioning = false;
@@ -9792,7 +10584,9 @@ class Game {
             treasure: '宝箱',
             rest: '休整',
             alchemy: '炼金',
-            elite: '精英'
+            elite: '精英',
+            gap_shop: '隙间商店',
+            boss: 'Boss'
         };
         const typeLabel = (typeNames[type] != null ? typeNames[type] : type) || '未知';
         const roomTypeEl = document.getElementById('room-type');

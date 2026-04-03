@@ -1555,30 +1555,30 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+12，防御力+7",
+          "description": "攻击力+14，防御力+8",
           "stats": {
-            "attack": 12,
-            "defense": 7
+            "attack": 14,
+            "defense": 8
           }
         },
         "4": {
-          "description": "暴击率+5%，生命值+109",
+          "description": "暴击率+6%，生命值+124",
           "stats": {
-            "critRate": 5,
-            "health": 109
+            "critRate": 6,
+            "health": 124
           }
         },
         "6": {
-          "description": "攻击速度+9%，移动速度+5%",
+          "description": "攻击速度+11%，移动速度+6%",
           "stats": {
-            "attackSpeed": 9,
-            "moveSpeed": 5
+            "attackSpeed": 11,
+            "moveSpeed": 6
           }
         },
         "8": {
-          "description": "所有属性+10%，击杀敌人时恢复5%最大生命值",
+          "description": "所有属性+13%，击杀敌人时恢复5%最大生命值",
           "stats": {
-            "allStats": 0.1
+            "allStats": 0.13
           },
           "special": "killHeal"
         }
@@ -1599,30 +1599,30 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+14，防御力+8",
+          "description": "攻击力+16，防御力+9",
           "stats": {
-            "attack": 14,
-            "defense": 8
+            "attack": 16,
+            "defense": 9
           }
         },
         "4": {
-          "description": "暴击率+7%，生命值+124",
+          "description": "暴击率+8%，生命值+142",
           "stats": {
-            "critRate": 7,
-            "health": 124
+            "critRate": 8,
+            "health": 142
           }
         },
         "6": {
-          "description": "攻击速度+11%，移动速度+6%",
+          "description": "攻击速度+13%，移动速度+7%",
           "stats": {
-            "attackSpeed": 11,
-            "moveSpeed": 6
+            "attackSpeed": 13,
+            "moveSpeed": 7
           }
         },
         "8": {
-          "description": "所有属性+12%，击杀敌人时恢复5%最大生命值",
+          "description": "所有属性+15%，击杀敌人时恢复5%最大生命值",
           "stats": {
-            "allStats": 0.12
+            "allStats": 0.15
           },
           "special": "killHeal"
         }
@@ -1643,30 +1643,30 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+16，防御力+9",
+          "description": "攻击力+19，防御力+11",
           "stats": {
-            "attack": 16,
-            "defense": 9
+            "attack": 19,
+            "defense": 11
           }
         },
         "4": {
-          "description": "暴击率+9%，生命值+139",
+          "description": "暴击率+10%，生命值+160",
           "stats": {
-            "critRate": 9,
-            "health": 139
+            "critRate": 10,
+            "health": 160
           }
         },
         "6": {
-          "description": "攻击速度+13%，移动速度+7%",
+          "description": "攻击速度+15%，移动速度+8%",
           "stats": {
-            "attackSpeed": 13,
-            "moveSpeed": 7
+            "attackSpeed": 15,
+            "moveSpeed": 8
           }
         },
         "8": {
-          "description": "所有属性+15%，击杀敌人时恢复5%最大生命值",
+          "description": "所有属性+18%，击杀敌人时恢复5%最大生命值",
           "stats": {
-            "allStats": 0.15
+            "allStats": 0.18
           },
           "special": "killHeal"
         }
@@ -1687,32 +1687,33 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+18，防御力+10",
+          "description": "攻击力+22，防御力+12",
           "stats": {
-            "attack": 18,
-            "defense": 10
+            "attack": 22,
+            "defense": 12
           }
         },
         "4": {
-          "description": "暴击率+11%，生命值+154",
+          "description": "暴击率+12%，生命值+178",
           "stats": {
-            "critRate": 11,
-            "health": 154
+            "critRate": 12,
+            "health": 178
           }
         },
         "6": {
-          "description": "攻击速度+15%，移动速度+8%",
+          "description": "攻击速度+17%，移动速度+9%",
           "stats": {
-            "attackSpeed": 15,
-            "moveSpeed": 8
+            "attackSpeed": 17,
+            "moveSpeed": 9
           }
         },
         "8": {
-          "description": "所有属性+17%，击杀敌人时恢复5%最大生命值",
+          "description": "所有属性+20%，击杀敌人时恢复6%最大生命值",
           "stats": {
-            "allStats": 0.17
+            "allStats": 0.2
           },
-          "special": "killHeal"
+          "special": "killHeal",
+          "killHealPercent": 0.06
         }
       }
     },
@@ -1731,32 +1732,33 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+20，防御力+11",
+          "description": "攻击力+26，防御力+14",
           "stats": {
-            "attack": 20,
-            "defense": 11
+            "attack": 26,
+            "defense": 14
           }
         },
         "4": {
-          "description": "暴击率+13%，生命值+169",
+          "description": "暴击率+15%，生命值+198",
           "stats": {
-            "critRate": 13,
-            "health": 169
+            "critRate": 15,
+            "health": 198
           }
         },
         "6": {
-          "description": "攻击速度+17%，移动速度+9%",
+          "description": "攻击速度+19%，移动速度+10%",
           "stats": {
-            "attackSpeed": 17,
-            "moveSpeed": 9
+            "attackSpeed": 19,
+            "moveSpeed": 10
           }
         },
         "8": {
-          "description": "所有属性+20%，击杀敌人时恢复5%最大生命值",
+          "description": "所有属性+24%，击杀敌人时恢复6%最大生命值",
           "stats": {
-            "allStats": 0.2
+            "allStats": 0.24
           },
-          "special": "killHeal"
+          "special": "killHeal",
+          "killHealPercent": 0.06
         }
       }
     }

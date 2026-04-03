@@ -18,19 +18,70 @@ from collections import deque
 from pathlib import Path
 from datetime import datetime
 
-# 可被环境变量覆盖
-API_KEY = os.environ.get("PE_ART_API_KEY", "sk-OVNKpYrzUnloOR1F8qhA3KZKMwOQxjX8icaGpO2dUmP5FZj4")
-CHAT_URL = os.environ.get("PE_CHAT_URL", "http://35.220.164.252:3888/v1/chat/completions")
-IMAGE_URL = os.environ.get("PE_IMAGE_URL", "http://35.220.164.252:3888/v1/images/generations")
-CHAT_MODEL = os.environ.get("PE_CHAT_MODEL", "gpt-4o-mini")
-IMAGE_MODEL = os.environ.get("PE_IMAGE_MODEL", "imagen-4.0-ultra-generate-001")
-
 # 项目根目录（脚本在 tools/ 下时，上级为项目根）
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _load_env_files() -> None:
+    """从项目根或 tools 下的 .env 注入变量；不覆盖已在环境中的键。"""
+    for path in (PROJECT_ROOT / ".env", PROJECT_ROOT / "tools" / ".env"):
+        if not path.is_file():
+            continue
+        try:
+            raw = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for line in raw.splitlines():
+            s = line.strip()
+            if not s or s.startswith("#"):
+                continue
+            if s.lower().startswith("export "):
+                s = s[7:].strip()
+            if "=" not in s:
+                continue
+            key, _, val = s.partition("=")
+            key = key.strip()
+            if not key or key in os.environ:
+                continue
+            val = val.strip()
+            if len(val) >= 2 and val[0] == val[-1] and val[0] in "\"'":
+                val = val[1:-1]
+            os.environ[key] = val
+
+
+_load_env_files()
+
+# 可被环境变量覆盖。必须设置 PE_ART_API_KEY（或写入 .env）；网关根地址默认如下，也可用 PE_API_BASE 覆盖后自动拼接路径。
+_API_BASE_DEFAULT = "http://35.220.164.252:3888"
+API_BASE = (os.environ.get("PE_API_BASE") or _API_BASE_DEFAULT).rstrip("/")
+API_KEY = (os.environ.get("PE_ART_API_KEY") or "").strip()
+CHAT_URL = (os.environ.get("PE_CHAT_URL") or f"{API_BASE}/v1/chat/completions").strip()
+IMAGE_URL = (os.environ.get("PE_IMAGE_URL") or f"{API_BASE}/v1/images/generations").strip()
+CHAT_MODEL = os.environ.get("PE_CHAT_MODEL", "gpt-4o-mini")
+IMAGE_MODEL = os.environ.get("PE_IMAGE_MODEL", "imagen-4.0-ultra-generate-001")
+# 生图通道：openai | gemini | auto（先 OpenAI 式，403 再试 generateContent，适配常见网关）
+PE_IMAGE_BACKEND = (os.environ.get("PE_IMAGE_BACKEND") or "auto").strip().lower()
+GEMINI_IMAGE_URL = (
+    os.environ.get("PE_GEMINI_IMAGE_URL")
+    or f"{API_BASE}/v1beta/models/{IMAGE_MODEL}:generateContent"
+).strip()
+
+
+def require_art_api_key(purpose: str = "调用 LLM 或生图接口") -> None:
+    if not API_KEY:
+        raise RuntimeError(
+            f"{purpose} 需要 PE_ART_API_KEY。"
+            " 可在项目根或 tools 目录创建 .env，写入 PE_ART_API_KEY=你的密钥（勿提交 git）；"
+            "或 PowerShell: $env:PE_ART_API_KEY='你的密钥'"
+        )
+
+
 ART_FOLDER = PROJECT_ROOT / "asset"
 ART_SKILL_ICONS = ART_FOLDER / "skill_icons"
 ART_BUFF_ICONS = ART_FOLDER / "buff_icons"  # 增幅/效果图标，画风与技能图标一致
 SKILL_ICON_EXAMPLES_DIR = ART_SKILL_ICONS / "Examples"  # 风格参考图目录
+# 深阶装备统一输出目录（相对 asset），可用环境变量覆盖
+DEEP_EQUIPMENT_FOLDER = os.environ.get("PE_DEEP_EQUIPMENT_FOLDER", "deep_equipment").strip() or "deep_equipment"
 EQUIPMENT_CONFIG = PROJECT_ROOT / "config" / "equipment-config.json"
 EQUIPMENT_DEEP_CONFIG = PROJECT_ROOT / "config" / "equipment-deep-config.json"
 DATA_CLASSES = PROJECT_ROOT / "js" / "data-classes.js"
@@ -103,6 +154,106 @@ DEEP_QUALITY_MODIFIERS_CN = {
     "炽": "ornate, glowing accents, rich details",
     "曜": "magnificent, radiant aura, legendary",
 }
+# 深阶主题“视觉指纹”：主色调 + 核心材质 + 装饰符号 + 光效（用于降低主题间同质化）
+DEEP_THEME_FINGERPRINTS = {
+    "渊隙": {
+        "palette": "dark purple and deep gray",
+        "material": "rift rock and dark metal",
+        "symbols": "crack patterns and glowing fissures",
+        "fx": "violet fissure glow and undercurrent swirl",
+    },
+    "虚印": {
+        "palette": "silver-blue and pale white",
+        "material": "runic stone and spectral material",
+        "symbols": "luminous runes and ghostly contours",
+        "fx": "blue-white bloom and semi-transparent sheen",
+    },
+    "腐噬": {
+        "palette": "dark green and rusty brown",
+        "material": "corroded metal and viscous slime",
+        "symbols": "fungal stains and corrosion holes",
+        "fx": "toxic green mist and dripping slime",
+    },
+    "黑曜": {
+        "palette": "pure black and dark red",
+        "material": "obsidian and volcanic rock",
+        "symbols": "sharp facets and magma veins",
+        "fx": "crimson cracks and mirror-like highlights",
+    },
+    "终幕": {
+        "palette": "deep violet and dark gold",
+        "material": "draped cloth and aged bronze",
+        "symbols": "curtain folds and ritual trims",
+        "fx": "shadow gradients and dim golden halo",
+    },
+    "星骸": {
+        "palette": "deep blue and dark silver",
+        "material": "meteor iron and cosmic dust",
+        "symbols": "star specks and fractured lines",
+        "fx": "starlight glints and metallic reflections",
+    },
+    "裂点": {
+        "palette": "dark blue and silver gray",
+        "material": "cracked crystal and charged metal",
+        "symbols": "lightning fractures and shard motifs",
+        "fx": "blue electric arcs and shattered energy feel",
+    },
+    "终焉": {
+        "palette": "dark crimson and charred black",
+        "material": "ruined metal and ash deposits",
+        "symbols": "broken structures and eclipse marks",
+        "fx": "pulsing red glow and burning embers",
+    },
+}
+# 品质五档视觉阶梯（见 tools/深阶装备改进意见2.md）：复杂度 / 光效 / 装饰 / 材质质感
+DEEP_QUALITY_VISUAL = {
+    "凡": {
+        "complexity": "lowest tier silhouette, basic shape only",
+        "glow": "no glow, fully matte",
+        "details": "no ornaments, flat even surfaces, no gems",
+        "material": "rough base metal or crude stone, unpolished",
+    },
+    "良": {
+        "complexity": "simple build with a few accents",
+        "glow": "faint self-light from cracks or runes only",
+        "details": "small rivets, simple etched lines, one or two tiny trims",
+        "material": "lightly worn metal with basic texture",
+    },
+    "湛": {
+        "complexity": "clear layered structure",
+        "glow": "steady visible glow from fissures or runes",
+        "details": "fine engravings, one small gem inlay, layered plates",
+        "material": "refined polished metal, clean edges",
+    },
+    "炽": {
+        "complexity": "high ornament density",
+        "glow": "strong glow with floating particles and soft halo",
+        "details": "multiple gems, ornate filigree, runic symbols, rich borders",
+        "material": "premium dark gold or dark silver fantasy alloy",
+    },
+    "曜": {
+        "complexity": "legendary intricate silhouette, complex geometry",
+        "glow": "radiant aura, dynamic particle streams, outer halo",
+        "details": "full-surface runes or cracks, mythic ornaments, rare crystal accents",
+        "material": "meteor iron, stardust flecks, obsidian glass fusion, epic rarity",
+    },
+}
+# 深阶远程：仅弓类或法杖类，禁止枪械（negative 追加）
+DEEP_RANGED_FIREARMS_NEGATIVE = (
+    "gun, rifle, pistol, musket, firearm, cannon, shotgun, revolver, modern gun, sci-fi gun, "
+    "crossbow that looks like a gun, mechanical firearm, bullet, cartridge, scope on rifle"
+)
+# 主题强度分层（低/中/高主题的材质老化、结构、光效强度）
+DEEP_THEME_INTENSITY = {
+    "渊隙": "low-tier presence: rough material, simple fissures, restrained glow",
+    "虚印": "low-tier presence: clean structure, subtle glyph light, restrained glow",
+    "腐噬": "mid-tier presence: stronger corrosion, richer details, visible toxic aura",
+    "黑曜": "mid-tier presence: sharp geometry, heavier contrast, obvious crack glow",
+    "终幕": "mid-tier presence: layered trims, dramatic folds, noticeable dark-gold halo",
+    "星骸": "high-tier presence: rare material feel, complex structure, strong luminous glints",
+    "裂点": "high-tier presence: reconstructed fractured form, intense electric accents",
+    "终焉": "high-tier presence: catastrophic silhouette, heavy damage motifs, intense ember glow",
+}
 # 批量深阶：部位中文标签 + 规划用一句「重点」（写入用户描述，供 GPT 或直连生图）
 # 深阶一键批量：slot_key、asset 子目录、映射/文件名后缀、中文补充、英文主体（武器行为近战；远程见 run_deep_equipment_batch）
 DEEP_SLOT_BATCH_ROWS = [
@@ -111,9 +262,9 @@ DEEP_SLOT_BATCH_ROWS = [
         "folder": "weapons",
         "suffix": "武器",
         "cn_extra": "近战武器，强调刃型、柄部、护手，静物道具，无挥砍动态",
-        "cn_extra_ranged": "远程武器，强调弓臂弩身与搭箭静物，禁止箭矢飞行、弹道拖尾与爆炸特效",
+        "cn_extra_ranged": "远程武器仅为长弓/反曲弓或法杖魔杖，禁止枪械弩炮；静物，无箭矢飞行",
         "en_subject": "Single melee weapon inventory icon, blade haft crossguard and pommel, static dark fantasy still life",
-        "en_subject_ranged": "Single ranged weapon bow or crossbow inventory icon, limbs string quiver or resting arrow, static still life, no flying projectiles",
+        "en_subject_ranged": "Single fantasy ranged prop: longbow or recurve bow with string and quiver, OR magical staff wand scepter with crystal top, static still life, no firearms",
     },
     {"slot": "helmet", "folder": "helmets", "suffix": "头盔", "cn_extra": "头盔，强调面甲、角、冠饰", "en_subject": "Helmet icon, faceplate horns crown details, static inventory still life"},
     {"slot": "chest", "folder": "chests", "suffix": "胸甲", "cn_extra": "胸甲，强调肩甲、胸板纹理", "en_subject": "Chest armor, pauldrons breastplate texture, static icon"},
@@ -197,6 +348,16 @@ SLOT_TO_SUBFOLDER = {
     "belt": "belts",
 }
 FOLDER_TO_SLOT = {v: k for k, v in SLOT_TO_SUBFOLDER.items()}
+DEEP_SLOT_FEATURES = {
+    "weapon": "single weapon silhouette, blade/body/core grip details",
+    "helmet": "faceplate, crown or horn details",
+    "chest": "breastplate and shoulder structure emphasis",
+    "legs": "knee guards and layered tassets",
+    "boots": "boot silhouette, ankle guard, sole accents",
+    "necklace": "focal gemstone and chain links",
+    "ring": "band engravings and focal gem seat",
+    "belt": "buckle assembly and chain/strap joints",
+}
 
 
 def infer_equipment_slot_from_plan(plan: dict) -> str:
@@ -213,6 +374,72 @@ def infer_equipment_slot_from_plan(plan: dict) -> str:
     if rel in FOLDER_TO_SLOT:
         return FOLDER_TO_SLOT[rel]
     return ""
+
+
+def parse_deep_equipment_name(name: str) -> tuple:
+    """从深阶名中提取 (theme_cn, quality_cn, suffix)。非深阶返回空串。"""
+    n = (name or "").strip()
+    if not n or "·" not in n:
+        return "", "", ""
+    left, suffix = n.split("·", 1)
+    if not left:
+        return "", "", suffix.strip()
+    quality = left[-1]
+    theme = left[:-1]
+    if theme in DEEP_THEME_FINGERPRINTS and quality in DEEP_QUALITY_VISUAL:
+        return theme, quality, suffix.strip()
+    return "", "", suffix.strip()
+
+
+def deep_ranged_weapon_inventory_phrase(name: str) -> str:
+    """深阶远程：仅弓类或法杖/魔杖/权杖，稳定二选一（按名称 hash），语义排除枪械。"""
+    h = sum(ord(c) for c in (name or "")) % 2
+    if h == 0:
+        return (
+            "single fantasy longbow or recurve bow inventory icon, taut bowstring, "
+            "quiver with arrows beside bow, bow limbs and grip clearly visible, static still life, "
+            "no flying arrows, no firearm parts"
+        )
+    return (
+        "single fantasy magical staff wand or scepter inventory icon, ornate carved shaft, "
+        "crystal orb or gem focal at top, arcane rod prop, static still life, "
+        "no gun barrel trigger or stock"
+    )
+
+
+def build_deep_equipment_subject(eq: dict) -> str:
+    """为深阶装备生成强约束英文主体提示词：主题指纹 + 品质五档（复杂度/光效/装饰/材质）。"""
+    name = (eq.get("name") or "").strip()
+    slot = (eq.get("slot") or "").strip().lower()
+    wtype = (eq.get("weaponType") or "melee").strip().lower()
+    theme, quality, _suffix = parse_deep_equipment_name(name)
+    if not theme:
+        theme = "渊隙"
+    if not quality:
+        quality = "凡"
+    fp = DEEP_THEME_FINGERPRINTS[theme]
+    qv = DEEP_QUALITY_VISUAL.get(quality) or DEEP_QUALITY_VISUAL["凡"]
+    intensity = DEEP_THEME_INTENSITY.get(theme, "")
+    if slot == "weapon":
+        if wtype == "ranged":
+            slot_core = deep_ranged_weapon_inventory_phrase(name)
+        else:
+            slot_core = (
+                "single melee weapon inventory icon: sword axe mace or polearm, "
+                "blade haft crossguard pommel, static still life"
+            )
+    else:
+        slot_core = DEEP_SLOT_FEATURES.get(slot, "single equipment piece inventory icon")
+    q_block = (
+        f"quality tier ({quality}): complexity {qv['complexity']}; "
+        f"light {qv['glow']}; ornaments {qv['details']}; surface feel {qv['material']}"
+    )
+    return (
+        f"{slot_core}, {theme} theme visual fingerprint, "
+        f"palette {fp['palette']}, core material {fp['material']}, "
+        f"ornament symbols {fp['symbols']}, texture and light {fp['fx']}, "
+        f"{q_block}, {intensity}, distinct silhouette, readable at small icon size"
+    )
 
 
 def collect_project_context():
@@ -324,9 +551,24 @@ def equipment_texture_resolved_path_from_eq(eq: dict) -> Path:
 
 
 def resolve_batch_texture_relpath(eq: dict) -> str:
-    """批量补缺时使用的相对路径：武器沿用 get_weapon_asset_relpath（与仅武器批量一致）；其余部位用子目录默认规则。"""
+    """批量补缺时使用的相对路径。
+    - 基础武器：沿用 get_weapon_asset_relpath（与仅武器批量一致）
+    - 深阶装备：新生成统一落到 DEEP_EQUIPMENT_FOLDER（旧映射文件存在时保持兼容）
+    - 其余：按部位默认规则
+    """
     name = (eq.get("name") or "").strip()
     slot = (eq.get("slot") or "").strip().lower()
+    is_deep = bool(eq.get("isDeep"))
+    if is_deep and name:
+        # 兼容已有旧映射：若映射文件真实存在，则沿用；否则新生成统一写入 deep 文件夹
+        if MAPPINGS_CONFIG.exists():
+            with open(MAPPINGS_CONFIG, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            eq_map = data.get("equipment") or {}
+            rel = str(eq_map.get(name) or "").strip().replace("\\", "/")
+            if rel and (ART_FOLDER / rel).is_file():
+                return rel
+        return f"{DEEP_EQUIPMENT_FOLDER}/{name}.png"
     if slot == "weapon" and name:
         return get_weapon_asset_relpath(name)
     return resolve_equipment_texture_relpath(eq)
@@ -355,6 +597,7 @@ def _equipment_row_from_json(eq: dict) -> dict:
         "weaponType": wt,
         "quality": eq.get("quality", "common"),
         "level": eq.get("level", 1),
+        "isDeep": False,
     }
 
 
@@ -382,6 +625,7 @@ def collect_deep_equipment_entries_from_config() -> list:
     for eq in data.get("EQUIPMENT_DEEP_DEFINITIONS", []):
         row = _equipment_row_from_json(eq)
         if row:
+            row["isDeep"] = True
             out.append(row)
     return out
 
@@ -621,6 +865,7 @@ def call_gpt_plan_skill_icon(
     except ImportError:
         sys.exit("请安装 requests: pip install requests")
 
+    require_art_api_key("技能图标 GPT 规划")
     weapon_names = weapon_names or []
     weapon_info = "、".join(weapon_names) if weapon_names else "（通用/品质默认）"
     extra = []
@@ -831,6 +1076,7 @@ def call_gpt_plan_weapon_texture(context: dict, weapon: dict) -> dict:
     except ImportError:
         sys.exit("请安装 requests: pip install requests")
 
+    require_art_api_key("武器贴图 GPT 规划")
     name = weapon.get("name", "")
     wtype = weapon.get("weaponType", "melee")
     quality = weapon.get("quality", "common")
@@ -913,6 +1159,7 @@ def call_gpt_plan_non_weapon_equipment_texture(context: dict, eq: dict) -> dict:
     except ImportError:
         sys.exit("请安装 requests: pip install requests")
 
+    require_art_api_key("装备贴图 GPT 规划")
     name = eq.get("name", "")
     slot = eq.get("slot", "helmet")
     quality = eq.get("quality", "common")
@@ -1172,26 +1419,51 @@ def run_equipment_texture_batch_for_entries(
             print("  [dry-run] 将调用 GPT 规划并生图，未实际请求 API。")
             continue
         try:
-            if slot == "weapon":
-                plan = call_gpt_plan_weapon_texture(context, eq)
-                subject = (plan.get("image_prompt") or "").strip()
-                if not subject:
-                    print("  规划缺少 image_prompt，跳过")
-                    continue
-                full_prompt = f"{subject}. {EQUIPMENT_WEAPON_TEXTURE_STYLE_TEMPLATE}".strip()
-                raw = generate_image(
-                    full_prompt, "", for_skill_icon=False, for_equipment_weapon=True
+            is_deep = bool(eq.get("isDeep"))
+            if is_deep:
+                # 深阶改为模板驱动，强制注入主题指纹与品质复杂度，降低同质化
+                subject = build_deep_equipment_subject(eq)
+                wtype = (eq.get("weaponType") or "melee").strip().lower()
+                extra_neg = (
+                    DEEP_RANGED_FIREARMS_NEGATIVE
+                    if slot == "weapon" and wtype == "ranged"
+                    else ""
                 )
+                if slot == "weapon":
+                    full_prompt = f"{subject}. {EQUIPMENT_WEAPON_TEXTURE_STYLE_TEMPLATE}".strip()
+                    raw = generate_image(
+                        full_prompt,
+                        "",
+                        for_skill_icon=False,
+                        for_equipment_weapon=True,
+                        extra_negative=extra_neg,
+                    )
+                else:
+                    full_prompt = f"{subject}. {EQUIPMENT_NON_WEAPON_TEXTURE_STYLE_TEMPLATE}".strip()
+                    raw = generate_image(
+                        full_prompt, "", for_skill_icon=False, for_equipment_non_weapon=True
+                    )
             else:
-                plan = call_gpt_plan_non_weapon_equipment_texture(context, eq)
-                subject = (plan.get("image_prompt") or "").strip()
-                if not subject:
-                    print("  规划缺少 image_prompt，跳过")
-                    continue
-                full_prompt = f"{subject}. {EQUIPMENT_NON_WEAPON_TEXTURE_STYLE_TEMPLATE}".strip()
-                raw = generate_image(
-                    full_prompt, "", for_skill_icon=False, for_equipment_non_weapon=True
-                )
+                if slot == "weapon":
+                    plan = call_gpt_plan_weapon_texture(context, eq)
+                    subject = (plan.get("image_prompt") or "").strip()
+                    if not subject:
+                        print("  规划缺少 image_prompt，跳过")
+                        continue
+                    full_prompt = f"{subject}. {EQUIPMENT_WEAPON_TEXTURE_STYLE_TEMPLATE}".strip()
+                    raw = generate_image(
+                        full_prompt, "", for_skill_icon=False, for_equipment_weapon=True
+                    )
+                else:
+                    plan = call_gpt_plan_non_weapon_equipment_texture(context, eq)
+                    subject = (plan.get("image_prompt") or "").strip()
+                    if not subject:
+                        print("  规划缺少 image_prompt，跳过")
+                        continue
+                    full_prompt = f"{subject}. {EQUIPMENT_NON_WEAPON_TEXTURE_STYLE_TEMPLATE}".strip()
+                    raw = generate_image(
+                        full_prompt, "", for_skill_icon=False, for_equipment_non_weapon=True
+                    )
             image_bytes = process_transparent_icon_image(raw)
             dest.write_bytes(image_bytes)
             add_equipment_mapping(name, rel)
@@ -1227,7 +1499,9 @@ def run_batch_deep_equipment_textures(
     only_slot: str = "",
     only_ranged_weapons: bool = False,
 ) -> None:
-    """为 equipment-deep-config.json 中全部深阶装备检查贴图（一键真实名称批量）。"""
+    """为 equipment-deep-config.json 中全部深阶装备检查贴图（一键真实名称批量）。
+    新生成贴图统一写入 asset/DEEP_EQUIPMENT_FOLDER。
+    """
     all_eq = collect_deep_equipment_entries_from_config()
     run_equipment_texture_batch_for_entries(
         "深阶装备 equipment-deep-config.json",
@@ -1247,17 +1521,17 @@ def run_deep_equipment_batch(
     ranged_weapon: bool = False,
     sleep_sec: float = 2.0,
 ) -> None:
-    """按文档模板生成某主题+品质下 8 张占位部位图（文件名如 渊隙凡·武器），非 equipment-deep-config 全量。全量请用 run_batch_deep_equipment_textures / --batch-deep-equipment-textures。"""
+    """按文档模板生成某主题+品质下 8 张占位部位图（文件名如 渊隙凡·武器），非 equipment-deep-config 全量。
+    生成路径统一为 asset/DEEP_EQUIPMENT_FOLDER。全量请用 run_batch_deep_equipment_textures / --batch-deep-equipment-textures。
+    """
     import time
 
     if theme_cn not in DEEP_THEME_KEYWORDS_CN:
         print(f"未知主题「{theme_cn}」。可选: {', '.join(DEEP_THEME_KEYWORDS_CN)}")
         return
-    if quality_cn not in DEEP_QUALITY_MODIFIERS_CN:
-        print(f"未知品质字「{quality_cn}」。可选: {', '.join(DEEP_QUALITY_MODIFIERS_CN)}")
+    if quality_cn not in DEEP_QUALITY_VISUAL:
+        print(f"未知品质字「{quality_cn}」。可选: {', '.join(DEEP_QUALITY_VISUAL)}")
         return
-    theme_en = DEEP_THEME_KEYWORDS_CN[theme_cn]
-    qual_en = DEEP_QUALITY_MODIFIERS_CN[quality_cn]
     ART_FOLDER.mkdir(parents=True, exist_ok=True)
     total = len(DEEP_SLOT_BATCH_ROWS)
     print(
@@ -1268,28 +1542,28 @@ def run_deep_equipment_batch(
 
     for i, row in enumerate(DEEP_SLOT_BATCH_ROWS, 1):
         slot = row["slot"]
-        folder = row["folder"]
         suffix = row["suffix"]
-        if slot == "weapon" and ranged_weapon:
-            en_sub = row["en_subject_ranged"]
-        else:
-            en_sub = row["en_subject"]
         display = f"{theme_cn}{quality_cn}·{suffix}"
         filename = f"{display}.png"
-        subject_en = f"{en_sub} Visual theme: {theme_en}. Quality complexity: {qual_en}."
-        print(f"[{i}/{total}] {display} -> {folder}/{filename}")
+        subject_en = build_deep_equipment_subject(
+            {"name": display, "slot": slot, "weaponType": ("ranged" if (slot == "weapon" and ranged_weapon) else "melee"), "isDeep": True}
+        )
+        print(f"[{i}/{total}] {display} -> {DEEP_EQUIPMENT_FOLDER}/{filename}")
         if dry_run:
             print(f"  [dry-run] prompt 前缀: {subject_en[:120]}...")
             continue
         try:
             if slot == "weapon":
                 full_prompt = f"{subject_en} {EQUIPMENT_WEAPON_TEXTURE_STYLE_TEMPLATE}".strip()
-                raw = generate_image(full_prompt, "", for_equipment_weapon=True)
+                extra = DEEP_RANGED_FIREARMS_NEGATIVE if ranged_weapon else ""
+                raw = generate_image(
+                    full_prompt, "", for_equipment_weapon=True, extra_negative=extra
+                )
             else:
                 full_prompt = f"{subject_en} {EQUIPMENT_NON_WEAPON_TEXTURE_STYLE_TEMPLATE}".strip()
                 raw = generate_image(full_prompt, "", for_equipment_non_weapon=True)
             image_bytes = process_transparent_icon_image(raw)
-            rel_path = f"{folder}/{filename}"
+            rel_path = f"{DEEP_EQUIPMENT_FOLDER}/{filename}"
             dest = ART_FOLDER / rel_path
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_bytes(image_bytes)
@@ -1394,6 +1668,7 @@ def call_gpt_plan(context: dict, user_input: str) -> dict:
     except ImportError:
         sys.exit("请安装 requests: pip install requests")
 
+    require_art_api_key("自然语言 GPT 规划")
     system_prompt = """你是 Pixel Eternal 项目的美术资源规划助手。项目是暗黑像素风 RPG，装备贴图放在 asset 目录（约定见 tools/生图要求26-3-19.md）。
 根据用户自然语言描述和当前项目内容，你必须输出一份严格的 JSON，且只输出该 JSON，不要其他文字。
 
@@ -1456,12 +1731,63 @@ JSON 格式如下（所有字段必填，除非注明可选）：
     return plan
 
 
+def _bytes_from_gemini_style_response(data):
+    """从 generateContent 类 JSON 中递归查找 inlineData/base64 图片。"""
+
+    def walk(o):
+        if isinstance(o, dict):
+            inline = o.get("inlineData") or o.get("inline_data")
+            if isinstance(inline, dict):
+                b64 = inline.get("data")
+                if isinstance(b64, str) and b64.strip():
+                    try:
+                        return base64.b64decode(b64)
+                    except Exception:
+                        pass
+            for v in o.values():
+                r = walk(v)
+                if r is not None:
+                    return r
+        elif isinstance(o, list):
+            for x in o:
+                r = walk(x)
+                if r is not None:
+                    return r
+        return None
+
+    return walk(data)
+
+
+def _generate_image_via_gemini(
+    full_prompt: str,
+    headers: dict,
+    negative_combined: str,
+) -> bytes:
+    import requests
+
+    text = full_prompt
+    if negative_combined:
+        text = f"{full_prompt}\n\nAvoid / do not render: {negative_combined}"
+    body = {"contents": [{"role": "user", "parts": [{"text": text}]}]}
+    resp = requests.post(GEMINI_IMAGE_URL, headers=headers, json=body, timeout=180)
+    resp.raise_for_status()
+    data = resp.json()
+    raw = _bytes_from_gemini_style_response(data)
+    if raw is not None:
+        return raw
+    raise RuntimeError(
+        "Gemini 式生图响应中未解析到图片数据（inlineData）。"
+        f" 响应片段: {str(data)[:400]!r}… 若网关请求体不同，请对照服务文档调整 PE_IMAGE_BACKEND 或联系服务方。"
+    )
+
+
 def generate_image(
     prompt: str,
     style_notes: str,
     for_skill_icon: bool = False,
     for_equipment_weapon: bool = False,
     for_equipment_non_weapon: bool = False,
+    extra_negative: str = "",
 ) -> bytes:
     """调用 Imagen API 生成图片，返回 PNG 字节。技能图标与装备贴图可带专用 negative_prompt。"""
     try:
@@ -1469,6 +1795,7 @@ def generate_image(
     except ImportError:
         sys.exit("请安装 requests: pip install requests")
 
+    require_art_api_key("生图")
     full_prompt = f"{prompt}. {style_notes}".strip() if style_notes else prompt
     headers = {
         "Authorization": f"Bearer {API_KEY}",
@@ -1481,21 +1808,31 @@ def generate_image(
         "size": "1024x1024",
         "response_format": "b64_json",
     }
+    base_neg = ""
     if for_skill_icon and SKILL_ICON_NEGATIVE_PROMPT:
-        body["negative_prompt"] = SKILL_ICON_NEGATIVE_PROMPT
+        base_neg = SKILL_ICON_NEGATIVE_PROMPT
     elif for_equipment_weapon and EQUIPMENT_WEAPON_NEGATIVE_PROMPT:
-        body["negative_prompt"] = EQUIPMENT_WEAPON_NEGATIVE_PROMPT
+        base_neg = EQUIPMENT_WEAPON_NEGATIVE_PROMPT
     elif for_equipment_non_weapon and EQUIPMENT_NON_WEAPON_NEGATIVE_PROMPT:
-        body["negative_prompt"] = EQUIPMENT_NON_WEAPON_NEGATIVE_PROMPT
+        base_neg = EQUIPMENT_NON_WEAPON_NEGATIVE_PROMPT
+    neg_parts = [p for p in (base_neg, (extra_negative or "").strip()) if p]
+    if neg_parts:
+        body["negative_prompt"] = ", ".join(neg_parts)
     if for_skill_icon:
         body["quality"] = "ultra-detail"
         body["style_strength"] = 0.95
         body["steps"] = 60
 
+    neg_combined = ", ".join(neg_parts) if neg_parts else ""
+
     last_err = None
     for attempt in range(3):
         try:
+            if PE_IMAGE_BACKEND in ("gemini", "google", "vertex", "generatecontent"):
+                return _generate_image_via_gemini(full_prompt, headers, neg_combined)
             resp = requests.post(IMAGE_URL, headers=headers, json=body, timeout=120)
+            if resp.status_code == 403 and PE_IMAGE_BACKEND == "auto":
+                return _generate_image_via_gemini(full_prompt, headers, neg_combined)
             resp.raise_for_status()
             data = resp.json()
             if "data" not in data or not data["data"]:

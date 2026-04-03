@@ -5,7 +5,7 @@
 
 // 远程武器与远程怪物判定
 const RANGED_WEAPON_NAMES = ['猎风短弓', '幽影弩', '曦光长弓', '穿云破月', '永夜·星坠'];
-const RANGED_MONSTER_NAMES = ['哥布林萨满', '哥布林斥候', '骷髅弓箭手', '骷髅法师', '兽人萨满', '恶魔术士', '恶魔大法师'];
+const RANGED_MONSTER_NAMES = ['哥布林萨满', '哥布林斥候', '骷髅弓箭手', '骷髅法师', '兽人萨满', '恶魔术士', '恶魔大法师', '灰烬先知', '熵能术士', '星渊法师', '雷纹蝠群', '黑曜喷流', '塔基弩炮'];
 const MONSTER_RANGED_AIM_DURATION = 500;
 const MONSTER_RANGED_ATTACK_RANGE = 360;
 const MONSTER_RANGED_ATTACK_COOLDOWN = 2800;
@@ -15,6 +15,177 @@ function isPlayerWeaponRanged(weapon) {
 }
 function isMonsterRangedByName(name) {
     return RANGED_MONSTER_NAMES.includes(name);
+}
+
+/**
+ * 读取怪物配置字段：精英优先自身，否则继承 baseMonster（与 MONSTER_TYPES 条目一致）
+ */
+function getMergedMonsterTrait(monsterType, field) {
+    if (typeof MONSTER_TYPES === 'undefined') return undefined;
+    const md = MONSTER_TYPES[monsterType];
+    if (!md) return undefined;
+    if (md[field] !== undefined && md[field] !== null) return md[field];
+    if (md.baseMonster && MONSTER_TYPES[md.baseMonster]) {
+        const b = MONSTER_TYPES[md.baseMonster][field];
+        if (b !== undefined && b !== null) return b;
+    }
+    return undefined;
+}
+
+/**
+ * 怪物近战/弹道命中玩家后的附加效果（减速、吸血等），由 game-main 在伤害结算后调用
+ */
+function applyMonsterOnHitPlayerEffects(player, monster) {
+    if (!player || !monster || monster.hp <= 0) return;
+    const now = Date.now();
+    const slow = monster.onHitPlayerSlow;
+    if (slow && typeof slow.multiplier === 'number' && typeof slow.durationMs === 'number') {
+        if (!player.slowEffects) player.slowEffects = [];
+        player.slowEffects.push({ multiplier: slow.multiplier, expireTime: now + slow.durationMs });
+    }
+    const msc = monster.onMeleeSlowChance;
+    if (msc && typeof msc.chance === 'number' && Math.random() < msc.chance && typeof msc.multiplier === 'number' && typeof msc.durationMs === 'number') {
+        if (!player.slowEffects) player.slowEffects = [];
+        player.slowEffects.push({ multiplier: msc.multiplier, expireTime: now + msc.durationMs });
+    }
+    const ls = monster.onHitLifeStealRatio;
+    if (typeof ls === 'number' && ls > 0) {
+        const base = monster._baseDamage != null ? monster._baseDamage : monster.damage;
+        const heal = Math.max(0, Math.floor(base * ls));
+        if (heal > 0) {
+            monster.hp = Math.min(monster.maxHp, monster.hp + heal);
+        }
+    }
+    const kb = monster.knockbackOnHit;
+    if (kb && typeof kb.force === 'number' && kb.force > 0 && monster.gameInstance && typeof monster.gameInstance.applyPlayerKnockback === 'function') {
+        monster.gameInstance.applyPlayerKnockback(player, monster.x, monster.y, kb.force);
+    }
+}
+
+/**
+ * 深塔新怪：从配置绑定额外机制字段（死亡毒雾、站定晶壳、连击、自爆、闪现等）
+ */
+function bindExtendedMonsterMechanics(m, type) {
+    const g = (f) => getMergedMonsterTrait(type, f);
+    m.rangedRangeMult = (typeof g('rangedRangeMult') === 'number' && g('rangedRangeMult') > 0) ? g('rangedRangeMult') : 1;
+    const dh = g('deathHazard');
+    m._deathHazard = (dh && typeof dh.radius === 'number' && dh.radius > 0 && dh.durationMs > 0 && typeof dh.dps === 'number') ? dh : null;
+    const ss = g('standingShell');
+    m._standingShell = (ss && ss.stillMs > 0 && ss.maxStacks > 0 && typeof ss.drPerStack === 'number') ? ss : null;
+    const cm = g('comboMelee');
+    m._comboMelee = (cm && cm.every >= 2 && typeof cm.weakMult === 'number' && typeof cm.strongMult === 'number') ? cm : null;
+    m.meleeHitIndex = 0;
+    const tr = g('trailHazard');
+    m._trailHazard = (tr && tr.radius > 0 && tr.durationMs > 0 && typeof tr.dps === 'number' && tr.emitIntervalMs > 0) ? tr : null;
+    const sb = g('suicideBomb');
+    m._suicideBomb = (sb && sb.hpRatio > 0 && sb.fuseMs > 0 && sb.radius > 0 && typeof sb.damageMult === 'number') ? sb : null;
+    m._suicideState = null;
+    const bk = g('blinkEscape');
+    m._blinkEscape = (bk && bk.hpRatio > 0 && bk.cooldownMs > 0) ? bk : null;
+    m._nextBlinkAt = 0;
+    const ps = g('periodicShield');
+    m._periodicShield = (ps && ps.periodMs > 0 && ps.shieldDurationMs > 0 && typeof ps.damageTakenMult === 'number') ? ps : null;
+    m.periodicShieldActiveUntil = 0;
+    m._periodicNextPulse = 0;
+    const orb = g('aoeOrbRanged');
+    m._aoeOrbRanged = (orb && orb.radius > 0 && orb.telegraphMs > 0 && typeof orb.damageMult === 'number') ? orb : null;
+    const rv = g('rangedVolley');
+    m._rangedVolley = (rv && rv.extraShots > 0 && rv.delayMs >= 0 && typeof rv.damageMult === 'number') ? rv : null;
+    m._volleyShotsLeft = 0;
+    m._volleyNextShotAt = 0;
+    const sa = g('silenceAura');
+    m._silenceAura = (sa && sa.range > 0 && typeof sa.playerAttackCdMult === 'number' && sa.playerAttackCdMult >= 1) ? sa : null;
+    m.knockbackOnHit = (g('knockbackOnHit') && typeof g('knockbackOnHit').force === 'number') ? g('knockbackOnHit') : null;
+    m.onMeleeSlowChance = (g('onMeleeSlowChance') && typeof g('onMeleeSlowChance').chance === 'number') ? g('onMeleeSlowChance') : null;
+    m.firstHitBonusMult = (typeof g('firstHitBonusMult') === 'number' && g('firstHitBonusMult') > 1) ? g('firstHitBonusMult') : null;
+    m._firstHitConsumed = false;
+    m.goldBonusOnDeath = (typeof g('goldBonusOnDeath') === 'number' && g('goldBonusOnDeath') > 0) ? Math.floor(g('goldBonusOnDeath')) : 0;
+    const sshr = g('startingShieldHpRatio');
+    if (typeof sshr === 'number' && sshr > 0) {
+        m.startingShieldHp = Math.floor(m.maxHp * sshr);
+        const ob = g('onShieldBroken');
+        m._onShieldBroken = (ob && ob.vulnerableMs > 0 && typeof ob.damageTakenMult === 'number') ? ob : null;
+    } else {
+        m.startingShieldHp = 0;
+        m._onShieldBroken = null;
+    }
+    m.vulnerableUntil = 0;
+    m.vulnerableDamageTakenMult = 1;
+    m.shellStacks = 0;
+    m._shellStillMs = 0;
+    m._shellLastX = m.x;
+    m._shellLastY = m.y;
+    m._trailLastEmit = 0;
+    m._pendingMeleeDamageMult = 1;
+    const tsb = g('twinSoulBond');
+    m._twinSoulTag = (tsb && typeof tsb.tag === 'string' && tsb.tag.length > 0) ? tsb.tag : null;
+    m._twinSoulShared = null;
+    const sc = g('soulCircleCaster');
+    m._soulCircleCaster = (sc && sc.periodMs > 0 && sc.radius > 0 && sc.durationMs > 0 && typeof sc.healPerTick === 'number' && sc.healIntervalMs > 0 && typeof sc.slowMult === 'number' && sc.slowDurationMs > 0) ? sc : null;
+    m._nextSoulCircleAt = 0;
+    const ap = g('apostateStance');
+    m._apostateStance = (ap && ap.switchMs > 0 && typeof ap.blessingDamageTakenMult === 'number' && typeof ap.judgmentOutDamageMult === 'number') ? ap : null;
+    m._apostateBlessing = true;
+    m._nextApostateSwitch = 0;
+    const ad = g('allyDamageAura');
+    m.allyDamageAura = (ad && ad.range > 0 && typeof ad.multiplier === 'number' && ad.multiplier >= 1) ? ad : null;
+    m._marshalAuraDamageMult = 1;
+    const pw = g('pendulumSweep');
+    m._pendulumSweep = (pw && pw.telegraphMs > 0 && pw.cooldownMs > 0 && pw.range > 0 && typeof pw.halfArcRad === 'number' && typeof pw.damageMult === 'number') ? pw : null;
+    m.pendulumState = null;
+    m._pendulumNextAt = 0;
+}
+
+/**
+ * 同 tag 的「双生缚命」成对绑定共享生命池（需在 boost 之后、战斗开始前调用）
+ */
+function pairTwinSoulMonstersInRoom(monsters) {
+    if (!monsters || !monsters.length) return;
+    const byTag = {};
+    monsters.forEach(m => {
+        if (!m || m.hp <= 0 || !m._twinSoulTag || m._twinSoulShared) return;
+        if (!byTag[m._twinSoulTag]) byTag[m._twinSoulTag] = [];
+        byTag[m._twinSoulTag].push(m);
+    });
+    Object.keys(byTag).forEach(tag => {
+        const arr = byTag[tag];
+        for (let i = 0; i + 1 < arr.length; i += 2) {
+            const a = arr[i];
+            const b = arr[i + 1];
+            const maxHp = Math.max(1, a.maxHp + b.maxHp);
+            const hp = maxHp;
+            const P = { hp, maxHp, a, b, rewardsClaimed: false };
+            a._twinSoulShared = b._twinSoulShared = P;
+            a.maxHp = b.maxHp = maxHp;
+            a.hp = b.hp = hp;
+            a._baseDamage = a.damage;
+            b._baseDamage = b.damage;
+        }
+    });
+}
+
+/**
+ * 深塔队长：身边非队长怪物获得伤害倍率（每帧在 Monster.update 前由 game-main 写入 _marshalAuraDamageMult）
+ */
+function applyMarshalAurasToMonsters(monsters) {
+    if (!monsters || !monsters.length) return;
+    monsters.forEach(m => {
+        if (m && m.hp > 0) m._marshalAuraDamageMult = 1;
+    });
+    const marshals = monsters.filter(m => m && m.hp > 0 && m.allyDamageAura);
+    marshals.forEach(m => {
+        const R = m.allyDamageAura.range;
+        const mult = m.allyDamageAura.multiplier;
+        monsters.forEach(t => {
+            if (!t || t.hp <= 0 || t === m) return;
+            if (t.allyDamageAura) return;
+            const dx = t.x - m.x;
+            const dy = t.y - m.y;
+            if (dx * dx + dy * dy <= R * R) {
+                t._marshalAuraDamageMult = Math.max(t._marshalAuraDamageMult || 1, mult);
+            }
+        });
+    });
 }
 
 /** 词条 id 解析见 trait-id-helpers.js（traitIdBase / traitIdsIncludeBase 等） */
@@ -36,7 +207,13 @@ const EliteSkillRunner = {
         orcWarlord_elite: { battleCry: 20000, heavyCleave: 6000 },
         demon_elite: { shadowCharge: 12000, aoeBurst: 9000 },
         demonImp_elite: { rapidAssault: 10000 },
-        demonBoss_elite: { royalStomp: 14000, demonicSacrifice: 20000 }
+        demonBoss_elite: { royalStomp: 14000, demonicSacrifice: 20000 },
+        demonAbyss_elite: { shadowCharge: 12000, aoeBurst: 9000 },
+        demonVoid_elite: { rapidAssault: 10000 },
+        demonTyrant_elite: { royalStomp: 14000, demonicSacrifice: 20000 },
+        crystalColossus_elite: { chargeSlash: 9000 },
+        sporeHorror_elite: { burstOrb: 7000 },
+        rustChain_elite: { sunder: 10000 }
     },
     tryStart(monster, player, now) {
         const dx = player.x - monster.x;
@@ -70,17 +247,17 @@ const EliteSkillRunner = {
                 return;
             }
         }
-        if (monster.type === 'skeletonKnight_elite' && canCharge('chargeSlash') && dist < 250 && dist > 50 && Math.random() < 0.05) {
+        if ((monster.type === 'skeletonKnight_elite' || monster.type === 'crystalColossus_elite') && canCharge('chargeSlash') && dist < 250 && dist > 50 && Math.random() < 0.05) {
             monster.eliteSkillState = { name: 'chargeSlash', startTime: now, startX: monster.x, startY: monster.y, angle: Math.atan2(dy, dx) };
             setCooldown('chargeSlash', 9000);
             return;
         }
-        if (monster.type === 'skeletonMage_elite' && canCharge('burstOrb') && dist < 360 && Math.random() < 0.07) {
+        if ((monster.type === 'skeletonMage_elite' || monster.type === 'sporeHorror_elite') && canCharge('burstOrb') && dist < 360 && Math.random() < 0.07) {
             monster.eliteSkillState = { name: 'burstOrb', startTime: now, targetX: player.x, targetY: player.y };
             setCooldown('burstOrb', 7000);
             return;
         }
-        if (monster.type === 'orcWarrior_elite' && canCharge('sunder') && dist < 90 && Math.random() < 0.05) {
+        if ((monster.type === 'orcWarrior_elite' || monster.type === 'rustChain_elite') && canCharge('sunder') && dist < 90 && Math.random() < 0.05) {
             monster.eliteSkillState = { name: 'sunder', startTime: now };
             setCooldown('sunder', 10000);
             return;
@@ -97,7 +274,7 @@ const EliteSkillRunner = {
                 return;
             }
         }
-        if (monster.type === 'demon_elite') {
+        if (monster.type === 'demon_elite' || monster.type === 'demonAbyss_elite') {
             if (canCharge('shadowCharge') && dist < 280 && dist > 60 && Math.random() < 0.04) {
                 monster.eliteSkillState = { name: 'shadowCharge', startTime: now, startX: monster.x, startY: monster.y, angle: Math.atan2(dy, dx) };
                 setCooldown('shadowCharge', 12000);
@@ -109,12 +286,12 @@ const EliteSkillRunner = {
                 return;
             }
         }
-        if (monster.type === 'demonImp_elite' && canCharge('rapidAssault') && dist < 95 && Math.random() < 0.05) {
+        if ((monster.type === 'demonImp_elite' || monster.type === 'demonVoid_elite') && canCharge('rapidAssault') && dist < 95 && Math.random() < 0.05) {
             monster.eliteSkillState = { name: 'rapidAssault', startTime: now, hitCount: 0 };
             setCooldown('rapidAssault', 10000);
             return;
         }
-        if (monster.type === 'demonBoss_elite') {
+        if (monster.type === 'demonBoss_elite' || monster.type === 'demonTyrant_elite') {
             if (canCharge('royalStomp') && dist < 150 && Math.random() < 0.04) {
                 monster.eliteSkillState = { name: 'royalStomp', startTime: now };
                 setCooldown('royalStomp', 14000);
@@ -749,14 +926,16 @@ class Monster {
         this.type = type;
         this.gameInstance = gameInstance;
         this.size = CONFIG.MONSTER_SIZE;
-        this.speed = CONFIG.MONSTER_SPEED;
+        const moveMultRaw = getMergedMonsterTrait(type, 'moveSpeedMult');
+        const moveMult = (typeof moveMultRaw === 'number' && moveMultRaw > 0 && isFinite(moveMultRaw)) ? moveMultRaw : 1;
+        this.speed = CONFIG.MONSTER_SPEED * moveMult;
         this.angle = 0;
         this.lastAttackTime = 0;
         
         // 加速度系统
         this.vx = 0; // X方向速度
         this.vy = 0; // Y方向速度
-        this.maxSpeed = CONFIG.MONSTER_SPEED; // 最大速度
+        this.maxSpeed = this.speed; // 最大速度（与移速倍率一致）
         this.acceleration = 0.25; // 加速度系数
         this.friction = 0.9; // 摩擦力系数（每帧速度衰减）
         
@@ -770,6 +949,14 @@ class Monster {
         this.expReward = monsterData.expReward || 10;
         this.goldReward = monsterData.goldReward || 5;
         this._baseDamage = this.damage;
+        const brkHp = getMergedMonsterTrait(type, 'berserkHpRatio');
+        const brkCd = getMergedMonsterTrait(type, 'berserkCooldownMult');
+        this.berserkHpRatio = (typeof brkHp === 'number' && brkHp > 0 && brkHp < 1) ? brkHp : null;
+        this.berserkCooldownMult = (typeof brkCd === 'number' && brkCd > 0 && brkCd < 1) ? brkCd : null;
+        const ohs = getMergedMonsterTrait(type, 'onHitPlayerSlow');
+        this.onHitPlayerSlow = (ohs && typeof ohs.multiplier === 'number' && typeof ohs.durationMs === 'number') ? ohs : null;
+        const ls = getMergedMonsterTrait(type, 'onHitLifeStealRatio');
+        this.onHitLifeStealRatio = (typeof ls === 'number' && ls > 0) ? Math.min(0.2, ls) : 0;
         this.hasStar = false; // 是否带★
         this.starCount = 0; // ★数量
         this.hasDetectedPlayer = false; // 是否已发现玩家
@@ -792,19 +979,34 @@ class Monster {
         // 远程怪：不追击，站定瞄准后发射子弹
         this.isRanged = isMonsterRangedByName(this.name);
         this.aimStartTime = 0;
+        bindExtendedMonsterMechanics(this, type);
     }
 
     update(player) {
         const now = Date.now();
-        if (this._baseDamage != null) this.damage = this._baseDamage;
-        
+        if (this._baseDamage != null) {
+            let d = this._baseDamage;
+            if (this._apostateStance && !this._apostateBlessing) {
+                d = Math.floor(d * this._apostateStance.judgmentOutDamageMult);
+            }
+            if (this._marshalAuraDamageMult && this._marshalAuraDamageMult > 1) {
+                d = Math.floor(d * this._marshalAuraDamageMult);
+            }
+            this.damage = d;
+        }
+
         // 检查是否被冰冻
         if (this.frozenUntil && now < this.frozenUntil) {
             return; // 被冰冻时不能移动
         } else if (this.frozenUntil && now >= this.frozenUntil) {
             this.frozenUntil = null; // 冰冻效果结束
         }
-        
+
+        if (!this.isElite && this._pendulumSweep && this._tickPendulumSweep(player, now)) {
+            this._tickSpecialMechanics(player, now);
+            return;
+        }
+
         // 精英技能：若正在释放技能则只更新技能，不进行普通移动
         if (this.isElite && this.eliteSkillState) {
             if (EliteSkillRunner.update(this, player, now)) return;
@@ -820,10 +1022,10 @@ class Monster {
         if (this.slowEffects) {
             // 移除过期的减速效果
             this.slowEffects = this.slowEffects.filter(effect => effect.expireTime > now);
-            // 应用减速效果（取最大减速）
+            // 取最小移速倍率 = 最强减速（与玩家 slowEffects 一致）
             if (this.slowEffects.length > 0) {
-                const maxSlow = Math.max(...this.slowEffects.map(e => e.multiplier));
-                currentMaxSpeed = this.speed * maxSlow;
+                const minMult = Math.min(...this.slowEffects.map(e => e.multiplier));
+                currentMaxSpeed = this.speed * minMult;
             }
         }
         this.maxSpeed = currentMaxSpeed;
@@ -925,11 +1127,192 @@ class Monster {
                 this.walkAnimationTime *= 0.9;
             }
         }
+        this._tickSpecialMechanics(player, now);
+    }
+
+    /**
+     * 钟摆械偶：非精英独立扇形预警与横扫伤害；返回 true 时本帧跳过普通移动/追击逻辑
+     */
+    _tickPendulumSweep(player, now) {
+        const cfg = this._pendulumSweep;
+        if (!cfg) return false;
+        const dx0 = player.x - this.x;
+        const dy0 = player.y - this.y;
+        const dist0 = Math.sqrt(dx0 * dx0 + dy0 * dy0) || 1;
+
+        if (this.pendulumState) {
+            const st = this.pendulumState;
+            if (st.phase === 'telegraph') {
+                if (now - st.startTime >= cfg.telegraphMs) {
+                    const ang = st.angle;
+                    const pdx = player.x - this.x;
+                    const pdy = player.y - this.y;
+                    const pd = Math.sqrt(pdx * pdx + pdy * pdy) || 1;
+                    const pAng = Math.atan2(pdy, pdx);
+                    let diff = pAng - ang;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+                    while (diff < -Math.PI) diff += Math.PI * 2;
+                    if (pd <= cfg.range && Math.abs(diff) <= cfg.halfArcRad) {
+                        if (this.gameInstance && this.gameInstance.player) {
+                            const dmg = Math.max(1, Math.floor(this.damage * cfg.damageMult));
+                            const killed = this.gameInstance.player.takeDamage(dmg, this, false);
+                            if (killed) this.gameInstance.isPlayerDead = true;
+                            if (typeof applyMonsterOnHitPlayerEffects === 'function') {
+                                applyMonsterOnHitPlayerEffects(this.gameInstance.player, this);
+                            }
+                        }
+                    }
+                    this.pendulumState = null;
+                    this._pendulumNextAt = now + cfg.cooldownMs;
+                }
+                this.angle = st.angle;
+                return true;
+            }
+            return true;
+        }
+        if (now < (this._pendulumNextAt || 0)) return false;
+        if (dist0 > cfg.range * 1.35 || dist0 < 38) return false;
+        if (Math.random() < 0.012) {
+            this.pendulumState = { phase: 'telegraph', startTime: now, angle: Math.atan2(dy0, dx0) };
+            return true;
+        }
+        return false;
+    }
+
+    _drawPendulumTelegraph(ctx) {
+        const st = this.pendulumState;
+        const cfg = this._pendulumSweep;
+        if (!st || st.phase !== 'telegraph' || !cfg) return;
+        const now = Date.now();
+        const ratio = Math.min(1, (now - st.startTime) / cfg.telegraphMs);
+        ctx.save();
+        const fillColor = 'rgba(0, 220, 255, 0.26)';
+        const strokeColor = 'rgba(120, 240, 255, 0.88)';
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
+        const start = st.angle - cfg.halfArcRad;
+        const end = st.angle + cfg.halfArcRad;
+        ctx.arc(this.x, this.y, cfg.range * ratio, start, end);
+        ctx.closePath();
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    _tickSpecialMechanics(player, now) {
+        if (this.hp <= 0) return;
+        if (this._apostateStance) {
+            if (!this._nextApostateSwitch) this._nextApostateSwitch = now + this._apostateStance.switchMs;
+            if (now >= this._nextApostateSwitch) {
+                this._apostateBlessing = !this._apostateBlessing;
+                this._nextApostateSwitch = now + this._apostateStance.switchMs;
+            }
+        }
+        if (this._soulCircleCaster && this.gameInstance && typeof this.gameInstance.addSoulCircle === 'function') {
+            if (!this._nextSoulCircleAt) this._nextSoulCircleAt = now + 800;
+            if (now >= this._nextSoulCircleAt) {
+                const c = this._soulCircleCaster;
+                this.gameInstance.addSoulCircle({
+                    x: this.x,
+                    y: this.y,
+                    radius: c.radius,
+                    expireTime: now + c.durationMs,
+                    healPerTick: c.healPerTick,
+                    healIntervalMs: c.healIntervalMs,
+                    slowMult: c.slowMult,
+                    slowDurationMs: c.slowDurationMs,
+                    casterRef: this
+                });
+                this._nextSoulCircleAt = now + c.periodMs;
+            }
+        }
+        if (this._periodicShield) {
+            if (!this._periodicNextPulse) this._periodicNextPulse = now + this._periodicShield.periodMs;
+            if (now >= this._periodicNextPulse) {
+                this.periodicShieldActiveUntil = now + this._periodicShield.shieldDurationMs;
+                this._periodicNextPulse = now + this._periodicShield.periodMs;
+            }
+        }
+        if (this._standingShell) {
+            const moved = Math.sqrt((this.x - this._shellLastX) ** 2 + (this.y - this._shellLastY) ** 2);
+            if (moved > 14) {
+                this.shellStacks = 0;
+                this._shellStillMs = 0;
+            } else {
+                this._shellStillMs += 16;
+                if (this._shellStillMs >= this._standingShell.stillMs) {
+                    const cap = this._standingShell.maxStacks;
+                    this.shellStacks = Math.min(cap, this.shellStacks + 1);
+                    this._shellStillMs = 0;
+                }
+            }
+            this._shellLastX = this.x;
+            this._shellLastY = this.y;
+        }
+        if (this._trailHazard && this.hasDetectedPlayer && this.gameInstance && typeof this.gameInstance.addGroundHazard === 'function') {
+            const sp = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+            if (sp > 0.35 && now - this._trailLastEmit >= this._trailHazard.emitIntervalMs) {
+                this._trailLastEmit = now;
+                this.gameInstance.addGroundHazard(this.x, this.y, this._trailHazard.radius, this._trailHazard.durationMs, this._trailHazard.dps, 'acid');
+            }
+        }
+        if (this._blinkEscape && this.maxHp > 0 && this.hp / this.maxHp < this._blinkEscape.hpRatio && now >= this._nextBlinkAt) {
+            const dx = player.x - this.x;
+            const dy = player.y - this.y;
+            const d = Math.sqrt(dx * dx + dy * dy) || 1;
+            if (d > 100 && d < 400 && Math.random() < 0.02) {
+                const step = Math.min(95, d - 70);
+                this.x += (dx / d) * step;
+                this.y += (dy / d) * step;
+                this._nextBlinkAt = now + this._blinkEscape.cooldownMs;
+            }
+        }
+        if (this._suicideBomb && this.maxHp > 0) {
+            if (this.hp / this.maxHp >= this._suicideBomb.hpRatio) {
+                this._suicideState = null;
+            } else if (!this._suicideState) {
+                this._suicideState = { armAt: now, fuseMs: this._suicideBomb.fuseMs };
+            }
+        }
+        if (this._suicideBomb && this._suicideState && this.gameInstance) {
+            const dx = player.x - this.x;
+            const dy = player.y - this.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const fuseDone = now - this._suicideState.armAt >= this._suicideState.fuseMs;
+            if (this.maxHp > 0 && this.hp / this.maxHp < this._suicideBomb.hpRatio) {
+                const targetVx = dx / (dist || 1) * this.maxSpeed * 0.55;
+                const targetVy = dy / (dist || 1) * this.maxSpeed * 0.55;
+                this.vx += (targetVx - this.vx) * 0.08;
+                this.vy += (targetVy - this.vy) * 0.08;
+            }
+            if (fuseDone || dist < 42) {
+                const r = this._suicideBomb.radius;
+                const dmg = Math.max(1, Math.floor(this.damage * this._suicideBomb.damageMult));
+                if (typeof this.gameInstance.damagePlayerInRadius === 'function') {
+                    this.gameInstance.damagePlayerInRadius(this.x, this.y, r, dmg, this);
+                }
+                this.hp = 0;
+                this._suicideState = null;
+                if (this.gameInstance.player && typeof this.gameInstance.player.processKillRewards === 'function') {
+                    this.gameInstance.player.processKillRewards([this]);
+                }
+            }
+        }
+        if (this._volleyShotsLeft > 0 && now >= this._volleyNextShotAt && this.gameInstance && this.gameInstance.addMonsterProjectile) {
+            const dmg = Math.max(1, Math.floor(this.damage * (this._rangedVolley ? this._rangedVolley.damageMult : 0.5)));
+            this.gameInstance.addMonsterProjectile(this.x, this.y, player.x, player.y, dmg, this, 320);
+            this._volleyShotsLeft--;
+            this._volleyNextShotAt = now + (this._rangedVolley ? this._rangedVolley.delayMs : 200);
+        }
     }
 
     attack(player) {
         const now = Date.now();
         if (this.frozenUntil && now < this.frozenUntil) return false;
+        if (this.pendulumState && this.pendulumState.phase === 'telegraph') return false;
         if (this._skillHitThisFrame) {
             this._skillHitThisFrame = false;
             return true;
@@ -940,8 +1323,11 @@ class Monster {
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         if (this.isRanged) {
-            const range = MONSTER_RANGED_ATTACK_RANGE;
-            const cooldown = MONSTER_RANGED_ATTACK_COOLDOWN;
+            const range = MONSTER_RANGED_ATTACK_RANGE * (this.rangedRangeMult || 1);
+            let cooldown = MONSTER_RANGED_ATTACK_COOLDOWN;
+            if (this.berserkHpRatio != null && this.berserkCooldownMult != null && this.maxHp > 0 && this.hp / this.maxHp < this.berserkHpRatio) {
+                cooldown *= this.berserkCooldownMult;
+            }
             if (distance > range) return false;
             if (now - this.lastAttackTime < cooldown) return false;
             if (!this.aimStartTime) {
@@ -952,10 +1338,22 @@ class Monster {
             if (aimElapsed < MONSTER_RANGED_AIM_DURATION) return false;
             this.aimStartTime = 0;
             this.lastAttackTime = now;
-            if (this.gameInstance && this.gameInstance.addMonsterProjectile) {
-                this.gameInstance.addMonsterProjectile(this.x, this.y, player.x, player.y, this.damage, this, 400);
+            if (this._aoeOrbRanged && this.gameInstance && typeof this.gameInstance.queueMonsterAoETelegraph === 'function') {
+                const odmg = Math.max(1, Math.floor(this.damage * this._aoeOrbRanged.damageMult));
+                this.gameInstance.queueMonsterAoETelegraph(player.x, player.y, odmg, this._aoeOrbRanged.radius, this._aoeOrbRanged.telegraphMs, this);
+            } else if (this.gameInstance && this.gameInstance.addMonsterProjectile) {
+                let pdmg = this.damage;
+                if (this.firstHitBonusMult && !this._firstHitConsumed) {
+                    pdmg = Math.max(1, Math.floor(pdmg * this.firstHitBonusMult));
+                    this._firstHitConsumed = true;
+                }
+                this.gameInstance.addMonsterProjectile(this.x, this.y, player.x, player.y, pdmg, this, 400);
+                if (this._rangedVolley && this._rangedVolley.extraShots > 0) {
+                    this._volleyShotsLeft = this._rangedVolley.extraShots;
+                    this._volleyNextShotAt = now + this._rangedVolley.delayMs;
+                }
             }
-            return false; // 伤害由子弹命中时结算，此处不扣血
+            return false;
         }
         
         let attackCooldown = CONFIG.MONSTER_ATTACK_COOLDOWN;
@@ -966,18 +1364,71 @@ class Monster {
                 attackCooldown = CONFIG.MONSTER_ATTACK_COOLDOWN / maxSlow;
             }
         }
+        if (this.berserkHpRatio != null && this.berserkCooldownMult != null && this.maxHp > 0 && this.hp / this.maxHp < this.berserkHpRatio) {
+            attackCooldown *= this.berserkCooldownMult;
+        }
         if (now - this.lastAttackTime < attackCooldown) return false;
         if (distance <= CONFIG.MONSTER_ATTACK_RANGE) {
             this.lastAttackTime = now;
+            let mult = 1;
+            if (this._comboMelee) {
+                this.meleeHitIndex = (this.meleeHitIndex || 0) + 1;
+                const e = this._comboMelee.every;
+                mult = (this.meleeHitIndex % e === 0) ? this._comboMelee.strongMult : this._comboMelee.weakMult;
+            }
+            if (this.firstHitBonusMult && !this._firstHitConsumed) {
+                mult *= this.firstHitBonusMult;
+                this._firstHitConsumed = true;
+            }
+            this._pendingMeleeDamageMult = mult;
             return true;
         }
         return false;
     }
 
     takeDamage(amount) {
-        this.hp -= amount;
-        // 设置受伤变红效果（持续500毫秒）
-        this.hurtUntil = Date.now() + 500;
+        const now = Date.now();
+        if (this.hp <= 0) return false;
+        let dmg = amount;
+        if (this.startingShieldHp > 0) {
+            const abs = Math.min(this.startingShieldHp, dmg);
+            this.startingShieldHp -= abs;
+            dmg -= abs;
+            if (this.startingShieldHp <= 0 && this._onShieldBroken) {
+                this.vulnerableUntil = now + this._onShieldBroken.vulnerableMs;
+                this.vulnerableDamageTakenMult = this._onShieldBroken.damageTakenMult;
+            }
+        }
+        if (this.periodicShieldActiveUntil > now && this._periodicShield) {
+            dmg *= this._periodicShield.damageTakenMult;
+        }
+        if (this.vulnerableUntil > now) {
+            dmg *= this.vulnerableDamageTakenMult;
+        }
+        if (this.shellStacks > 0 && this._standingShell) {
+            const dr = Math.min(0.78, this.shellStacks * this._standingShell.drPerStack);
+            dmg *= Math.max(0.22, 1 - dr);
+        }
+        if (this._apostateStance && this._apostateBlessing) {
+            dmg *= this._apostateStance.blessingDamageTakenMult;
+        }
+        dmg = Math.max(0, dmg);
+        if (this._twinSoulShared) {
+            const P = this._twinSoulShared;
+            if (P.rewardsClaimed) return false;
+            P.hp -= dmg;
+            if (P.hp < 0) P.hp = 0;
+            P.a.hp = P.b.hp = P.hp;
+            this.hurtUntil = now + 500;
+            P.a.hurtUntil = P.b.hurtUntil = now + 500;
+            if (P.hp <= 0) {
+                P.rewardsClaimed = true;
+                return true;
+            }
+            return false;
+        }
+        this.hp -= dmg;
+        this.hurtUntil = now + 500;
         return this.hp <= 0;
     }
 
@@ -1090,7 +1541,8 @@ class Monster {
         const isHurt = this.hurtUntil && now < this.hurtUntil;
         
         if (this.isElite && this.eliteSkillState) this._drawEliteTelegraph(ctx);
-        
+        if (!this.isElite && this.pendulumState && this._pendulumSweep) this._drawPendulumTelegraph(ctx);
+
         // 尝试使用贴图绘制
         const assetManager = this.gameInstance?.assetManager;
         if (assetManager) {
@@ -2489,6 +2941,7 @@ function maxMonsterLevelForFloor(floor) {
  */
 function towerMinFloorForMonsterType(type, monsterData) {
     if (!monsterData || monsterData.isElite || (typeof type === 'string' && type.endsWith('_elite'))) return 0;
+    if (monsterData.towerMinFloor != null && monsterData.towerMinFloor >= 0) return monsterData.towerMinFloor;
     const t = String(type);
     if (t.startsWith('goblin')) return 1;
     if (t.startsWith('skeleton')) return 6;
@@ -2505,10 +2958,12 @@ function boostMonsterTowardLevel(monster, targetLevel) {
     const delta = targetLevel - monster.level;
     if (delta === 0) return;
     // 低层 maxLevel 为 1～2 时，必须把模板里 5/10/15/20 级的怪「压级」，仅向上 boost 会导致第一层仍出现高级怪
-    const mult = Math.pow(1.082, delta);
+    // 略低于旧版 1.082，避免高层怪物血量复合远超玩家攻击成长（与深阶装备、等级攻击补正配套）
+    const mult = Math.pow(1.056, delta);
     monster.maxHp = Math.max(1, Math.floor(monster.maxHp * mult));
     monster.hp = monster.maxHp;
     monster.damage = Math.max(1, Math.floor(monster.damage * mult));
+    monster._baseDamage = monster.damage;
     const rewardMult = Math.pow(1.035, delta);
     monster.expReward = Math.max(0, Math.floor(monster.expReward * rewardMult));
     monster.goldReward = Math.max(0, Math.floor(monster.goldReward * rewardMult));
@@ -2594,7 +3049,8 @@ class Room {
             allMonsterTypes.forEach(type => {
                 const monsterData = MONSTER_TYPES[type];
                 if (monsterData.isElite || (typeof type === 'string' && type.endsWith('_elite'))) return;
-                if (monsterData.level <= 20) {
+                const maxLvCap = getMonsterMaxLevelCap();
+                if (monsterData.level <= maxLvCap) {
                     if (this.floor < towerMinFloorForMonsterType(type, monsterData)) return;
                     availableMonsters.push({ type, level: monsterData.level });
                     // 超过有效玩家等级的怪物
@@ -2642,6 +3098,7 @@ class Room {
                     monster.maxHp *= 2;
                     monster.hp = monster.maxHp;
                     monster.damage *= 2;
+                    monster._baseDamage = monster.damage;
                     monster.expReward = Math.floor(monster.expReward * 1.5);
                     monster.goldReward = Math.floor(monster.goldReward * 1.5);
                 }
@@ -2668,6 +3125,7 @@ class Room {
                         monster.maxHp *= 2;
                         monster.hp = monster.maxHp;
                         monster.damage *= 2;
+                        monster._baseDamage = monster.damage;
                         monster.expReward = Math.floor(monster.expReward * 1.5);
                         monster.goldReward = Math.floor(monster.goldReward * 1.5);
                     }
@@ -2680,10 +3138,13 @@ class Room {
                 low: ['goblin_elite', 'goblinWarrior_elite', 'goblinShaman_elite'],
                 mid: ['goblin_elite', 'goblinWarrior_elite', 'goblinShaman_elite', 'skeletonKnight_elite', 'skeletonMage_elite'],
                 high: ['skeletonKnight_elite', 'skeletonMage_elite', 'orcWarrior_elite', 'orcWarlord_elite'],
-                top: ['orcWarrior_elite', 'orcWarlord_elite', 'demon_elite', 'demonImp_elite', 'demonBoss_elite']
+                top: ['orcWarrior_elite', 'orcWarlord_elite', 'demon_elite', 'demonImp_elite', 'demonBoss_elite'],
+                abyss: ['demon_elite', 'demonImp_elite', 'demonBoss_elite', 'demonAbyss_elite', 'demonVoid_elite', 'crystalColossus_elite', 'sporeHorror_elite'],
+                voidEnd: ['demonBoss_elite', 'demonTyrant_elite', 'demonVoid_elite', 'demonAbyss_elite', 'rustChain_elite', 'crystalColossus_elite']
             };
             let pool = elitePools.low;
-            if (this.floor >= 120) pool = elitePools.top;
+            if (this.floor >= 180) pool = elitePools.voidEnd;
+            else if (this.floor >= 120) pool = elitePools.abyss;
             else if (this.floor >= 60) pool = elitePools.top;
             else if (this.floor >= 36) pool = elitePools.high;
             else if (this.floor >= 16) pool = elitePools.high;
@@ -2739,7 +3200,11 @@ class Room {
                 used: false
             };
         }
-        
+
+        if ((this.type === ROOM_TYPES.BATTLE || this.type === (ROOM_TYPES && ROOM_TYPES.ELITE) || this.type === 'elite') && this.monsters && this.monsters.length) {
+            if (typeof pairTwinSoulMonstersInRoom === 'function') pairTwinSoulMonstersInRoom(this.monsters);
+        }
+
         // 生成房间内容后，再次预加载实体贴图
         this._preloadTextures();
     }
@@ -2757,6 +3222,7 @@ class Room {
         const isEliteRoom = this.type === (ROOM_TYPES && ROOM_TYPES.ELITE) || this.type === 'elite';
         const isBossRoom = this.type === (ROOM_TYPES && ROOM_TYPES.BOSS) || this.type === 'boss';
         if (this.type === ROOM_TYPES.BATTLE || isEliteRoom || isBossRoom) {
+            applyMarshalAurasToMonsters(this.monsters);
             this.monsters.forEach(monster => {
                 if (monster.hp > 0) {
                     monster.update(player);
@@ -3088,6 +3554,7 @@ class Player {
         this.expNeeded = 50; // 降低初始经验需求
         this.gold = 0;
         this.lastAttackTime = 0;
+        this._towerSilenceAttackCdMult = 1;
         this.dashCooldown = 0;
         this.isDashing = false;
         this.dashDirection = { x: 0, y: 0 };
@@ -3238,6 +3705,10 @@ class Player {
             const lv = Math.max(1, this.level | 0);
             this.maxHp += (lv - 1) * 20;
             this.baseAttack += (lv - 1) * 2;
+            // 21 级起额外攻击成长，使满级在深塔中的输出与楼层缩放后的怪物匹配
+            if (lv > 20) {
+                this.baseAttack += Math.floor((lv - 20) * 4.5);
+            }
         }
         this.baseDefense = 0;
         this.baseCritRate = 5;
@@ -3749,11 +4220,20 @@ class Player {
                     return true;
                 });
                 
-                // 使用加速度系统
+                // 使用加速度系统（玩家被减速：取最小移速倍率 = 最强减速）
+                let effectiveMaxSpeed = this.maxSpeed;
+                if (this.slowEffects && this.slowEffects.length) {
+                    this.slowEffects = this.slowEffects.filter(e => e.expireTime > now);
+                    if (this.slowEffects.length > 0) {
+                        const minMult = Math.min(...this.slowEffects.map(e => e.multiplier));
+                        effectiveMaxSpeed = this.maxSpeed * minMult;
+                    }
+                }
+                
                 if (dx !== 0 || dy !== 0) {
                     // 计算目标速度方向
-                    const targetVx = dx * this.maxSpeed;
-                    const targetVy = dy * this.maxSpeed;
+                    const targetVx = dx * effectiveMaxSpeed;
+                    const targetVy = dy * effectiveMaxSpeed;
                     
                     // 应用加速度
                     this.vx += (targetVx - this.vx) * this.acceleration;
@@ -3769,8 +4249,8 @@ class Player {
                 
                 // 限制最大速度
                 const currentSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-                if (currentSpeed > this.maxSpeed) {
-                    const scale = this.maxSpeed / currentSpeed;
+                if (currentSpeed > effectiveMaxSpeed) {
+                    const scale = effectiveMaxSpeed / currentSpeed;
                     this.vx *= scale;
                     this.vy *= scale;
                 }
@@ -3976,6 +4456,20 @@ class Player {
         if (traitIdsIncludeBase(traitIds, 'arcane_core')) cooldownReduction -= 0.1;
         if (traitIdsIncludeBase(traitIds, 'star_bond')) cooldownReduction -= 0.15;
         if (traitIdsIncludeBase(traitIds, 'creation_law')) cooldownReduction -= 0.2;
+        // 套装：银月8（12%）/ 星辰4（10%）等对武器技能冷却；多件取最高，且套装部分单独封顶 15%
+        if (typeof getActiveSetEffects === 'function') {
+            let setCdrFrac = 0;
+            getActiveSetEffects(this.equipment).forEach(se => {
+                const e = se.effect;
+                if (!e || e.special !== 'cooldownReduction') return;
+                const p = e.cooldownReductionPercent;
+                if (typeof p === 'number' && p > 0) {
+                    setCdrFrac = Math.max(setCdrFrac, Math.min(20, p) / 100);
+                }
+            });
+            setCdrFrac = Math.min(0.15, setCdrFrac);
+            cooldownReduction -= setCdrFrac;
+        }
         cooldownReduction = Math.max(0.1, cooldownReduction); // 最少10%冷却时间
         
         // 应用精炼效果的冷却时间减少
@@ -5044,7 +5538,8 @@ class Player {
                 return false;
             }
             
-            const cooldown = CONFIG.PLAYER_ATTACK_COOLDOWN * (100 / (100 + this.baseAttackSpeed));
+            const silenceMult = (this._towerSilenceAttackCdMult > 1) ? this._towerSilenceAttackCdMult : 1;
+            const cooldown = CONFIG.PLAYER_ATTACK_COOLDOWN * (100 / (100 + this.baseAttackSpeed)) * silenceMult;
             
             if (now - this.lastAttackTime < cooldown) return false;
             
@@ -5481,7 +5976,10 @@ class Player {
             
             // 击杀恢复生命值（青铜套装8件、星辰套装6件）
             if (effect.special === 'killHeal' || effect.special === 'killBuff') {
-                const healAmount = Math.floor(this.maxHp * 0.05);
+                const hpPct = (typeof effect.killHealPercent === 'number' && effect.killHealPercent > 0)
+                    ? effect.killHealPercent
+                    : 0.05;
+                const healAmount = Math.floor(this.maxHp * hpPct);
                 this.hp = Math.min(this.hp + healAmount, this.maxHp);
                 if (this.gameInstance) {
                     this.gameInstance.addFloatingText(
@@ -5529,11 +6027,12 @@ class Player {
             const effect = setData.effects[setEffect.pieceCount];
             if (!effect || !effect.special) continue;
             
-            // 伤害转化为生命值（晶化套装6件）
-            if (effect.special === 'damageToHeal' && Math.random() < 0.2) {
-                const healAmount = Math.floor(damage * 0.3);
+            // 伤害转化为生命值（晶化套装6件，数值与 set-config 描述一致）
+            if (effect.special === 'damageToHeal' && Math.random() < 0.12) {
+                const ratio = 0.18;
+                const healAmount = Math.floor(damage * ratio);
                 this.hp = Math.min(this.hp + healAmount, this.maxHp);
-                damage = Math.floor(damage * 0.7); // 减少30%伤害
+                damage = Math.floor(damage * (1 - ratio));
                 if (this.gameInstance) {
                     this.gameInstance.addFloatingText(
                         this.x,
@@ -5544,30 +6043,15 @@ class Player {
                 }
             }
             
-            // 伤害免疫（圣耀套装6件）
-            if (effect.special === 'damageImmunity' && Math.random() < 0.2) {
-                damage = 0;
+            // 圣耀套装6件：低概率大幅减伤（不再完全免疫）
+            if (effect.special === 'damageImmunity' && Math.random() < 0.08) {
+                damage = Math.floor(damage * 0.55);
                 if (this.gameInstance) {
                     this.gameInstance.addFloatingText(
                         this.x,
                         this.y,
-                        '免疫!',
-                        '#ffff00'
-                    );
-                }
-            }
-            
-            // 致命伤害免疫（晶化套装8件、圣耀套装8件、星辰套装8件）
-            if ((effect.special === 'deathImmunity' || effect.special === 'divineProtection' || effect.special === 'ultimate') && 
-                this.hp - damage <= 0 && Math.random() < (effect.special === 'ultimate' ? 0.5 : 0.3)) {
-                this.hp = 1; // 保留1点生命值
-                damage = this.hp - 1;
-                if (this.gameInstance) {
-                    this.gameInstance.addFloatingText(
-                        this.x,
-                        this.y,
-                        '致命免疫!',
-                        '#ff00ff'
+                        '圣佑减伤',
+                        '#ffff88'
                     );
                 }
             }
@@ -7320,12 +7804,12 @@ class Player {
             }
         }
         
-        // 古朴词条：受到暴击时，有20%概率免疫
-        if (isCrit && traitIdsIncludeBase(traitIds, 'ancient') && Math.random() < 0.2) {
+        // 古朴词条：受到暴击时，有12%概率使该次暴击伤害减半（不再完全免疫）
+        if (isCrit && traitIdsIncludeBase(traitIds, 'ancient') && Math.random() < 0.12) {
+            damage = Math.floor(damage * 0.5);
             if (this.gameInstance) {
-                this.gameInstance.addFloatingText(this.x, this.y, '免疫!', '#ffff00');
+                this.gameInstance.addFloatingText(this.x, this.y, '古朴格挡', '#ffff88');
             }
-            return 0;
         }
         
         // 龙息战盔词条：受到攻击时，有15%概率对攻击者造成火焰伤害
@@ -7376,16 +7860,17 @@ class Player {
             });
         }
         
-        // 逆鳞龙铠词条：受到致命伤害时，有40%概率免疫
+        // 逆鳞龙铠：致命一击时，90 秒冷却内至多一次，15% 概率将该次伤害压至不超过最大生命 12%（不再无敌）
         if (traitIdsIncludeBase(traitIds, 'reverse_scale_armor') && this.hp - damage <= 0) {
             const cooldownKey = 'reverse_scale_armor_cooldown';
             if (!this.traitCooldowns[cooldownKey] || now > this.traitCooldowns[cooldownKey]) {
-                if (Math.random() < 0.4) {
-                    this.traitCooldowns[cooldownKey] = now + 60000;
+                if (Math.random() < 0.15) {
+                    this.traitCooldowns[cooldownKey] = now + 90000;
+                    const cap = Math.max(1, Math.floor(this.maxHp * 0.12));
+                    if (damage > cap) damage = cap;
                     if (this.gameInstance) {
-                        this.gameInstance.addFloatingText(this.x, this.y, '逆鳞免疫!', '#ff00ff');
+                        this.gameInstance.addFloatingText(this.x, this.y, '逆鳞卸劲', '#ff88ff');
                     }
-                    return 0;
                 }
             }
         }
@@ -7466,16 +7951,16 @@ class Player {
             }
         }
         
-        // 神威头盔词条：受到伤害时有25%概率免疫
-        if (traitIdsIncludeBase(traitIds, 'divine_helmet') && Math.random() < 0.25) {
+        // 神威头盔：概率减伤（不再完全免疫）
+        if (traitIdsIncludeBase(traitIds, 'divine_helmet') && Math.random() < 0.12) {
+            damage = Math.floor(damage * 0.62);
             if (this.gameInstance) {
                 this.gameInstance.addEquipmentEffect('divine_shield', this.x, this.y, {
                     radius: 40,
                     duration: 400
                 });
-                this.gameInstance.addFloatingText(this.x, this.y, '神威免疫!', '#ffff00');
+                this.gameInstance.addFloatingText(this.x, this.y, '神威护壳', '#ffff88');
             }
-            return 0;
         }
         
         // 龙鳞护甲词条：受到攻击时有30%概率反弹50%伤害，并恢复反弹伤害50%的生命值
@@ -7570,37 +8055,36 @@ class Player {
             });
         }
         
-        // 神威词条：受到致命伤害时，有30%概率保留1点生命值
-        if (traitIdsIncludeBase(traitIds, 'divine_crown') && this.hp - damage <= 0 && Math.random() < 0.3) {
-            this.hp = 1;
-            damage = this.hp - 1;
+        // 神威冠冕：受击时低概率减伤（移除锁血）
+        if (traitIdsIncludeBase(traitIds, 'divine_crown') && Math.random() < 0.06) {
+            damage = Math.floor(damage * 0.78);
             if (this.gameInstance) {
-                this.gameInstance.addFloatingText(this.x, this.y, '神威!', '#ff00ff');
+                this.gameInstance.addFloatingText(this.x, this.y, '神威护体', '#ddaaff');
             }
         }
         
-        // 眷顾词条：受到致命伤害时，有25%概率免疫
-        if (traitIdsIncludeBase(traitIds, 'divine_favor') && this.hp - damage <= 0 && Math.random() < 0.25) {
+        // 诸神眷顾：受击时小幅减伤（移除致命免疫）
+        if (traitIdsIncludeBase(traitIds, 'divine_favor') && Math.random() < 0.06) {
+            damage = Math.floor(damage * 0.82);
             if (this.gameInstance) {
-                this.gameInstance.addFloatingText(this.x, this.y, '眷顾免疫!', '#ffff00');
+                this.gameInstance.addFloatingText(this.x, this.y, '眷顾', '#ffffaa');
             }
-            return 0;
         }
         
-        // 天庭之束词条：受到伤害时，有15%概率免疫
-        if (traitIdsIncludeBase(traitIds, 'celestial') && Math.random() < 0.15) {
+        // 天庭之束：概率减伤，不再完全免疫
+        if (traitIdsIncludeBase(traitIds, 'celestial') && Math.random() < 0.1) {
+            damage = Math.floor(damage * 0.65);
             if (this.gameInstance) {
-                this.gameInstance.addFloatingText(this.x, this.y, '免疫!', '#ffff00');
+                this.gameInstance.addFloatingText(this.x, this.y, '天束减伤', '#ffff88');
             }
-            return 0;
         }
         
-        // 律法圣带词条：受到伤害时，有20%概率免疫
-        if (traitIdsIncludeBase(traitIds, 'law') && Math.random() < 0.2) {
+        // 律法圣带：概率减伤，不再完全免疫
+        if (traitIdsIncludeBase(traitIds, 'law') && Math.random() < 0.1) {
+            damage = Math.floor(damage * 0.72);
             if (this.gameInstance) {
-                this.gameInstance.addFloatingText(this.x, this.y, '律法免疫!', '#ffff00');
+                this.gameInstance.addFloatingText(this.x, this.y, '律法', '#eeeeaa');
             }
-            return 0;
         }
 
         // ---------- 恶魔塔深阶·防具受击（四段机制带 deepTraitBand + 独立特效） ----------
@@ -8008,6 +8492,9 @@ class Player {
     processKillRewards(killedMonsters) {
         if (!this.gameInstance) return;
         killedMonsters.forEach(monster => {
+            if (this.gameInstance && typeof this.gameInstance.onMonsterSlain === 'function') {
+                this.gameInstance.onMonsterSlain(monster);
+            }
             const isBoss = monster instanceof Boss;
             if (isBoss) {
                 if (this.gameInstance.onBossDefeated) this.gameInstance.onBossDefeated(monster);

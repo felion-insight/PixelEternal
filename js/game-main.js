@@ -105,7 +105,10 @@ class Game {
         this.portals = []; // 传送门列表
         this.equipmentEffects = []; // 打造装备特效列表
         this.monsterProjectiles = []; // 远程怪物发射的子弹
-        
+        this.groundHazards = []; // 地面持续伤害（毒雾、酸沼等）
+        this.pendingMonsterAoE = []; // 延迟落地的怪物 AOE（星渊法师等）
+        this.soulCircles = []; // 法阵祭司：地面法阵（友方回血 / 玩家减速）
+
         // 物品追踪系统：追踪本次恶魔塔中获得的物品
         this.towerItems = new Set(); // 存储物品的唯一标识符
         this.towerGoldGained = 0; // 追踪本次恶魔塔中获得的金币数量
@@ -2516,7 +2519,10 @@ class Game {
         this.droppedItems = [];
         this.portals = [];
         this.monsterProjectiles = [];
-        
+        this.groundHazards = [];
+        this.pendingMonsterAoE = [];
+        this.soulCircles = [];
+
         let selectedType = forcedType;
         
         if (!selectedType && this.currentScene === SCENE_TYPES.TOWER) {
@@ -3475,18 +3481,18 @@ class Game {
                 }
             }
             
-            // 处理星辰套装8件效果：每秒恢复2%最大生命值
+            // 星辰套装8件：战斗中每秒恢复1%最大生命值（已移除致命免疫）
             if (this.player.setSpecialEffects) {
                 for (const [setId, setEffect] of Object.entries(this.player.setSpecialEffects)) {
                 const setData = SET_DEFINITIONS[setId];
                 if (!setData) continue;
                 
                 const effect = setData.effects[setEffect.pieceCount];
-                if (effect && effect.special === 'ultimate' && setEffect.pieceCount === 8) {
+                if (effect && effect.special === 'starRegen' && setEffect.pieceCount === 8) {
                     const now = Date.now();
                     if (!this.player.lastStarUltimateHeal) this.player.lastStarUltimateHeal = 0;
                     if (now - this.player.lastStarUltimateHeal >= 1000) {
-                        const healAmount = Math.floor(this.player.maxHp * 0.02);
+                        const healAmount = Math.floor(this.player.maxHp * 0.01);
                         this.player.hp = Math.min(this.player.hp + healAmount, this.player.maxHp);
                         this.player.lastStarUltimateHeal = now;
                     }
@@ -3621,6 +3627,23 @@ class Game {
                 // 恶魔塔场景
                 if (this.currentRoom) {
                     this.currentRoom.update(this.player);
+                    this.player._towerSilenceAttackCdMult = 1;
+                    if (this.currentRoom.monsters) {
+                        for (let mi = 0; mi < this.currentRoom.monsters.length; mi++) {
+                            const m = this.currentRoom.monsters[mi];
+                            if (!m || m.hp <= 0 || !m._silenceAura) continue;
+                            const sdx = m.x - this.player.x;
+                            const sdy = m.y - this.player.y;
+                            const sr = m._silenceAura.range;
+                            if (sdx * sdx + sdy * sdy <= sr * sr) {
+                                const mult = m._silenceAura.playerAttackCdMult;
+                                if (mult > this.player._towerSilenceAttackCdMult) this.player._towerSilenceAttackCdMult = mult;
+                            }
+                        }
+                    }
+                    this.updateGroundHazards();
+                    this.updatePendingMonsterAoE();
+                    this.updateSoulCircles();
                 // 检查房间交互提示
                 if (this.portals.length > 0) {
                     // 检查传送门交互
@@ -3660,7 +3683,13 @@ class Game {
                     let playerDied = false;
                     this.currentRoom.monsters.forEach(monster => {
                         if (monster.hp > 0 && monster.attack(this.player)) {
-                            const killed = this.player.takeDamage(monster.damage, monster, false);
+                            const md = (monster._pendingMeleeDamageMult != null && monster._pendingMeleeDamageMult > 0) ? monster._pendingMeleeDamageMult : 1;
+                            const mdmg = Math.max(1, Math.floor(monster.damage * md));
+                            monster._pendingMeleeDamageMult = 1;
+                            const killed = this.player.takeDamage(mdmg, monster, false);
+                            if (typeof applyMonsterOnHitPlayerEffects === 'function') {
+                                applyMonsterOnHitPlayerEffects(this.player, monster);
+                            }
                             if (killed) playerDied = true;
                         }
                         if (typeof Boss !== 'undefined' && monster instanceof Boss && monster.hp > 0) {
@@ -4418,6 +4447,9 @@ class Game {
             if (dummy instanceof MonsterTrainingDummy && dummy.attack) {
                 if (dummy.attack(this.player)) {
                     const killed = this.player.takeDamage(dummy.damage, dummy, false);
+                    if (typeof applyMonsterOnHitPlayerEffects === 'function') {
+                        applyMonsterOnHitPlayerEffects(this.player, dummy);
+                    }
                     if (killed) {
                         this.returnToTown();
                     }
@@ -4600,6 +4632,9 @@ class Game {
      */
     returnToTown() {
         this.monsterProjectiles = [];
+        this.groundHazards = [];
+        this.pendingMonsterAoE = [];
+        this.soulCircles = [];
         // 如果是从训练场返回，清空训练桩
         if (this.currentScene === SCENE_TYPES.TRAINING) {
             this.trainingGroundScene.clearAllDummies();
@@ -7721,6 +7756,7 @@ class Game {
         this.drawWeaponSkillAimPreview(this.ctx);
         this.drawEquipmentEffects(this.ctx);
         this.drawMonsterProjectiles(this.ctx);
+        this.drawGroundHazardsAndPendingAoE(this.ctx);
         this.ctx.translate(this.cameraX, this.cameraY);
         
         // 恢复缩放状态
@@ -8195,6 +8231,150 @@ class Game {
     /**
      * 更新怪物子弹：位移、命中判定、对玩家造成伤害
      */
+    onMonsterSlain(monster) {
+        if (!monster || monster instanceof Boss) return;
+        if (monster._deathHazard && typeof this.addGroundHazard === 'function') {
+            const h = monster._deathHazard;
+            this.addGroundHazard(monster.x, monster.y, h.radius, h.durationMs, h.dps, 'poison');
+        }
+        if (monster.goldBonusOnDeath > 0) {
+            this.gainGold(monster.goldBonusOnDeath);
+            this.addFloatingText(this.player.x, this.player.y, `额外 +${monster.goldBonusOnDeath} 金币`, '#ffee88', 1800, 16, true);
+        }
+    }
+
+    addGroundHazard(x, y, radius, durationMs, dps, kind = 'poison') {
+        if (!this.groundHazards) this.groundHazards = [];
+        this.groundHazards.push({
+            x, y, radius,
+            expireTime: Date.now() + durationMs,
+            dps: Math.max(1, Math.floor(dps)),
+            lastTick: 0,
+            kind
+        });
+    }
+
+    addSoulCircle(data) {
+        if (!this.soulCircles) this.soulCircles = [];
+        if (!data || typeof data.x !== 'number' || typeof data.y !== 'number') return;
+        this.soulCircles.push({
+            x: data.x,
+            y: data.y,
+            radius: data.radius,
+            expireTime: data.expireTime,
+            healPerTick: Math.max(0, Math.floor(data.healPerTick || 0)),
+            healIntervalMs: Math.max(200, data.healIntervalMs || 800),
+            slowMult: typeof data.slowMult === 'number' ? data.slowMult : 0.75,
+            slowDurationMs: Math.max(200, data.slowDurationMs || 800),
+            lastHealTick: 0,
+            _lastPlayerSlowApply: 0,
+            casterRef: data.casterRef || null
+        });
+    }
+
+    updateSoulCircles() {
+        if (!this.soulCircles || !this.soulCircles.length || !this.player || !this.currentRoom || !this.currentRoom.monsters) return;
+        const now = Date.now();
+        this.soulCircles = this.soulCircles.filter(c => now < c.expireTime);
+        for (let i = 0; i < this.soulCircles.length; i++) {
+            const c = this.soulCircles[i];
+            if (now - (c.lastHealTick || 0) >= c.healIntervalMs) {
+                c.lastHealTick = now;
+                const mons = this.currentRoom.monsters;
+                for (let j = 0; j < mons.length; j++) {
+                    const m = mons[j];
+                    if (!m || m.hp <= 0) continue;
+                    const dx = m.x - c.x;
+                    const dy = m.y - c.y;
+                    if (dx * dx + dy * dy <= c.radius * c.radius && c.healPerTick > 0) {
+                        m.hp = Math.min(m.maxHp, m.hp + c.healPerTick);
+                    }
+                }
+            }
+            const pdx = this.player.x - c.x;
+            const pdy = this.player.y - c.y;
+            if (pdx * pdx + pdy * pdy <= c.radius * c.radius) {
+                if (now - (c._lastPlayerSlowApply || 0) >= 280) {
+                    c._lastPlayerSlowApply = now;
+                    if (!this.player.slowEffects) this.player.slowEffects = [];
+                    this.player.slowEffects.push({ multiplier: c.slowMult, expireTime: now + c.slowDurationMs });
+                }
+            }
+        }
+    }
+
+    updateGroundHazards() {
+        if (!this.groundHazards || !this.groundHazards.length || !this.player) return;
+        const now = Date.now();
+        this.groundHazards = this.groundHazards.filter(h => h.expireTime > now);
+        for (let i = 0; i < this.groundHazards.length; i++) {
+            const h = this.groundHazards[i];
+            const dx = this.player.x - h.x;
+            const dy = this.player.y - h.y;
+            if (dx * dx + dy * dy > h.radius * h.radius) continue;
+            if (now - h.lastTick < 500) continue;
+            h.lastTick = now;
+            const killed = this.player.takeDamage(h.dps, null, false);
+            if (killed) this.isPlayerDead = true;
+            const col = h.kind === 'acid' ? '#88ff44' : '#44ff88';
+            this.addFloatingText(this.player.x, this.player.y - 20, `-${h.dps}`, col, 600, 14, true);
+        }
+    }
+
+    queueMonsterAoETelegraph(tx, ty, damage, radius, telegraphMs, monsterRef) {
+        if (!this.pendingMonsterAoE) this.pendingMonsterAoE = [];
+        this.pendingMonsterAoE.push({
+            tx, ty, damage, radius,
+            telegraphMs,
+            startTime: Date.now(),
+            hitDone: false,
+            monsterRef
+        });
+    }
+
+    updatePendingMonsterAoE() {
+        if (!this.pendingMonsterAoE || !this.pendingMonsterAoE.length || !this.player) return;
+        const now = Date.now();
+        this.pendingMonsterAoE = this.pendingMonsterAoE.filter(entry => {
+            if (entry.hitDone) return false;
+            const elapsed = now - entry.startTime;
+            if (elapsed < entry.telegraphMs) return true;
+            const dx = this.player.x - entry.tx;
+            const dy = this.player.y - entry.ty;
+            if (dx * dx + dy * dy <= entry.radius * entry.radius) {
+                const killed = this.player.takeDamage(entry.damage, entry.monsterRef || null, false);
+                if (killed) this.isPlayerDead = true;
+            }
+            entry.hitDone = true;
+            return false;
+        });
+    }
+
+    damagePlayerInRadius(x, y, radius, damage, attackerRef) {
+        if (!this.player) return;
+        const dx = this.player.x - x;
+        const dy = this.player.y - y;
+        if (dx * dx + dy * dy > radius * radius) return;
+        const killed = this.player.takeDamage(damage, attackerRef, false);
+        if (killed) this.isPlayerDead = true;
+        this.addFloatingText(this.player.x, this.player.y, `爆裂 ${damage}`, '#ff66aa', 1200, 18, true);
+    }
+
+    applyPlayerKnockback(player, fromX, fromY, force) {
+        if (!player) return;
+        const dx = player.x - fromX;
+        const dy = player.y - fromY;
+        const d = Math.sqrt(dx * dx + dy * dy) || 1;
+        const nx = dx / d;
+        const ny = dy / d;
+        player.x += nx * force;
+        player.y += ny * force;
+        const w = CONFIG.CANVAS_WIDTH;
+        const h = CONFIG.CANVAS_HEIGHT;
+        player.x = Math.max(player.size / 2, Math.min(w - player.size / 2, player.x));
+        player.y = Math.max(player.size / 2, Math.min(h - player.size / 2, player.y));
+    }
+
     updateMonsterProjectiles() {
         if (!this.monsterProjectiles || !this.player) return;
         const now = Date.now();
@@ -8209,6 +8389,9 @@ class Game {
             const dy = this.player.y - proj.y;
             if (dx * dx + dy * dy <= hitRadius * hitRadius) {
                 const killed = this.player.takeDamage(proj.damage, proj.monsterRef || null, false);
+                if (proj.monsterRef && typeof applyMonsterOnHitPlayerEffects === 'function') {
+                    applyMonsterOnHitPlayerEffects(this.player, proj.monsterRef);
+                }
                 if (killed) this.isPlayerDead = true;
                 return false;
             }
@@ -8219,6 +8402,57 @@ class Game {
     /**
      * 绘制怪物远程子弹（红色小圆）
      */
+    drawGroundHazardsAndPendingAoE(ctx) {
+        const now = Date.now();
+        if (this.groundHazards && this.groundHazards.length) {
+            this.groundHazards.forEach(h => {
+                ctx.save();
+                const alpha = 0.22 + 0.12 * Math.sin(now / 280);
+                ctx.fillStyle = h.kind === 'acid' ? `rgba(140, 255, 80, ${alpha})` : `rgba(80, 220, 120, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(h.x, h.y, h.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = h.kind === 'acid' ? 'rgba(180,255,100,0.5)' : 'rgba(120,255,160,0.5)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+            });
+        }
+        if (this.pendingMonsterAoE && this.pendingMonsterAoE.length) {
+            this.pendingMonsterAoE.forEach(p => {
+                if (p.hitDone) return;
+                const elapsed = now - p.startTime;
+                const ratio = Math.min(1, elapsed / p.telegraphMs);
+                ctx.save();
+                ctx.fillStyle = `rgba(255, 80, 180, ${0.15 + ratio * 0.2})`;
+                ctx.beginPath();
+                ctx.arc(p.tx, p.ty, p.radius * ratio, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,120,200,0.7)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+            });
+        }
+        if (this.soulCircles && this.soulCircles.length) {
+            this.soulCircles.forEach(c => {
+                if (now >= c.expireTime) return;
+                ctx.save();
+                const pulse = 0.18 + 0.08 * Math.sin(now / 320);
+                ctx.fillStyle = `rgba(140, 80, 220, ${pulse})`;
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(100, 255, 160, 0.45)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.restore();
+            });
+        }
+    }
+
     drawMonsterProjectiles(ctx) {
         if (!this.monsterProjectiles || !this.monsterProjectiles.length) return;
         const now = Date.now();

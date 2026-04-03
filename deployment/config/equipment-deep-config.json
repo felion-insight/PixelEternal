@@ -3016,9 +3016,9 @@
       "level": 60,
       "quality": "common",
       "weaponType": "melee",
-      "attack": 88,
-      "critRate": 63,
-      "critDamage": 98,
+      "attack": 99,
+      "critRate": 65,
+      "critDamage": 104,
       "lifeSteal": 9
     },
     {
@@ -3027,9 +3027,9 @@
       "level": 60,
       "quality": "common",
       "weaponType": "ranged",
-      "attack": 81,
-      "critRate": 67,
-      "critDamage": 94,
+      "attack": 91,
+      "critRate": 69,
+      "critDamage": 100,
       "lifeSteal": 7
     },
     {
@@ -3037,35 +3037,35 @@
       "name": "终焉凡·殒冠",
       "level": 60,
       "quality": "common",
-      "health": 242,
-      "defense": 44,
-      "damageReduction": 6
+      "health": 266,
+      "defense": 48,
+      "damageReduction": 7
     },
     {
       "slot": "chest",
       "name": "终焉凡·殒铠",
       "level": 60,
       "quality": "common",
-      "health": 422,
-      "defense": 60,
-      "damageReduction": 7
+      "health": 464,
+      "defense": 65,
+      "damageReduction": 8
     },
     {
       "slot": "legs",
       "name": "终焉凡·殒胫",
       "level": 60,
       "quality": "common",
-      "health": 337,
-      "defense": 52,
-      "thorn": 11
+      "health": 371,
+      "defense": 56,
+      "thorn": 12
     },
     {
       "slot": "boots",
       "name": "终焉凡·殒踪",
       "level": 60,
       "quality": "common",
-      "health": 221,
-      "defense": 39,
+      "health": 243,
+      "defense": 42,
       "moveSpeed": 7
     },
     {
@@ -3102,9 +3102,9 @@
       "level": 60,
       "quality": "rare",
       "weaponType": "melee",
-      "attack": 102,
-      "critRate": 64,
-      "critDamage": 113,
+      "attack": 114,
+      "critRate": 66,
+      "critDamage": 120,
       "lifeSteal": 10
     },
     {
@@ -3113,9 +3113,9 @@
       "level": 60,
       "quality": "rare",
       "weaponType": "ranged",
-      "attack": 94,
-      "critRate": 69,
-      "critDamage": 109,
+      "attack": 105,
+      "critRate": 71,
+      "critDamage": 116,
       "lifeSteal": 8
     },
     {
@@ -3123,35 +3123,35 @@
       "name": "终焉良·焉翎",
       "level": 60,
       "quality": "rare",
-      "health": 280,
-      "defense": 51,
-      "damageReduction": 6
+      "health": 308,
+      "defense": 55,
+      "damageReduction": 7
     },
     {
       "slot": "chest",
       "name": "终焉良·焉垣",
       "level": 60,
       "quality": "rare",
-      "health": 488,
-      "defense": 70,
-      "damageReduction": 7
+      "health": 537,
+      "defense": 76,
+      "damageReduction": 8
     },
     {
       "slot": "legs",
       "name": "终焉良·焉棘",
       "level": 60,
       "quality": "rare",
-      "health": 390,
-      "defense": 60,
-      "thorn": 11
+      "health": 429,
+      "defense": 65,
+      "thorn": 12
     },
     {
       "slot": "boots",
       "name": "终焉良·焉步",
       "level": 60,
       "quality": "rare",
-      "health": 256,
-      "defense": 45,
+      "health": 282,
+      "defense": 49,
       "moveSpeed": 7
     },
     {
@@ -3188,9 +3188,9 @@
       "level": 60,
       "quality": "fine",
       "weaponType": "melee",
-      "attack": 115,
-      "critRate": 65,
-      "critDamage": 129,
+      "attack": 129,
+      "critRate": 67,
+      "critDamage": 137,
       "lifeSteal": 10
     },
     {
@@ -3199,9 +3199,9 @@
       "level": 60,
       "quality": "fine",
       "weaponType": "ranged",
-      "attack": 107,
-      "critRate": 70,
-      "critDamage": 124,
+      "attack": 120,
+      "critRate": 72,
+      "critDamage": 131,
       "lifeSteal": 8
     },
     {
@@ -3209,35 +3209,35 @@
       "name": "终焉湛·终识",
       "level": 60,
       "quality": "fine",
-      "health": 318,
-      "defense": 57,
-      "damageReduction": 6
+      "health": 350,
+      "defense": 62,
+      "damageReduction": 7
     },
     {
       "slot": "chest",
       "name": "终焉湛·终甲",
       "level": 60,
       "quality": "fine",
-      "health": 554,
-      "defense": 79,
-      "damageReduction": 7
+      "health": 609,
+      "defense": 85,
+      "damageReduction": 8
     },
     {
       "slot": "legs",
       "name": "终焉湛·终行",
       "level": 60,
       "quality": "fine",
-      "health": 443,
-      "defense": 68,
-      "thorn": 12
+      "health": 487,
+      "defense": 73,
+      "thorn": 13
     },
     {
       "slot": "boots",
       "name": "终焉湛·终影",
       "level": 60,
       "quality": "fine",
-      "health": 290,
-      "defense": 52,
+      "health": 319,
+      "defense": 56,
       "moveSpeed": 7
     },
     {
@@ -3274,9 +3274,9 @@
       "level": 60,
       "quality": "epic",
       "weaponType": "melee",
-      "attack": 126,
-      "critRate": 66,
-      "critDamage": 141,
+      "attack": 141,
+      "critRate": 68,
+      "critDamage": 149,
       "lifeSteal": 10
     },
     {
@@ -3285,9 +3285,9 @@
       "level": 60,
       "quality": "epic",
       "weaponType": "ranged",
-      "attack": 117,
-      "critRate": 71,
-      "critDamage": 136,
+      "attack": 131,
+      "critRate": 73,
+      "critDamage": 144,
       "lifeSteal": 8
     },
     {
@@ -3295,35 +3295,35 @@
       "name": "终焉炽·归默",
       "level": 60,
       "quality": "epic",
-      "health": 348,
-      "defense": 63,
-      "damageReduction": 6
+      "health": 383,
+      "defense": 68,
+      "damageReduction": 7
     },
     {
       "slot": "chest",
       "name": "终焉炽·归壁",
       "level": 60,
       "quality": "epic",
-      "health": 607,
-      "defense": 87,
-      "damageReduction": 7
+      "health": 668,
+      "defense": 94,
+      "damageReduction": 8
     },
     {
       "slot": "legs",
       "name": "终焉炽·归刺",
       "level": 60,
       "quality": "epic",
-      "health": 485,
-      "defense": 75,
-      "thorn": 12
+      "health": 534,
+      "defense": 81,
+      "thorn": 13
     },
     {
       "slot": "boots",
       "name": "终焉炽·归踏",
       "level": 60,
       "quality": "epic",
-      "health": 318,
-      "defense": 57,
+      "health": 350,
+      "defense": 62,
       "moveSpeed": 7
     },
     {
@@ -3360,9 +3360,9 @@
       "level": 60,
       "quality": "legendary",
       "weaponType": "melee",
-      "attack": 138,
-      "critRate": 67,
-      "critDamage": 154,
+      "attack": 155,
+      "critRate": 69,
+      "critDamage": 163,
       "lifeSteal": 10
     },
     {
@@ -3371,9 +3371,9 @@
       "level": 60,
       "quality": "legendary",
       "weaponType": "ranged",
-      "attack": 128,
-      "critRate": 72,
-      "critDamage": 148,
+      "attack": 143,
+      "critRate": 74,
+      "critDamage": 157,
       "lifeSteal": 8
     },
     {
@@ -3381,35 +3381,35 @@
       "name": "终焉曜·墟翎",
       "level": 60,
       "quality": "legendary",
-      "health": 379,
-      "defense": 69,
-      "damageReduction": 6
+      "health": 417,
+      "defense": 75,
+      "damageReduction": 7
     },
     {
       "slot": "chest",
       "name": "终焉曜·墟铠",
       "level": 60,
       "quality": "legendary",
-      "health": 660,
-      "defense": 95,
-      "damageReduction": 7
+      "health": 726,
+      "defense": 103,
+      "damageReduction": 8
     },
     {
       "slot": "legs",
       "name": "终焉曜·墟胫",
       "level": 60,
       "quality": "legendary",
-      "health": 528,
-      "defense": 82,
-      "thorn": 12
+      "health": 581,
+      "defense": 89,
+      "thorn": 13
     },
     {
       "slot": "boots",
       "name": "终焉曜·墟踪",
       "level": 60,
       "quality": "legendary",
-      "health": 346,
-      "defense": 62,
+      "health": 381,
+      "defense": 67,
       "moveSpeed": 7
     },
     {

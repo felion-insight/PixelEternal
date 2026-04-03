@@ -9,15 +9,47 @@
 
 ## 配置
 
-脚本内已写默认 API 地址与模型，可通过环境变量覆盖：
+**必须先配置 `PE_ART_API_KEY`**（服务方提供的 Bearer 密钥）。任选其一即可，**不要提交到 git**：
+
+1. **推荐**：在项目根目录或 `tools/` 下创建 `.env`（已列入仓库根 `.gitignore`），写入一行  
+   `PE_ART_API_KEY=你的密钥`  
+   脚本启动时会自动加载（不覆盖已在终端里 `export` / `$env:` 设置的变量）。模板见 `tools/.env.example`。
+2. 或在 PowerShell 里临时设置：`$env:PE_ART_API_KEY = "sk-你的密钥"`。
+
+同一网关下常见路径（根地址默认为 `http://35.220.164.252:3888`，可用 `PE_API_BASE` 修改）：
+
+| 能力 | 方法 | 路径 |
+|------|------|------|
+| OpenAI 式生图 | `POST` | `/v1/images/generations` |
+| Gemini 式 Imagen | `POST` | `/v1beta/models/imagen-4.0-ultra-generate-001:generateContent` |
+| OpenAI 式对话 | `POST` | `/v1/chat/completions` |
+
+**生图通道 `PE_IMAGE_BACKEND`**（仅影响生图，不影响对话）：
+
+- **`openai`**：只走 `PE_IMAGE_URL`，OpenAI 兼容 JSON（`prompt`、`b64_json` 等）。
+- **`gemini`**：走 `PE_GEMINI_IMAGE_URL`（默认 `{PE_API_BASE}/v1beta/models/{PE_IMAGE_MODEL}:generateContent`），请求体为 `contents` + `parts` 文本；响应需含可解析的 `inlineData` 图片（若你方网关格式不同，需对照文档再改脚本）。
+- **`auto`（默认）**：先按 `openai` 请求，若返回 **HTTP 403** 则自动再试 `gemini` 一次（适合你方仅开放 `generateContent` 或 OpenAI 路径被拒绝的情况）。若希望永远只打一条通路，可显式设为 `openai` 或 `gemini`。
+
+可通过环境变量覆盖：
 
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
-| `PE_ART_API_KEY` | API 密钥 | （脚本内默认） |
-| `PE_CHAT_URL` | 对话接口 | `http://35.220.164.252:3888/v1/chat/completions` |
-| `PE_IMAGE_URL` | 图像生成接口 | `http://35.220.164.252:3888/v1/images/generations` |
+| `PE_ART_API_KEY` | Bearer 密钥 | （无，必填；可写在 `.env`） |
+| `PE_API_BASE` | 网关根 URL，末尾无 `/` | `http://35.220.164.252:3888` |
+| `PE_CHAT_URL` | 对话完整 URL | `{PE_API_BASE}/v1/chat/completions` |
+| `PE_IMAGE_URL` | OpenAI 式生图 URL | `{PE_API_BASE}/v1/images/generations` |
+| `PE_GEMINI_IMAGE_URL` | Gemini 式生图完整 URL | `{PE_API_BASE}/v1beta/models/{PE_IMAGE_MODEL}:generateContent` |
+| `PE_IMAGE_BACKEND` | `openai` / `gemini` / `auto` | `auto` |
 | `PE_CHAT_MODEL` | 对话模型 | `gpt-4o-mini` |
-| `PE_IMAGE_MODEL` | 图像模型 | `imagen-4.0-ultra-generate-001` |
+| `PE_IMAGE_MODEL` | 生图模型名（用于默认 Gemini URL 路径段） | `imagen-4.0-ultra-generate-001` |
+
+PowerShell 示例（将密钥换成你自己的）：
+
+```powershell
+$env:PE_ART_API_KEY = "sk-你的密钥"
+$env:PE_IMAGE_BACKEND = "auto"
+python tools/art_generator.py "补齐所有深阶装备贴图"
+```
 
 **若出现「GPT 返回错误状态码: 400」**：多为请求参数不被服务接受。脚本会打印 API 返回的响应内容，请根据内容排查：
 - 若提示模型不存在/无效，请设置 `PE_CHAT_MODEL` 为你的服务支持的模型名（如 `gpt-4o-mini`、`gpt-3.5-turbo` 等）。

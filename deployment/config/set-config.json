@@ -78,11 +78,12 @@
           }
         },
         "8": {
-          "description": "所有属性+15%，技能冷却时间减少20%",
+          "description": "所有属性+12%，武器技能冷却时间减少12%",
           "stats": {
-            "allStats": 0.15
+            "allStats": 0.12
           },
-          "special": "cooldownReduction"
+          "special": "cooldownReduction",
+          "cooldownReductionPercent": 12
         }
       }
     },
@@ -114,16 +115,17 @@
           }
         },
         "6": {
-          "description": "受到伤害时，有20%概率将30%伤害转化为生命值",
+          "description": "受到伤害时，有12%概率将18%伤害转化为生命，并减免等额伤害",
           "stats": {},
           "special": "damageToHeal"
         },
         "8": {
-          "description": "所有属性+20%，受到致命伤害时有30%概率免疫",
+          "description": "所有属性+12%，击杀敌人时恢复6%最大生命值",
           "stats": {
-            "allStats": 0.2
+            "allStats": 0.12
           },
-          "special": "deathImmunity"
+          "special": "killHeal",
+          "killHealPercent": 0.06
         }
       }
     },
@@ -160,9 +162,9 @@
           }
         },
         "8": {
-          "description": "所有属性+25%，攻击时有30%概率对周围敌人造成持续火焰伤害",
+          "description": "所有属性+18%，攻击时有18%概率对周围敌人造成持续火焰伤害",
           "stats": {
-            "allStats": 0.25
+            "allStats": 0.18
           },
           "special": "flameAura"
         }
@@ -199,9 +201,9 @@
           "special": "counterFreeze"
         },
         "8": {
-          "description": "所有属性+25%，攻击时有40%概率触发范围冰冻效果",
+          "description": "所有属性+18%，攻击时有28%概率触发范围冰冻效果",
           "stats": {
-            "allStats": 0.25
+            "allStats": 0.18
           },
           "special": "areaFreeze"
         }
@@ -240,11 +242,12 @@
           }
         },
         "8": {
-          "description": "所有属性+30%，技能伤害提升50%，技能冷却时间减少30%",
+          "description": "所有属性+20%，攻击力+16，暴击率+6%",
           "stats": {
-            "allStats": 0.3
-          },
-          "special": "skillBoost"
+            "allStats": 0.2,
+            "attack": 16,
+            "critRate": 6
+          }
         }
       }
     },
@@ -269,11 +272,12 @@
           }
         },
         "4": {
-          "description": "所有属性+10%，技能冷却时间减少15%",
+          "description": "所有属性+8%，武器技能冷却时间减少10%",
           "stats": {
-            "allStats": 0.1
+            "allStats": 0.08
           },
-          "special": "cooldownReduction"
+          "special": "cooldownReduction",
+          "cooldownReductionPercent": 10
         },
         "6": {
           "description": "击杀敌人时恢复10%最大生命值，并提升5%所有属性，持续10秒",
@@ -281,11 +285,11 @@
           "special": "killBuff"
         },
         "8": {
-          "description": "所有属性+35%，受到致命伤害时有50%概率免疫，每秒恢复2%最大生命值",
+          "description": "所有属性+22%，战斗中每秒恢复1%最大生命值",
           "stats": {
-            "allStats": 0.35
+            "allStats": 0.22
           },
-          "special": "ultimate"
+          "special": "starRegen"
         }
       }
     },
@@ -366,9 +370,9 @@
           }
         },
         "8": {
-          "description": "所有属性+30%，生命值低于30%时，攻击力提升50%",
+          "description": "所有属性+22%，生命值低于30%时，攻击力提升35%",
           "stats": {
-            "allStats": 0.3
+            "allStats": 0.22
           },
           "special": "dragonRage"
         }
@@ -402,19 +406,20 @@
           }
         },
         "6": {
-          "description": "所有属性+20%，受到伤害时有20%概率免疫",
+          "description": "所有属性+14%，受到伤害时有8%概率减免45%该次伤害",
           "stats": {
-            "allStats": 0.2
+            "allStats": 0.14
           },
           "special": "damageImmunity"
         },
         "8": {
-          "description": "所有属性+40%，暴击伤害提升100%，受到致命伤害时有40%概率保留1点生命值",
+          "description": "所有属性+24%，暴击伤害+55%，击杀时恢复6%最大生命",
           "stats": {
-            "allStats": 0.4,
-            "critDamage": 100
+            "allStats": 0.24,
+            "critDamage": 55
           },
-          "special": "divineProtection"
+          "special": "killHeal",
+          "killHealPercent": 0.06
         }
       }
     }

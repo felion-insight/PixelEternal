@@ -403,7 +403,7 @@ function getDeepMeleeBase(quality) {
         },
         legendary: {
             cooldown: 14800,
-            damageMultiplier: 3.15,
+            damageMultiplier: 4.05,
             range: Rm * 2.38,
             guaranteedCrit: true
         }
@@ -443,7 +443,7 @@ function getDeepRangedBase(quality) {
         },
         legendary: {
             cooldown: 14800,
-            damageMultiplier: 3.12,
+            damageMultiplier: 4.1,
             range: Rb * 1.1,
             guaranteedCrit: true
         }
@@ -2629,11 +2629,11 @@ class Equipment {
             
             // 防具词条（头盔）
             '猎手皮帽': { id: 'hunter', description: '猎手：攻击怪物时，有10%概率获得额外经验' },
-            '古朴青铜盔': { id: 'ancient', description: '古朴：受到暴击时，有20%概率免疫此次伤害' },
+            '古朴青铜盔': { id: 'ancient', description: '古朴：受到暴击时，有12%概率使该次暴击伤害减半' },
             '坚毅铁盔': { id: 'perseverance', description: '坚毅：生命值低于50%时，防御力提升20%' },
             '骁勇钢盔': { id: 'brave', description: '骁勇：击杀敌人后，攻击力提升3%，最多叠加3层' },
             '龙息战盔': { id: 'dragon_breath_helmet', description: '龙息：受到攻击时，有15%概率对攻击者造成50%攻击力的火焰伤害' },
-            '众神冠冕': { id: 'divine_crown', description: '神威：所有属性提升10%，受到致命伤害时有30%概率保留1点生命值' },
+            '众神冠冕': { id: 'divine_crown', description: '神威：所有属性提升10%，受击时低概率小幅减伤' },
             '占星秘法帽': { id: 'astrology', description: '占星：暴击率提升5%，暴击时有10%概率触发额外暴击' },
             '皎月银冠': { id: 'bright_moon', description: '皎月：在低血量时，闪避率提升15%' },
             '莹彻晶盔': { id: 'crystal_helmet', description: '晶化：受到伤害时，有20%概率将30%伤害转化为生命值恢复' },
@@ -2643,7 +2643,7 @@ class Equipment {
             '瀚海星冕': { id: 'star_sea', description: '星海：所有技能冷却时间减少15%' },
             
             // 打造装备词条（头盔）
-            '神威头盔': { id: 'divine_helmet', description: '神威：所有属性提升12%，受到伤害时有25%概率免疫，击杀敌人后恢复15%最大生命值' },
+            '神威头盔': { id: 'divine_helmet', description: '神威：所有属性提升12%，受击时约12%概率减伤，击杀敌人后恢复15%最大生命值' },
             
             // 防具词条（胸甲）
             '苦行者长衫': { id: 'ascetic', description: '苦行：受到伤害时，有5%概率恢复10%最大生命值' },
@@ -2652,7 +2652,7 @@ class Equipment {
             '细密锁子甲': { id: 'chain', description: '锁链：受到攻击时，有15%概率降低攻击者攻击速度' },
             '雄狮板甲': { id: 'lion', description: '雄狮：生命值高于70%时，攻击力提升15%' },
             '咏咒师长袍': { id: 'chant', description: '咏咒：使用技能后，下次攻击伤害提升30%' },
-            '逆鳞龙铠': { id: 'reverse_scale_armor', description: '逆鳞：受到致命伤害时，有40%概率免疫此次伤害，冷却60秒' },
+            '逆鳞龙铠': { id: 'reverse_scale_armor', description: '逆鳞：受到致命伤害时，90秒冷却内至多一次，约15%概率将该次伤害压至不超过最大生命12%' },
             '永恒神威': { id: 'eternal_divine', description: '永恒：每秒恢复1%最大生命值，受到伤害时提升20%防御力' },
             '晶化内衬甲': { id: 'crystal_chest', description: '晶化：受到伤害时，有25%概率将伤害降低50%' },
             '熔岩重铠': { id: 'lava', description: '熔岩：受到攻击时，对周围敌人造成持续火焰伤害' },
@@ -2672,7 +2672,7 @@ class Equipment {
             '铁卫护腿': { id: 'iron_guard', description: '铁卫：受到攻击时，有15%概率提升20%防御力，持续5秒' },
             '陷阵重护腿': { id: 'charge', description: '陷阵：生命值低于40%时，攻击力和防御力各提升20%' },
             '龙筋护腿': { id: 'dragon_tendon', description: '龙筋：移动速度提升10%，攻击时有10%概率触发冲刺' },
-            '律法圣带': { id: 'law', description: '律法：所有属性提升8%，受到伤害时，有20%概率免疫' },
+            '律法圣带': { id: 'law', description: '律法：所有属性提升8%，受击时约10%概率减伤' },
             '流银护胫': { id: 'flowing_silver', description: '流银：攻击速度提升5%，攻击时有15%概率触发连击' },
             '琉璃晶胫': { id: 'glazed', description: '琉璃：受到伤害时，有20%概率将伤害转化为护盾' },
             '灰烬护足': { id: 'ash', description: '灰烬：击杀敌人后，移动速度提升10%，持续5秒' },
@@ -2700,7 +2700,7 @@ class Equipment {
             '蛮力之源': { id: 'brute_force', description: '蛮力：攻击力提升5%，但防御力降低3%' },
             '黄金契约': { id: 'golden_contract', description: '契约：击杀敌人后，获得额外金币和经验' },
             '龙心垂饰': { id: 'dragon_heart', description: '龙心：生命值低于30%时，每秒恢复5%最大生命值' },
-            '诸神眷顾': { id: 'divine_favor', description: '眷顾：所有属性提升12%，受到致命伤害时有25%概率免疫' },
+            '诸神眷顾': { id: 'divine_favor', description: '眷顾：所有属性提升12%，受击时低概率小幅减伤' },
             '月影流光': { id: 'moon_shadow', description: '月影：在低血量时，闪避率和攻击速度各提升15%' },
             '秘法晶髓': { id: 'arcane_core', description: '秘法：技能冷却时间减少10%' },
             '烬灭红莲': { id: 'crimson_lotus', description: '红莲：攻击时有15%概率触发火焰爆炸' },
@@ -2730,7 +2730,7 @@ class Equipment {
             '铁质束腰': { id: 'iron_belt', description: '束腰：所有属性提升5%' },
             '壁垒腰带': { id: 'fortress', description: '壁垒：防御力提升10%，但攻击力降低5%' },
             '龙革腰带': { id: 'dragon_leather', description: '龙革：生命值提升15%，防御力提升8%' },
-            '天庭之束': { id: 'celestial', description: '天庭：所有属性提升12%，受到伤害时，有15%概率免疫' },
+            '天庭之束': { id: 'celestial', description: '天庭：所有属性提升12%，受击时约10%概率减伤' },
             '银翼束带': { id: 'silver_wing', description: '银翼：移动速度和攻击速度各提升5%' },
             '晶纹饰带': { id: 'crystal_pattern', description: '晶纹：受到伤害时，有20%概率将伤害降低30%' },
             '炽炎之环': { id: 'blazing_ring', description: '炽炎：攻击时有10%概率触发火焰伤害' },

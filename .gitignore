@@ -1,3 +1,16 @@
 # 本地密钥与生图配置（勿提交）
 .env
 tools/.env
+
+# Python
+tools/__pycache__/
+*.pyc
+
+# 生图批处理日志（可再生成）
+tools/_deep_batch_log.txt
+asset/skill_icons/logs/*.log
+
+# macOS
+.DS_Store
+**/.DS_Store
+__MACOSX/

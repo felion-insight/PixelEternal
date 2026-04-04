@@ -77,7 +77,7 @@ python tools/art_generator.py "生成所有武器技能的图标" --dry-run
 # 仅列出尚未配置图标的武器技能（不调用 API，用于核对解析是否正确）
 python tools/art_generator.py --list-missing
 
-# 生成/补齐「所有增幅图标」：按 图标要求.md 为所有增幅类型生图，画风与技能图标一致
+# 生成/补齐「所有增幅图标」：按 icon-requirements.md 为所有增幅类型生图，画风与技能图标一致
 python tools/art_generator.py "生成所有增幅的图标"
 python tools/art_generator.py "生成所有增幅图标"
 
@@ -90,7 +90,8 @@ python tools/art_generator.py --list-missing-buff
 1. **收集项目上下文**：读取 `PROJECT.md`、`config/equipment-config.json`、`asset/` 下已有文件列表。
 2. **GPT 规划**：根据你的自然语言和项目内容，输出生图提示词、风格、保存路径，以及是否写入装备配置和贴图映射。
 3. **生图**：用 Imagen 接口生成一张图，保存到 `asset/`（或子文件夹如 `weapons/`、`helmets/` 等，保持整洁）。
-4. **写回项目**（按规划结果）：
+4. **文件名**：本工具写入磁盘的 PNG **统一为英文/ASCII 文件名**（装备如 `eq_weapon_xxxxxxxx.png`、`deep_abyss_rift_q01_xxxxxxxx.png`；技能图标 `skill_xxxxxxxx.png` 等）。游戏内仍用中文装备名/技能名；`mappings.json` 与 `SKILL_ICON_MAP` 负责「显示名 → 文件路径」。若曾用旧版生成过中文文件名，只要映射仍指向该路径，工具会继续识别为「已有贴图」；新补缺则写入新的英文路径并更新映射。
+5. **写回项目**（按规划结果）：
    - 新装备：在 `config/equipment-config.json` 的 `EQUIPMENT_DEFINITIONS` 中追加一条装备定义。
    - 需要做图标：在 `config/mappings.json` 的 `equipment` 中写入「装备中文名 → 相对 `asset/` 的路径」；游戏经 `AssetManager` 读取该映射加载 `asset/` 下贴图。
 
@@ -104,7 +105,7 @@ python tools/art_generator.py --list-missing-buff
 
 游戏内武器技能按钮（Q 键）会按 `SKILL_ICON_MAP` 显示对应图标（若存在）。
 
-**技能图标画风与流程**（与 `tools/生图要求.md` 对齐，API 与保存目录沿用你提供的配置）：
+**技能图标画风与流程**（与 `tools/art-requirements.md` 对齐，API 与保存目录沿用你提供的配置）：
 - **画风**：固定核心模板 + 三变量 `{shape} with {texture} in {color} palette`；GPT 只输出 shape / texture / color，工具拼成完整提示词。
 - **API**：使用你提供的接口（`PE_ART_*` 环境变量 / 脚本内默认）；技能图标请求为 512x512、带 `negative_prompt`，失败时重试 3 次（指数退避）。
 - **后处理**：生成 512x512 后，强制纯黑背景 + 用 NEAREST 缩放到 64x64，再保存到 `asset/skill_icons/`，文件名为技能中文名。
@@ -115,7 +116,7 @@ python tools/art_generator.py --list-missing-buff
 - 新装备贴图建议放在对应子文件夹：`weapons`、`helmets`、`chests`、`legs`、`boots`、`necklaces`、`rings`、`belts`。
 - 技能图标统一放在 `asset/skill_icons/`，由 `config/skill-icon-config.json` 维护技能名→文件名映射。
 
-**增幅图标**（与 `tools/图标要求.md` 一致，画风与技能图标一致）：
+**增幅图标**（与 `tools/icon-requirements.md` 一致，画风与技能图标一致）：
 - 输入「生成所有增幅的图标」或「生成所有增幅图标」时，按 `BUFF_ICON_PROMPTS` 为所有增幅类型（基础属性、药水/Buff、精炼、套装特殊、装备词条、炼金）生图。
 - 图标保存到 `asset/buff_icons/`，映射写入 `config/buff-icon-config.json` 的 `BUFF_ICON_MAP`（键为增幅键如 `attack`、`defense`）。
 - 非装备图可放在 `items` 或 `asset` 根目录。

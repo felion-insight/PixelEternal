@@ -27,7 +27,7 @@ if (typeof window.CONFIG === 'undefined') {
         MONSTER_ATTACK_COOLDOWN: 2000,
         INVENTORY_SIZE: 66,
         TICKS_PER_SECOND: 60,
-        // 合铸功能（对应 docs/合铸.md 第5-7行）：API 根地址、API Key、模型名
+        // 合铸功能（对应 docs/fusion.md 第5-7行）：API 根地址、API Key、模型名
         HEZHU_API_BASE: 'http://35.220.164.252:3888',
         HEZHU_API_KEY: 'sk-KIok6ajQEs9IMRfrCoMXwFYEs2kL3EDgJwCYdN7vgaTnWbV2',
         HEZHU_MODEL: 'gemini-3.1-flash-lite-preview',

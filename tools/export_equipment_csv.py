@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-从 config/equipment-config.json 解析装备定义，导出为 CSV（装备一览）。
+从 config/equipment-config.json 解析装备定义，导出为 CSV（装备总表）。
 """
 import json
 import csv
@@ -10,7 +10,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = PROJECT_ROOT / "config" / "equipment-config.json"
 SET_CONFIG_PATH = PROJECT_ROOT / "config" / "set-config.json"
-OUTPUT_PATH = PROJECT_ROOT / "docs" / "装备一览.csv"
+OUTPUT_PATH = PROJECT_ROOT / "docs" / "equipment-overview.csv"
 
 SLOT_CN = {
     "weapon": "武器",

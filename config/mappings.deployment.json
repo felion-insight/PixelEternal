@@ -1,267 +1,464 @@
 {
-    "equipment": {
-        "\u701a\u6d77\u661f\u5195": "488c91c0-c1cf-45d5-81c7-51928de2d489.png",
-        "\u9677\u9635\u91cd\u62a4\u817f": "7b293bf7-db05-4903-8f5c-c43847f695ad.png",
-        "\u86ee\u529b\u4e4b\u6e90": "f6fbda43-375f-4419-a98e-8d31278e4a94.png",
-        "\u6c38\u6052\u661f\u8fb0": "ebb9bafe-3a60-41f6-a15b-2938cababe34.png",
-        "\u94a2\u6263\u76ae\u5e26": "4a9699ea-7063-490c-b736-5735df72b01a.png",
-        "\u94f6\u6cb3\u8f68\u8ff9": "12276135-4cce-4afe-a803-f4c33a6fd590.png",
-        "\u96c4\u72ee\u677f\u7532": "72cb159a-e972-4e9d-8dd7-4e99a6b1e526.png",
-        "\u8f70\u9e23\u96f7\u51a0": "d9e16a94-1775-4b8b-b31f-e39456b5cc72.png",
-        "\u9006\u9cde\u5c60\u9f99\u950b": "851a52f1-4cdd-44bd-b233-2501b7c21dab.png",
-        "\u94c1\u536b\u62a4\u817f": "bdf3555a-f643-468e-b4f8-7d134f5d1cfc.png",
-        "\u53e4\u9057\u9752\u94dc\u73af": "5d251d69-f387-474b-a92e-6cd6d367cc12.png",
-        "\u82e6\u884c\u8005\u957f\u886b": "e53616bd-d6fd-423a-b398-fbc1e0978be7.png",
-        "\u7edd\u5c18\u971c\u76d4": "46aa7601-c305-4033-879a-4e0f15e71d8d.png",
-        "\u58c1\u5792\u8170\u5e26": "9d656e68-165f-45d1-b102-61213538c673.png",
-        "\u5760\u661f\u88c1\u51b3": "719e609f-2cc1-40c6-ae86-ea6fbbfe03c5.png",
-        "\u5954\u96f7\u675f\u7f1a": "1471cd9d-c098-4184-b5ed-0e22caa29610.png",
-        "\u521b\u4e16\u6cd5\u5219": "30acd2c5-82b6-4f70-919a-9c50696d1ecf.png",
-        "\u5f8b\u6cd5\u5723\u5e26": "b4d5c067-c957-43fa-9934-086e70afab99.png",
-        "\u795e\u5a01\u5934\u76d4": "1d4bdb94-2171-46d6-9a42-40379ac46d79.png",
-        "\u575a\u6bc5\u94c1\u76d4": "6a908b3f-2ff5-4f47-b0fe-b0bfd1e33bdd.png",
-        "\u9f99\u7b4b\u62a4\u817f": "0986798b-652c-485b-af89-3a1f8255a451.png",
-        "\u70ec\u706d\u7ea2\u83b2": "7e37f9f8-5245-4991-9a98-89bf0cc9ced4.png",
-        "\u971c\u7eb9\u88d9\u7532": "0a253494-d925-45d2-8ab5-d1ad8ef927e0.png",
-        "\u83b9\u5f7b\u6676\u76d4": "b5479b57-ab69-44ac-8d1b-bfcc0b985de0.png",
-        "\u7194\u5ca9\u91cd\u94e0": "7adfc637-f474-4a6e-aea1-50483fea97df.png",
-        "\u4f17\u795e\u51a0\u5195": "a063dc45-e748-4894-9327-3dfb91f894c4.png",
-        "\u971c\u9b42\u51dd\u89c6": "139c4af2-8ea4-45f4-a590-9ed860c49978.png",
-        "\u6708\u5f71\u6d41\u5149": "1bac5f3f-0f49-45ba-94da-36cabfe106ca.png",
-        "\u6d41\u94f6\u62a4\u80eb": "d8200d8b-c30a-4488-9821-c0beca73683f.png",
-        "\u708e\u9b54\u4e4b\u77b3": "a35db27c-fc43-4cdf-a4d4-7dc5261d5686.png",
-        "\u971c\u51bb\u4e4b\u89e6": "43c500db-75e8-4576-8910-48d73620fe12.png",
-        "\u517d\u7eb9\u76ae\u88e4": "7604f468-dccc-4506-812a-b4c5d65d67d0.png",
-        "\u8bf8\u795e\u7737\u987e": "4c723748-4b00-4cfd-ba65-784d13bd3bde.png",
-        "\u9006\u9cde\u9f99\u94e0": "c35bd32c-03ab-46a6-87a4-3ba2893c21cb.png",
-        "\u7409\u7483\u6676\u80eb": "4feda120-1e51-47e6-983b-e0a843acb528.png",
-        "\u70bd\u708e\u4e4b\u73af": "7e9998a7-7a28-46cb-9e7f-a8fbfe76ad1b.png",
-        "\u6781\u5730\u6c38\u51bb": "8120cc91-45d1-4e54-9f02-17b99c36fc6c.png",
-        "\u7480\u74a8\u661f\u56fe": "7224dfc5-28b7-4962-9262-57eea8638341.png",
-        "\u53e4\u6734\u9752\u94dc\u76d4": "0d31aa75-d538-4ffb-939f-e38f164ff047.png",
-        "\u6c38\u6052\u6218\u7532": "277507ac-a5eb-497a-b7b8-5eab64c8ebc7.png",
-        "\u5254\u900f\u6676\u9774": "b2ff41b8-9bb3-4848-b93d-aec25e11f94f.png",
-        "\u7075\u80fd\u8c10\u632f": "47562c1b-8a32-46ea-b02a-0de3b5e0361f.png",
-        "\u65c5\u4eba\u8349\u978b": "2dbd2322-1c77-47c3-b5aa-6559517af219.png",
-        "\u52ab\u706b\u711a\u4f24": "74945f12-a2ab-491b-9cec-2181328ca393.png",
-        "\u60ca\u96f7\u7834\u6653": "7ccf37ba-30b3-410c-a35b-ac1834cace38.png",
-        "\u548f\u5492\u5e08\u957f\u888d": "9b117ab2-ed20-4a2b-916f-1b12f690fc13.png",
-        "\u9010\u6708\u94f6\u8292\u5251": "a481af5d-305a-4855-8c00-696112034e59.png",
-        "\u730e\u624b\u76ae\u5e3d": "3378ad64-6f3c-4fe8-a77c-90879515a300.png",
-        "\u6591\u9a73\u9752\u94dc\u94e0": "6ac55cf2-17cf-4360-9550-033c03f9743c.png",
-        "\u6781\u661f\u62a4\u4f51": "3fdcc4f3-6f36-4d0b-87a9-5a74304f9422.png",
-        "\u6e38\u4fa0\u5e03\u88e4": "abd7c662-2525-4bf1-8303-9e4ada218631.png",
-        "\u9ec4\u94dc\u52cb\u7ae0": "d41461a2-be29-42f4-8905-71f7491fcff4.png",
-        "\u8f89\u5149\u79d8\u94f6\u5203": "7c5f2f5c-4aba-48b8-85ff-554e9456ebaf.png",
-        "\u8fc5\u5f71\u4e4b\u89e6": "aa37a4f1-90e1-4462-aae8-d816734c62c8.png",
-        "\u51dd\u971c\u8fdc\u884c": "7f9dcf41-0b9d-46fa-8c13-4a0faacf8471.png",
-        "\u8346\u68d8\u76ae\u7532": "153ff3b0-9f2d-48b3-b488-ef6509bdc316.png",
-        "\u94f6\u7ffc\u675f\u5e26": "ea62a1b3-4e4e-408d-9d5c-b736fd62f580.png",
-        "\u9f99\u606f\u4e4b\u63e1": "2f3f9627-dff9-421c-a944-9373cd518544.png",
-        "\u91d1\u6743\u6212\u5f8b": "250f8208-9acf-4e6f-91f1-78b7cecefe9b.png",
-        "\u7f16\u7ec7\u8170\u5e26": "938d3412-c26c-49ee-95ae-f5dc29b87882.png",
-        "\u9f99\u5fc3\u5782\u9970": "5509bf32-5e6d-4de9-8989-dfcb0ec1539c.png",
-        "\u9a81\u52c7\u94a2\u76d4": "2160e65f-3cb5-466a-9035-6c27bab49946.png",
-        "\u88c2\u7a7a\u96f7\u7eb9": "d9659d71-5c80-4d06-8ca9-41cf900acb03.png",
-        "\u6df7\u6c8c\u4e4b\u5203": "9b7980dd-21c9-4717-9dc7-256ef9eb1ff8.png",
-        "\u8fc5\u96f7\u95ea\u6b65": "81c58611-0237-4570-8548-a09472888651.png",
-        "\u70c1\u5149\u94f6\u9774": "8f8d649f-1324-4ebb-b159-f71734f4aa6a.png",
-        "\u9752\u94dc\u7532\u5e26": "67ad05c4-8c76-452e-ad96-4266132b6411.png",
-        "\u6c89\u91cd\u9752\u94dc\u536b": "9b974879-9ed5-4d70-83e4-64fd85d7f96c.png",
-        "\u8fdc\u53e4\u9f99\u5203": "2e6f63f4-9879-4678-9c92-7f2a4f8ec2ce.png",
-        "\u5929\u5ead\u4e4b\u675f": "41f634ee-252c-410d-aef3-6290d60bede7.png",
-        "\u6dec\u706b\u7cbe\u94a2\u5251": "5aa694f7-3a11-42d8-96da-7d7383e44aed.png",
-        "\u575a\u56fa\u9752\u94dc\u9774": "3ec78c53-f4af-4c73-82fc-72dce0626646.png",
-        "\u7ec6\u5bc6\u9501\u5b50\u7532": "f84fdfd7-6021-430a-a749-b6b784af9fd0.png",
-        "\u79d8\u6cd5\u6676\u9ad3": "87f0940b-17b4-4abe-8dcd-e86da5e30d99.png",
-        "\u7070\u70ec\u62a4\u8db3": "f34a7aa5-a0a4-467b-ab05-91fd86aa9031.png",
-        "\u9ec4\u91d1\u5951\u7ea6": "d86c8fb5-fbae-4615-a20a-db18c13715f4.png",
-        "\u950b\u9510\u9a91\u58eb\u957f\u5251": "549b0e63-0617-44dc-9f1a-f566f4337ea5.png",
-        "\u94dc\u5236\u6273\u6307": "0337e00e-0efb-482b-b6b4-68cca290ff33.png",
-        "\u9f99\u9769\u8170\u5e26": "211175c5-4ebe-4a4d-83ab-61feca707335.png",
-        "\u5c81\u6708\u9752\u94dc": "cb5b7941-516c-43ce-afbb-3f322a63702d.png",
-        "\u8e0f\u706b\u4f59\u70ec": "4c718c4b-97ca-4cbb-afb6-c304256d6759.png",
-        "\u6676\u66dc\u5bd2\u950b": "39b9a5fc-98a2-4e63-a005-4dad09dfbd5b.png",
-        "\u5f81\u6218\u94c1\u9774": "264112be-2405-4793-ad0b-227f751d129a.png",
-        "\u79d8\u94f6\u6218\u7532": "2aca3801-a79e-4f73-8f0e-15892aa0f458.png",
-        "\u6676\u5316\u5185\u886c\u7532": "6d8595ae-ed82-4195-9655-3a3600be7381.png",
-        "\u7cbe\u94a2\u957f\u5251": "6ca2431e-323b-4b8e-823b-a22e4dcad497.png",
-        "\u9e23\u971c\u9752\u94dc\u5251": "b07e0f03-f48d-413e-9491-71ae73b90659.png",
-        "\u661f\u8f68\u6f2b\u6b65": "da459a5d-e734-475c-ac5d-f5ed17cf3cef.png",
-        "\u72c2\u96f7\u6012\u543c": "b5a109f3-ac00-458a-bdfc-52c38f521165.png",
-        "\u9f99\u8e0f\u4e91\u9774": "cb40e15c-cec9-4b96-9e38-80149a3795fa.png",
-        "\u5360\u661f\u79d8\u6cd5\u5e3d": "d00dd68f-94b0-4902-987c-2e2eb859948d.png",
-        "\u768e\u6708\u94f6\u51a0": "51fd0bb0-6ddc-41f4-8562-88ce3b8fa7fb.png",
-        "\u6c38\u6052\u795e\u5a01": "bc7fd0ea-0fb3-436b-a5cc-c43b58a5cfed.png",
-        "\u9010\u795e\u4e4b\u8ff9": "aa09d321-8fdc-49e7-bb98-cfa3554c9d06.png",
-        "\u5723\u8000\u00b7\u65ad\u7f6a": "765cbc3e-c9be-4508-bf3b-92228951f0b1.png",
-        "\u9f99\u9cde\u62a4\u7532": "4b2bd3cf-ecab-4dfa-a2ce-b8c46c6347ea.png",
-        "\u6676\u7eb9\u9970\u5e26": "ba94a196-d7f4-40ac-ba95-008786a174ab.png",
-        "\u8f89\u5149\u94f6\u94e0": "013714d5-2b07-4e58-a8bb-20568bf83fcb.png",
-        "\u51db\u51ac\u4e4b\u62e5": "91236f33-f763-4e84-9000-e4453f3ae091.png",
-        "\u51db\u98ce\u51b0\u8863": "e332a1bf-0b41-4965-b2c6-2766d03822cb.png",
-        "\u786c\u9769\u76ae\u9774": "7f77ba6b-e0c7-4660-ae88-dedaa791fda8.png",
-        "\u75be\u96f7\u817f\u7532": "17d9d8f9-99b1-4588-89d1-d1000705d9c4.png",
-        "\u70bd\u7130\u91cd\u76d4": "90f865a6-298f-4009-a096-0642d0ddc4b5.png",
-        "\u94c1\u8d28\u675f\u8170": "b1e82546-7175-473e-8552-302b1ac7fe56.png",
-        "\u730e\u8c79\u75be\u9774": "5392cc89-bf21-4666-98b2-b88cbc355968.png",
-        "\u79d8\u94f6\u79c1\u8bed": "ff9f0888-489e-42b4-9dd1-09ab23d77a31.png",
-        "\u9f99\u606f\u6218\u76d4": "ae2293d1-0a6c-43fd-a24e-06f6ace6369d.png",
-        "\u7eaf\u94f6\u540a\u5760": "1b2f6619-0d50-4b7d-955d-b7446fc0c277.png",
-        "\u6591\u9a73\u94c1\u5251": "0eb94e53-ab96-45fa-be23-193c4eea2871.png",
-        "\u5b64\u661f\u5bd2\u8292": "f54dc317-1c9a-482e-b3cb-5ad1efa8f8fd.png",
-        "\u7535\u5149\u6218\u888d": "c703f1ee-6d75-4426-b2e2-5b34b9e299d7.png",
-        "\u5e7d\u51a5\u7edd\u5f71\u5203": "6ec24a56-dddb-4c6f-a4fe-be0146f0eb48.png",
-        "\u661f\u754c\u7ebd\u5e26": "4226872a-ac26-4ee8-982a-104ea4b540e4.png",
-        "\u9b54\u6cd5\u6c34\u6676\u5251": "a089edf6-6b94-4ca1-b5ce-d13caa1b354f.png"
+  "equipment": {
+    "瀚海星冕": "helmets/eq_helmet_c468b72f.png",
+    "陷阵重护腿": "legs/eq_legs_a2c581dc.png",
+    "蛮力之源": "necklaces/eq_necklace_fa1b89e0.png",
+    "永恒星辰": "rings/eq_ring_b6eac9a6.png",
+    "钢扣皮带": "belts/eq_belt_d3347deb.png",
+    "银河轨迹": "legs/eq_legs_818869e8.png",
+    "雄狮板甲": "chests/eq_chest_6bd3688e.png",
+    "轰鸣雷冠": "helmets/eq_helmet_39d53aae.png",
+    "逆鳞屠龙锋": "weapons/eq_weapon_a0631ddd.png",
+    "铁卫护腿": "legs/eq_legs_6a0561e7.png",
+    "古遗青铜环": "necklaces/eq_necklace_475a1e4a.png",
+    "苦行者长衫": "chests/eq_chest_6953b0b6.png",
+    "绝尘霜盔": "helmets/eq_helmet_92082c58.png",
+    "壁垒腰带": "belts/eq_belt_b62e93d4.png",
+    "坠星裁决": "weapons/eq_weapon_7ca5813b.png",
+    "奔雷束缚": "belts/eq_belt_054deb4f.png",
+    "创世法则": "rings/eq_ring_d0e46837.png",
+    "律法圣带": "legs/eq_legs_593b91a2.png",
+    "神威头盔": "helmets/eq_helmet_6c90f3db.png",
+    "坚毅铁盔": "helmets/eq_helmet_a3cbec89.png",
+    "龙筋护腿": "legs/eq_legs_f9cbdcfb.png",
+    "烬灭红莲": "necklaces/eq_necklace_d3c3e7d4.png",
+    "霜纹裙甲": "legs/eq_legs_945fcce2.png",
+    "莹彻晶盔": "helmets/eq_helmet_8ac2ebc0.png",
+    "熔岩重铠": "chests/eq_chest_1bc9ed4a.png",
+    "众神冠冕": "helmets/eq_helmet_abdfcfc4.png",
+    "霜魂凝视": "rings/eq_ring_0786be12.png",
+    "月影流光": "necklaces/eq_necklace_a26df86b.png",
+    "流银护胫": "legs/eq_legs_ef9f99ae.png",
+    "炎魔之瞳": "rings/eq_ring_40776345.png",
+    "霜冻之触": "belts/eq_belt_46146993.png",
+    "兽纹皮裤": "legs/eq_legs_bdd635b5.png",
+    "诸神眷顾": "necklaces/eq_necklace_6c371296.png",
+    "逆鳞龙铠": "chests/eq_chest_fd797068.png",
+    "琉璃晶胫": "legs/eq_legs_d9605fc7.png",
+    "炽炎之环": "belts/eq_belt_147701b6.png",
+    "极地永冻": "necklaces/eq_necklace_bf88c531.png",
+    "璀璨星图": "necklaces/eq_necklace_a7d7a7fb.png",
+    "古朴青铜盔": "helmets/eq_helmet_4eec5fbf.png",
+    "永恒战甲": "chests/eq_chest_e1e7531c.png",
+    "剔透晶靴": "boots/eq_boots_7cdf3e7b.png",
+    "灵能谐振": "rings/eq_ring_2239b203.png",
+    "旅人草鞋": "boots/eq_boots_fcf945b0.png",
+    "劫火焚伤": "weapons/eq_weapon_fc2dac5a.png",
+    "惊雷破晓": "weapons/eq_weapon_0d2f8219.png",
+    "咏咒师长袍": "chests/eq_chest_afc31358.png",
+    "逐月银芒剑": "weapons/eq_weapon_a2ca698b.png",
+    "猎手皮帽": "helmets/eq_helmet_3f37e830.png",
+    "斑驳青铜铠": "chests/eq_chest_6ce5ca96.png",
+    "极星护佑": "chests/eq_chest_c9f224df.png",
+    "游侠布裤": "legs/eq_legs_dbd808f3.png",
+    "黄铜勋章": "necklaces/eq_necklace_b55a636c.png",
+    "辉光秘银刃": "weapons/eq_weapon_2f076d62.png",
+    "迅影之触": "rings/eq_ring_a1d24c5d.png",
+    "凝霜远行": "boots/eq_boots_8df21aa6.png",
+    "荆棘皮甲": "chests/eq_chest_3a714e03.png",
+    "银翼束带": "belts/eq_belt_d341904d.png",
+    "龙息之握": "rings/eq_ring_1df9e142.png",
+    "金权戒律": "rings/eq_ring_cdcaadc0.png",
+    "编织腰带": "belts/eq_belt_6e6bb548.png",
+    "龙心垂饰": "necklaces/eq_necklace_e435adb3.png",
+    "骁勇钢盔": "helmets/eq_helmet_70de35af.png",
+    "裂空雷纹": "necklaces/eq_necklace_a41c96bb.png",
+    "混沌之刃": "weapons/eq_weapon_be2f890c.png",
+    "迅雷闪步": "boots/eq_boots_168a30d6.png",
+    "烁光银靴": "boots/eq_boots_927cb551.png",
+    "青铜甲带": "belts/eq_belt_65974a35.png",
+    "沉重青铜卫": "legs/eq_legs_363f0198.png",
+    "远古龙刃": "weapons/eq_weapon_f5c08a17.png",
+    "天庭之束": "belts/eq_belt_8256e023.png",
+    "淬火精钢剑": "weapons/eq_weapon_dbcbb1a2.png",
+    "坚固青铜靴": "boots/eq_boots_22eab70d.png",
+    "细密锁子甲": "chests/eq_chest_d115f45d.png",
+    "秘法晶髓": "necklaces/eq_necklace_36f71480.png",
+    "灰烬护足": "legs/eq_legs_40986b45.png",
+    "黄金契约": "necklaces/eq_necklace_86e723d7.png",
+    "锋锐骑士长剑": "weapons/eq_weapon_b92f82c8.png",
+    "铜制扳指": "rings/eq_ring_640da929.png",
+    "龙革腰带": "belts/eq_belt_cf030ae2.png",
+    "岁月青铜": "rings/eq_ring_c3d11214.png",
+    "踏火余烬": "boots/eq_boots_d3d9c7aa.png",
+    "晶曜寒锋": "weapons/eq_weapon_7d4af15f.png",
+    "征战铁靴": "boots/eq_boots_30c1fcb1.png",
+    "秘银战甲": "chests/eq_chest_77399362.png",
+    "晶化内衬甲": "chests/eq_chest_af8c266f.png",
+    "精钢长剑": "weapons/eq_weapon_fe088b46.png",
+    "鸣霜青铜剑": "weapons/eq_weapon_63891d92.png",
+    "星轨漫步": "boots/eq_boots_b4071d28.png",
+    "狂雷怒吼": "rings/eq_ring_9c2ea200.png",
+    "龙踏云靴": "boots/eq_boots_7f59099a.png",
+    "占星秘法帽": "helmets/eq_helmet_c9d7503f.png",
+    "皎月银冠": "helmets/eq_helmet_447e7f53.png",
+    "永恒神威": "chests/eq_chest_2bc87bd7.png",
+    "逐神之迹": "boots/eq_boots_6a7aeea4.png",
+    "圣耀·断罪": "weapons/eq_weapon_a070d0fc.png",
+    "龙鳞护甲": "chests/eq_chest_00771eee.png",
+    "晶纹饰带": "belts/eq_belt_43d8ec6e.png",
+    "辉光银铠": "chests/eq_chest_721d46e5.png",
+    "凛冬之拥": "weapons/eq_weapon_09814a06.png",
+    "凛风冰衣": "chests/eq_chest_379be0ae.png",
+    "硬革皮靴": "boots/eq_boots_2a0232cd.png",
+    "疾雷腿甲": "legs/eq_legs_f4e3cf0a.png",
+    "炽焰重盔": "helmets/eq_helmet_e8b8c49e.png",
+    "铁质束腰": "belts/eq_belt_7e0beda1.png",
+    "猎豹疾靴": "boots/eq_boots_4cd0426b.png",
+    "秘银私语": "rings/eq_ring_b700f34e.png",
+    "龙息战盔": "helmets/eq_helmet_e20669c0.png",
+    "纯银吊坠": "necklaces/eq_necklace_83114350.png",
+    "斑驳铁剑": "weapons/eq_weapon_567b511a.png",
+    "孤星寒芒": "rings/eq_ring_f9d87558.png",
+    "电光战袍": "chests/eq_chest_46035ead.png",
+    "幽冥绝影刃": "weapons/eq_weapon_f12875f5.png",
+    "星界纽带": "belts/eq_belt_4393cc6c.png",
+    "魔法水晶剑": "weapons/eq_weapon_05018c59.png",
+    "猎风短弓": "weapons/eq_weapon_05ad6f31.png",
+    "幽影弩": "weapons/eq_weapon_df51c5bb.png",
+    "曦光长弓": "weapons/eq_weapon_6e6d4100.png",
+    "穿云破月": "weapons/eq_weapon_6450d725.png",
+    "永夜·星坠": "weapons/eq_weapon_076c565d.png",
+    "渊隙凡·残锋": "deep_equipment/deep_abyss_rift_q01_2233f9b4.png",
+    "渊隙凡·穿云": "deep_equipment/deep_abyss_rift_q01_1eb81c79.png",
+    "渊隙凡·低语": "deep_equipment/deep_abyss_rift_q01_f83f87bb.png",
+    "渊隙凡·壁垒": "deep_equipment/deep_abyss_rift_q01_ecdcdae4.png",
+    "渊隙凡·荆棘": "deep_equipment/deep_abyss_rift_q01_f3955dc3.png",
+    "渊隙凡·行靴": "deep_equipment/deep_abyss_rift_q01_31fa4847.png",
+    "渊隙凡·法链": "deep_equipment/deep_abyss_rift_q01_4bae08db.png",
+    "渊隙凡·迅环": "deep_equipment/deep_abyss_rift_q01_6247dce0.png",
+    "渊隙凡·金缰": "deep_equipment/deep_abyss_rift_q01_010b7d7a.png",
+    "渊隙良·裂刃": "deep_equipment/deep_abyss_rift_q02_29e2ad15.png",
+    "渊隙良·破穹": "deep_equipment/deep_abyss_rift_q02_1f5860a8.png",
+    "渊隙良·寂声": "deep_equipment/deep_abyss_rift_q02_d2d5b30b.png",
+    "渊隙良·铁垣": "deep_equipment/deep_abyss_rift_q02_905a168a.png",
+    "渊隙良·棘胫": "deep_equipment/deep_abyss_rift_q02_0e94b2ec.png",
+    "渊隙良·疾踪": "deep_equipment/deep_abyss_rift_q02_1042ea04.png",
+    "渊隙良·咒络": "deep_equipment/deep_abyss_rift_q02_4b46df31.png",
+    "渊隙良·缚印": "deep_equipment/deep_abyss_rift_q02_ed525e1c.png",
+    "渊隙良·财束": "deep_equipment/deep_abyss_rift_q02_20fdfe90.png",
+    "渊隙湛·断潮": "deep_equipment/deep_abyss_rift_q03_040d252f.png",
+    "渊隙湛·逐星": "deep_equipment/deep_abyss_rift_q03_85a3ffdd.png",
+    "渊隙湛·闭识": "deep_equipment/deep_abyss_rift_q03_c3c9f778.png",
+    "渊隙湛·重铠": "deep_equipment/deep_abyss_rift_q03_8beee4c1.png",
+    "渊隙湛·刺行": "deep_equipment/deep_abyss_rift_q03_f3144665.png",
+    "渊隙湛·虚步": "deep_equipment/deep_abyss_rift_q03_6dc8cc23.png",
+    "渊隙湛·秘坠": "deep_equipment/deep_abyss_rift_q03_db4597fa.png",
+    "渊隙湛·漩指": "deep_equipment/deep_abyss_rift_q03_6530f4fb.png",
+    "渊隙湛·税络": "deep_equipment/deep_abyss_rift_q03_b375b9d6.png",
+    "渊隙炽·烬刃": "deep_equipment/deep_abyss_rift_q04_f72c6a1d.png",
+    "渊隙炽·坠虹": "deep_equipment/deep_abyss_rift_q04_6af666c1.png",
+    "渊隙炽·默印": "deep_equipment/deep_abyss_rift_q04_404c4897.png",
+    "渊隙炽·渊衬": "deep_equipment/deep_abyss_rift_q04_b23a5d2e.png",
+    "渊隙炽·缠胫": "deep_equipment/deep_abyss_rift_q04_c76b0fb2.png",
+    "渊隙炽·掠影": "deep_equipment/deep_abyss_rift_q04_5605b1aa.png",
+    "渊隙炽·涡涌": "deep_equipment/deep_abyss_rift_q04_afa281cb.png",
+    "渊隙炽·律戒": "deep_equipment/deep_abyss_rift_q04_52c4f7d7.png",
+    "渊隙炽·爵带": "deep_equipment/deep_abyss_rift_q04_7cd5e1d2.png",
+    "渊隙曜·墟斩": "deep_equipment/deep_abyss_rift_q05_dba4c184.png",
+    "渊隙曜·凌弦": "deep_equipment/deep_abyss_rift_q05_4fc8e135.png",
+    "渊隙曜·封觉": "deep_equipment/deep_abyss_rift_q05_0d085195.png",
+    "渊隙曜·墟甲": "deep_equipment/deep_abyss_rift_q05_c39d1ef7.png",
+    "渊隙曜·棘络": "deep_equipment/deep_abyss_rift_q05_171cfeb3.png",
+    "渊隙曜·踏痕": "deep_equipment/deep_abyss_rift_q05_19df5132.png",
+    "渊隙曜·泉印": "deep_equipment/deep_abyss_rift_q05_bd19bb69.png",
+    "渊隙曜·契环": "deep_equipment/deep_abyss_rift_q05_728ff370.png",
+    "渊隙曜·禄缠": "deep_equipment/deep_abyss_rift_q05_46ddd499.png",
+    "虚印凡·虚斫": "deep_equipment/deep_spectral_sigil_q01_fb506b87.png",
+    "虚印凡·虚矢": "deep_equipment/deep_spectral_sigil_q01_1abdfafe.png",
+    "虚印凡·虚冠": "deep_equipment/deep_spectral_sigil_q01_5b64cce5.png",
+    "虚印凡·虚铠": "deep_equipment/deep_spectral_sigil_q01_4a38a35a.png",
+    "虚印凡·虚胫": "deep_equipment/deep_spectral_sigil_q01_8c65a330.png",
+    "虚印凡·虚踪": "deep_equipment/deep_spectral_sigil_q01_7b4fc65a.png",
+    "虚印凡·虚链": "deep_equipment/deep_spectral_sigil_q01_ac4937dd.png",
+    "虚印凡·虚环": "deep_equipment/deep_spectral_sigil_q01_479609ee.png",
+    "虚印凡·虚缰": "deep_equipment/deep_spectral_sigil_q01_23aa0379.png",
+    "虚印良·印刻": "deep_equipment/deep_spectral_sigil_q02_8d520fb7.png",
+    "虚印良·印弓": "deep_equipment/deep_spectral_sigil_q02_c05fec7a.png",
+    "虚印良·印翎": "deep_equipment/deep_spectral_sigil_q02_6249f410.png",
+    "虚印良·印垣": "deep_equipment/deep_spectral_sigil_q02_02425693.png",
+    "虚印良·印棘": "deep_equipment/deep_spectral_sigil_q02_8b02dcf4.png",
+    "虚印良·印步": "deep_equipment/deep_spectral_sigil_q02_339f91c4.png",
+    "虚印良·印坠": "deep_equipment/deep_spectral_sigil_q02_bc6d51aa.png",
+    "虚印良·印戒": "deep_equipment/deep_spectral_sigil_q02_6763556c.png",
+    "虚印良·印束": "deep_equipment/deep_spectral_sigil_q02_6f415585.png",
+    "虚印湛·脉裂": "deep_equipment/deep_spectral_sigil_q03_9df782df.png",
+    "虚印湛·脉弦": "deep_equipment/deep_spectral_sigil_q03_b06ffe03.png",
+    "虚印湛·脉识": "deep_equipment/deep_spectral_sigil_q03_52dd0d28.png",
+    "虚印湛·脉甲": "deep_equipment/deep_spectral_sigil_q03_90397a30.png",
+    "虚印湛·脉行": "deep_equipment/deep_spectral_sigil_q03_c344dfff.png",
+    "虚印湛·脉影": "deep_equipment/deep_spectral_sigil_q03_0f244d07.png",
+    "虚印湛·脉涌": "deep_equipment/deep_spectral_sigil_q03_06172750.png",
+    "虚印湛·脉指": "deep_equipment/deep_spectral_sigil_q03_7d5dd782.png",
+    "虚印湛·脉络": "deep_equipment/deep_spectral_sigil_q03_6697d291.png",
+    "虚印炽·终纹": "deep_equipment/deep_spectral_sigil_q04_672bc540.png",
+    "虚印炽·终矢": "deep_equipment/deep_spectral_sigil_q04_3c0217e6.png",
+    "虚印炽·终默": "deep_equipment/deep_spectral_sigil_q04_00153706.png",
+    "虚印炽·终壁": "deep_equipment/deep_spectral_sigil_q04_fbc328dc.png",
+    "虚印炽·终刺": "deep_equipment/deep_spectral_sigil_q04_45cf6140.png",
+    "虚印炽·终踏": "deep_equipment/deep_spectral_sigil_q04_551fa94a.png",
+    "虚印炽·终咒": "deep_equipment/deep_spectral_sigil_q04_ba2bfc9a.png",
+    "虚印炽·终缚": "deep_equipment/deep_spectral_sigil_q04_9ff9fdc6.png",
+    "虚印炽·终财": "deep_equipment/deep_spectral_sigil_q04_146b2b33.png",
+    "虚印曜·归芒": "deep_equipment/deep_spectral_sigil_q05_6d992c47.png",
+    "虚印曜·归羽": "deep_equipment/deep_spectral_sigil_q05_5c57b491.png"
+  },
+  "alchemy_material": {
+    "霜凝幽卉": "alchemy_materials/mat_ed760555.png",
+    "凌云隼羽": "alchemy_materials/mat_c1fd163c.png",
+    "烬燃灵草": "alchemy_materials/mat_b8b5d15b.png",
+    "摧坚刚岩": "alchemy_materials/mat_af288f0b.png",
+    "荒古龙鳞": "alchemy_materials/mat_63bcb606.png",
+    "震天雷枢": "alchemy_materials/mat_6959bb81.png",
+    "磐石瑰晶": "alchemy_materials/mat_61a326a9.png",
+    "涅槃灵羽": "alchemy_materials/mat_326d75ea.png",
+    "瑞命元根": "alchemy_materials/mat_205262bd.png",
+    "湮灭源质": "alchemy_materials/mat_8d8de94a.png",
+    "曦和圣耀": "alchemy_materials/mat_9990315b.png",
+    "永夜魂髓": "alchemy_materials/mat_fdd3b02e.png",
+    "朔风惊叶": "alchemy_materials/mat_84d354c7.png",
+    "煞血魔珀": "alchemy_materials/mat_f524ae9b.png"
+  },
+  "building": {
+    "tower_entrance": "tile_tower_entrance.png",
+    "blacksmith": "tile_blacksmith.png",
+    "shop": "tile_shop.png",
+    "training_ground": "tile_training_ground.png"
+  },
+  "room_entity": {
+    "treasure_chest": "tile_treasure_chest.png",
+    "rest_campfire": "tile_rest_campfire.png",
+    "rest_medkit": "tile_rest_medkit.png",
+    "rest_fountain": "tile_rest_fountain.png",
+    "rest_altar": "tile_rest_altar.png",
+    "alchemy_table": "tile_alchemy_table.png"
+  },
+  "portal": {
+    "exit": "tile_portal_exit.png",
+    "next": "tile_portal_next.png",
+    "return_town": "tile_portal_return_town.png",
+    "fight": "tile_portal_fight.png"
+  },
+  "floor": {
+    "town": "tile_town_floor.png",
+    "tower": "tile_tower_floor_new.png",
+    "training": "tile_training_floor.png"
+  },
+  "monster": {
+    "goblin": {
+      "image": "monster_goblin.png",
+      "scale": 1.2
     },
-    "alchemy_material": {
-        "\u971c\u51dd\u5e7d\u5349": "3fbe7976-a500-4fae-852b-57cbbad05908.png",
-        "\u51cc\u4e91\u96bc\u7fbd": "0d7c8165-89b5-4eea-b9a0-c428dc373c5d.png",
-        "\u70ec\u71c3\u7075\u8349": "822c1017-6485-472c-a905-d40235437a23.png",
-        "\u6467\u575a\u521a\u5ca9": "0562d7eb-0021-40e4-9b60-daf643f70ff7.png",
-        "\u8352\u53e4\u9f99\u9cde": "df65be71-8dae-4ca8-823a-c6e7dbeac393.png",
-        "\u9707\u5929\u96f7\u67a2": "c6662d79-9e63-4751-9a77-e643dcb1d834.png",
-        "\u78d0\u77f3\u7470\u6676": "eb3e4f9b-a560-413c-90fd-e7e1771e2a8f.png",
-        "\u6d85\u69c3\u7075\u7fbd": "b8a60eb3-0241-471a-8e01-0d22e2d9ad10.png",
-        "\u745e\u547d\u5143\u6839": "354d0ec8-75ea-4165-8283-9488cac5ec97.png",
-        "\u6e6e\u706d\u6e90\u8d28": "ce81885c-c807-413f-9c89-437e094f288a.png",
-        "\u66e6\u548c\u5723\u8000": "be2704bf-6d36-40e1-8f87-f76e9e7504a9.png",
-        "\u6c38\u591c\u9b42\u9ad3": "3ce75363-546a-48ce-ac79-71b2fc930a16.png",
-        "\u6714\u98ce\u60ca\u53f6": "6093d15c-5aa2-492a-b3ec-0d3e3f1bcb13.png",
-        "\u715e\u8840\u9b54\u73c0": "122a0f79-8705-4f96-b2cc-a0e4dfd5b710.png"
+    "goblinWarrior": {
+      "image": "monster_goblin_warrior.png",
+      "scale": 1.3
     },
-    "building": {
-        "tower_entrance": "c88c234b-7621-401e-a5f3-4dc7bbb4de4c.png",
-        "blacksmith": "917673b5-23de-42f6-b139-6b827ae51e9b.png",
-        "shop": "32da46bb-8e2c-4dfa-9252-8dd4248ce89e.png",
-        "training_ground": "f92d2957-3cfb-4e3e-a14c-253f6de9ca62.png"
+    "goblinShaman": {
+      "image": "monster_goblin_shaman.png",
+      "scale": 1.1
     },
-    "room_entity": {
-        "treasure_chest": "b218b15e-6810-4aa4-88b8-8f22ad987484.png",
-        "rest_campfire": "ff7f1483-ca7c-418e-bd4a-d6fc90ac7600.png",
-        "rest_medkit": "f9b3d694-7019-47fd-887b-68808bc77728.png",
-        "rest_fountain": "725e21c9-cc62-4ed4-910c-0ea59e1fcd85.png",
-        "rest_altar": "6cfa241a-7f86-43a3-864e-63352c866d6f.png",
-        "alchemy_table": "c186244c-4f53-4296-9898-0afd309c4f67.png"
+    "goblinScout": {
+      "image": "monster_goblin_scout.png",
+      "scale": 1.1
     },
-    "portal": {
-        "exit": "tile_portal_exit.png",
-        "next": "a580e340-7aee-4ed4-9d71-2bb29f7c8609.png",
-        "return_town": "a02a9776-514a-468a-8956-01d4245e617f.png",
-        "fight": "e22b10e3-25b6-49c2-b479-22b51cee5a9c.png"
+    "goblinChief": {
+      "image": "monster_goblin_chief.png",
+      "scale": 1.6
     },
-    "floor": {
-        "town": "2a78a9c9-2d86-46e8-b843-1d1bd9f0ae1d.png",
-        "tower": "20e2e3e9-f958-46a7-8d4c-8c5b251d98b4.png",
-        "training": "a9db0bf6-fd09-446a-b914-ca38e3417f0d.png"
+    "skeleton": {
+      "image": "monster_skeleton.png",
+      "scale": 1.5
     },
-    "monster": {
-        "goblin": {
-            "image": "08d39a08-7e4f-409d-8f77-b1ddeb10adfd.png",
-            "scale": 1.2
-        },
-        "goblinWarrior": {
-            "image": "c50b5a85-c3ac-473c-8e83-ad81a8a61d9c.png",
-            "scale": 1.3
-        },
-        "goblinShaman": {
-            "image": "0a306f23-94cd-44e1-b711-00bc37a3cf0b.png",
-            "scale": 1.1
-        },
-        "goblinScout": {
-            "image": "5608a984-817c-487d-9477-86aacf1fd3aa.png",
-            "scale": 1.1
-        },
-        "goblinChief": {
-            "image": "c3c8b203-dcce-48bd-a43e-179d20e3fdb9.png",
-            "scale": 1.6
-        },
-        "skeleton": {
-            "image": "e2030f87-9a90-437a-9c24-195060bb1aad.png",
-            "scale": 1.5
-        },
-        "skeletonArcher": {
-            "image": "a6cacbfe-92e6-43f0-a1e5-70ea203f8db1.png",
-            "scale": 1.3
-        },
-        "skeletonKnight": {
-            "image": "0be17551-b5f9-4b08-ab1b-c9b69aae6982.png",
-            "scale": 2.0
-        },
-        "skeletonMage": {
-            "image": "f3d0ac1c-ab2d-4761-bf34-468a190a3107.png",
-            "scale": 1.2
-        },
-        "skeletonLord": {
-            "image": "c5a053f3-c939-4153-a4b5-42a5bfce2450.png",
-            "scale": 2.5
-        },
-        "orc": {
-            "image": "6b920631-e2b2-4b62-a47f-ccf710ec43ee.png",
-            "scale": 2.2
-        },
-        "orcBerserker": {
-            "image": "4012fa58-7c77-40f9-83ca-d56ae1edac57.png",
-            "scale": 2.0
-        },
-        "orcShaman": {
-            "image": "a07c7d49-a678-4f71-8433-7cb56a6e2225.png",
-            "scale": 2.1
-        },
-        "orcWarrior": {
-            "image": "9bf6e248-23f2-40ee-b6e9-6466bbe84175.png",
-            "scale": 2.3
-        },
-        "orcWarlord": {
-            "image": "75cfac5a-70ea-497b-be20-bd6943bd5825.png",
-            "scale": 3.5
-        },
-        "demon": {
-            "image": "4b5a17e7-db78-4d3c-90b3-84bff6db1ec2.png",
-            "scale": 2.5
-        },
-        "demonImp": {
-            "image": "dd04ce9e-f06b-4b09-9eed-a3f686c2cebc.png",
-            "scale": 1.5
-        },
-        "demonGuardian": {
-            "image": "029d63f2-0741-4a6a-8158-ba7be1c00fb3.png",
-            "scale": 3.0
-        },
-        "demonSorcerer": {
-            "image": "c5eaf746-5447-4b4d-9803-36f442945978.png",
-            "scale": 2.5
-        },
-        "demonGeneral": {
-            "image": "fa6fe62f-416a-46b3-ab7d-754489d735a8.png",
-            "scale": 3.5
-        },
-        "demonBoss": {
-            "image": "2f5018e4-081e-4bba-805e-9165796384e2.png",
-            "scale": 5.0
-        },
-        "demonPrince": {
-            "image": "ddaa563a-41ee-47f4-bd8b-b24463e2156b.png",
-            "scale": 3.8
-        },
-        "demonTitan": {
-            "image": "279adee9-67d8-46ba-bbac-64e6b81dbeaa.png",
-            "scale": 5.5
-        },
-        "demonArchmage": {
-            "image": "daeebccc-ff75-4d2a-9403-4dda88733454.png",
-            "scale": 3.0
-        },
-        "demonOverlord": {
-            "image": "561f1985-f33f-4b43-9f2f-88dc5a48622c.png",
-            "scale": 6.0
-        }
+    "skeletonArcher": {
+      "image": "monster_skeleton_archer.png",
+      "scale": 1.3
     },
-    "player": {
-        "player": {
-            "image": "4c9dad68-72fc-4eab-9834-e1c421b83ea6.png",
-            "scale": 1.5
-        }
+    "skeletonKnight": {
+      "image": "monster_skeleton_knight.png",
+      "scale": 2.0
+    },
+    "skeletonMage": {
+      "image": "monster_skeleton_mage.png",
+      "scale": 1.2
+    },
+    "skeletonLord": {
+      "image": "monster_skeleton_lord.png",
+      "scale": 2.5
+    },
+    "orc": {
+      "image": "monster_orc.png",
+      "scale": 2.2
+    },
+    "orcBerserker": {
+      "image": "monster_orc_berserker.png",
+      "scale": 2.0
+    },
+    "orcShaman": {
+      "image": "monster_orc_shaman.png",
+      "scale": 2.1
+    },
+    "orcWarrior": {
+      "image": "monster_orc_warrior.png",
+      "scale": 2.3
+    },
+    "orcWarlord": {
+      "image": "monster_orc_warlord.png",
+      "scale": 3.5
+    },
+    "demon": {
+      "image": "monster_demon.png",
+      "scale": 2.5
+    },
+    "demonImp": {
+      "image": "monster_demon_imp.png",
+      "scale": 1.5
+    },
+    "demonGuardian": {
+      "image": "monster_demon_guardian.png",
+      "scale": 3.0
+    },
+    "demonSorcerer": {
+      "image": "monster_demon_sorcerer.png",
+      "scale": 2.5
+    },
+    "demonGeneral": {
+      "image": "monster_demon_general.png",
+      "scale": 3.5
+    },
+    "demonBoss": {
+      "image": "monster_demon_boss.png",
+      "scale": 5.0
+    },
+    "demonPrince": {
+      "image": "monster_demon_prince.png",
+      "scale": 3.8
+    },
+    "demonTitan": {
+      "image": "monster_demon_titan.png",
+      "scale": 5.5
+    },
+    "demonArchmage": {
+      "image": "monster_demon_archmage.png",
+      "scale": 3.0
+    },
+    "demonOverlord": {
+      "image": "monster_demon_overlord.png",
+      "scale": 6.0
     }
+  },
+  "player": {
+    "player": {
+      "image": "player.gif",
+      "scale": 1.5
+    }
+  },
+  "skill_icons": {
+    "崩山击": "skill_icons/skill_d7cacaad.png",
+    "银芒贯刺": "skill_icons/skill_69dd3c47.png",
+    "赤炎斩": "skill_icons/skill_1ca45fe1.png",
+    "幽冥闪袭": "skill_icons/skill_c4214f54.png",
+    "凛冬刺": "skill_icons/skill_f790ca62.png",
+    "鸣雷裁决": "skill_icons/skill_e679ab5a.png",
+    "银月弧光": "skill_icons/skill_3bb20e4a.png",
+    "霜华碎灭": "skill_icons/skill_050ec4d6.png",
+    "龙炎漩涡": "skill_icons/skill_d8e488f2.png",
+    "烬灭天火": "skill_icons/skill_46f672f5.png",
+    "永冻新星": "skill_icons/skill_c3d0b698.png",
+    "神裁": "skill_icons/skill_8fe8076a.png",
+    "万钧雷狱": "skill_icons/skill_15032416.png",
+    "星坠审判": "skill_icons/skill_8cfae7a4.png",
+    "钢魂崩击": "skill_icons/skill_116dcefa.png",
+    "魔晶绽裂": "skill_icons/skill_86a2ce02.png",
+    "古龙吐息": "skill_icons/skill_fedcb769.png",
+    "虚空崩解": "skill_icons/skill_8722e361.png",
+    "破势一击": "skill_icons/skill_37eac84a.png",
+    "战意迸发": "skill_icons/skill_a081d154.png",
+    "闪霆": "skill_icons/skill_a5c6f6f4.png",
+    "炎狱风暴": "skill_icons/skill_8f3dbc4c.png",
+    "天谴": "skill_icons/skill_7e5c7356.png",
+    "追风箭": "skill_icons/skill_c1f955b8.png",
+    "暗影贯穿": "skill_icons/skill_af909446.png",
+    "破晓之矢": "skill_icons/skill_12f1081a.png",
+    "贯月连珠": "skill_icons/skill_294b409d.png",
+    "星陨": "skill_icons/skill_5b69e312.png"
+  },
+  "consumable": {
+    "blueprint": "blueprint.png"
+  },
+  "sounds": {
+    "burn": {
+      "file": "sound_burn.mp3",
+      "volume": 0.3
+    },
+    "treasure": {
+      "file": "sound_treasure.mp3",
+      "volume": 0.6
+    },
+    "craft": {
+      "file": "sound_craft.mp3",
+      "volume": 0.6
+    },
+    "death": {
+      "file": "sound_death.mp3",
+      "volume": 0.7
+    },
+    "shock": {
+      "file": "sound_shock.mp3",
+      "volume": 0.4
+    },
+    "equip": {
+      "file": "sound_equip.mp3",
+      "volume": 0.5
+    },
+    "freeze": {
+      "file": "sound_freeze.mp3",
+      "volume": 0.4
+    },
+    "heal": {
+      "file": "sound_heal.mp3",
+      "volume": 0.4
+    },
+    "hit": {
+      "file": "sound_hit.mp3",
+      "volume": 0.3
+    },
+    "levelup": {
+      "file": "sound_levelup.mp3",
+      "volume": 0.7
+    },
+    "purchase": {
+      "file": "sound_purchase.mp3",
+      "volume": 0.5
+    },
+    "star": {
+      "file": "sound_star.mp3",
+      "volume": 0.5
+    },
+    "dash": {
+      "file": "sound_dash.mp3",
+      "volume": 0.6
+    },
+    "swing": {
+      "file": "sound_swing.mp3",
+      "volume": 0.4
+    },
+    "teleport": {
+      "file": "sound_teleport.mp3",
+      "volume": 0.5
+    },
+    "walk": {
+      "file": "sound_walk.mp3",
+      "volume": 0.3
+    }
+  },
+  "bgm": {
+    "town": {
+      "file": "bgm_town.mp3",
+      "volume": 0.5
+    },
+    "battle": {
+      "file": "bgm_battle.mp3",
+      "volume": 0.5
+    }
+  }
 }

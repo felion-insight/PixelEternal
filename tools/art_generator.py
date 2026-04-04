@@ -5,7 +5,7 @@ Pixel Eternal - 游戏美术资源生成工具
 使用自然语言描述需求，通过 GPT 规划提示词与风格，再调用 Imagen 生成图片并自动写入项目。
 技能/增幅/批量武器贴图等图标类输出经后处理为 EXPORT_ICON_SIZE×EXPORT_ICON_SIZE 的 RGBA 透明底 PNG（默认 68）。
 
-装备生成约定与深阶提示词表见 tools/生图要求26-3-19.md（主题×品质批量可用 --deep-theme / --deep-quality）。
+装备生成约定与深阶提示词表见 tools/art-requirements-2026-03-19.md（主题×品质批量可用 --deep-theme / --deep-quality）。
 """
 
 import os
@@ -13,6 +13,7 @@ import re
 import sys
 import json
 import base64
+import hashlib
 import argparse
 from collections import deque
 from pathlib import Path
@@ -105,7 +106,7 @@ SKILL_ICON_CORE_TEMPLATE = (
 # 三变量拼成 "... {shape} with {texture} in {color} palette"
 SKILL_ICON_NEGATIVE_PROMPT = "text, numbers, stars, borders, UI elements, decorations"
 
-# 武器装备栏贴图：与 tools/装备生图要求.md 一致；远程与近战共用（仅主体由 GPT 描述，避免画风漂移）
+# 武器装备栏贴图：与 tools/equipment-art-requirements.md 一致；远程与近战共用（仅主体由 GPT 描述，避免画风漂移）
 EQUIPMENT_WEAPON_TEXTURE_STYLE_TEMPLATE = (
     "Pixel art equipment icon, retro 16-bit style, ultra-detailed pixel clusters, "
     "single weapon centered in frame, inventory item still-life, static pose, no action scene, "
@@ -119,7 +120,7 @@ EQUIPMENT_WEAPON_NEGATIVE_PROMPT = (
     "watermarks, text, letters, multiple weapons, character holding weapon, full body, busy background, "
     "motion blur, flying projectile filling frame, explosion, battlefield scene"
 )
-# 非武器部位（头盔/胸甲/护腿/鞋/项链/指环/腰带）：与 生图要求26-3-19.md 「固定风格段」对应的英文模板（仍用黑底抠透明）
+# 非武器部位（头盔/胸甲/护腿/鞋/项链/指环/腰带）：与 art-requirements-2026-03-19.md 「固定风格段」对应的英文模板（仍用黑底抠透明）
 EQUIPMENT_NON_WEAPON_TEXTURE_STYLE_TEMPLATE = (
     "Pixel art equipment icon, dark fantasy RPG, retro 16-bit style, ultra-detailed pixel clusters, "
     "45-degree top-down view, inventory prop still-life, single piece centered in frame, static pose, no action scene, "
@@ -136,7 +137,7 @@ EQUIPMENT_NON_WEAPON_NEGATIVE_PROMPT = (
 # 兼容旧逻辑命名：边缘暗像素在透明流程中同样视为可扩展背景
 EDGE_CLEAN_THRESHOLD = 10
 
-# 深阶装备：8 主题 × 5 品质（英文关键词供拼接提示词），见 tools/生图要求26-3-19.md 第四节
+# 深阶装备：8 主题 × 5 品质（英文关键词供拼接提示词），见 tools/art-requirements-2026-03-19.md 第四节
 DEEP_THEME_KEYWORDS_CN = {
     "渊隙": "abyss, cracked earth, glowing purple fissures, void, dark rock",
     "虚印": "rune, ethereal, ghostly light, silver-blue, spiritual",
@@ -153,6 +154,24 @@ DEEP_QUALITY_MODIFIERS_CN = {
     "湛": "intricate, detailed engravings",
     "炽": "ornate, glowing accents, rich details",
     "曜": "magnificent, radiant aura, legendary",
+}
+# 深阶资源文件名用英文 slug（与中文主题/品质一一对应）
+DEEP_THEME_FILE_SLUG = {
+    "渊隙": "abyss_rift",
+    "虚印": "spectral_sigil",
+    "腐噬": "rot_devour",
+    "黑曜": "obsidian",
+    "终幕": "final_curtain",
+    "星骸": "star_wreck",
+    "裂点": "fracture_node",
+    "终焉": "terminus",
+}
+DEEP_QUALITY_FILE_SLUG = {
+    "凡": "q01",
+    "良": "q02",
+    "湛": "q03",
+    "炽": "q04",
+    "曜": "q05",
 }
 # 深阶主题“视觉指纹”：主色调 + 核心材质 + 装饰符号 + 光效（用于降低主题间同质化）
 DEEP_THEME_FINGERPRINTS = {
@@ -205,7 +224,7 @@ DEEP_THEME_FINGERPRINTS = {
         "fx": "pulsing red glow and burning embers",
     },
 }
-# 品质五档视觉阶梯（见 tools/深阶装备改进意见2.md）：复杂度 / 光效 / 装饰 / 材质质感
+# 品质五档视觉阶梯（见 tools/deep-equipment-prompt-feedback-v2.md）：复杂度 / 光效 / 装饰 / 材质质感
 DEEP_QUALITY_VISUAL = {
     "凡": {
         "complexity": "lowest tier silhouette, basic shape only",
@@ -284,7 +303,7 @@ SKILL_ICON_FALLBACK_PLANS = {
     },
 }
 
-# 增幅/效果图标提示词（与 tools/图标要求.md 一致，画风与技能图标一致：用 SKILL_ICON_CORE_TEMPLATE + 下表后缀）
+# 增幅/效果图标提示词（与 tools/icon-requirements.md 一致，画风与技能图标一致：用 SKILL_ICON_CORE_TEMPLATE + 下表后缀）
 BUFF_ICON_PROMPTS = {
     # 一、基础属性增幅
     "attack": "centered upward-thrusting sword with fiery glow, vibrant red color",
@@ -510,15 +529,110 @@ def build_weapon_type_by_name() -> dict:
     return m
 
 
-def get_weapon_asset_relpath(weapon_name: str) -> str:
-    """游戏内装备图相对 asset 的路径（与 AssetManager.getEquipmentImageName 一致）。"""
-    if MAPPINGS_CONFIG.exists():
+def _asset_digest8(text: str) -> str:
+    return hashlib.sha256((text or "").encode("utf-8")).hexdigest()[:8]
+
+
+def _equipment_row_with_deep_flag(eq: dict) -> dict:
+    row = dict(eq)
+    if row.get("isDeep"):
+        return row
+    theme, quality, _suf = parse_deep_equipment_name((row.get("name") or "").strip())
+    if theme and quality:
+        row["isDeep"] = True
+    return row
+
+
+def equipment_english_basename_stem(eq: dict) -> str:
+    """不含扩展名，仅 a-z0-9_（深阶 deep_主题_品质_摘要；否则 eq_槽位_摘要）。"""
+    eq = _equipment_row_with_deep_flag(eq)
+    name = (eq.get("name") or "").strip()
+    slot = (eq.get("slot") or "weapon").strip().lower()
+    theme, quality, _suffix = parse_deep_equipment_name(name)
+    if theme and quality:
+        tslug = DEEP_THEME_FILE_SLUG.get(theme) or _asset_digest8(theme)
+        qslug = DEEP_QUALITY_FILE_SLUG.get(quality) or _asset_digest8(quality)
+        return f"deep_{tslug}_{qslug}_{_asset_digest8(name)}"
+    digest = _asset_digest8(f"{slot}|{name}")
+    return f"eq_{slot}_{digest}"
+
+
+def equipment_english_relpath(eq: dict) -> str:
+    """新生成装备贴图写入的相对 asset 路径（英文文件名）。"""
+    eq = _equipment_row_with_deep_flag(eq)
+    stem = equipment_english_basename_stem(eq) + ".png"
+    slot = (eq.get("slot") or "weapon").strip().lower()
+    if eq.get("isDeep"):
+        return f"{DEEP_EQUIPMENT_FOLDER}/{stem}"
+    sub = SLOT_TO_SUBFOLDER.get(slot)
+    if sub:
+        return f"{sub}/{stem}"
+    return stem
+
+
+def _mapping_relpath_for_equipment_name(name: str) -> str:
+    if not name or not MAPPINGS_CONFIG.exists():
+        return ""
+    try:
         with open(MAPPINGS_CONFIG, "r", encoding="utf-8") as f:
             data = json.load(f)
-        eq_map = data.get("equipment") or {}
-        if weapon_name in eq_map and eq_map[weapon_name]:
-            return str(eq_map[weapon_name]).strip().replace("\\", "/")
-    return f"{weapon_name}.png"
+        rel = str((data.get("equipment") or {}).get(name) or "").strip().replace("\\", "/")
+        return rel
+    except (OSError, json.JSONDecodeError):
+        return ""
+
+
+def equipment_existing_texture_abs_path(eq: dict):
+    """若已有任意兼容路径下的贴图文件则返回其绝对路径，否则 None。"""
+    eq = _equipment_row_with_deep_flag(eq)
+    name = (eq.get("name") or "").strip()
+    slot = (eq.get("slot") or "weapon").strip().lower()
+    if not name:
+        return None
+    rel_map = _mapping_relpath_for_equipment_name(name)
+    if rel_map:
+        p = ART_FOLDER / rel_map
+        if p.is_file():
+            return p
+    rel_en = equipment_english_relpath(eq)
+    p_en = ART_FOLDER / rel_en
+    if p_en.is_file():
+        return p_en
+    if eq.get("isDeep"):
+        leg = ART_FOLDER / DEEP_EQUIPMENT_FOLDER / f"{name}.png"
+        if leg.is_file():
+            return leg
+    if slot in SLOT_TO_SUBFOLDER:
+        leg2 = ART_FOLDER / SLOT_TO_SUBFOLDER[slot] / f"{name}.png"
+        if leg2.is_file():
+            return leg2
+    leg_root = ART_FOLDER / f"{name}.png"
+    if leg_root.is_file():
+        return leg_root
+    return None
+
+
+def get_weapon_asset_relpath(weapon_name: str) -> str:
+    """游戏内装备图相对 asset 的路径（与 AssetManager.getEquipmentImageName 一致）。"""
+    name = (weapon_name or "").strip()
+    rel_map = _mapping_relpath_for_equipment_name(name)
+    if rel_map:
+        return rel_map
+    wt = "melee"
+    for w in collect_weapon_entries_from_config():
+        if w.get("slot") == "weapon" and w.get("name") == name:
+            wt = (w.get("weaponType") or "melee").strip().lower()
+            if wt not in ("melee", "ranged"):
+                wt = "melee"
+            break
+    row = {"name": name, "slot": "weapon", "weaponType": wt, "isDeep": False}
+    ex = equipment_existing_texture_abs_path(row)
+    if ex is not None:
+        try:
+            return ex.relative_to(ART_FOLDER).as_posix()
+        except ValueError:
+            pass
+    return equipment_english_relpath(row)
 
 
 def weapon_texture_resolved_path(weapon_name: str) -> Path:
@@ -528,20 +642,21 @@ def weapon_texture_resolved_path(weapon_name: str) -> Path:
 
 
 def resolve_equipment_texture_relpath(eq: dict) -> str:
-    """装备贴图相对 asset 的路径：优先 mappings.json；无映射时按部位落在子目录/中文名.png。"""
+    """装备贴图相对 asset 的路径：优先 mappings；否则已有兼容文件；再否则为将使用的英文路径。"""
     name = (eq.get("name") or "").strip()
     slot = (eq.get("slot") or "weapon").strip().lower()
     if not name:
         return ""
-    if MAPPINGS_CONFIG.exists():
-        with open(MAPPINGS_CONFIG, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        eq_map = data.get("equipment") or {}
-        if name in eq_map and eq_map[name]:
-            return str(eq_map[name]).strip().replace("\\", "/")
-    if slot in SLOT_TO_SUBFOLDER:
-        return f"{SLOT_TO_SUBFOLDER[slot]}/{name}.png"
-    return f"{name}.png"
+    rel_map = _mapping_relpath_for_equipment_name(name)
+    if rel_map:
+        return rel_map
+    ex = equipment_existing_texture_abs_path(eq)
+    if ex is not None:
+        try:
+            return ex.relative_to(ART_FOLDER).as_posix()
+        except ValueError:
+            pass
+    return equipment_english_relpath(eq)
 
 
 def equipment_texture_resolved_path_from_eq(eq: dict) -> Path:
@@ -551,32 +666,16 @@ def equipment_texture_resolved_path_from_eq(eq: dict) -> Path:
 
 
 def resolve_batch_texture_relpath(eq: dict) -> str:
-    """批量补缺时使用的相对路径。
-    - 基础武器：沿用 get_weapon_asset_relpath（与仅武器批量一致）
-    - 深阶装备：新生成统一落到 DEEP_EQUIPMENT_FOLDER（旧映射文件存在时保持兼容）
-    - 其余：按部位默认规则
-    """
-    name = (eq.get("name") or "").strip()
-    slot = (eq.get("slot") or "").strip().lower()
-    is_deep = bool(eq.get("isDeep"))
-    if is_deep and name:
-        # 兼容已有旧映射：若映射文件真实存在，则沿用；否则新生成统一写入 deep 文件夹
-        if MAPPINGS_CONFIG.exists():
-            with open(MAPPINGS_CONFIG, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            eq_map = data.get("equipment") or {}
-            rel = str(eq_map.get(name) or "").strip().replace("\\", "/")
-            if rel and (ART_FOLDER / rel).is_file():
-                return rel
-        return f"{DEEP_EQUIPMENT_FOLDER}/{name}.png"
-    if slot == "weapon" and name:
-        return get_weapon_asset_relpath(name)
-    return resolve_equipment_texture_relpath(eq)
+    """批量/列表展示用：新生成将写入的相对路径（英文文件名）。"""
+    return equipment_english_relpath(eq)
 
 
 def equipment_batch_resolved_path(eq: dict) -> Path:
-    """批量流程中判定「文件是否已存在」及保存目标路径。"""
-    rel = resolve_batch_texture_relpath(eq)
+    """批量流程中判定「文件是否已存在」；若不存在则目标为英文路径。"""
+    ex = equipment_existing_texture_abs_path(eq)
+    if ex is not None:
+        return ex
+    rel = equipment_english_relpath(eq)
     return ART_FOLDER / rel if rel else ART_FOLDER
 
 
@@ -787,10 +886,17 @@ NON_WEAPON_SLOT_PLAN_HINTS = {
 
 
 def _skill_icon_filename(skill_name: str) -> str:
-    """用技能中文名生成文件名，剔除非法字符。"""
-    safe = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", skill_name.strip())
-    safe = safe.strip(" .") or "skill"
-    return f"{safe}.png" if not safe.lower().endswith(".png") else safe
+    """技能图标：稳定英文文件名（映射仍用游戏内技能中文名）。"""
+    d = _asset_digest8((skill_name or "").strip() or "skill")
+    return f"skill_{d}.png"
+
+
+def _buff_icon_filename(key: str) -> str:
+    """增幅图标：键已为安全 ASCII 时沿用，否则英文摘要名。"""
+    k = (key or "").strip()
+    if k and re.fullmatch(r"[a-zA-Z0-9_-]{1,80}", k):
+        return f"{k}.png"
+    return f"buff_{_asset_digest8(k)}.png"
 
 
 def collect_existing_skill_icons() -> dict:
@@ -892,7 +998,7 @@ def call_gpt_plan_skill_icon(
 请只输出以下 JSON，不要其他文字和 markdown 代码块：
 {{ "shape": "主体形状，名词短语，如 ice crystal / dagger silhouette / flame vortex", "texture": "动态纹理，动词+名词，如 radiating frost spikes / smoky trail effect / pulsing shock rings", "color": "主色调，带质感的颜色词，如 pale blue / deep purple / molten orange / frosty cyan" }}
 
-规则（与 生图要求.md 一致）：
+规则（与 art-requirements.md 一致）：
 1. shape：用具体名词短语，避免抽象（如用 lightning spear 不用 powerful weapon）；需与武器/套装/技能效果呼应。
 2. texture：用流动/爆发/粒子感的具体描述，如 swirling energy currents、glowing particle sparks，避免 dynamic effects 等笼统词。
 3. color：用带质感的颜色词，如 frosty cyan、molten orange、ember red，避免单纯 blue/red；可与套装主题一致。"""
@@ -1034,7 +1140,7 @@ def add_to_buff_icon_map(key: str, filename: str) -> None:
 
 
 def run_batch_buff_icons(dry_run: bool = False) -> None:
-    """根据 图标要求.md 为所有增幅类型生成图标，画风与技能图标一致。"""
+    """根据 icon-requirements.md 为所有增幅类型生成图标，画风与技能图标一致。"""
     existing = collect_existing_buff_icons()
     ART_BUFF_ICONS.mkdir(parents=True, exist_ok=True)
 
@@ -1052,7 +1158,7 @@ def run_batch_buff_icons(dry_run: bool = False) -> None:
     for i, key in enumerate(missing, 1):
         prompt_suffix = BUFF_ICON_PROMPTS[key]
         full_prompt = f"{SKILL_ICON_CORE_TEMPLATE}, {prompt_suffix}".strip()
-        filename = f"{key}.png"
+        filename = _buff_icon_filename(key)
         print(f"[{i}/{len(missing)}] 增幅: {key} -> {filename}")
         if dry_run:
             print(f"  [dry-run] 完整提示词: {full_prompt[:140]}...")
@@ -1070,7 +1176,7 @@ def run_batch_buff_icons(dry_run: bool = False) -> None:
 
 
 def call_gpt_plan_weapon_texture(context: dict, weapon: dict) -> dict:
-    """为单件武器装备栏贴图规划英文 image_prompt 与 style_notes（文件名由调用方固定为游戏内中文名.png）。"""
+    """为单件武器装备栏贴图规划英文 image_prompt 与 style_notes（磁盘文件名为程序生成的英文路径）。"""
     try:
         import requests
     except ImportError:
@@ -1338,7 +1444,7 @@ def run_batch_weapon_textures(
 
     for i, w in enumerate(missing, 1):
         name = w["name"]
-        rel = get_weapon_asset_relpath(name)
+        rel = equipment_english_relpath(w)
         dest = ART_FOLDER / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         print(f"[{i}/{len(missing)}] 武器贴图：{name} -> {rel}")
@@ -1411,7 +1517,7 @@ def run_equipment_texture_batch_for_entries(
     for i, eq in enumerate(missing, 1):
         name = eq["name"]
         slot = eq["slot"]
-        rel = resolve_batch_texture_relpath(eq)
+        rel = equipment_english_relpath(eq)
         dest = ART_FOLDER / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         print(f"[{i}/{len(missing)}] {slot}：{name} -> {rel}")
@@ -1544,11 +1650,16 @@ def run_deep_equipment_batch(
         slot = row["slot"]
         suffix = row["suffix"]
         display = f"{theme_cn}{quality_cn}·{suffix}"
-        filename = f"{display}.png"
-        subject_en = build_deep_equipment_subject(
-            {"name": display, "slot": slot, "weaponType": ("ranged" if (slot == "weapon" and ranged_weapon) else "melee"), "isDeep": True}
-        )
-        print(f"[{i}/{total}] {display} -> {DEEP_EQUIPMENT_FOLDER}/{filename}")
+        eq_row = {
+            "name": display,
+            "slot": slot,
+            "weaponType": ("ranged" if (slot == "weapon" and ranged_weapon) else "melee"),
+            "isDeep": True,
+        }
+        rel_path = equipment_english_relpath(eq_row)
+        filename = Path(rel_path).name
+        subject_en = build_deep_equipment_subject(eq_row)
+        print(f"[{i}/{total}] {display} -> {rel_path}")
         if dry_run:
             print(f"  [dry-run] prompt 前缀: {subject_en[:120]}...")
             continue
@@ -1563,7 +1674,6 @@ def run_deep_equipment_batch(
                 full_prompt = f"{subject_en} {EQUIPMENT_NON_WEAPON_TEXTURE_STYLE_TEMPLATE}".strip()
                 raw = generate_image(full_prompt, "", for_equipment_non_weapon=True)
             image_bytes = process_transparent_icon_image(raw)
-            rel_path = f"{DEEP_EQUIPMENT_FOLDER}/{filename}"
             dest = ART_FOLDER / rel_path
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_bytes(image_bytes)
@@ -1669,14 +1779,14 @@ def call_gpt_plan(context: dict, user_input: str) -> dict:
         sys.exit("请安装 requests: pip install requests")
 
     require_art_api_key("自然语言 GPT 规划")
-    system_prompt = """你是 Pixel Eternal 项目的美术资源规划助手。项目是暗黑像素风 RPG，装备贴图放在 asset 目录（约定见 tools/生图要求26-3-19.md）。
+    system_prompt = """你是 Pixel Eternal 项目的美术资源规划助手。项目是暗黑像素风 RPG，装备贴图放在 asset 目录（约定见 tools/art-requirements-2026-03-19.md）。
 根据用户自然语言描述和当前项目内容，你必须输出一份严格的 JSON，且只输出该 JSON，不要其他文字。
 
 JSON 格式如下（所有字段必填，除非注明可选）：
 {
   "image_prompt": "给图像模型用的英文描述，要具体，描述主体造型与材质；不要重复程序会统一追加的 pixel art / 纯黑底 / 16-bit 套话",
   "style_notes": "可填空字符串 \"\"；若需少量补充可写英文短语，会拼进最终 prompt",
-  "filename": "保存文件名，扩展名 .png；装备贴图优先使用游戏内中文装备名，如 龙族头盔.png（与 display_name_for_icon_map 一致）",
+  "filename": "保存文件名，必须仅用英文字母/数字/下划线/连字符，扩展名 .png，如 dragon_helm_v1.png；游戏内显示名仍用中文，由 display_name_for_icon_map 与 mappings 关联",
   "relative_folder": "在 asset 下的子文件夹：weapons、helmets、chests、legs、boots、necklaces、rings、belts；非装备图可 items 或 \"\"",
   "equipment_slot": "weapon|helmet|chest|legs|boots|necklace|ring|belt 之一；非装备填空字符串 \"\"",
   "add_to_equipment_config": false,
@@ -1919,6 +2029,19 @@ def _log_skill_icon(skill_name: str, filename: str, prompt: str, success: bool, 
     log_file.write_text(content + line, encoding="utf-8")
 
 
+def sanitize_generated_asset_filename(filename: str, seed: str = "") -> str:
+    """非装备批量等场景：强制英文安全文件名（ASCII，仅字母数字._-）。"""
+    raw = (filename or "").strip()
+    if not raw.lower().endswith(".png"):
+        raw = f"{raw}.png" if raw else "asset.png"
+    stem, _, _ext = raw.rpartition(".")
+    stem = stem or "asset"
+    if (not stem.isascii()) or re.search(r"[^a-zA-Z0-9._-]", stem):
+        stem = f"asset_{_asset_digest8(seed + stem)}"
+    stem = re.sub(r"[^a-zA-Z0-9._-]+", "_", stem).strip("._") or f"asset_{_asset_digest8(seed)}"
+    return f"{stem}.png"
+
+
 def save_image(image_bytes: bytes, relative_folder: str, filename: str) -> Path:
     """将图片保存到 asset[/relative_folder]/filename，必要时创建目录。"""
     if relative_folder:
@@ -2038,7 +2161,7 @@ def main():
         "--deep-theme",
         default="",
         metavar="主题",
-        help="与 --deep-quality 联用：按生图要求26-3-19 生成该主题+品质下 8 部位贴图并写 mappings.json",
+        help="与 --deep-quality 联用：按 art-requirements-2026-03-19 生成该主题+品质下 8 部位贴图并写 mappings.json",
     )
     parser.add_argument(
         "--deep-quality",
@@ -2237,29 +2360,56 @@ def main():
     else:
         image_bytes = generate_image(base_prompt, notes)
 
-    print("正在保存到项目…")
-    filename = plan.get("filename") or f"generated_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
-    if not filename.lower().endswith(".png"):
-        filename += ".png"
-    saved_path = save_image(image_bytes, rel_folder, filename)
-    print(f"已保存：{saved_path}")
-
-    # 游戏内引用路径：子文件夹/文件名 或 文件名（与 AssetManager / mappings.json 一致）
-    if rel_folder:
-        icon_map_value = f"{rel_folder}/{filename}"
-    else:
-        icon_map_value = filename
-
-    if plan.get("add_to_equipment_config") and plan.get("equipment_entry"):
-        add_equipment_to_config(plan["equipment_entry"])
-        print("已向 equipment-config.json 添加装备条目。")
-
     eq_entry = plan.get("equipment_entry")
     eq_name = ""
     if isinstance(eq_entry, dict):
         eq_name = (eq_entry.get("name") or "").strip()
     disp = (plan.get("display_name_for_icon_map") or "").strip()
     name_for_map = disp or eq_name
+
+    print("正在保存到项目…")
+    filename = plan.get("filename") or f"generated_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    if not filename.lower().endswith(".png"):
+        filename += ".png"
+    rel_folder_effective = rel_folder
+    eff_slot_save = (
+        slot or (FOLDER_TO_SLOT[rel_folder] if rel_folder in FOLDER_TO_SLOT else "")
+        if is_equipment_icon
+        else ""
+    )
+    if is_equipment_icon and name_for_map and eff_slot_save:
+        wt = "melee"
+        if isinstance(eq_entry, dict):
+            w = (eq_entry.get("weaponType") or "melee").strip().lower()
+            if w in ("melee", "ranged"):
+                wt = w
+        full_rel = equipment_english_relpath(
+            {
+                "name": name_for_map,
+                "slot": eff_slot_save,
+                "weaponType": wt,
+                "isDeep": False,
+            }
+        )
+        if "/" in full_rel:
+            rel_folder_effective, filename = full_rel.split("/", 1)
+        else:
+            rel_folder_effective, filename = "", full_rel
+    else:
+        filename = sanitize_generated_asset_filename(filename, seed=f"{base_prompt}\n{user_input}")
+
+    saved_path = save_image(image_bytes, rel_folder_effective, filename)
+    print(f"已保存：{saved_path}")
+
+    # 游戏内引用路径：子文件夹/文件名 或 文件名（与 AssetManager / mappings.json 一致）
+    if rel_folder_effective:
+        icon_map_value = f"{rel_folder_effective}/{filename}"
+    else:
+        icon_map_value = filename
+
+    if plan.get("add_to_equipment_config") and plan.get("equipment_entry"):
+        add_equipment_to_config(plan["equipment_entry"])
+        print("已向 equipment-config.json 添加装备条目。")
     if (
         name_for_map
         and is_equipment_icon

@@ -1,12 +1,12 @@
 /**
- * 生成 docs/装备一览.md（常规 + 深阶 + 套装）
+ * 生成 docs/equipment-overview.md（常规 + 深阶 + 套装）
  * 运行: node scripts/gen-equipment-overview.js
  */
 const fs = require('fs');
 const path = require('path');
 
 const root = path.join(__dirname, '..');
-const outPath = path.join(root, 'docs', '装备一览.md');
+const outPath = path.join(root, 'docs', 'equipment-overview.md');
 
 const base = JSON.parse(fs.readFileSync(path.join(root, 'config', 'equipment-config.json'), 'utf8')).EQUIPMENT_DEFINITIONS;
 const deep = JSON.parse(fs.readFileSync(path.join(root, 'config', 'equipment-deep-config.json'), 'utf8')).EQUIPMENT_DEEP_DEFINITIONS;

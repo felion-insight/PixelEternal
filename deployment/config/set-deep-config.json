@@ -15,32 +15,36 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+4，防御力+2",
+          "description": "攻击力+4，生命值+12，暴击率+1%，暴击伤害+9%",
           "stats": {
             "attack": 4,
-            "defense": 2
+            "critDamage": 9,
+            "critRate": 1,
+            "health": 12
           }
         },
         "4": {
-          "description": "暴击率+3%，生命值+25",
-          "stats": {
-            "critRate": 3,
-            "health": 25
-          }
+          "stats": {},
+          "special": "cooldownReduction",
+          "cooldownReductionPercent": 3,
+          "description": "激活**渊隙裂响**，武器技能冷却缩短3%（入门档）"
         },
         "6": {
-          "description": "攻击速度+6%，移动速度+3%",
+          "description": "防御力+4，生命值+13，暴击率+2%，闪避率+3%",
           "stats": {
-            "attackSpeed": 6,
-            "moveSpeed": 3
+            "defense": 4,
+            "dodge": 3,
+            "critRate": 2,
+            "health": 13
           }
         },
         "8": {
-          "description": "所有属性+4%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.04
           },
-          "special": "killHeal"
+          "special": "cooldownReduction",
+          "cooldownReductionPercent": 7,
+          "description": "所有属性+4%，**渊隙裂响**获得强化，武器技能冷却缩短7%（满档强化）"
         }
       }
     },
@@ -59,32 +63,38 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+6，防御力+3",
+          "description": "攻击力+6，生命值+20，暴击率+2%，暴击伤害+12%",
           "stats": {
             "attack": 6,
-            "defense": 3
+            "critDamage": 12,
+            "critRate": 2,
+            "health": 20
           }
         },
         "4": {
-          "description": "暴击率+5%，生命值+40",
-          "stats": {
-            "critRate": 5,
-            "health": 40
-          }
+          "stats": {},
+          "special": "flameExplosion",
+          "flameExplosionChance": 0.136,
+          "flameExplosionMult": 0.2772,
+          "description": "激活**渊隙迸痕**，攻击附带爆裂（入门档）：约14%触发、爆裂伤害约28%攻击力"
         },
         "6": {
-          "description": "攻击速度+8%，移动速度+4%",
+          "description": "防御力+5，生命值+20，暴击率+3%，闪避率+5%",
           "stats": {
-            "attackSpeed": 8,
-            "moveSpeed": 4
+            "defense": 5,
+            "dodge": 5,
+            "critRate": 3,
+            "health": 20
           }
         },
         "8": {
-          "description": "所有属性+7%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.07
           },
-          "special": "killHeal"
+          "special": "flameExplosion",
+          "flameExplosionChance": 0.22,
+          "flameExplosionMult": 0.42,
+          "description": "所有属性+7%，**渊隙迸痕**获得强化，攻击附带爆裂（满档强化）：约22%触发、爆裂伤害约42%攻击力"
         }
       }
     },
@@ -103,32 +113,40 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+8，防御力+4",
+          "description": "攻击力+8，生命值+27，暴击率+3%，暴击伤害+15%",
           "stats": {
             "attack": 8,
-            "defense": 4
+            "critDamage": 15,
+            "critRate": 3,
+            "health": 27
           }
         },
         "4": {
-          "description": "暴击率+7%，生命值+55",
-          "stats": {
-            "critRate": 7,
-            "health": 55
-          }
+          "stats": {},
+          "special": "voidEcho",
+          "voidEchoChance": 0.136,
+          "voidEchoDamageFrac": 0.2508,
+          "voidEchoDelayMs": 156,
+          "description": "激活**渊隙奔流**，虚回折返（入门档）：约14%触发、折返约25%伤害、延迟约156ms"
         },
         "6": {
-          "description": "攻击速度+10%，移动速度+5%",
+          "description": "防御力+7，生命值+28，暴击率+4%，闪避率+7%",
           "stats": {
-            "attackSpeed": 10,
-            "moveSpeed": 5
+            "defense": 7,
+            "dodge": 7,
+            "critRate": 4,
+            "health": 28
           }
         },
         "8": {
-          "description": "所有属性+9%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.09
           },
-          "special": "killHeal"
+          "special": "voidEcho",
+          "voidEchoChance": 0.22,
+          "voidEchoDamageFrac": 0.38,
+          "voidEchoDelayMs": 200,
+          "description": "所有属性+9%，**渊隙奔流**获得强化，虚回折返（满档强化）：约22%触发、折返约38%伤害、延迟约200ms"
         }
       }
     },
@@ -147,32 +165,38 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+10，防御力+5",
+          "description": "攻击力+10，生命值+35，暴击率+4%，暴击伤害+18%",
           "stats": {
             "attack": 10,
-            "defense": 5
+            "critDamage": 18,
+            "critRate": 4,
+            "health": 35
           }
         },
         "4": {
-          "description": "暴击率+9%，生命值+70",
-          "stats": {
-            "critRate": 9,
-            "health": 70
-          }
+          "stats": {},
+          "special": "damageToHeal",
+          "damageToHealChance": 0.087,
+          "damageToHealRatio": 0.072,
+          "description": "激活**渊隙噬能**，受击转伤为疗（入门档）：约9%触发、转化与减免约7%量级"
         },
         "6": {
-          "description": "攻击速度+12%，移动速度+6%",
+          "description": "防御力+8，生命值+35，暴击率+5%，闪避率+9%",
           "stats": {
-            "attackSpeed": 12,
-            "moveSpeed": 6
+            "defense": 8,
+            "dodge": 9,
+            "critRate": 5,
+            "health": 35
           }
         },
         "8": {
-          "description": "所有属性+12%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.12
           },
-          "special": "killHeal"
+          "special": "damageToHeal",
+          "damageToHealChance": 0.14,
+          "damageToHealRatio": 0.16,
+          "description": "所有属性+12%，**渊隙噬能**获得强化，受击转伤为疗（满档强化）：约14%触发、转化与减免约16%量级"
         }
       }
     },
@@ -191,32 +215,34 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+12，防御力+6",
+          "description": "攻击力+12，生命值+42，暴击率+5%，暴击伤害+21%",
           "stats": {
             "attack": 12,
-            "defense": 6
+            "critDamage": 21,
+            "critRate": 5,
+            "health": 42
           }
         },
         "4": {
-          "description": "暴击率+11%，生命值+85",
-          "stats": {
-            "critRate": 11,
-            "health": 85
-          }
+          "stats": {},
+          "special": "killBuff",
+          "description": "激活**渊隙终潮**击杀回血并短时提升全属性（入门档）（增幅与持续较低）"
         },
         "6": {
-          "description": "攻击速度+14%，移动速度+7%",
+          "description": "防御力+10，生命值+43，暴击率+6%，闪避率+11%",
           "stats": {
-            "attackSpeed": 14,
-            "moveSpeed": 7
+            "defense": 10,
+            "dodge": 11,
+            "critRate": 6,
+            "health": 43
           }
         },
         "8": {
-          "description": "所有属性+14%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.14
           },
-          "special": "killHeal"
+          "special": "killBuff",
+          "description": "所有属性+14%，**渊隙终潮**获得强化，击杀回血并短时提升全属性（满档强化）（增幅与持续更高）"
         }
       }
     },
@@ -235,32 +261,38 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+5，防御力+2",
+          "description": "攻击力+2，防御力+2，生命值+30，暴击率+1%",
           "stats": {
-            "attack": 5,
-            "defense": 2
+            "defense": 2,
+            "health": 30,
+            "attack": 2,
+            "critRate": 1
           }
         },
         "4": {
-          "description": "暴击率+3%，生命值+37",
-          "stats": {
-            "critRate": 3,
-            "health": 37
-          }
+          "stats": {},
+          "special": "damageToHeal",
+          "damageToHealChance": 0.074,
+          "damageToHealRatio": 0.081,
+          "description": "激活**虚印回流**，受击转伤为疗（入门档）：约7%触发、转化与减免约8%量级"
         },
         "6": {
-          "description": "攻击速度+6%，移动速度+3%",
+          "description": "攻击力+3，暴击率+2%，暴击伤害+9%，移动速度+3%",
           "stats": {
-            "attackSpeed": 6,
-            "moveSpeed": 3
+            "critDamage": 9,
+            "moveSpeed": 3,
+            "attack": 3,
+            "critRate": 2
           }
         },
         "8": {
-          "description": "所有属性+5%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.05
           },
-          "special": "killHeal"
+          "special": "damageToHeal",
+          "damageToHealChance": 0.12,
+          "damageToHealRatio": 0.18,
+          "description": "所有属性+5%，**虚印回流**获得强化，受击转伤为疗（满档强化）：约12%触发、转化与减免约18%量级"
         }
       }
     },
@@ -279,32 +311,36 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+7，防御力+3",
+          "description": "攻击力+3，防御力+3，生命值+42，暴击率+2%",
           "stats": {
-            "attack": 7,
-            "defense": 3
+            "defense": 3,
+            "health": 42,
+            "attack": 3,
+            "critRate": 2
           }
         },
         "4": {
-          "description": "暴击率+5%，生命值+52",
-          "stats": {
-            "critRate": 5,
-            "health": 52
-          }
+          "stats": {},
+          "special": "damageImmunity",
+          "damageImmunityChance": 0.047,
+          "description": "激活**虚印圣拒**，受击圣佑减伤（入门档）：约5%触发大幅减免"
         },
         "6": {
-          "description": "攻击速度+8%，移动速度+4%",
+          "description": "攻击力+4，暴击率+3%，暴击伤害+12%，移动速度+4%",
           "stats": {
-            "attackSpeed": 8,
-            "moveSpeed": 4
+            "critDamage": 12,
+            "moveSpeed": 4,
+            "attack": 4,
+            "critRate": 3
           }
         },
         "8": {
-          "description": "所有属性+7%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.07
           },
-          "special": "killHeal"
+          "special": "damageImmunity",
+          "damageImmunityChance": 0.075,
+          "description": "所有属性+7%，**虚印圣拒**获得强化，受击圣佑减伤（满档强化）：约8%触发大幅减免"
         }
       }
     },
@@ -323,32 +359,40 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+9，防御力+4",
+          "description": "攻击力+4，防御力+4，生命值+54，暴击率+3%",
           "stats": {
-            "attack": 9,
-            "defense": 4
+            "defense": 4,
+            "health": 54,
+            "attack": 4,
+            "critRate": 3
           }
         },
         "4": {
-          "description": "暴击率+7%，生命值+67",
-          "stats": {
-            "critRate": 7,
-            "health": 67
-          }
+          "stats": {},
+          "special": "exposeMark",
+          "exposeMarkChance": 0.149,
+          "exposeMarkDurationMs": 2652,
+          "exposeMarkDamageMult": 1.0952,
+          "description": "激活**虚印凝识**，攻击印蚀（入门档）：约15%触发、持续约2.7秒、受伤系数约×1.1"
         },
         "6": {
-          "description": "攻击速度+10%，移动速度+5%",
+          "description": "攻击力+5，暴击率+4%，暴击伤害+15%，移动速度+5%",
           "stats": {
-            "attackSpeed": 10,
-            "moveSpeed": 5
+            "critDamage": 15,
+            "moveSpeed": 5,
+            "attack": 5,
+            "critRate": 4
           }
         },
         "8": {
-          "description": "所有属性+10%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.1
           },
-          "special": "killHeal"
+          "special": "exposeMark",
+          "exposeMarkChance": 0.24,
+          "exposeMarkDurationMs": 3400,
+          "exposeMarkDamageMult": 1.14,
+          "description": "所有属性+10%，**虚印凝识**获得强化，攻击印蚀（满档强化）：约24%触发、持续约3.4秒、受伤系数约×1.14"
         }
       }
     },
@@ -367,32 +411,38 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+11，防御力+5",
+          "description": "攻击力+5，防御力+5，生命值+66，暴击率+4%",
           "stats": {
-            "attack": 11,
-            "defense": 5
+            "defense": 5,
+            "health": 66,
+            "attack": 5,
+            "critRate": 4
           }
         },
         "4": {
-          "description": "暴击率+9%，生命值+82",
-          "stats": {
-            "critRate": 9,
-            "health": 82
-          }
+          "stats": {},
+          "special": "flameExplosion",
+          "flameExplosionChance": 0.124,
+          "flameExplosionMult": 0.3168,
+          "description": "激活**虚印焚印**，攻击附带爆裂（入门档）：约12%触发、爆裂伤害约32%攻击力"
         },
         "6": {
-          "description": "攻击速度+12%，移动速度+6%",
+          "description": "攻击力+6，暴击率+5%，暴击伤害+18%，移动速度+6%",
           "stats": {
-            "attackSpeed": 12,
-            "moveSpeed": 6
+            "critDamage": 18,
+            "moveSpeed": 6,
+            "attack": 6,
+            "critRate": 5
           }
         },
         "8": {
-          "description": "所有属性+12%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.12
           },
-          "special": "killHeal"
+          "special": "flameExplosion",
+          "flameExplosionChance": 0.2,
+          "flameExplosionMult": 0.48,
+          "description": "所有属性+12%，**虚印焚印**获得强化，攻击附带爆裂（满档强化）：约20%触发、爆裂伤害约48%攻击力"
         }
       }
     },
@@ -411,32 +461,36 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+13，防御力+6",
+          "description": "攻击力+6，防御力+6，生命值+78，暴击率+5%",
           "stats": {
-            "attack": 13,
-            "defense": 6
+            "defense": 6,
+            "health": 78,
+            "attack": 6,
+            "critRate": 5
           }
         },
         "4": {
-          "description": "暴击率+11%，生命值+97",
-          "stats": {
-            "critRate": 11,
-            "health": 97
-          }
+          "stats": {},
+          "special": "killHeal",
+          "killHealPercent": 0.0418,
+          "description": "激活**虚印归寂**击杀回复生命（入门档）：4.2%最大生命"
         },
         "6": {
-          "description": "攻击速度+14%，移动速度+7%",
+          "description": "攻击力+7，暴击率+6%，暴击伤害+21%，移动速度+7%",
           "stats": {
-            "attackSpeed": 14,
-            "moveSpeed": 7
+            "critDamage": 21,
+            "moveSpeed": 7,
+            "attack": 7,
+            "critRate": 6
           }
         },
         "8": {
-          "description": "所有属性+15%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.15
           },
-          "special": "killHeal"
+          "special": "killHeal",
+          "killHealPercent": 0.076,
+          "description": "所有属性+15%，**虚印归寂**获得强化，击杀回复生命（满档强化）：7.6%最大生命"
         }
       }
     },
@@ -455,32 +509,38 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+6，防御力+3",
+          "description": "攻击力+6，生命值+24，暴击率+3%，暴击伤害+4%",
           "stats": {
             "attack": 6,
-            "defense": 3
+            "critRate": 3,
+            "critDamage": 4,
+            "health": 24
           }
         },
         "4": {
-          "description": "暴击率+3%，生命值+49",
-          "stats": {
-            "critRate": 3,
-            "health": 49
-          }
+          "stats": {},
+          "special": "flameExplosion",
+          "flameExplosionChance": 0.136,
+          "flameExplosionMult": 0.297,
+          "description": "激活**腐噬扩散**，攻击附带爆裂（入门档）：约14%触发、爆裂伤害约30%攻击力"
         },
         "6": {
-          "description": "攻击速度+7%，移动速度+3%",
+          "description": "防御力+5，生命值+25，暴击伤害+5%，攻击速度+7%",
           "stats": {
             "attackSpeed": 7,
-            "moveSpeed": 3
+            "defense": 5,
+            "critDamage": 5,
+            "health": 25
           }
         },
         "8": {
-          "description": "所有属性+6%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.06
           },
-          "special": "killHeal"
+          "special": "flameExplosion",
+          "flameExplosionChance": 0.22,
+          "flameExplosionMult": 0.45,
+          "description": "所有属性+6%，**腐噬扩散**获得强化，攻击附带爆裂（满档强化）：约22%触发、爆裂伤害约45%攻击力"
         }
       }
     },
@@ -499,32 +559,40 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+8，防御力+4",
+          "description": "攻击力+8，生命值+32，暴击率+5%，暴击伤害+6%",
           "stats": {
             "attack": 8,
-            "defense": 4
+            "critRate": 5,
+            "critDamage": 6,
+            "health": 32
           }
         },
         "4": {
-          "description": "暴击率+5%，生命值+64",
-          "stats": {
-            "critRate": 5,
-            "health": 64
-          }
+          "stats": {},
+          "special": "plagueDoT",
+          "plagueDoTChance": 0.149,
+          "plagueDpsMult": 0.0858,
+          "plagueDurationMs": 2184,
+          "description": "激活**腐噬溃解**，溃烂持续伤（入门档）：约15%触发、每秒约858%攻、持续约2.2秒"
         },
         "6": {
-          "description": "攻击速度+9%，移动速度+4%",
+          "description": "防御力+7，生命值+32，暴击伤害+6%，攻击速度+9%",
           "stats": {
             "attackSpeed": 9,
-            "moveSpeed": 4
+            "defense": 7,
+            "critDamage": 6,
+            "health": 32
           }
         },
         "8": {
-          "description": "所有属性+8%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.08
           },
-          "special": "killHeal"
+          "special": "plagueDoT",
+          "plagueDoTChance": 0.24,
+          "plagueDpsMult": 0.13,
+          "plagueDurationMs": 2800,
+          "description": "所有属性+8%，**腐噬溃解**获得强化，溃烂持续伤（满档强化）：约24%触发、每秒约1300%攻、持续约2.8秒"
         }
       }
     },
@@ -543,32 +611,44 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+10，防御力+5",
+          "description": "攻击力+10，生命值+39，暴击率+7%，暴击伤害+7%",
           "stats": {
             "attack": 10,
-            "defense": 5
+            "critRate": 7,
+            "critDamage": 7,
+            "health": 39
           }
         },
         "4": {
-          "description": "暴击率+7%，生命值+79",
-          "stats": {
-            "critRate": 7,
-            "health": 79
-          }
+          "stats": {},
+          "special": "deepDoT",
+          "deepDoTChance": 0.161,
+          "deepDoTDpsMult": 0.0924,
+          "deepDoTDurationMs": 2496,
+          "deepDoTLabel": "腐穿",
+          "deepDoTColor": "#99dd77",
+          "description": "激活**腐噬穿络**，腐穿灼流（入门档）：约16%触发、每秒约924%攻、持续约2.5秒"
         },
         "6": {
-          "description": "攻击速度+11%，移动速度+5%",
+          "description": "防御力+8，生命值+40，暴击伤害+8%，攻击速度+11%",
           "stats": {
             "attackSpeed": 11,
-            "moveSpeed": 5
+            "defense": 8,
+            "critDamage": 8,
+            "health": 40
           }
         },
         "8": {
-          "description": "所有属性+11%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.11
           },
-          "special": "killHeal"
+          "special": "deepDoT",
+          "deepDoTChance": 0.26,
+          "deepDoTDpsMult": 0.14,
+          "deepDoTDurationMs": 3200,
+          "deepDoTLabel": "腐穿",
+          "deepDoTColor": "#99dd77",
+          "description": "所有属性+11%，**腐噬穿络**获得强化，腐穿灼流（满档强化）：约26%触发、每秒约1400%攻、持续约3.2秒"
         }
       }
     },
@@ -587,32 +667,38 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+12，防御力+6",
+          "description": "攻击力+12，生命值+47，暴击率+9%，暴击伤害+9%",
           "stats": {
             "attack": 12,
-            "defense": 6
+            "critRate": 9,
+            "critDamage": 9,
+            "health": 47
           }
         },
         "4": {
-          "description": "暴击率+9%，生命值+94",
-          "stats": {
-            "critRate": 9,
-            "health": 94
-          }
+          "stats": {},
+          "special": "freezeChance",
+          "freezeProcChance": 0.155,
+          "freezeDurationMs": 1560,
+          "description": "激活**腐噬霜僵**，攻击冰封（入门档）：约16%触发、冰封约1.6秒"
         },
         "6": {
-          "description": "攻击速度+13%，移动速度+6%",
+          "description": "防御力+10，生命值+47，暴击伤害+9%，攻击速度+13%",
           "stats": {
             "attackSpeed": 13,
-            "moveSpeed": 6
+            "defense": 10,
+            "critDamage": 9,
+            "health": 47
           }
         },
         "8": {
-          "description": "所有属性+13%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.13
           },
-          "special": "killHeal"
+          "special": "freezeChance",
+          "freezeProcChance": 0.25,
+          "freezeDurationMs": 2000,
+          "description": "所有属性+13%，**腐噬霜僵**获得强化，攻击冰封（满档强化）：约25%触发、冰封约2秒"
         }
       }
     },
@@ -631,32 +717,34 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+14，防御力+7",
+          "description": "攻击力+14，生命值+54，暴击率+11%，暴击伤害+10%",
           "stats": {
             "attack": 14,
-            "defense": 7
+            "critRate": 11,
+            "critDamage": 10,
+            "health": 54
           }
         },
         "4": {
-          "description": "暴击率+11%，生命值+109",
-          "stats": {
-            "critRate": 11,
-            "health": 109
-          }
+          "stats": {},
+          "special": "killBuff",
+          "description": "激活**腐噬饱食**击杀回血并短时提升全属性（入门档）（增幅与持续较低）"
         },
         "6": {
-          "description": "攻击速度+15%，移动速度+7%",
+          "description": "防御力+11，生命值+55，暴击伤害+11%，攻击速度+15%",
           "stats": {
             "attackSpeed": 15,
-            "moveSpeed": 7
+            "defense": 11,
+            "critDamage": 11,
+            "health": 55
           }
         },
         "8": {
-          "description": "所有属性+16%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.16
           },
-          "special": "killHeal"
+          "special": "killBuff",
+          "description": "所有属性+16%，**腐噬饱食**获得强化，击杀回血并短时提升全属性（满档强化）（增幅与持续更高）"
         }
       }
     },
@@ -675,32 +763,37 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+7，防御力+4",
+          "description": "防御力+7，生命值+50，闪避率+1%",
           "stats": {
-            "attack": 7,
-            "defense": 4
+            "defense": 7,
+            "health": 50,
+            "dodge": 1
           }
         },
         "4": {
-          "description": "暴击率+3%，生命值+61",
-          "stats": {
-            "critRate": 3,
-            "health": 61
-          }
+          "stats": {},
+          "special": "deepRetaliate",
+          "deepRetaliateChance": 0.099,
+          "deepRetaliateMult": 0.2772,
+          "description": "激活**黑曜棘壳**，受击反噬（入门档）：约10%触发、反伤约28%攻击力"
         },
         "6": {
-          "description": "攻击速度+7%，移动速度+3%",
+          "description": "攻击力+7，防御力+3，暴击伤害+10%，闪避率+2%",
           "stats": {
-            "attackSpeed": 7,
-            "moveSpeed": 3
+            "attack": 7,
+            "critDamage": 10,
+            "dodge": 2,
+            "defense": 3
           }
         },
         "8": {
-          "description": "所有属性+6%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.06
           },
-          "special": "killHeal"
+          "special": "deepRetaliate",
+          "deepRetaliateChance": 0.16,
+          "deepRetaliateMult": 0.42,
+          "description": "所有属性+6%，**黑曜棘壳**获得强化，受击反噬（满档强化）：约16%触发、反伤约42%攻击力"
         }
       }
     },
@@ -719,32 +812,35 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+9，防御力+5",
+          "description": "防御力+9，生命值+62，闪避率+2%",
           "stats": {
-            "attack": 9,
-            "defense": 5
+            "defense": 9,
+            "health": 62,
+            "dodge": 2
           }
         },
         "4": {
-          "description": "暴击率+5%，生命值+76",
-          "stats": {
-            "critRate": 5,
-            "health": 76
-          }
+          "stats": {},
+          "special": "cooldownReduction",
+          "cooldownReductionPercent": 4,
+          "description": "激活**黑曜心经**，武器技能冷却缩短4%（入门档）"
         },
         "6": {
-          "description": "攻击速度+9%，移动速度+4%",
+          "description": "攻击力+9，防御力+4，暴击伤害+13%，闪避率+3%",
           "stats": {
-            "attackSpeed": 9,
-            "moveSpeed": 4
+            "attack": 9,
+            "critDamage": 13,
+            "dodge": 3,
+            "defense": 4
           }
         },
         "8": {
-          "description": "所有属性+9%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.09
           },
-          "special": "killHeal"
+          "special": "cooldownReduction",
+          "cooldownReductionPercent": 8,
+          "description": "所有属性+9%，**黑曜心经**获得强化，武器技能冷却缩短8%（满档强化）"
         }
       }
     },
@@ -763,32 +859,37 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+11，防御力+6",
+          "description": "防御力+10，生命值+74，闪避率+3%",
           "stats": {
-            "attack": 11,
-            "defense": 6
+            "defense": 10,
+            "health": 74,
+            "dodge": 3
           }
         },
         "4": {
-          "description": "暴击率+7%，生命值+91",
-          "stats": {
-            "critRate": 7,
-            "health": 91
-          }
+          "stats": {},
+          "special": "damageToHeal",
+          "damageToHealChance": 0.081,
+          "damageToHealRatio": 0.0765,
+          "description": "激活**黑曜反响**，受击转伤为疗（入门档）：约8%触发、转化与减免约8%量级"
         },
         "6": {
-          "description": "攻击速度+11%，移动速度+5%",
+          "description": "攻击力+11，防御力+5，暴击伤害+16%，闪避率+4%",
           "stats": {
-            "attackSpeed": 11,
-            "moveSpeed": 5
+            "attack": 11,
+            "critDamage": 16,
+            "dodge": 4,
+            "defense": 5
           }
         },
         "8": {
-          "description": "所有属性+11%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.11
           },
-          "special": "killHeal"
+          "special": "damageToHeal",
+          "damageToHealChance": 0.13,
+          "damageToHealRatio": 0.17,
+          "description": "所有属性+11%，**黑曜反响**获得强化，受击转伤为疗（满档强化）：约13%触发、转化与减免约17%量级"
         }
       }
     },
@@ -807,32 +908,37 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+13，防御力+7",
+          "description": "防御力+12，生命值+86，闪避率+4%",
           "stats": {
-            "attack": 13,
-            "defense": 7
+            "defense": 12,
+            "health": 86,
+            "dodge": 4
           }
         },
         "4": {
-          "description": "暴击率+9%，生命值+106",
-          "stats": {
-            "critRate": 9,
-            "health": 106
-          }
+          "stats": {},
+          "special": "flameExplosion",
+          "flameExplosionChance": 0.112,
+          "flameExplosionMult": 0.363,
+          "description": "激活**黑曜碎域**，攻击附带爆裂（入门档）：约11%触发、爆裂伤害约36%攻击力"
         },
         "6": {
-          "description": "攻击速度+13%，移动速度+6%",
+          "description": "攻击力+13，防御力+6，暴击伤害+19%，闪避率+5%",
           "stats": {
-            "attackSpeed": 13,
-            "moveSpeed": 6
+            "attack": 13,
+            "critDamage": 19,
+            "dodge": 5,
+            "defense": 6
           }
         },
         "8": {
-          "description": "所有属性+14%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.14
           },
-          "special": "killHeal"
+          "special": "flameExplosion",
+          "flameExplosionChance": 0.18,
+          "flameExplosionMult": 0.55,
+          "description": "所有属性+14%，**黑曜碎域**获得强化，攻击附带爆裂（满档强化）：约18%触发、爆裂伤害约55%攻击力"
         }
       }
     },
@@ -851,32 +957,37 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+15，防御力+8",
+          "description": "防御力+14，生命值+98，闪避率+5%",
           "stats": {
-            "attack": 15,
-            "defense": 8
+            "defense": 14,
+            "health": 98,
+            "dodge": 5
           }
         },
         "4": {
-          "description": "暴击率+11%，生命值+121",
-          "stats": {
-            "critRate": 11,
-            "health": 121
-          }
+          "stats": {},
+          "special": "killShockwave",
+          "killShockwaveRadius": 64,
+          "killShockwaveDamageFrac": 0.264,
+          "description": "激活**黑曜霜封**击杀殒震（入门档）：半径约64、溅射约26%攻击力"
         },
         "6": {
-          "description": "攻击速度+15%，移动速度+7%",
+          "description": "攻击力+15，防御力+6，暴击伤害+22%，闪避率+6%",
           "stats": {
-            "attackSpeed": 15,
-            "moveSpeed": 7
+            "attack": 15,
+            "critDamage": 22,
+            "dodge": 6,
+            "defense": 6
           }
         },
         "8": {
-          "description": "所有属性+16%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.16
           },
-          "special": "killHeal"
+          "special": "killShockwave",
+          "killShockwaveRadius": 80,
+          "killShockwaveDamageFrac": 0.4,
+          "description": "所有属性+16%，**黑曜霜封**获得强化，击杀殒震（满档强化）：半径约80、溅射约40%攻击力"
         }
       }
     },
@@ -895,32 +1006,33 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+8，防御力+5",
+          "description": "攻击力+8，生命值+36，暴击率+2%，暴击伤害+10%",
           "stats": {
             "attack": 8,
-            "defense": 5
+            "critDamage": 10,
+            "critRate": 2,
+            "health": 36
           }
         },
         "4": {
-          "description": "暴击率+4%，生命值+73",
-          "stats": {
-            "critRate": 4,
-            "health": 73
-          }
+          "stats": {},
+          "special": "killBuff",
+          "description": "激活**终幕变奏**击杀回血并短时提升全属性（入门档）（增幅与持续较低）"
         },
         "6": {
-          "description": "攻击速度+8%，移动速度+4%",
+          "description": "生命值+37，暴击率+4%，攻击速度+8%",
           "stats": {
             "attackSpeed": 8,
-            "moveSpeed": 4
+            "critRate": 4,
+            "health": 37
           }
         },
         "8": {
-          "description": "所有属性+7%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.07
           },
-          "special": "killHeal"
+          "special": "killBuff",
+          "description": "所有属性+7%，**终幕变奏**获得强化，击杀回血并短时提升全属性（满档强化）（增幅与持续更高）"
         }
       }
     },
@@ -939,32 +1051,35 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+10，防御力+6",
+          "description": "攻击力+10，生命值+44，暴击率+3%，暴击伤害+13%",
           "stats": {
             "attack": 10,
-            "defense": 6
+            "critDamage": 13,
+            "critRate": 3,
+            "health": 44
           }
         },
         "4": {
-          "description": "暴击率+6%，生命值+88",
-          "stats": {
-            "critRate": 6,
-            "health": 88
-          }
+          "stats": {},
+          "special": "killHeal",
+          "killHealPercent": 0.0319,
+          "description": "激活**终幕谢幕**击杀回复生命（入门档）：3.2%最大生命"
         },
         "6": {
-          "description": "攻击速度+10%，移动速度+5%",
+          "description": "生命值+44，暴击率+6%，攻击速度+10%",
           "stats": {
             "attackSpeed": 10,
-            "moveSpeed": 5
+            "critRate": 6,
+            "health": 44
           }
         },
         "8": {
-          "description": "所有属性+10%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.1
           },
-          "special": "killHeal"
+          "special": "killHeal",
+          "killHealPercent": 0.058,
+          "description": "所有属性+10%，**终幕谢幕**获得强化，击杀回复生命（满档强化）：5.8%最大生命"
         }
       }
     },
@@ -983,32 +1098,39 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+12，防御力+7",
+          "description": "攻击力+12，生命值+51，暴击率+4%，暴击伤害+16%",
           "stats": {
             "attack": 12,
-            "defense": 7
+            "critDamage": 16,
+            "critRate": 4,
+            "health": 51
           }
         },
         "4": {
-          "description": "暴击率+8%，生命值+103",
-          "stats": {
-            "critRate": 8,
-            "health": 103
-          }
+          "stats": {},
+          "special": "voidEcho",
+          "voidEchoChance": 0.124,
+          "voidEchoDamageFrac": 0.264,
+          "voidEchoDelayMs": 187,
+          "description": "激活**终幕弧光**，虚回折返（入门档）：约12%触发、折返约26%伤害、延迟约187ms"
         },
         "6": {
-          "description": "攻击速度+12%，移动速度+6%",
+          "description": "生命值+52，暴击率+8%，攻击速度+12%",
           "stats": {
             "attackSpeed": 12,
-            "moveSpeed": 6
+            "critRate": 8,
+            "health": 52
           }
         },
         "8": {
-          "description": "所有属性+12%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.12
           },
-          "special": "killHeal"
+          "special": "voidEcho",
+          "voidEchoChance": 0.2,
+          "voidEchoDamageFrac": 0.4,
+          "voidEchoDelayMs": 240,
+          "description": "所有属性+12%，**终幕弧光**获得强化，虚回折返（满档强化）：约20%触发、折返约40%伤害、延迟约240ms"
         }
       }
     },
@@ -1027,32 +1149,37 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+14，防御力+8",
+          "description": "攻击力+14，生命值+59，暴击率+5%，暴击伤害+19%",
           "stats": {
             "attack": 14,
-            "defense": 8
+            "critDamage": 19,
+            "critRate": 5,
+            "health": 59
           }
         },
         "4": {
-          "description": "暴击率+10%，生命值+118",
-          "stats": {
-            "critRate": 10,
-            "health": 118
-          }
+          "stats": {},
+          "special": "flameExplosion",
+          "flameExplosionChance": 0.13,
+          "flameExplosionMult": 0.3432,
+          "description": "激活**终幕余焰**，攻击附带爆裂（入门档）：约13%触发、爆裂伤害约34%攻击力"
         },
         "6": {
-          "description": "攻击速度+14%，移动速度+7%",
+          "description": "生命值+59，暴击率+10%，攻击速度+14%",
           "stats": {
             "attackSpeed": 14,
-            "moveSpeed": 7
+            "critRate": 10,
+            "health": 59
           }
         },
         "8": {
-          "description": "所有属性+15%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.15
           },
-          "special": "killHeal"
+          "special": "flameExplosion",
+          "flameExplosionChance": 0.21,
+          "flameExplosionMult": 0.52,
+          "description": "所有属性+15%，**终幕余焰**获得强化，攻击附带爆裂（满档强化）：约21%触发、爆裂伤害约52%攻击力"
         }
       }
     },
@@ -1071,32 +1198,35 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+16，防御力+9",
+          "description": "攻击力+16，生命值+66，暴击率+6%，暴击伤害+22%",
           "stats": {
             "attack": 16,
-            "defense": 9
+            "critDamage": 22,
+            "critRate": 6,
+            "health": 66
           }
         },
         "4": {
-          "description": "暴击率+12%，生命值+133",
-          "stats": {
-            "critRate": 12,
-            "health": 133
-          }
+          "stats": {},
+          "special": "starRegen",
+          "starRegenPercent": 0.0036,
+          "description": "激活**终幕余晖**，战斗中缓回（入门档）：每秒约36%最大生命"
         },
         "6": {
-          "description": "攻击速度+16%，移动速度+8%",
+          "description": "生命值+67，暴击率+12%，攻击速度+16%",
           "stats": {
             "attackSpeed": 16,
-            "moveSpeed": 8
+            "critRate": 12,
+            "health": 67
           }
         },
         "8": {
-          "description": "所有属性+17%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.17
           },
-          "special": "killHeal"
+          "special": "starRegen",
+          "starRegenPercent": 0.008,
+          "description": "所有属性+17%，**终幕余晖**获得强化，战斗中缓回（满档强化）：每秒约80%最大生命"
         }
       }
     },
@@ -1115,32 +1245,36 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+10，防御力+6",
+          "description": "攻击力+10，防御力+6，生命值+42，暴击伤害+5%",
           "stats": {
             "attack": 10,
-            "defense": 6
+            "defense": 6,
+            "critDamage": 5,
+            "health": 42
           }
         },
         "4": {
-          "description": "暴击率+4%，生命值+85",
-          "stats": {
-            "critRate": 4,
-            "health": 85
-          }
+          "stats": {},
+          "special": "starRegen",
+          "starRegenPercent": 0.0045,
+          "description": "激活**星骸涓流**，战斗中缓回（入门档）：每秒约45%最大生命"
         },
         "6": {
-          "description": "攻击速度+8%，移动速度+4%",
+          "description": "生命值+43，暴击伤害+6%，攻击速度+8%，移动速度+4%",
           "stats": {
             "attackSpeed": 8,
-            "moveSpeed": 4
+            "moveSpeed": 4,
+            "critDamage": 6,
+            "health": 43
           }
         },
         "8": {
-          "description": "所有属性+8%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.08
           },
-          "special": "killHeal"
+          "special": "starRegen",
+          "starRegenPercent": 0.01,
+          "description": "所有属性+8%，**星骸涓流**获得强化，战斗中缓回（满档强化）：每秒约100%最大生命"
         }
       }
     },
@@ -1159,32 +1293,40 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+12，防御力+7",
+          "description": "攻击力+12，防御力+7，生命值+50，暴击伤害+7%",
           "stats": {
             "attack": 12,
-            "defense": 7
+            "defense": 7,
+            "critDamage": 7,
+            "health": 50
           }
         },
         "4": {
-          "description": "暴击率+6%，生命值+100",
-          "stats": {
-            "critRate": 6,
-            "health": 100
-          }
+          "stats": {},
+          "special": "exposeMark",
+          "exposeMarkChance": 0.143,
+          "exposeMarkDurationMs": 2340,
+          "exposeMarkDamageMult": 1.0884,
+          "description": "激活**星骸弧光**，攻击印蚀（入门档）：约14%触发、持续约2.3秒、受伤系数约×1.09"
         },
         "6": {
-          "description": "攻击速度+10%，移动速度+5%",
+          "description": "生命值+50，暴击伤害+7%，攻击速度+10%，移动速度+5%",
           "stats": {
             "attackSpeed": 10,
-            "moveSpeed": 5
+            "moveSpeed": 5,
+            "critDamage": 7,
+            "health": 50
           }
         },
         "8": {
-          "description": "所有属性+11%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.11
           },
-          "special": "killHeal"
+          "special": "exposeMark",
+          "exposeMarkChance": 0.23,
+          "exposeMarkDurationMs": 3000,
+          "exposeMarkDamageMult": 1.13,
+          "description": "所有属性+11%，**星骸弧光**获得强化，攻击印蚀（满档强化）：约23%触发、持续约3秒、受伤系数约×1.13"
         }
       }
     },
@@ -1203,32 +1345,44 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+14，防御力+8",
+          "description": "攻击力+14，防御力+8，生命值+57，暴击伤害+8%",
           "stats": {
             "attack": 14,
-            "defense": 8
+            "defense": 8,
+            "critDamage": 8,
+            "health": 57
           }
         },
         "4": {
-          "description": "暴击率+8%，生命值+115",
-          "stats": {
-            "critRate": 8,
-            "health": 115
-          }
+          "stats": {},
+          "special": "deepDoT",
+          "deepDoTChance": 0.149,
+          "deepDoTDpsMult": 0.0858,
+          "deepDoTDurationMs": 2184,
+          "deepDoTLabel": "星烬",
+          "deepDoTColor": "#ffcc66",
+          "description": "激活**星骸凝辉**，星烬灼流（入门档）：约15%触发、每秒约858%攻、持续约2.2秒"
         },
         "6": {
-          "description": "攻击速度+12%，移动速度+6%",
+          "description": "生命值+58，暴击伤害+9%，攻击速度+12%，移动速度+6%",
           "stats": {
             "attackSpeed": 12,
-            "moveSpeed": 6
+            "moveSpeed": 6,
+            "critDamage": 9,
+            "health": 58
           }
         },
         "8": {
-          "description": "所有属性+13%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.13
           },
-          "special": "killHeal"
+          "special": "deepDoT",
+          "deepDoTChance": 0.24,
+          "deepDoTDpsMult": 0.13,
+          "deepDoTDurationMs": 2800,
+          "deepDoTLabel": "星烬",
+          "deepDoTColor": "#ffcc66",
+          "description": "所有属性+13%，**星骸凝辉**获得强化，星烬灼流（满档强化）：约24%触发、每秒约1300%攻、持续约2.8秒"
         }
       }
     },
@@ -1247,32 +1401,38 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+16，防御力+9",
+          "description": "攻击力+16，防御力+9，生命值+65，暴击伤害+10%",
           "stats": {
             "attack": 16,
-            "defense": 9
+            "defense": 9,
+            "critDamage": 10,
+            "health": 65
           }
         },
         "4": {
-          "description": "暴击率+10%，生命值+130",
-          "stats": {
-            "critRate": 10,
-            "health": 130
-          }
+          "stats": {},
+          "special": "damageToHeal",
+          "damageToHealChance": 0.068,
+          "damageToHealRatio": 0.0855,
+          "description": "激活**星潮归槽**，受击转伤为疗（入门档）：约7%触发、转化与减免约9%量级"
         },
         "6": {
-          "description": "攻击速度+14%，移动速度+7%",
+          "description": "生命值+65，暴击伤害+10%，攻击速度+14%，移动速度+7%",
           "stats": {
             "attackSpeed": 14,
-            "moveSpeed": 7
+            "moveSpeed": 7,
+            "critDamage": 10,
+            "health": 65
           }
         },
         "8": {
-          "description": "所有属性+16%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.16
           },
-          "special": "killHeal"
+          "special": "damageToHeal",
+          "damageToHealChance": 0.11,
+          "damageToHealRatio": 0.19,
+          "description": "所有属性+16%，**星潮归槽**获得强化，受击转伤为疗（满档强化）：约11%触发、转化与减免约19%量级"
         }
       }
     },
@@ -1291,32 +1451,36 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+18，防御力+10",
+          "description": "攻击力+18，防御力+10，生命值+72，暴击伤害+11%",
           "stats": {
             "attack": 18,
-            "defense": 10
+            "defense": 10,
+            "critDamage": 11,
+            "health": 72
           }
         },
         "4": {
-          "description": "暴击率+12%，生命值+145",
-          "stats": {
-            "critRate": 12,
-            "health": 145
-          }
+          "stats": {},
+          "special": "killHeal",
+          "killHealPercent": 0.0451,
+          "description": "激活**星骸归尘**击杀回复生命（入门档）：4.5%最大生命"
         },
         "6": {
-          "description": "攻击速度+16%，移动速度+8%",
+          "description": "生命值+73，暴击伤害+12%，攻击速度+16%，移动速度+8%",
           "stats": {
             "attackSpeed": 16,
-            "moveSpeed": 8
+            "moveSpeed": 8,
+            "critDamage": 12,
+            "health": 73
           }
         },
         "8": {
-          "description": "所有属性+18%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.18
           },
-          "special": "killHeal"
+          "special": "killHeal",
+          "killHealPercent": 0.082,
+          "description": "所有属性+18%，**星骸归尘**获得强化，击杀回复生命（满档强化）：8.2%最大生命"
         }
       }
     },
@@ -1335,32 +1499,43 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+11，防御力+6",
+          "description": "攻击力+11，生命值+48，暴击率+5%，闪避率+2%",
           "stats": {
+            "critRate": 5,
             "attack": 11,
-            "defense": 6
+            "dodge": 2,
+            "health": 48
           }
         },
         "4": {
-          "description": "暴击率+4%，生命值+97",
-          "stats": {
-            "critRate": 4,
-            "health": 97
-          }
+          "stats": {},
+          "special": "deepDoT",
+          "deepDoTChance": 0.136,
+          "deepDoTDpsMult": 0.0792,
+          "deepDoTDurationMs": 2340,
+          "deepDoTLabel": "裂伤",
+          "deepDoTColor": "#aa99ff",
+          "description": "激活**裂点弧爆**，裂伤灼流（入门档）：约14%触发、每秒约792%攻、持续约2.3秒"
         },
         "6": {
-          "description": "攻击速度+9%，移动速度+4%",
+          "description": "防御力+9，生命值+131，闪避率+2%",
           "stats": {
-            "attackSpeed": 9,
-            "moveSpeed": 4
+            "defense": 9,
+            "health": 131,
+            "dodge": 2
           }
         },
         "8": {
-          "description": "所有属性+9%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.09
           },
-          "special": "killHeal"
+          "special": "deepDoT",
+          "deepDoTChance": 0.22,
+          "deepDoTDpsMult": 0.12,
+          "deepDoTDurationMs": 3000,
+          "deepDoTLabel": "裂伤",
+          "deepDoTColor": "#aa99ff",
+          "description": "所有属性+9%，**裂点弧爆**获得强化，裂伤灼流（满档强化）：约22%触发、每秒约1200%攻、持续约3秒"
         }
       }
     },
@@ -1379,32 +1554,43 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+13，防御力+7",
+          "description": "攻击力+13，生命值+56，暴击率+7%，闪避率+3%",
           "stats": {
+            "critRate": 7,
             "attack": 13,
-            "defense": 7
+            "dodge": 3,
+            "health": 56
           }
         },
         "4": {
-          "description": "暴击率+6%，生命值+112",
-          "stats": {
-            "critRate": 6,
-            "health": 112
-          }
+          "stats": {},
+          "special": "voltField",
+          "voltFieldIntervalMs": 515,
+          "voltFieldRadius": 94,
+          "voltFieldDamageFrac": 0.0924,
+          "voltSlowMult": 0.72,
+          "voltSlowDurationMs": 561,
+          "description": "激活**裂点滞域**，裂隙电场（入门档）：约每0.5秒、半径约94、伤害约9%攻"
         },
         "6": {
-          "description": "攻击速度+11%，移动速度+5%",
+          "description": "防御力+10，生命值+151，闪避率+3%",
           "stats": {
-            "attackSpeed": 11,
-            "moveSpeed": 5
+            "defense": 10,
+            "health": 151,
+            "dodge": 3
           }
         },
         "8": {
-          "description": "所有属性+11%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.11
           },
-          "special": "killHeal"
+          "special": "voltField",
+          "voltFieldIntervalMs": 460,
+          "voltFieldRadius": 118,
+          "voltFieldDamageFrac": 0.14,
+          "voltSlowMult": 0.72,
+          "voltSlowDurationMs": 720,
+          "description": "所有属性+11%，**裂点滞域**获得强化，裂隙电场（满档强化）：约每0.5秒、半径约118、伤害约14%攻"
         }
       }
     },
@@ -1423,32 +1609,39 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+15，防御力+8",
+          "description": "攻击力+15，生命值+63，暴击率+9%，闪避率+4%",
           "stats": {
+            "critRate": 9,
             "attack": 15,
-            "defense": 8
+            "dodge": 4,
+            "health": 63
           }
         },
         "4": {
-          "description": "暴击率+8%，生命值+127",
-          "stats": {
-            "critRate": 8,
-            "health": 127
-          }
+          "stats": {},
+          "special": "skyBolt",
+          "skyBoltIntervalMs": 1848,
+          "skyBoltRange": 344,
+          "skyBoltDamageMult": 0.7875,
+          "description": "激活**裂点天殛**，天雷殛击（入门档）：约每1.8秒、射程约344、伤害约7875%攻"
         },
         "6": {
-          "description": "攻击速度+13%，移动速度+6%",
+          "description": "防御力+12，生命值+171，闪避率+4%",
           "stats": {
-            "attackSpeed": 13,
-            "moveSpeed": 6
+            "defense": 12,
+            "health": 171,
+            "dodge": 4
           }
         },
         "8": {
-          "description": "所有属性+14%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.14
           },
-          "special": "killHeal"
+          "special": "skyBolt",
+          "skyBoltIntervalMs": 1650,
+          "skyBoltRange": 430,
+          "skyBoltDamageMult": 1.05,
+          "description": "所有属性+14%，**裂点天殛**获得强化，天雷殛击（满档强化）：约每1.7秒、射程约430、伤害约10500%攻"
         }
       }
     },
@@ -1467,32 +1660,41 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+17，防御力+9",
+          "description": "攻击力+17，生命值+71，暴击率+11%，闪避率+5%",
           "stats": {
+            "critRate": 11,
             "attack": 17,
-            "defense": 9
+            "dodge": 5,
+            "health": 71
           }
         },
         "4": {
-          "description": "暴击率+10%，生命值+142",
-          "stats": {
-            "critRate": 10,
-            "health": 142
-          }
+          "stats": {},
+          "special": "voltStrike",
+          "voltStrikeChance": 0.186,
+          "voltStrikeDamageMult": 0.627,
+          "voltStrikeSlowMs": 950,
+          "voltStrikeSlowMult": 0.66,
+          "description": "激活**裂点殛刃**，殛刃强电（入门档）：约19%触发、伤害约6270%攻、感电约1秒"
         },
         "6": {
-          "description": "攻击速度+15%，移动速度+7%",
+          "description": "防御力+13，生命值+191，闪避率+5%",
           "stats": {
-            "attackSpeed": 15,
-            "moveSpeed": 7
+            "defense": 13,
+            "health": 191,
+            "dodge": 5
           }
         },
         "8": {
-          "description": "所有属性+16%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.16
           },
-          "special": "killHeal"
+          "special": "voltStrike",
+          "voltStrikeChance": 0.3,
+          "voltStrikeDamageMult": 0.95,
+          "voltStrikeSlowMs": 950,
+          "voltStrikeSlowMult": 0.66,
+          "description": "所有属性+16%，**裂点殛刃**获得强化，殛刃强电（满档强化）：约30%触发、伤害约9500%攻、感电约1秒"
         }
       }
     },
@@ -1511,32 +1713,45 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+19，防御力+10",
+          "description": "攻击力+19，生命值+78，暴击率+13%，闪避率+6%",
           "stats": {
+            "critRate": 13,
             "attack": 19,
-            "defense": 10
+            "dodge": 6,
+            "health": 78
           }
         },
         "4": {
-          "description": "暴击率+12%，生命值+157",
-          "stats": {
-            "critRate": 12,
-            "health": 157
-          }
+          "stats": {},
+          "special": "chainLightning",
+          "chainLightningChance": 0.198,
+          "chainLightningDamageMult": 0.66,
+          "chainLightningRange": 104,
+          "chainLightningApplySlow": true,
+          "chainLightningSlowMs": 800,
+          "chainLightningSlowMult": 0.72,
+          "description": "激活**裂点超载**，连锁闪电（入门档）：约20%触发、弹射约6600%攻、范围约104"
         },
         "6": {
-          "description": "攻击速度+17%，移动速度+8%",
+          "description": "防御力+15，生命值+212，闪避率+6%",
           "stats": {
-            "attackSpeed": 17,
-            "moveSpeed": 8
+            "defense": 15,
+            "health": 212,
+            "dodge": 6
           }
         },
         "8": {
-          "description": "所有属性+19%，击杀敌人时恢复5%最大生命值",
           "stats": {
             "allStats": 0.19
           },
-          "special": "killHeal"
+          "special": "chainLightning",
+          "chainLightningChance": 0.32,
+          "chainLightningDamageMult": 1,
+          "chainLightningRange": 130,
+          "chainLightningApplySlow": true,
+          "chainLightningSlowMs": 800,
+          "chainLightningSlowMult": 0.72,
+          "description": "所有属性+19%，**裂点超载**获得强化，连锁闪电（满档强化）：约32%触发、弹射约10000%攻、范围约130"
         }
       }
     },
@@ -1555,32 +1770,36 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+14，防御力+8",
+          "description": "攻击力+12，防御力+7，暴击率+2%，暴击伤害+6%",
           "stats": {
-            "attack": 14,
-            "defense": 8
+            "attack": 12,
+            "defense": 7,
+            "critRate": 2,
+            "critDamage": 6
           }
         },
         "4": {
-          "description": "暴击率+6%，生命值+124",
-          "stats": {
-            "critRate": 6,
-            "health": 124
-          }
+          "stats": {},
+          "special": "killHeal",
+          "killHealPercent": 0.033,
+          "description": "激活**归墟吞噬**击杀回复生命（入门档）：3.3%最大生命"
         },
         "6": {
-          "description": "攻击速度+11%，移动速度+6%",
+          "description": "暴击率+3%，暴击伤害+6%，攻击速度+9%，移动速度+5%",
           "stats": {
-            "attackSpeed": 11,
-            "moveSpeed": 6
+            "attackSpeed": 9,
+            "moveSpeed": 5,
+            "critRate": 3,
+            "critDamage": 6
           }
         },
         "8": {
-          "description": "所有属性+13%，击杀敌人时恢复5%最大生命值",
           "stats": {
-            "allStats": 0.13
+            "allStats": 0.1
           },
-          "special": "killHeal"
+          "special": "killHeal",
+          "killHealPercent": 0.06,
+          "description": "所有属性+10%，**归墟吞噬**获得强化，击杀回复生命（满档强化）：6%最大生命"
         }
       }
     },
@@ -1599,32 +1818,34 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+16，防御力+9",
+          "description": "攻击力+14，防御力+8，暴击率+3%，暴击伤害+7%",
           "stats": {
-            "attack": 16,
-            "defense": 9
+            "attack": 14,
+            "defense": 8,
+            "critRate": 3,
+            "critDamage": 7
           }
         },
         "4": {
-          "description": "暴击率+8%，生命值+142",
-          "stats": {
-            "critRate": 8,
-            "health": 142
-          }
+          "stats": {},
+          "special": "killBuff",
+          "description": "激活**终焉变律**击杀回血并短时提升全属性（入门档）（增幅与持续较低）"
         },
         "6": {
-          "description": "攻击速度+13%，移动速度+7%",
+          "description": "暴击率+4%，暴击伤害+8%，攻击速度+11%，移动速度+6%",
           "stats": {
-            "attackSpeed": 13,
-            "moveSpeed": 7
+            "attackSpeed": 11,
+            "moveSpeed": 6,
+            "critRate": 4,
+            "critDamage": 8
           }
         },
         "8": {
-          "description": "所有属性+15%，击杀敌人时恢复5%最大生命值",
           "stats": {
-            "allStats": 0.15
+            "allStats": 0.12
           },
-          "special": "killHeal"
+          "special": "killBuff",
+          "description": "所有属性+12%，**终焉变律**获得强化，击杀回血并短时提升全属性（满档强化）（增幅与持续更高）"
         }
       }
     },
@@ -1643,32 +1864,38 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+19，防御力+11",
+          "description": "攻击力+16，防御力+9，暴击率+4%，暴击伤害+9%",
           "stats": {
-            "attack": 19,
-            "defense": 11
+            "attack": 16,
+            "defense": 9,
+            "critRate": 4,
+            "critDamage": 9
           }
         },
         "4": {
-          "description": "暴击率+10%，生命值+160",
-          "stats": {
-            "critRate": 10,
-            "health": 160
-          }
+          "stats": {},
+          "special": "killShockwave",
+          "killShockwaveRadius": 70,
+          "killShockwaveDamageFrac": 0.2904,
+          "description": "激活**终焉电弧**击杀殒震（入门档）：半径约70、溅射约29%攻击力"
         },
         "6": {
-          "description": "攻击速度+15%，移动速度+8%",
+          "description": "暴击率+5%，暴击伤害+9%，攻击速度+13%，移动速度+7%",
           "stats": {
-            "attackSpeed": 15,
-            "moveSpeed": 8
+            "attackSpeed": 13,
+            "moveSpeed": 7,
+            "critRate": 5,
+            "critDamage": 9
           }
         },
         "8": {
-          "description": "所有属性+18%，击杀敌人时恢复5%最大生命值",
           "stats": {
-            "allStats": 0.18
+            "allStats": 0.15
           },
-          "special": "killHeal"
+          "special": "killShockwave",
+          "killShockwaveRadius": 88,
+          "killShockwaveDamageFrac": 0.44,
+          "description": "所有属性+15%，**终焉电弧**获得强化，击杀殒震（满档强化）：半径约88、溅射约44%攻击力"
         }
       }
     },
@@ -1687,33 +1914,38 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+22，防御力+12",
+          "description": "攻击力+18，防御力+10，暴击率+5%，暴击伤害+10%",
           "stats": {
-            "attack": 22,
-            "defense": 12
+            "attack": 18,
+            "defense": 10,
+            "critRate": 5,
+            "critDamage": 10
           }
         },
         "4": {
-          "description": "暴击率+12%，生命值+178",
-          "stats": {
-            "critRate": 12,
-            "health": 178
-          }
+          "stats": {},
+          "special": "flameExplosion",
+          "flameExplosionChance": 0.124,
+          "flameExplosionMult": 0.3828,
+          "description": "激活**终焉燎**，攻击附带爆裂（入门档）：约12%触发、爆裂伤害约38%攻击力"
         },
         "6": {
-          "description": "攻击速度+17%，移动速度+9%",
+          "description": "暴击率+6%，暴击伤害+11%，攻击速度+15%，移动速度+8%",
           "stats": {
-            "attackSpeed": 17,
-            "moveSpeed": 9
+            "attackSpeed": 15,
+            "moveSpeed": 8,
+            "critRate": 6,
+            "critDamage": 11
           }
         },
         "8": {
-          "description": "所有属性+20%，击杀敌人时恢复6%最大生命值",
           "stats": {
-            "allStats": 0.2
+            "allStats": 0.17
           },
-          "special": "killHeal",
-          "killHealPercent": 0.06
+          "special": "flameExplosion",
+          "flameExplosionChance": 0.2,
+          "flameExplosionMult": 0.58,
+          "description": "所有属性+17%，**终焉燎**获得强化，攻击附带爆裂（满档强化）：约20%触发、爆裂伤害约58%攻击力"
         }
       }
     },
@@ -1732,33 +1964,37 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+26，防御力+14",
+          "description": "攻击力+20，防御力+11，暴击率+6%，暴击伤害+12%",
           "stats": {
-            "attack": 26,
-            "defense": 14
+            "attack": 20,
+            "defense": 11,
+            "critRate": 6,
+            "critDamage": 12
           }
         },
         "4": {
-          "description": "暴击率+15%，生命值+198",
-          "stats": {
-            "critRate": 15,
-            "health": 198
-          }
+          "stats": {},
+          "description": "激活**终焉双噬**击杀回复生命（入门档）：4%最大生命",
+          "special": "killHeal",
+          "killHealPercent": 0.04
         },
         "6": {
-          "description": "攻击速度+19%，移动速度+10%",
+          "description": "暴击率+7%，暴击伤害+12%，攻击速度+17%，移动速度+9%",
           "stats": {
-            "attackSpeed": 19,
-            "moveSpeed": 10
+            "attackSpeed": 17,
+            "moveSpeed": 9,
+            "critRate": 7,
+            "critDamage": 12
           }
         },
         "8": {
-          "description": "所有属性+24%，击杀敌人时恢复6%最大生命值",
           "stats": {
-            "allStats": 0.24
+            "allStats": 0.2
           },
-          "special": "killHeal",
-          "killHealPercent": 0.06
+          "special": "killHealAndRegen",
+          "killHealPercent": 0.084,
+          "starRegenPercent": 0.005,
+          "description": "所有属性+20%，**终焉双噬**获得强化，双噬续航（满档强化）：击杀8.4%最大生命、战中每秒0.5%最大生命"
         }
       }
     }

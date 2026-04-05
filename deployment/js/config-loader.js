@@ -167,7 +167,15 @@ class ConfigLoader {
 
         // 其他配置
         if (this.configs.MONSTER_TYPES) {
-            window.MONSTER_TYPES = this.configs.MONSTER_TYPES;
+            const mt = this.configs.MONSTER_TYPES;
+            for (const key of Object.keys(mt)) {
+                const m = mt[key];
+                if (m && typeof m === 'object' && m.level != null) {
+                    const lv = Number(m.level);
+                    m.level = !Number.isFinite(lv) || lv <= 1 ? 1 : Math.ceil(lv / 5) * 5;
+                }
+            }
+            window.MONSTER_TYPES = mt;
         }
         if (this.configs.EQUIPMENT_DEFINITIONS) {
             window.EQUIPMENT_DEFINITIONS = this.configs.EQUIPMENT_DEFINITIONS;

@@ -2930,7 +2930,7 @@ class Equipment {
             for (const [pieceCount, effect] of Object.entries(setData.effects)) {
                 const active = activeSet.has(setId + '-' + pieceCount);
                 const color = active ? '#33ff33' : '#888888';
-                html += `<p style="color: ${color}; font-size: 10px;">${pieceCount}件: ${effect.description}</p>`;
+                html += `<p style="color: ${color}; font-size: 10px;">${pieceCount}件: ${typeof stripSetDescriptionMarkdown === 'function' ? stripSetDescriptionMarkdown(effect.description) : effect.description}</p>`;
             }
         });
         

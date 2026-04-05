@@ -94,3 +94,11 @@ function getActiveSetEffects(equipment) {
     return activeEffects;
 }
 
+/**
+ * 套装描述中的 **铭牌** 为 Markdown 强调；游戏内 HTML 需去掉星号
+ */
+function stripSetDescriptionMarkdown(text) {
+    if (typeof text !== 'string') return text;
+    return text.replace(/\*\*([^*]+)\*\*/g, '$1');
+}
+

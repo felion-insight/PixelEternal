@@ -459,9 +459,37 @@
                 <div id="codex-tabs">
                     <button class="codex-tab active" data-tab="monsters">怪物</button>
                     <button class="codex-tab" data-tab="equipments">装备</button>
+                    <button class="codex-tab" data-tab="set_mechanics">套装机制</button>
                     <button class="codex-tab" data-tab="potions">药水</button>
                 </div>
                 <div id="codex-monsters" class="codex-section active">
+                    <div id="monster-filters" style="margin-bottom: 20px; padding: 15px; background: rgba(40, 40, 50, 0.8); border-radius: 5px; border: 2px solid #666;">
+                        <h3 style="color: #fff; margin-top: 0; margin-bottom: 15px; font-size: 16px;">筛选条件</h3>
+                        <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
+                            <div style="display: flex; flex-direction: column; gap: 5px;">
+                                <label style="color: #aaa; font-size: 12px;">等级:</label>
+                                <select id="filter-monster-level" style="padding: 5px 10px; background: rgba(30, 30, 40, 0.9); color: #fff; border: 1px solid #666; border-radius: 3px; cursor: pointer; min-width: 120px;">
+                                    <option value="all">全部</option>
+                                    <option value="1">1级</option>
+                                    <option value="5">5级</option>
+                                    <option value="10">10级</option>
+                                    <option value="15">15级</option>
+                                    <option value="20">20级</option>
+                                    <option value="25">25级</option>
+                                    <option value="30">30级</option>
+                                    <option value="35">35级</option>
+                                    <option value="40">40级</option>
+                                    <option value="45">45级</option>
+                                    <option value="50">50级</option>
+                                    <option value="55">55级</option>
+                                    <option value="60">60级</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; align-items: flex-end;">
+                                <button id="reset-monster-filters" type="button" style="padding: 5px 15px; background: rgba(100, 100, 120, 0.8); color: #fff; border: 1px solid #666; border-radius: 3px; cursor: pointer; font-size: 12px;">重置筛选</button>
+                            </div>
+                        </div>
+                    </div>
                     <div id="monsters-list"></div>
                 </div>
                 <div id="codex-equipments" class="codex-section">
@@ -526,6 +554,7 @@
                                     <option value="star">星辰套装</option>
                                     <option value="dragon">龙族套装</option>
                                     <option value="divine">圣耀套装</option>
+                                    <option value="deep">深阶套装（全部）</option>
                                     <option value="none">无套装</option>
                                 </select>
                             </div>
@@ -535,6 +564,10 @@
                         </div>
                     </div>
                     <div id="equipments-list"></div>
+                </div>
+                <div id="codex-set_mechanics" class="codex-section">
+                    <p style="color: #aaa; font-size: 13px; margin: 0 0 14px 0; line-height: 1.5;">以下为配置中的<strong style="color:#c9a227;">深阶套装</strong>（<code style="color:#8cf;">deep_*</code>）各件数档位说明；战斗中触发对应机制时会播放画布特效（如爆裂、连锁电、电场、天雷、印蚀环等）。</p>
+                    <div id="set-mechanics-list" style="max-height: 62vh; overflow-y: auto;"></div>
                 </div>
                 <div id="codex-potions" class="codex-section">
                     <div id="potions-list"></div>
@@ -892,6 +925,7 @@
     <script src="js/hezhu-api.js"></script>
     <script src="js/fusion-icon-api.js"></script>
     <script src="js/game-entities.js"></script>
+    <script src="js/monster-codex-mechanics.js"></script>
     <!-- 游戏模块 -->
     <script src="js/game-utils.js"></script>
     <script src="js/game-assets.js"></script>

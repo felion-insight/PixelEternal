@@ -783,6 +783,8 @@ class Game {
                         this.updateCodexMonsters();
                     } else if (targetTab === 'equipments') {
                         this.updateCodexEquipments();
+                    } else if (targetTab === 'set_mechanics') {
+                        this.updateCodexSetMechanics();
                     } else if (targetTab === 'potions') {
                         this.updateCodexPotions();
                     }
@@ -827,6 +829,27 @@ class Game {
                 filterQuality.value = 'all';
                 filterSet.value = 'all';
                 this.updateCodexEquipments();
+            });
+        }
+        
+        const filterMonsterLevel = document.getElementById('filter-monster-level');
+        const resetMonsterFilters = document.getElementById('reset-monster-filters');
+        let codexMonsterUpdateTimeout = null;
+        const debouncedUpdateCodexMonsters = () => {
+            if (codexMonsterUpdateTimeout) {
+                clearTimeout(codexMonsterUpdateTimeout);
+            }
+            codexMonsterUpdateTimeout = setTimeout(() => {
+                this.updateCodexMonsters();
+            }, 150);
+        };
+        if (filterMonsterLevel) {
+            filterMonsterLevel.addEventListener('change', debouncedUpdateCodexMonsters);
+        }
+        if (resetMonsterFilters) {
+            resetMonsterFilters.addEventListener('click', () => {
+                if (filterMonsterLevel) filterMonsterLevel.value = 'all';
+                this.updateCodexMonsters();
             });
         }
         
@@ -1309,7 +1332,32 @@ class Game {
         const container = document.getElementById('monsters-list');
         container.innerHTML = '';
         
-        Object.keys(MONSTER_TYPES).forEach(monsterType => {
+        const filterLevel = document.getElementById('filter-monster-level')?.value || 'all';
+        let monsterTypes = Object.keys(MONSTER_TYPES);
+        if (filterLevel !== 'all') {
+            const lv = parseInt(filterLevel, 10);
+            monsterTypes = monsterTypes.filter(t => (MONSTER_TYPES[t].level || 1) === lv);
+        }
+        monsterTypes.sort((a, b) => {
+            const la = MONSTER_TYPES[a].level || 1;
+            const lb = MONSTER_TYPES[b].level || 1;
+            if (la !== lb) return la - lb;
+            const na = MONSTER_TYPES[a].name || a;
+            const nb = MONSTER_TYPES[b].name || b;
+            return String(na).localeCompare(String(nb), 'zh');
+        });
+        
+        if (monsterTypes.length === 0) {
+            const noResult = document.createElement('div');
+            noResult.style.textAlign = 'center';
+            noResult.style.padding = '40px';
+            noResult.style.color = '#aaa';
+            noResult.innerHTML = '<p>没有找到符合条件的怪物</p><p style="font-size: 12px; margin-top: 10px;">请尝试调整筛选条件</p>';
+            container.appendChild(noResult);
+            return;
+        }
+        
+        monsterTypes.forEach(monsterType => {
             const monster = MONSTER_TYPES[monsterType];
             const entry = document.createElement('div');
             entry.className = 'monster-entry';
@@ -1412,6 +1460,9 @@ class Game {
             if (monster.description) {
                 statsHTML += `<p style="color: #aaa; font-style: italic; margin-bottom: 10px;">${monster.description}</p>`;
             }
+            if (typeof buildMonsterCodexMechanicsHtml === 'function') {
+                statsHTML += buildMonsterCodexMechanicsHtml(monsterType);
+            }
             
             statsHTML += `<p><strong>等级:</strong> ${monster.level}</p>`;
             statsHTML += `<p><strong>生命值:</strong> ${monster.hp}</p>`;
@@ -1485,6 +1536,11 @@ class Game {
                     // 筛选无套装的装备
                     const setId = getSetForEquipment(eq.name);
                     if (setId !== null) {
+                        return false;
+                    }
+                } else if (filterSet === 'deep') {
+                    const setId = getSetForEquipment(eq.name);
+                    if (!setId || !String(setId).startsWith('deep_')) {
                         return false;
                     }
                 } else {
@@ -1648,7 +1704,7 @@ class Game {
                     for (const [pieceCount, effect] of Object.entries(setData.effects)) {
                         const active = cachedActiveSet.has(setId + '-' + pieceCount);
                         const color = active ? '#33ff33' : '#888888';
-                        statsHTML += `<p style="color: ${color}; font-size: 10px;">${pieceCount}件: ${effect.description}</p>`;
+                        statsHTML += `<p style="color: ${color}; font-size: 10px;">${pieceCount}件: ${typeof stripSetDescriptionMarkdown === 'function' ? stripSetDescriptionMarkdown(effect.description) : effect.description}</p>`;
                     }
                 }
                 
@@ -1715,6 +1771,55 @@ class Game {
                 }
             }
         });
+    }
+
+    /** 图鉴「套装机制」：列出所有深阶套装（deep_*）各档位描述与 special 标记 */
+    updateCodexSetMechanics() {
+        const container = document.getElementById('set-mechanics-list');
+        if (!container) return;
+        if (typeof SET_DEFINITIONS === 'undefined') {
+            container.innerHTML = '<p style="color:#888;text-align:center;padding:24px;">套装数据未加载</p>';
+            return;
+        }
+        const ids = Object.keys(SET_DEFINITIONS).filter(id => String(id).startsWith('deep_')).sort();
+        if (ids.length === 0) {
+            container.innerHTML = '<p style="color:#888;text-align:center;padding:24px;">暂无深阶套装条目</p>';
+            return;
+        }
+        const frag = document.createDocumentFragment();
+        const tiers = ['2', '4', '6', '8'];
+        ids.forEach(setId => {
+            const def = SET_DEFINITIONS[setId];
+            if (!def) return;
+            const entry = document.createElement('div');
+            entry.style.cssText = 'background:rgba(50,50,60,0.85);border:1px solid #666;border-radius:6px;padding:14px;margin-bottom:12px;';
+            const title = document.createElement('h3');
+            title.style.cssText = 'margin:0 0 8px 0;color:#e0c080;font-size:17px;';
+            title.textContent = def.name || setId;
+            entry.appendChild(title);
+            const sub = document.createElement('p');
+            sub.style.cssText = 'color:#888;font-size:11px;margin:0 0 10px 0;';
+            sub.textContent = '套装 ID: ' + setId;
+            entry.appendChild(sub);
+            tiers.forEach(t => {
+                const eff = def.effects && def.effects[t];
+                if (!eff) return;
+                const p = document.createElement('p');
+                p.style.cssText = 'margin:6px 0;color:#ccc;font-size:12px;line-height:1.45;';
+                const strip = typeof stripSetDescriptionMarkdown === 'function'
+                    ? stripSetDescriptionMarkdown(eff.description || '')
+                    : (eff.description || '');
+                const spec = eff.special
+                    ? ' [' + eff.special + ']'
+                    : '';
+                p.innerHTML = '<strong style="color:#9ad;">' + t + ' 件</strong><span style="color:#9cf;">' + spec + '</span>'
+                    + (strip ? ' — ' + strip : '');
+                entry.appendChild(p);
+            });
+            frag.appendChild(entry);
+        });
+        container.innerHTML = '';
+        container.appendChild(frag);
     }
 
     updateCodexPotions() {
@@ -2254,7 +2359,7 @@ class Game {
                 const isActive = activeSet.has(pieceCount);
                 const color = isActive ? '#33ff33' : '#888888';
                 const activeText = isActive ? ' (已激活)' : '';
-                html += `<p style="color: ${color}; font-size: 10px;">${pieceCount}件: ${effect.description}${activeText}</p>`;
+                html += `<p style="color: ${color}; font-size: 10px;">${pieceCount}件: ${typeof stripSetDescriptionMarkdown === 'function' ? stripSetDescriptionMarkdown(effect.description) : effect.description}${activeText}</p>`;
             }
         }
 
@@ -3488,17 +3593,31 @@ class Game {
                 if (!setData) continue;
                 
                 const effect = setData.effects[setEffect.pieceCount];
-                if (effect && effect.special === 'starRegen' && setEffect.pieceCount === 8) {
+                if (
+                    effect &&
+                    (effect.special === 'starRegen' || effect.special === 'killHealAndRegen') &&
+                    (setEffect.pieceCount === 8 || setEffect.pieceCount === 4)
+                ) {
                     const now = Date.now();
                     if (!this.player.lastStarUltimateHeal) this.player.lastStarUltimateHeal = 0;
                     if (now - this.player.lastStarUltimateHeal >= 1000) {
-                        const healAmount = Math.floor(this.player.maxHp * 0.01);
+                        let pct = 0.01;
+                        if (typeof effect.starRegenPercent === 'number' && effect.starRegenPercent > 0) {
+                            pct = effect.starRegenPercent;
+                        } else if (effect.special === 'killHealAndRegen') {
+                            pct = 0.005;
+                        }
+                        const healAmount = Math.floor(this.player.maxHp * pct);
                         this.player.hp = Math.min(this.player.hp + healAmount, this.player.maxHp);
                         this.player.lastStarUltimateHeal = now;
                     }
                     break; // 只处理一次
                 }
                 }
+            }
+
+            if (this.player.setSpecialEffects && typeof this.player.tickDeepSetPeriodicEffects === 'function') {
+                this.player.tickDeepSetPeriodicEffects(this);
             }
             
             // 处理游侠词条：脱离战斗后恢复生命值
@@ -8734,6 +8853,154 @@ class Game {
                     ctx.strokeStyle = 'rgba(255, 60, 0, ' + alpha + ')';
                     ctx.lineWidth = 2;
                     ctx.stroke();
+                    break;
+
+                case 'deep_volt_spike': // 深阶殛刃：放射状电刺
+                    {
+                        const spikes = 7;
+                        const baseR = effect.radius || 52;
+                        const len = baseR * (0.38 + progress * 0.62) * (1 - progress * 0.35);
+                        ctx.strokeStyle = 'rgba(120, 240, 255, ' + alpha + ')';
+                        ctx.lineWidth = 2;
+                        for (let si = 0; si < spikes; si++) {
+                            const ang = (si / spikes) * Math.PI * 2 + elapsed * 0.003;
+                            ctx.beginPath();
+                            ctx.moveTo(effect.x, effect.y);
+                            ctx.lineTo(effect.x + Math.cos(ang) * len, effect.y + Math.sin(ang) * len);
+                            ctx.stroke();
+                        }
+                        ctx.fillStyle = 'rgba(255, 255, 255, ' + Math.max(0.2, alpha * 0.55) + ')';
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, 6 + progress * 5, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+
+                case 'deep_plague_burst': // 深阶溃解：毒绿溃散环
+                    {
+                        const pr = (effect.radius || 44) * (0.42 + progress * 0.78);
+                        ctx.fillStyle = 'rgba(80, 200, 60, ' + Math.max(0.12, alpha * 0.38) + ')';
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, pr, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = 'rgba(180, 255, 100, ' + alpha + ')';
+                        ctx.lineWidth = 3;
+                        ctx.setLineDash([4, 6]);
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, pr, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+                    break;
+
+                case 'deep_tint_burst': // 深阶 DoT：可配置色调的脉冲环
+                    {
+                        const col = typeof effect.color === 'string' && effect.color.length >= 4 ? effect.color : '#ff8866';
+                        const tr = (effect.radius || 40) * (0.32 + progress * 1.02);
+                        ctx.strokeStyle = col;
+                        ctx.globalAlpha = Math.max(0.35, alpha * 0.92);
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, tr, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.fillStyle = col;
+                        ctx.globalAlpha = Math.max(0.12, alpha * 0.22);
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, tr * 0.48, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+
+                case 'deep_expose_ring': // 深阶印蚀：虚线紫环（可跟随目标）
+                    {
+                        const er = (effect.radius || 40) * (0.48 + progress * 0.62);
+                        ctx.strokeStyle = 'rgba(221, 170, 255, ' + Math.max(0.45, alpha) + ')';
+                        ctx.lineWidth = 3;
+                        ctx.setLineDash([6, 5]);
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, er, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+                    break;
+
+                case 'deep_void_ping': // 深阶虚回：短促紫环扩散
+                    {
+                        const t = progress < 0.32 ? progress / 0.32 : 1 - (progress - 0.32) / 0.68;
+                        const vr = (effect.radius || 46) * Math.max(0.12, t);
+                        ctx.strokeStyle = 'rgba(170, 136, 255, ' + Math.max(0.35, alpha) + ')';
+                        ctx.lineWidth = 4;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, Math.max(10, vr), 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    break;
+
+                case 'deep_shockwave_ring': // 深阶殒震：橙白冲击环
+                    {
+                        const sr = (effect.radius || 76) * (0.12 + progress * 0.96);
+                        ctx.strokeStyle = 'rgba(255, 200, 120, ' + Math.max(0.4, alpha * 0.95) + ')';
+                        ctx.lineWidth = 5;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, sr, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.strokeStyle = 'rgba(255, 255, 255, ' + Math.max(0.2, alpha * 0.55) + ')';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, sr * 0.9, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    break;
+
+                case 'deep_retaliate_burst': // 深阶反噬：敌身爆闪
+                    {
+                        const br = (effect.radius || 36) * (1 - progress * 0.78);
+                        ctx.fillStyle = 'rgba(255, 100, 60, ' + Math.max(0.15, alpha * 0.55) + ')';
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, br, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = 'rgba(255, 180, 100, ' + alpha + ')';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                    }
+                    break;
+
+                case 'deep_volt_ring': // 深阶电场：青色脉动环
+                    {
+                        const vr2 = (effect.radius || 110) * (0.22 + progress * 0.88);
+                        ctx.strokeStyle = 'rgba(100, 220, 255, ' + Math.max(0.4, alpha) + ')';
+                        ctx.lineWidth = 4;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, vr2, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.strokeStyle = 'rgba(220, 255, 255, ' + Math.max(0.25, alpha * 0.75) + ')';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, vr2 * (0.92 + 0.04 * Math.sin(elapsed * 0.025)), 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    break;
+
+                case 'deep_sky_bolt': // 深阶天雷：竖向落雷 + 亮核
+                    {
+                        const br2 = (effect.radius || 72) * (0.22 + progress * 0.95);
+                        ctx.strokeStyle = 'rgba(0, 255, 255, ' + alpha + ')';
+                        ctx.lineWidth = 4;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, br2, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.fillStyle = 'rgba(255, 255, 255, ' + Math.max(0.35, alpha * 0.92) + ')';
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, br2 * 0.22, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = 'rgba(200, 255, 255, ' + Math.max(0.2, alpha * 0.65) + ')';
+                        ctx.lineWidth = 2;
+                        const topY = effect.y - Math.min(220, (effect.radius || 72) * 2.2);
+                        ctx.beginPath();
+                        ctx.moveTo(effect.x, topY);
+                        ctx.lineTo(effect.x, effect.y);
+                        ctx.stroke();
+                    }
                     break;
                     
                 case 'combo_slash': // 连击/额外攻击词条 - 白色斩光

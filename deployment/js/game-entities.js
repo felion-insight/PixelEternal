@@ -3421,6 +3421,29 @@ function isCombatTargetAliveForEquipmentProc(m) {
     return m.hp > 0;
 }
 
+/** 深阶套装 JSON 中的可选数值字段 */
+function deepSetEffectNum(effect, key, defaultVal) {
+    const v = effect && effect[key];
+    return typeof v === 'number' && Number.isFinite(v) ? v : defaultVal;
+}
+
+/** 套装机制触发时的屏幕特效（与 game-main.addEquipmentEffect / drawEquipmentEffects 对应） */
+function queueSetProcFx(gameInstance, type, x, y, opts) {
+    if (!gameInstance || typeof gameInstance.addEquipmentEffect !== 'function') return;
+    if (typeof x !== 'number' || typeof y !== 'number' || !Number.isFinite(x) || !Number.isFinite(y)) return;
+    gameInstance.addEquipmentEffect(type, x, y, opts || {});
+}
+
+/** 深阶「印蚀」：目标在持续时间内承受更高玩家伤害 */
+function applyDeepExposeDamageBonus(monster, damage) {
+    if (!monster || typeof damage !== 'number' || damage <= 0) return damage;
+    const now = Date.now();
+    if (monster.deepExposeUntil && now < monster.deepExposeUntil && monster.deepExposeMult > 1) {
+        return Math.floor(damage * monster.deepExposeMult);
+    }
+    return damage;
+}
+
 /** 武器技能：落点半径内的可命中目标 */
 function collectMonstersInGroundSkillRadius(monsters, cx, cy, radius) {
     const r2 = radius * radius;
@@ -3759,7 +3782,8 @@ class Player {
         // 应用套装效果
         this.activeSetEffects = getActiveSetEffects(this.equipment);
         let setStatsMultiplier = 1; // 套装属性百分比加成
-        
+        this.setSpecialEffects = {};
+
         this.activeSetEffects.forEach(setEffect => {
             const effect = setEffect.effect;
             
@@ -5585,6 +5609,7 @@ class Player {
                 const setEffectResult = this.applySetAttackEffects(damage, nearest);
                 damage = setEffectResult.damage || damage;
                 if (setEffectResult.damageType && setEffectResult.damageType !== 'physical') damageType = setEffectResult.damageType;
+                damage = applyDeepExposeDamageBonus(nearest, damage);
                 const killed = nearest.takeDamage(damage);
                 if (this._ebOnHitHeal > 0 && damage > 0) {
                     this.heal(this._ebOnHitHeal, { playSound: false });
@@ -5656,6 +5681,7 @@ class Player {
                     return; // 不再处理伤害
                 }
                 
+                damage = applyDeepExposeDamageBonus(monster, damage);
                 const killed = monster.takeDamage(damage);
                 if (!isDummy && damage > 0) this.applyLifeStealFromHit(Math.floor(damage));
                 if (!isDummy && this._ebOnHitHeal > 0 && damage > 0) {
@@ -5785,7 +5811,7 @@ class Player {
             }
             
             // 应用套装防御效果
-            amount = this.applySetDefenseEffects(amount);
+            amount = this.applySetDefenseEffects(amount, attacker);
             
             // 如果套装效果将伤害降为0（免疫），直接返回
             if (amount <= 0) {
@@ -5885,9 +5911,9 @@ class Player {
             const effect = setData.effects[setEffect.pieceCount];
             if (!effect || !effect.special) continue;
             
-            // 火焰爆炸效果（烈焰套装4件）
-            if (effect.special === 'flameExplosion' && Math.random() < 0.2) {
-                const explosionDamage = this.baseAttack * 0.5;
+            // 火焰爆炸效果（烈焰套装4件 / 深阶可调参数）
+            if (effect.special === 'flameExplosion' && Math.random() < deepSetEffectNum(effect, 'flameExplosionChance', 0.2)) {
+                const explosionDamage = this.baseAttack * deepSetEffectNum(effect, 'flameExplosionMult', 0.5);
                 if (isStoolDummy) {
                     // 对于训练假人，将额外伤害合并到主伤害中
                     damage += explosionDamage;
@@ -5905,24 +5931,36 @@ class Player {
                         18,
                         true
                     );
+                    queueSetProcFx(this.gameInstance, 'small_fire_breath', monster.x, monster.y, { radius: 54, duration: 420 });
                 }
             }
             
-            // 连锁闪电效果（雷霆套装4件）
-            if (effect.special === 'chainLightning' && Math.random() < 0.25) {
-                // 播放感电音效
+            // 连锁闪电效果（雷霆套装4件 / 深阶可调）
+            if (effect.special === 'chainLightning' && Math.random() < deepSetEffectNum(effect, 'chainLightningChance', 0.25)) {
                 if (this.gameInstance && this.gameInstance.soundManager) {
                     this.gameInstance.soundManager.playSound('shock');
                 }
-                const lightningDamage = this.baseAttack * 0.8;
+                const lightningDamage = this.baseAttack * deepSetEffectNum(effect, 'chainLightningDamageMult', 0.8);
+                const chainRange = deepSetEffectNum(effect, 'chainLightningRange', 100);
+                const applySlow = !!effect.chainLightningApplySlow;
                 if (this.gameInstance) {
+                    queueSetProcFx(this.gameInstance, 'lightning_chain', monster.x, monster.y, {
+                        radius: Math.min(92, chainRange * 0.92),
+                        duration: 480
+                    });
                     const chainTargets = this.gameInstance.getCurrentSceneTargets();
                     chainTargets.forEach(m => {
                         if (m !== monster && isCombatTargetAliveForEquipmentProc(m)) {
                             const dx = m.x - monster.x;
                             const dy = m.y - monster.y;
-                            if (Math.sqrt(dx * dx + dy * dy) <= 100) {
+                            if (Math.sqrt(dx * dx + dy * dy) <= chainRange) {
                                 this.damageMonsterFromEnvironment(m, lightningDamage);
+                                if (applySlow && m.addStatusEffect) {
+                                    m.addStatusEffect('slowed', {
+                                        duration: deepSetEffectNum(effect, 'chainLightningSlowMs', 750),
+                                        multiplier: deepSetEffectNum(effect, 'chainLightningSlowMult', 0.74)
+                                    });
+                                }
                                 if (this.gameInstance) {
                                     this.gameInstance.addFloatingText(m.x, m.y, `连锁闪电! ${Math.floor(lightningDamage)}`, '#00ffff', 2000, 18, true);
                                 }
@@ -5931,15 +5969,100 @@ class Player {
                     });
                 }
             }
+
+            // 裂点·殛刃：单体强电击 + 感电减速
+            if (effect.special === 'voltStrike' && Math.random() < deepSetEffectNum(effect, 'voltStrikeChance', 0.28)) {
+                if (this.gameInstance && this.gameInstance.soundManager) {
+                    this.gameInstance.soundManager.playSound('shock');
+                }
+                const vd = Math.max(1, Math.floor(this.baseAttack * deepSetEffectNum(effect, 'voltStrikeDamageMult', 0.92)));
+                if (isStoolDummy) {
+                    damage += vd;
+                    damageType = 'physical';
+                } else {
+                    this.damageMonsterFromEnvironment(monster, vd);
+                }
+                if (monster.addStatusEffect) {
+                    monster.addStatusEffect('slowed', {
+                        duration: deepSetEffectNum(effect, 'voltStrikeSlowMs', 900),
+                        multiplier: deepSetEffectNum(effect, 'voltStrikeSlowMult', 0.68)
+                    });
+                }
+                if (this.gameInstance) {
+                    this.gameInstance.addFloatingText(monster.x, monster.y, `殛刃 ${vd}`, '#66eeff', 1600, 17, true);
+                    queueSetProcFx(this.gameInstance, 'deep_volt_spike', monster.x, monster.y, { radius: 52, duration: 400 });
+                }
+            }
+
+            // 腐噬·溃解：溃烂持续伤害（沿用 burning 结算）
+            if (effect.special === 'plagueDoT' && Math.random() < deepSetEffectNum(effect, 'plagueDoTChance', 0.24)) {
+                if (monster.addStatusEffect) {
+                    const dps = this.baseAttack * deepSetEffectNum(effect, 'plagueDpsMult', 0.13);
+                    const dur = deepSetEffectNum(effect, 'plagueDurationMs', 2800);
+                    monster.addStatusEffect('burning', { damage: dps, duration: dur });
+                }
+                if (this.gameInstance) {
+                    this.gameInstance.addFloatingText(monster.x, monster.y, '溃解!', '#88ff66', 1400, 16, true);
+                    queueSetProcFx(this.gameInstance, 'deep_plague_burst', monster.x, monster.y, { radius: 46, duration: 380 });
+                }
+            }
+
+            // 深阶通用 DoT：流血 / 影噬 / 烬噬等（burning 结算，文案与数值由配置区分）
+            if (effect.special === 'deepDoT' && monster.addStatusEffect && Math.random() < deepSetEffectNum(effect, 'deepDoTChance', 0.22)) {
+                const dps = this.baseAttack * deepSetEffectNum(effect, 'deepDoTDpsMult', 0.12);
+                const dur = deepSetEffectNum(effect, 'deepDoTDurationMs', 3000);
+                monster.addStatusEffect('burning', { damage: dps, duration: dur });
+                if (this.gameInstance) {
+                    const label = typeof effect.deepDoTLabel === 'string' ? effect.deepDoTLabel : '持续伤';
+                    const color = typeof effect.deepDoTColor === 'string' ? effect.deepDoTColor : '#ff8866';
+                    this.gameInstance.addFloatingText(monster.x, monster.y, label, color, 1400, 16, true);
+                    queueSetProcFx(this.gameInstance, 'deep_tint_burst', monster.x, monster.y, {
+                        radius: 40,
+                        duration: 360,
+                        color
+                    });
+                }
+            }
+
+            // 深阶印蚀：短时提高对该目标造成的伤害
+            if (effect.special === 'exposeMark' && Math.random() < deepSetEffectNum(effect, 'exposeMarkChance', 0.22)) {
+                const nowMs = Date.now();
+                monster.deepExposeUntil = nowMs + deepSetEffectNum(effect, 'exposeMarkDurationMs', 3200);
+                monster.deepExposeMult = deepSetEffectNum(effect, 'exposeMarkDamageMult', 1.12);
+                if (this.gameInstance) {
+                    this.gameInstance.addFloatingText(monster.x, monster.y, '印蚀!', '#ddaaff', 1200, 15, true);
+                    queueSetProcFx(this.gameInstance, 'deep_expose_ring', monster.x, monster.y, {
+                        radius: 42,
+                        duration: 420,
+                        followTarget: monster
+                    });
+                }
+            }
+
+            // 深阶虚回：极短延迟的二次折返伤害
+            if (effect.special === 'voidEcho' && !isStoolDummy && Math.random() < deepSetEffectNum(effect, 'voidEchoChance', 0.18)) {
+                const echoFrac = deepSetEffectNum(effect, 'voidEchoDamageFrac', 0.35);
+                const echoDelay = deepSetEffectNum(effect, 'voidEchoDelayMs', 220);
+                const echoDmg = Math.max(1, Math.floor(damage * echoFrac));
+                const gi = this.gameInstance;
+                const m = monster;
+                const pl = this;
+                setTimeout(() => {
+                    if (!gi || !m || !isCombatTargetAliveForEquipmentProc(m)) return;
+                    pl.damageMonsterFromEnvironment(m, echoDmg);
+                    gi.addFloatingText(m.x, m.y, `虚回 ${echoDmg}`, '#aa88ff', 1100, 15, true);
+                    queueSetProcFx(gi, 'deep_void_ping', m.x, m.y, { radius: 46, duration: 300 });
+                }, echoDelay);
+            }
             
-            // 冰冻效果（霜寒套装4件）
-            if (effect.special === 'freezeChance' && Math.random() < 0.25) {
+            // 冰冻效果（霜寒套装4件 / 深阶可调概率与时长）
+            if (effect.special === 'freezeChance' && Math.random() < deepSetEffectNum(effect, 'freezeProcChance', 0.25)) {
                 // 播放冰冻音效
                 if (this.gameInstance && this.gameInstance.soundManager) {
                     this.gameInstance.soundManager.playSound('freeze');
                 }
                 const now = Date.now();
-                monster.frozenUntil = now + 2000; // 冰冻2秒
+                monster.frozenUntil = now + deepSetEffectNum(effect, 'freezeDurationMs', 2000);
                 if (isStoolDummy) {
                     damageType = 'ice'; // 标记为冰冻伤害
                 }
@@ -5953,6 +6076,7 @@ class Player {
                         18,
                         true
                     );
+                    queueSetProcFx(this.gameInstance, 'freeze_ring', monster.x, monster.y, { radius: 46, duration: 500 });
                 }
             }
         }
@@ -5974,8 +6098,8 @@ class Player {
             const effect = setData.effects[setEffect.pieceCount];
             if (!effect || !effect.special) continue;
             
-            // 击杀恢复生命值（青铜套装8件、星辰套装6件）
-            if (effect.special === 'killHeal' || effect.special === 'killBuff') {
+            // 击杀恢复生命值（青铜套装8件、星辰套装6件、终焉双噬等）
+            if (effect.special === 'killHeal' || effect.special === 'killBuff' || effect.special === 'killHealAndRegen') {
                 const hpPct = (typeof effect.killHealPercent === 'number' && effect.killHealPercent > 0)
                     ? effect.killHealPercent
                     : 0.05;
@@ -5988,6 +6112,7 @@ class Player {
                         `+${healAmount} 生命值`,
                         '#00ff00'
                     );
+                    queueSetProcFx(this.gameInstance, 'heal_aura', this.x, this.y, { radius: 48, duration: 400 });
                 }
             }
             
@@ -6007,6 +6132,30 @@ class Player {
                     expireTime: now + 10000 // 持续10秒
                 });
                 this.updateStats();
+                if (this.gameInstance) {
+                    queueSetProcFx(this.gameInstance, 'speed_aura', this.x, this.y, { radius: 40, duration: 450 });
+                }
+            }
+
+            // 深阶殒震：击杀时在尸体位置造成小范围溅射
+            if (effect.special === 'killShockwave') {
+                const R = deepSetEffectNum(effect, 'killShockwaveRadius', 76);
+                const frac = deepSetEffectNum(effect, 'killShockwaveDamageFrac', 0.38);
+                const dmg = Math.max(1, Math.floor(this.baseAttack * frac));
+                const cx = monster.x;
+                const cy = monster.y;
+                const R2 = R * R;
+                const targets = this.gameInstance.getCurrentSceneTargets();
+                for (let i = 0; i < targets.length; i++) {
+                    const m = targets[i];
+                    if (!isCombatTargetAliveForEquipmentProc(m)) continue;
+                    const dx = m.x - cx;
+                    const dy = m.y - cy;
+                    if (dx * dx + dy * dy > R2) continue;
+                    this.damageMonsterFromEnvironment(m, dmg);
+                }
+                this.gameInstance.addFloatingText(cx, cy, '殒震!', '#ffaa66', 1000, 16, true);
+                queueSetProcFx(this.gameInstance, 'deep_shockwave_ring', cx, cy, { radius: R, duration: 520 });
             }
         }
     }
@@ -6014,9 +6163,10 @@ class Player {
     /**
      * 处理套装受到伤害效果
      * @param {number} damage - 原始伤害
+     * @param {*} attacker - 伤害来源（若有）
      * @returns {number} 修改后的伤害
      */
-    applySetDefenseEffects(damage) {
+    applySetDefenseEffects(damage, attacker = null) {
         try {
             if (!this.setSpecialEffects) return damage;
             
@@ -6027,9 +6177,9 @@ class Player {
             const effect = setData.effects[setEffect.pieceCount];
             if (!effect || !effect.special) continue;
             
-            // 伤害转化为生命值（晶化套装6件，数值与 set-config 描述一致）
-            if (effect.special === 'damageToHeal' && Math.random() < 0.12) {
-                const ratio = 0.18;
+            // 伤害转化为生命值（晶化套装6件 / 深阶可调）
+            if (effect.special === 'damageToHeal' && Math.random() < deepSetEffectNum(effect, 'damageToHealChance', 0.12)) {
+                const ratio = deepSetEffectNum(effect, 'damageToHealRatio', 0.18);
                 const healAmount = Math.floor(damage * ratio);
                 this.hp = Math.min(this.hp + healAmount, this.maxHp);
                 damage = Math.floor(damage * (1 - ratio));
@@ -6040,11 +6190,12 @@ class Player {
                         `伤害转化! +${healAmount}`,
                         '#00ff00'
                     );
+                    queueSetProcFx(this.gameInstance, 'heal_aura', this.x, this.y, { radius: 52, duration: 380 });
                 }
             }
             
-            // 圣耀套装6件：低概率大幅减伤（不再完全免疫）
-            if (effect.special === 'damageImmunity' && Math.random() < 0.08) {
+            // 圣耀套装6件 / 深阶可调：低概率大幅减伤
+            if (effect.special === 'damageImmunity' && Math.random() < deepSetEffectNum(effect, 'damageImmunityChance', 0.08)) {
                 damage = Math.floor(damage * 0.55);
                 if (this.gameInstance) {
                     this.gameInstance.addFloatingText(
@@ -6053,6 +6204,24 @@ class Player {
                         '圣佑减伤',
                         '#ffff88'
                     );
+                    queueSetProcFx(this.gameInstance, 'holy_blast', this.x, this.y, { radius: 56, duration: 340 });
+                }
+            }
+
+            // 深阶反噬：受击时概率对攻击来源造成基于攻击力的反伤
+            if (
+                effect.special === 'deepRetaliate' &&
+                attacker &&
+                typeof attacker.takeDamage === 'function' &&
+                attacker.hp > 0 &&
+                Math.random() < deepSetEffectNum(effect, 'deepRetaliateChance', 0.14)
+            ) {
+                const rm = deepSetEffectNum(effect, 'deepRetaliateMult', 0.38);
+                const rd = Math.max(1, Math.floor(this.baseAttack * rm));
+                attacker.takeDamage(rd);
+                if (this.gameInstance) {
+                    this.gameInstance.addFloatingText(attacker.x, attacker.y, `反噬 ${rd}`, '#cc8866', 1100, 15, true);
+                    queueSetProcFx(this.gameInstance, 'deep_retaliate_burst', attacker.x, attacker.y, { radius: 38, duration: 300 });
                 }
             }
         }
@@ -6061,6 +6230,85 @@ class Player {
         } catch (error) {
             console.error('应用套装防御效果出错:', error);
             return damage; // 出错时返回原始伤害，避免完全免疫
+        }
+    }
+
+    /**
+     * 深阶套装：周期性场地效果（电场、天雷等），由 Game.update 在战斗中调用
+     */
+    tickDeepSetPeriodicEffects(gameInstance) {
+        if (!gameInstance || !this.setSpecialEffects || typeof SET_DEFINITIONS === 'undefined') return;
+        const now = Date.now();
+        if (!this._deepSetPeriodicTs) this._deepSetPeriodicTs = {};
+        const px = this.x;
+        const py = this.y;
+
+        for (const [setId, setEffect] of Object.entries(this.setSpecialEffects)) {
+            const setData = SET_DEFINITIONS[setId];
+            if (!setData) continue;
+            const effect = setData.effects[setEffect.pieceCount];
+            if (!effect || !effect.special) continue;
+            if (effect.special !== 'voltField' && effect.special !== 'skyBolt') continue;
+            const key = setId + '_' + effect.special + '_' + setEffect.pieceCount;
+
+            if (effect.special === 'voltField') {
+                const iv = deepSetEffectNum(effect, 'voltFieldIntervalMs', 480);
+                const last = this._deepSetPeriodicTs[key] || 0;
+                if (now - last < iv) continue;
+                this._deepSetPeriodicTs[key] = now;
+                const R = deepSetEffectNum(effect, 'voltFieldRadius', 110);
+                const frac = deepSetEffectNum(effect, 'voltFieldDamageFrac', 0.13);
+                const slowM = deepSetEffectNum(effect, 'voltSlowMult', 0.72);
+                const slowD = deepSetEffectNum(effect, 'voltSlowDurationMs', 700);
+                const dmg = Math.max(1, Math.floor(this.baseAttack * frac));
+                const targets = gameInstance.getCurrentSceneTargets();
+                let hits = 0;
+                for (let i = 0; i < targets.length; i++) {
+                    const m = targets[i];
+                    if (!isCombatTargetAliveForEquipmentProc(m)) continue;
+                    const dx = m.x - px;
+                    const dy = m.y - py;
+                    if (dx * dx + dy * dy > R * R) continue;
+                    this.damageMonsterFromEnvironment(m, dmg);
+                    if (m.addStatusEffect) {
+                        m.addStatusEffect('slowed', { duration: slowD, multiplier: slowM });
+                    }
+                    hits++;
+                }
+                if (hits > 0) {
+                    gameInstance.addFloatingText(px, py, '裂隙电场', '#88ddff', 900, 15, true);
+                    if (gameInstance.soundManager) gameInstance.soundManager.playSound('shock');
+                    queueSetProcFx(gameInstance, 'deep_volt_ring', px, py, { radius: R, duration: 460 });
+                }
+            }
+
+            if (effect.special === 'skyBolt') {
+                const iv = deepSetEffectNum(effect, 'skyBoltIntervalMs', 1700);
+                const last = this._deepSetPeriodicTs[key] || 0;
+                if (now - last < iv) continue;
+                this._deepSetPeriodicTs[key] = now;
+                const range = deepSetEffectNum(effect, 'skyBoltRange', 400);
+                const mult = deepSetEffectNum(effect, 'skyBoltDamageMult', 1.0);
+                const candidates = gameInstance.getCurrentSceneTargets().filter(m => {
+                    if (!isCombatTargetAliveForEquipmentProc(m)) return false;
+                    const dx = m.x - px;
+                    const dy = m.y - py;
+                    return dx * dx + dy * dy <= range * range;
+                });
+                if (candidates.length === 0) continue;
+                const m = candidates[Math.floor(Math.random() * candidates.length)];
+                const bolt = Math.max(1, Math.floor(this.baseAttack * mult));
+                this.damageMonsterFromEnvironment(m, bolt);
+                if (m.addStatusEffect) {
+                    m.addStatusEffect('slowed', {
+                        duration: deepSetEffectNum(effect, 'skyBoltSlowMs', 900),
+                        multiplier: deepSetEffectNum(effect, 'skyBoltSlowMult', 0.7)
+                    });
+                }
+                gameInstance.addFloatingText(m.x, m.y, `天雷 ${bolt}`, '#00ffff', 1800, 18, true);
+                if (gameInstance.soundManager) gameInstance.soundManager.playSound('shock');
+                queueSetProcFx(gameInstance, 'deep_sky_bolt', m.x, m.y, { radius: 72, duration: 540 });
+            }
         }
     }
 
@@ -8473,6 +8721,7 @@ class Player {
      */
     damageMonsterFromEnvironment(monster, damage) {
         if (!monster || damage <= 0) return;
+        damage = applyDeepExposeDamageBonus(monster, damage);
         const isDummy = monster instanceof TrainingDummy || monster instanceof MonsterTrainingDummy;
         if (isDummy) {
             monster.takeDamage(damage);

@@ -178,7 +178,7 @@ class TooltipManager {
                 const isActive = activeSet.has(pieceCount);
                 const color = isActive ? '#33ff33' : '#888888';
                 const activeText = isActive ? ' (已激活)' : '';
-                html += `<p style="color: ${color}; font-size: 10px;">${pieceCount}件: ${effect.description}${activeText}</p>`;
+                html += `<p style="color: ${color}; font-size: 10px;">${pieceCount}件: ${typeof stripSetDescriptionMarkdown === 'function' ? stripSetDescriptionMarkdown(effect.description) : effect.description}${activeText}</p>`;
             }
         }
 

@@ -52,6 +52,16 @@ class ConfigLoader {
                 }
             }
 
+            // 深塔追加怪物模板（与 demon 等 baseMonster 组合），合并进 MONSTER_TYPES（训练场列表、塔内生成等均依赖）
+            try {
+                const deepMonAdd = await this.loadJSON('config/deep-monsters-add.json');
+                if (deepMonAdd && typeof deepMonAdd === 'object' && this.configs.MONSTER_TYPES && typeof this.configs.MONSTER_TYPES === 'object') {
+                    Object.assign(this.configs.MONSTER_TYPES, deepMonAdd);
+                }
+            } catch (e) {
+                console.warn('deep-monsters-add.json 未加载或合并失败（深阶追加怪将缺失）:', e);
+            }
+
             // 高阶装备（独立命名与机制属性），合并进 EQUIPMENT_DEFINITIONS
             try {
                 const deepData = await this.loadJSON('config/equipment-deep-config.json');

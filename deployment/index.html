@@ -334,11 +334,23 @@
                 </div>
             </div>
         </div>
+        <!-- 精英房通关：三选一加护 -->
+        <div id="elite-boon-choice-modal" class="modal">
+            <div class="modal-content" style="max-width: 720px; max-height: 90vh; overflow-y: auto;">
+                <h2 style="color: #88ccff; margin-bottom: 6px;">精英加护</h2>
+                <p style="color: #aaa; font-size: 13px; margin-bottom: 14px;">击败精英：请选择一种加护，或放弃换取金币。</p>
+                <div id="elite-boon-choice-options" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 14px;"></div>
+                <div style="text-align: center;">
+                    <button type="button" id="elite-boon-skip-btn" style="padding: 10px 20px; background: rgba(80, 80, 90, 0.95); color: #ddd; border: 2px solid #888; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px;">放弃加护</button>
+                </div>
+            </div>
+        </div>
         <!-- 恶魔塔隙间商店（Boss 层前一层） -->
         <div id="gap-shop-modal" class="modal">
             <div class="modal-content" style="max-width: 560px; max-height: 85vh; overflow-y: auto;">
                 <h2 style="color: #ffd700; margin-bottom: 8px;">隙间商店</h2>
-                <p style="color: #aaa; font-size: 13px; margin-bottom: 12px;">即刻生效，购买不限次数。当前金币：<span id="gap-shop-gold">0</span></p>
+                <p style="color: #aaa; font-size: 13px; margin-bottom: 10px;">按 <strong style="color:#fff;">E</strong> 打开本面板。即刻生效，购买不限次数。当前金币：<span id="gap-shop-gold">0</span></p>
+                <h3 style="color: #ccc; font-size: 14px; margin-bottom: 8px;">可购买</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px;">
                     <button type="button" id="gap-buy-heal-half" data-kind="healHalf" style="padding: 10px; background: rgba(40,120,80,0.85); color: #fff; border: 2px solid #8f8; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px;">回复 50% 生命<br/><span id="gap-price-heal-half">0</span> 金</button>
                     <button type="button" id="gap-buy-heal-full" data-kind="healFull" style="padding: 10px; background: rgba(40,100,120,0.85); color: #fff; border: 2px solid #8cf; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px;">回复满生命<br/><span id="gap-price-heal-full">0</span> 金</button>
@@ -358,6 +370,19 @@
         <div id="esc-menu-modal">
             <div class="modal-content" style="max-width: 400px; text-align: center;">
                 <h2 style="color: #4a9eff; margin-bottom: 30px;">菜单</h2>
+                <div id="esc-menu-volume-panel" style="text-align: left; margin-bottom: 20px; padding: 14px 16px; background: rgba(25, 30, 45, 0.92); border: 1px solid rgba(100, 140, 200, 0.45); border-radius: 8px;">
+                    <div style="color: #9ec8ff; font-size: 13px; margin-bottom: 12px; font-weight: bold;">音频</div>
+                    <label for="settings-music-volume" style="display: block; color: #ccc; font-size: 12px; margin-bottom: 6px;">背景音乐音量</label>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+                        <input type="range" id="settings-music-volume" min="0" max="100" value="100" style="flex: 1; min-width: 0; cursor: pointer;" />
+                        <span id="settings-music-volume-value" style="color: #8cf; font-size: 12px; min-width: 38px; text-align: right;">100%</span>
+                    </div>
+                    <label for="settings-sfx-volume" style="display: block; color: #ccc; font-size: 12px; margin-bottom: 6px;">音效音量</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" id="settings-sfx-volume" min="0" max="100" value="100" style="flex: 1; min-width: 0; cursor: pointer;" />
+                        <span id="settings-sfx-volume-value" style="color: #8cf; font-size: 12px; min-width: 38px; text-align: right;">100%</span>
+                    </div>
+                </div>
                 <div style="display: flex; flex-direction: column; gap: 15px;">
                     <button id="esc-menu-guide-btn" style="padding: 12px 30px; background: rgba(200, 150, 100, 0.8); color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">游戏指导</button>
                     <button id="esc-menu-export-btn" style="padding: 12px 30px; background: rgba(100, 150, 200, 0.8); color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">导出存档</button>
@@ -735,6 +760,13 @@
                 <button onclick="game.devAddRandomEquipment('epic')">史诗装备</button>
                 <button onclick="game.devAddRandomEquipment('legendary')">传说装备</button>
                 <button onclick="game.devAddAllCraftedEquipments()" style="background: rgba(255, 170, 0, 0.3); border-color: #ffaa00;">所有打造装备</button>
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; width: 100%;">
+                    <label for="dev-set-grant-select" style="color: #aaa; font-size: 12px;">整套同系列</label>
+                    <select id="dev-set-grant-select" style="flex: 1; min-width: 180px; max-width: 100%; padding: 4px 6px; background: #1a1a1a; color: #fff; border: 1px solid #555; border-radius: 4px;">
+                        <option value="">-- 选择套装系列 --</option>
+                    </select>
+                    <button type="button" onclick="game.devGrantFullEquipmentSet()">发放整套</button>
+                </div>
             </div>
             
             <div class="dev-section">

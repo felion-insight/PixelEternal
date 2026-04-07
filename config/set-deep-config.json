@@ -225,8 +225,14 @@
         },
         "4": {
           "stats": {},
-          "special": "killBuff",
-          "description": "激活**渊隙终潮**击杀回血并短时提升全属性（入门档）（增幅与持续较低）"
+          "special": "chainLightning",
+          "chainLightningChance": 0.2,
+          "chainLightningDamageMult": 0.58,
+          "chainLightningRange": 108,
+          "chainLightningApplySlow": true,
+          "chainLightningSlowMs": 720,
+          "chainLightningSlowMult": 0.74,
+          "description": "激活**渊隙隙潮·隙闪**：攻击概率触发连锁闪电弹射附近敌人（入门档约20%），非火焰，与史诗噬能线区分"
         },
         "6": {
           "description": "防御力+10，生命值+43，暴击率+6%，闪避率+11%",
@@ -239,10 +245,16 @@
         },
         "8": {
           "stats": {
-            "allStats": 0.14
+            "allStats": 0.17
           },
-          "special": "killBuff",
-          "description": "所有属性+14%，**渊隙终潮**获得强化，击杀回血并短时提升全属性（满档强化）（增幅与持续更高）"
+          "special": "chainLightning",
+          "chainLightningChance": 0.3,
+          "chainLightningDamageMult": 0.85,
+          "chainLightningRange": 124,
+          "chainLightningApplySlow": true,
+          "chainLightningSlowMs": 800,
+          "chainLightningSlowMult": 0.72,
+          "description": "所有属性+17%，**渊隙隙潮·隙闪**（满档）：约30%触发、弹射约85%攻击力、范围约124，爆发期望高于同系列史诗"
         }
       }
     },
@@ -461,36 +473,40 @@
       ],
       "effects": {
         "2": {
-          "description": "攻击力+6，防御力+6，生命值+78，暴击率+5%",
+          "description": "攻击力+8，防御力+7，生命值+88，暴击率+6%",
           "stats": {
-            "defense": 6,
-            "health": 78,
-            "attack": 6,
-            "critRate": 5
+            "defense": 7,
+            "health": 88,
+            "attack": 8,
+            "critRate": 6
           }
         },
         "4": {
           "stats": {},
-          "special": "killHeal",
-          "killHealPercent": 0.0418,
-          "description": "激活**虚印归寂**击杀回复生命（入门档）：4.2%最大生命"
+          "special": "exposeMark",
+          "exposeMarkChance": 0.19,
+          "exposeMarkDurationMs": 3000,
+          "exposeMarkDamageMult": 1.13,
+          "description": "激活**虚印归寂·真印**：印蚀易伤（与精良凝识同系），入门档约19%触发、受伤约×1.13，非爆裂"
         },
         "6": {
-          "description": "攻击力+7，暴击率+6%，暴击伤害+21%，移动速度+7%",
+          "description": "攻击力+9，暴击率+7%，暴击伤害+25%，移动速度+8%",
           "stats": {
-            "critDamage": 21,
-            "moveSpeed": 7,
-            "attack": 7,
-            "critRate": 6
+            "critDamage": 25,
+            "moveSpeed": 8,
+            "attack": 9,
+            "critRate": 7
           }
         },
         "8": {
           "stats": {
-            "allStats": 0.15
+            "allStats": 0.19
           },
-          "special": "killHeal",
-          "killHealPercent": 0.076,
-          "description": "所有属性+15%，**虚印归寂**获得强化，击杀回复生命（满档强化）：7.6%最大生命"
+          "special": "exposeMark",
+          "exposeMarkChance": 0.3,
+          "exposeMarkDurationMs": 3900,
+          "exposeMarkDamageMult": 1.2,
+          "description": "所有属性+19%，**虚印归寂·真印**（满档）：约30%触发、受伤约×1.2、持续约3.9秒，全面强于精良凝识与史诗焚印"
         }
       }
     },
@@ -727,8 +743,13 @@
         },
         "4": {
           "stats": {},
-          "special": "killBuff",
-          "description": "激活**腐噬饱食**击杀回血并短时提升全属性（入门档）（增幅与持续较低）"
+          "special": "deepDoT",
+          "deepDoTChance": 0.2,
+          "deepDoTDpsMult": 0.14,
+          "deepDoTDurationMs": 2800,
+          "deepDoTLabel": "溃渊",
+          "deepDoTColor": "#99dd77",
+          "description": "激活**腐噬饱食·溃渊**：深阶持续灼流（非火球爆裂），入门档约20%触发、秒伤与持续见配置"
         },
         "6": {
           "description": "防御力+11，生命值+55，暴击伤害+11%，攻击速度+15%",
@@ -741,10 +762,15 @@
         },
         "8": {
           "stats": {
-            "allStats": 0.16
+            "allStats": 0.19
           },
-          "special": "killBuff",
-          "description": "所有属性+16%，**腐噬饱食**获得强化，击杀回血并短时提升全属性（满档强化）（增幅与持续更高）"
+          "special": "deepDoT",
+          "deepDoTChance": 0.3,
+          "deepDoTDpsMult": 0.18,
+          "deepDoTDurationMs": 3500,
+          "deepDoTLabel": "溃渊",
+          "deepDoTColor": "#99dd77",
+          "description": "所有属性+19%，**腐噬饱食·溃渊**（满档）：约30%触发、持续伤与覆盖率高于同系列精良穿络"
         }
       }
     },
@@ -1017,7 +1043,11 @@
         "4": {
           "stats": {},
           "special": "killBuff",
-          "description": "激活**终幕变奏**击杀回血并短时提升全属性（入门档）（增幅与持续较低）"
+          "killHealPercent": 0.035,
+          "killBuffStatFrac": 0.042,
+          "killBuffDurationMs": 9000,
+          "killBuffMoveSpeedBonus": 4,
+          "description": "激活**终幕变奏**（普通·入门）：击杀约3.5%最大生命；短时全属性约+4.2%"
         },
         "6": {
           "description": "生命值+37，暴击率+4%，攻击速度+8%",
@@ -1032,7 +1062,11 @@
             "allStats": 0.07
           },
           "special": "killBuff",
-          "description": "所有属性+7%，**终幕变奏**获得强化，击杀回血并短时提升全属性（满档强化）（增幅与持续更高）"
+          "killHealPercent": 0.052,
+          "killBuffStatFrac": 0.055,
+          "killBuffDurationMs": 11000,
+          "killBuffMoveSpeedBonus": 5,
+          "description": "所有属性+7%，**终幕变奏**（普通·满档）：击杀约5.2%最大生命；短时全属性约+5.5%"
         }
       }
     },
@@ -1208,9 +1242,11 @@
         },
         "4": {
           "stats": {},
-          "special": "starRegen",
-          "starRegenPercent": 0.0036,
-          "description": "激活**终幕余晖**，战斗中缓回（入门档）：每秒约36%最大生命"
+          "special": "voidEcho",
+          "voidEchoChance": 0.19,
+          "voidEchoDamageFrac": 0.42,
+          "voidEchoDelayMs": 175,
+          "description": "激活**终幕余晖·弧回**：虚回折返（与精良弧光同系），非爆裂；入门档约19%触发、折返约42%伤害"
         },
         "6": {
           "description": "生命值+67，暴击率+12%，攻击速度+16%",
@@ -1222,11 +1258,13 @@
         },
         "8": {
           "stats": {
-            "allStats": 0.17
+            "allStats": 0.2
           },
-          "special": "starRegen",
-          "starRegenPercent": 0.008,
-          "description": "所有属性+17%，**终幕余晖**获得强化，战斗中缓回（满档强化）：每秒约80%最大生命"
+          "special": "voidEcho",
+          "voidEchoChance": 0.31,
+          "voidEchoDamageFrac": 0.6,
+          "voidEchoDelayMs": 235,
+          "description": "所有属性+20%，**终幕余晖·弧回**（满档）：约31%触发、折返约60%伤害，爆发路径与史诗余焰（爆裂）不同，数值更优"
         }
       }
     },
@@ -1461,9 +1499,12 @@
         },
         "4": {
           "stats": {},
-          "special": "killHeal",
-          "killHealPercent": 0.0451,
-          "description": "激活**星骸归尘**击杀回复生命（入门档）：4.5%最大生命"
+          "special": "voltStrike",
+          "voltStrikeChance": 0.21,
+          "voltStrikeDamageMult": 0.72,
+          "voltStrikeSlowMs": 920,
+          "voltStrikeSlowMult": 0.66,
+          "description": "激活**星骸归尘·殛星**：单体强电殛击+感电（非爆裂、非折返），入门档约21%触发、约72%攻击力"
         },
         "6": {
           "description": "生命值+73，暴击伤害+12%，攻击速度+16%，移动速度+8%",
@@ -1476,11 +1517,14 @@
         },
         "8": {
           "stats": {
-            "allStats": 0.18
+            "allStats": 0.2
           },
-          "special": "killHeal",
-          "killHealPercent": 0.082,
-          "description": "所有属性+18%，**星骸归尘**获得强化，击杀回复生命（满档强化）：8.2%最大生命"
+          "special": "voltStrike",
+          "voltStrikeChance": 0.33,
+          "voltStrikeDamageMult": 1.05,
+          "voltStrikeSlowMs": 950,
+          "voltStrikeSlowMult": 0.66,
+          "description": "所有属性+20%，**星骸归尘·殛星**（满档）：约33%触发、约105%攻击力殛击，对单爆发期望高于同系列史诗"
         }
       }
     },
@@ -1829,7 +1873,11 @@
         "4": {
           "stats": {},
           "special": "killBuff",
-          "description": "激活**终焉变律**击杀回血并短时提升全属性（入门档）（增幅与持续较低）"
+          "killHealPercent": 0.048,
+          "killBuffStatFrac": 0.052,
+          "killBuffDurationMs": 10000,
+          "killBuffMoveSpeedBonus": 5,
+          "description": "激活**终焉变律**（稀有·入门）：击杀约4.8%最大生命；短时全属性约+5.2%"
         },
         "6": {
           "description": "暴击率+4%，暴击伤害+8%，攻击速度+11%，移动速度+6%",
@@ -1845,7 +1893,11 @@
             "allStats": 0.12
           },
           "special": "killBuff",
-          "description": "所有属性+12%，**终焉变律**获得强化，击杀回血并短时提升全属性（满档强化）（增幅与持续更高）"
+          "killHealPercent": 0.072,
+          "killBuffStatFrac": 0.075,
+          "killBuffDurationMs": 12000,
+          "killBuffMoveSpeedBonus": 7,
+          "description": "所有属性+12%，**终焉变律**（稀有·满档）：击杀约7.2%最大生命；短时全属性约+7.5%、持续12秒"
         }
       }
     },
@@ -1991,10 +2043,11 @@
           "stats": {
             "allStats": 0.2
           },
-          "special": "killHealAndRegen",
+          "special": "oblivionExecute",
           "killHealPercent": 0.084,
-          "starRegenPercent": 0.005,
-          "description": "所有属性+20%，**终焉双噬**获得强化，双噬续航（满档强化）：击杀8.4%最大生命、战中每秒0.5%最大生命"
+          "executeHpThreshold": 0.15,
+          "executeIntervalMs": 1000,
+          "description": "所有属性+20%，**终焉双噬**获得强化：击杀仍回复8.4%最大生命；战中每约1秒处决所有生命比例**低于15%**的敌人（终焉斩杀，高亮特效）"
         }
       }
     }

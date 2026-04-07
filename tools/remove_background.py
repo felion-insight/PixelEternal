@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 图片背景移除工具
-读取asset文件夹中的所有图片文件，根据指定颜色和容差去除背景，输出到dist文件夹
+遍历输入目录下的图片，按指定颜色与容差去除背景；默认覆盖写回原路径，也可用 --output 写到另一目录并保持相对结构。
+使用 --deep-equipment 可只处理深阶装备目录（asset/deep_equipment，与 tools/art_generator 中 PE_DEEP_EQUIPMENT_FOLDER 一致）。
 """
 import os
 import argparse
@@ -188,10 +189,10 @@ def parse_color(color_str):
 def process_images(input_dir, output_dir, target_color, tolerance, extensions=None, auto_detect=False, edge_width=0):
     """
     处理所有图片文件
-    
+
     Args:
         input_dir: 输入目录
-        output_dir: 输出目录
+        output_dir: 输出根目录；为 None 时每张图写回其原路径（覆盖）
         target_color: 目标颜色（auto_detect为True时会被忽略）
         tolerance: 容差值
         extensions: 支持的图片扩展名列表，默认为['.png', '.jpg', '.jpeg']
@@ -200,28 +201,31 @@ def process_images(input_dir, output_dir, target_color, tolerance, extensions=No
     """
     if extensions is None:
         extensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp']
-    
-    input_path = Path(input_dir)
-    output_path = Path(output_dir)
-    
+
+    input_path = Path(input_dir).resolve()
+    output_path = Path(output_dir).resolve() if output_dir else None
+
     if not input_path.exists():
         print(f"错误: 输入目录不存在: {input_path}")
         return
-    
+
     # 统计信息
     total = 0
     success = 0
     failed = 0
-    
+
     # 遍历所有图片文件
     for ext in extensions:
         for img_file in input_path.rglob(f"*{ext}"):
             total += 1
-            # 保持相对路径结构
+            img_file = img_file.resolve()
             relative_path = img_file.relative_to(input_path)
-            output_file = output_path / relative_path
-            
-            print(f"处理: {relative_path}")
+            if output_path is None:
+                output_file = img_file
+            else:
+                output_file = output_path / relative_path
+
+            print(f"处理: {relative_path} -> {'(原路径覆盖)' if output_path is None else output_file}")
             
             if remove_background(img_file, target_color, tolerance, output_file, auto_detect, edge_width):
                 success += 1
@@ -245,9 +249,12 @@ def main():
   # 使用十六进制颜色
   python remove_background.py --color "#00FF00" --tolerance 20
   
-  # 指定输入输出目录
+  # 默认：处理 asset 下所有图并写回原文件（不指定 --output）
+  python remove_background.py --input ./asset --color "255,255,255" --tolerance 10
+
+  # 指定输出目录（保持与输入相同的子目录结构）
   python remove_background.py --input ./asset --output ./dist --color "255,255,255" --tolerance 10
-  
+
   # 自动检测每张图片占比最大的颜色并抠掉
   python remove_background.py --auto-detect --tolerance 20
   
@@ -256,9 +263,18 @@ def main():
   
   # 组合使用：自动检测颜色 + 边缘透明化
   python remove_background.py --auto-detect --tolerance 20 --edge-width 3
+
+  # 只抠深阶装备贴图（项目 asset/deep_equipment，与 art_generator 一致；会覆盖 --input）
+  python remove_background.py --deep-equipment --color "0,0,0" --tolerance 12
         """
     )
-    
+
+    parser.add_argument(
+        "--deep-equipment",
+        action="store_true",
+        help="只处理深阶装备目录：<项目根>/asset/<PE_DEEP_EQUIPMENT_FOLDER>（默认子目录名 deep_equipment）；指定后忽略 --input",
+    )
+
     parser.add_argument(
         '--input', '-i',
         type=str,
@@ -269,8 +285,8 @@ def main():
     parser.add_argument(
         '--output', '-o',
         type=str,
-        default='dist',
-        help='输出目录（默认: dist）'
+        default=None,
+        help='输出根目录；省略则覆盖保存到每张图片的原始路径'
     )
     
     parser.add_argument(
@@ -309,7 +325,14 @@ def main():
     )
     
     args = parser.parse_args()
-    
+
+    if args.deep_equipment:
+        project_root = Path(__file__).resolve().parent.parent
+        sub = (os.environ.get("PE_DEEP_EQUIPMENT_FOLDER") or "deep_equipment").strip() or "deep_equipment"
+        deep_dir = (project_root / "asset" / sub).resolve()
+        args.input = str(deep_dir)
+        print(f"已启用 --deep-equipment，输入目录: {args.input}")
+
     # 验证参数：必须指定--color或--auto-detect之一
     if not args.auto_detect and args.color is None:
         parser.error("必须指定 --color 或 --auto-detect 之一")
@@ -343,7 +366,7 @@ def main():
     if args.edge_width > 0:
         print(f"边缘透明化: {args.edge_width}px")
     print(f"输入目录: {args.input}")
-    print(f"输出目录: {args.output}")
+    print(f"输出: {'原路径覆盖' if args.output is None else args.output}")
     print(f"支持的扩展名: {args.extensions}")
     print("-" * 50)
     

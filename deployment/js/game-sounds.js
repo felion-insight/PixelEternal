@@ -22,6 +22,60 @@ class SoundManager {
         this.currentBgm = null; // 当前播放的背景音乐
         this.currentBgmName = null; // 当前背景音乐名称
         this.bgmCache = new Map(); // 背景音乐缓存
+
+        /** 0～1，与单轨配置音量相乘（背景音乐总音量） */
+        this.masterMusicVolume = 1;
+        /** 0～1，与单轨配置音量相乘（音效总音量，含走路） */
+        this.masterSfxVolume = 1;
+        this._loadVolumePrefsFromStorage();
+    }
+
+    _loadVolumePrefsFromStorage() {
+        try {
+            const m = localStorage.getItem('pixelEternal_volMusic');
+            const s = localStorage.getItem('pixelEternal_volSfx');
+            if (m !== null) {
+                const v = parseFloat(m);
+                if (Number.isFinite(v)) this.masterMusicVolume = Math.max(0, Math.min(1, v));
+            }
+            if (s !== null) {
+                const v = parseFloat(s);
+                if (Number.isFinite(v)) this.masterSfxVolume = Math.max(0, Math.min(1, v));
+            }
+        } catch (e) {
+            /* 忽略存储异常 */
+        }
+    }
+
+    saveVolumePrefsToStorage() {
+        try {
+            localStorage.setItem('pixelEternal_volMusic', String(this.masterMusicVolume));
+            localStorage.setItem('pixelEternal_volSfx', String(this.masterSfxVolume));
+        } catch (e) {
+            /* 忽略 */
+        }
+    }
+
+    setMasterMusicVolume(v) {
+        this.masterMusicVolume = Math.max(0, Math.min(1, typeof v === 'number' ? v : 1));
+        this.refreshCurrentBgmVolume();
+    }
+
+    setMasterSfxVolume(v) {
+        this.masterSfxVolume = Math.max(0, Math.min(1, typeof v === 'number' ? v : 1));
+        this.refreshWalkSoundVolume();
+    }
+
+    refreshCurrentBgmVolume() {
+        if (!this.currentBgm || !this.currentBgmName) return;
+        const base = this.getBgmVolume(this.currentBgmName);
+        this.currentBgm.volume = Math.min(1, Math.max(0, base * this.masterMusicVolume));
+    }
+
+    refreshWalkSoundVolume() {
+        if (!this.walkSound) return;
+        const base = this.getSoundVolume('walk', 0.3);
+        this.walkSound.volume = Math.min(1, Math.max(0, base * this.masterSfxVolume));
     }
     
     /**
@@ -106,8 +160,9 @@ class SoundManager {
                 if (!audio) return;
             }
             
-            // 如果提供了volumeOverride，使用它；否则从mappings读取
-            const volume = volumeOverride !== null ? volumeOverride : this.getSoundVolume(soundName);
+            // 如果提供了volumeOverride，使用它；否则从mappings读取；再乘主音效音量
+            let volume = volumeOverride !== null ? volumeOverride : this.getSoundVolume(soundName);
+            volume = Math.min(1, Math.max(0, volume * this.masterSfxVolume));
             
             // 创建新的音频实例以避免重叠播放时的冲突
             const audioClone = audio.cloneNode();
@@ -136,7 +191,10 @@ class SoundManager {
                 if (audio) {
                     this.walkSound = audio.cloneNode();
                     this.walkSound.loop = true;
-                    this.walkSound.volume = this.getSoundVolume('walk', 0.3);
+                    {
+                        const wv = this.getSoundVolume('walk', 0.3);
+                        this.walkSound.volume = Math.min(1, Math.max(0, wv * this.masterSfxVolume));
+                    }
                     if (this.isWalking) {
                         this.walkSound.play().catch(err => {
                             if (err.name !== 'NotAllowedError') {
@@ -149,7 +207,10 @@ class SoundManager {
         } else {
             // 如果已经加载，直接播放
             this.walkSound.currentTime = 0;
-            this.walkSound.volume = this.getSoundVolume('walk', 0.3);
+            {
+                const wv = this.getSoundVolume('walk', 0.3);
+                this.walkSound.volume = Math.min(1, Math.max(0, wv * this.masterSfxVolume));
+            }
             this.walkSound.play().catch(err => {
                 if (err.name !== 'NotAllowedError') {
                     console.warn('走路音效播放失败', err);
@@ -321,8 +382,9 @@ class SoundManager {
             // 确保音频设置正确
             audio.loop = true;
             
-            // 如果提供了volumeOverride，使用它；否则从mappings读取
-            const volume = volumeOverride !== null ? volumeOverride : this.getBgmVolume(bgmName);
+            // 如果提供了volumeOverride，使用它；否则从mappings读取；再乘主音乐音量
+            const baseVol = volumeOverride !== null ? volumeOverride : this.getBgmVolume(bgmName);
+            const volume = Math.min(1, Math.max(0, baseVol * this.masterMusicVolume));
             audio.volume = volume;
             
             // 保存当前播放的背景音乐

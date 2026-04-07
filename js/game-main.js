@@ -546,6 +546,8 @@ class Game {
                 this.showEscMenu();
             });
         }
+
+        this.initVolumeSettingsUI();
         
         // 事件监听
         document.addEventListener('keydown', (e) => {
@@ -603,6 +605,11 @@ class Game {
                 }
                 if (importSaveModal && importSaveModal.classList.contains('show')) {
                     this.closeImportSaveModal();
+                    return;
+                }
+                const eliteBoonChoiceModal = document.getElementById('elite-boon-choice-modal');
+                if (eliteBoonChoiceModal && eliteBoonChoiceModal.classList.contains('show')) {
+                    this.resolveEliteBoonChoice(null);
                     return;
                 }
                 const gapShopModal = document.getElementById('gap-shop-modal');
@@ -857,6 +864,7 @@ class Game {
         this.initBlacksmith();
         this.initShop();
         this.initGapShop();
+        this.initEliteBoonChoiceModal();
         this.initTrainingAndCapacity();
         this.initLevelUpCapacity();
         this.initDungeonSelection();
@@ -2459,9 +2467,10 @@ class Game {
     /**
      * 添加物品到背包
      * @param {Object} item - 要添加的物品
+     * @param {boolean} [quiet=false] - 为 true 时不弹出「获得」飘字（开发者批量发放等）
      * @returns {boolean} 是否成功添加
      */
-    addItemToInventory(item) {
+    addItemToInventory(item, quiet = false) {
         // 根据物品类型确定应该放在哪个区域
         let startIndex, endIndex;
         if (item.type === 'material' || item.type === 'alchemy') {
@@ -2510,12 +2519,14 @@ class Game {
             // 确保玩家位置有效，避免文字瞬间消失
             const playerX = (this.player && this.player.x !== undefined && !isNaN(this.player.x)) ? this.player.x : CONFIG.CANVAS_WIDTH / 2;
             const playerY = (this.player && this.player.y !== undefined && !isNaN(this.player.y)) ? this.player.y : CONFIG.CANVAS_HEIGHT / 2;
-            this.addFloatingText(
-                playerX, 
-                playerY, 
-                `获得: ${item.name}`, 
-                qualityColor
-            );
+            if (!quiet) {
+                this.addFloatingText(
+                    playerX, 
+                    playerY, 
+                    `获得: ${item.name}`, 
+                    qualityColor
+                );
+            }
             
             // 如果背包界面是打开的，立即更新UI
             const modal = document.getElementById('inventory-modal');
@@ -2979,9 +2990,11 @@ class Game {
             visionEl.textContent = this.player.vision;
         }
         
-        // 更新套装效果
+        // 更新套装效果（仅背包界面打开时重绘；避免暂停/模态时每帧清空 DOM 导致卡顿）
         const setEffectsList = document.getElementById('stats-set-effects-list');
-        if (setEffectsList && typeof getActiveSetEffects === 'function') {
+        const inventoryModalEl = document.getElementById('inventory-modal');
+        const inventoryModalOpen = inventoryModalEl && inventoryModalEl.classList.contains('show');
+        if (setEffectsList && typeof getActiveSetEffects === 'function' && inventoryModalOpen) {
             const active = getActiveSetEffects(this.player.equipment);
             if (active.length > 0) {
                 // 只显示每个套装激活的最高件数效果
@@ -3595,7 +3608,7 @@ class Game {
                 const effect = setData.effects[setEffect.pieceCount];
                 if (
                     effect &&
-                    (effect.special === 'starRegen' || effect.special === 'killHealAndRegen') &&
+                    effect.special === 'starRegen' &&
                     (setEffect.pieceCount === 8 || setEffect.pieceCount === 4)
                 ) {
                     const now = Date.now();
@@ -3604,8 +3617,6 @@ class Game {
                         let pct = 0.01;
                         if (typeof effect.starRegenPercent === 'number' && effect.starRegenPercent > 0) {
                             pct = effect.starRegenPercent;
-                        } else if (effect.special === 'killHealAndRegen') {
-                            pct = 0.005;
                         }
                         const healAmount = Math.floor(this.player.maxHp * pct);
                         this.player.hp = Math.min(this.player.hp + healAmount, this.player.maxHp);
@@ -3618,6 +3629,10 @@ class Game {
 
             if (this.player.setSpecialEffects && typeof this.player.tickDeepSetPeriodicEffects === 'function') {
                 this.player.tickDeepSetPeriodicEffects(this);
+            }
+
+            if (this.player.setSpecialEffects && typeof this.player.tickOblivionExecuteSweep === 'function') {
+                this.player.tickOblivionExecuteSweep(this);
             }
             
             // 处理游侠词条：脱离战斗后恢复生命值
@@ -3850,9 +3865,8 @@ class Game {
                         const eliteBonusGold = 15 * this.floor;
                         this.gainGold(eliteBonusGold);
                         this.addFloatingText(this.player.x, this.player.y, `精英房奖励 +${eliteBonusGold} 金币`, '#ffd700');
-                        this.grantRandomEliteBoon();
-                    }
-                    if (!this.demonInterferenceActive) {
+                        this.openEliteBoonChoiceModal();
+                    } else if (!this.demonInterferenceActive) {
                         if (this.currentScene === SCENE_TYPES.TOWER && Math.random() < this.demonInterferenceTriggerChance) {
                             this.startDemonInterference();
                         } else {
@@ -3898,12 +3912,24 @@ class Game {
                     if (this.soundManager) {
                         this.soundManager.playSound('treasure');
                     }
-                    // 给予奖励
+                    // 给予奖励：品质与当前层「怪物等级上限」档位一致，避免跨几十级装备
                     const allEquipments = generateEquipments();
-                    // 过滤掉打造的装备（isCrafted=true），宝箱不能掉落打造的装备
-                    const qualityEquipments = allEquipments.filter(eq => 
-                        eq.quality === this.currentRoom.treasureChest.quality && !eq.isCrafted
+                    const tierLevels = typeof getEquipmentDropTierLevelsForTowerFloor === 'function'
+                        ? getEquipmentDropTierLevelsForTowerFloor(this.floor)
+                        : [1, 5, 10, 15, 20];
+                    let qualityEquipments = allEquipments.filter(eq =>
+                        eq.quality === this.currentRoom.treasureChest.quality &&
+                        !eq.isCrafted &&
+                        tierLevels.includes(eq.level)
                     );
+                    if (qualityEquipments.length === 0) {
+                        const maxL = tierLevels.length ? Math.max.apply(null, tierLevels) : 60;
+                        qualityEquipments = allEquipments.filter(eq =>
+                            eq.quality === this.currentRoom.treasureChest.quality &&
+                            !eq.isCrafted &&
+                            (eq.level || 0) <= maxL
+                        );
+                    }
                     let rewardText = '';
                     let rewardCount = 0;
                     
@@ -4163,6 +4189,46 @@ class Game {
     }
     
     /**
+     * ESC 菜单内：背景音乐 / 音效主音量滑块（写入 localStorage，与 SoundManager 主音量相乘）
+     */
+    initVolumeSettingsUI() {
+        if (this._volumeSettingsUiBound) return;
+        const musicSlider = document.getElementById('settings-music-volume');
+        const musicLabel = document.getElementById('settings-music-volume-value');
+        const sfxSlider = document.getElementById('settings-sfx-volume');
+        const sfxLabel = document.getElementById('settings-sfx-volume-value');
+        if (!musicSlider || !sfxSlider || !this.soundManager) return;
+        this._volumeSettingsUiBound = true;
+
+        const syncSlidersFromManager = () => {
+            const sm = this.soundManager;
+            musicSlider.value = String(Math.round(sm.masterMusicVolume * 100));
+            sfxSlider.value = String(Math.round(sm.masterSfxVolume * 100));
+            if (musicLabel) musicLabel.textContent = musicSlider.value + '%';
+            if (sfxLabel) sfxLabel.textContent = sfxSlider.value + '%';
+        };
+        syncSlidersFromManager();
+
+        const onMusicInput = () => {
+            const pct = parseInt(musicSlider.value, 10);
+            const v = Number.isFinite(pct) ? Math.max(0, Math.min(1, pct / 100)) : 1;
+            this.soundManager.setMasterMusicVolume(v);
+            if (musicLabel) musicLabel.textContent = musicSlider.value + '%';
+            this.soundManager.saveVolumePrefsToStorage();
+        };
+        const onSfxInput = () => {
+            const pct = parseInt(sfxSlider.value, 10);
+            const v = Number.isFinite(pct) ? Math.max(0, Math.min(1, pct / 100)) : 1;
+            this.soundManager.setMasterSfxVolume(v);
+            if (sfxLabel) sfxLabel.textContent = sfxSlider.value + '%';
+            this.soundManager.saveVolumePrefsToStorage();
+        };
+        musicSlider.addEventListener('input', onMusicInput);
+        sfxSlider.addEventListener('input', onSfxInput);
+        this._syncVolumeSlidersFromManager = syncSlidersFromManager;
+    }
+
+    /**
      * 显示ESC菜单
      */
     showEscMenu() {
@@ -4172,6 +4238,10 @@ class Game {
             // 确保菜单显示
             modal.style.display = 'flex';
             this.paused = true;
+
+            if (typeof this._syncVolumeSlidersFromManager === 'function') {
+                this._syncVolumeSlidersFromManager();
+            }
             
             // 如果在恶魔塔中，显示退出按钮
             const exitBtn = document.getElementById('esc-menu-exit-tower-btn');
@@ -4420,32 +4490,50 @@ class Game {
      * 初始化训练假人生成面板
      */
     initDummySpawnPanel() {
-        // 填充怪物类型选择器（含普通怪与精英怪）
+        // 填充怪物类型选择器（含普通怪与精英怪；含 deep-monsters-add 合并后的条目）
         const monsterSelect = document.getElementById('monster-type-select');
-        if (monsterSelect) {
+        if (monsterSelect && typeof MONSTER_TYPES !== 'undefined') {
             monsterSelect.innerHTML = '';
-            Object.keys(MONSTER_TYPES).forEach(type => {
+            const types = Object.keys(MONSTER_TYPES).filter(type => {
+                const d = MONSTER_TYPES[type];
+                return d && typeof d === 'object' && (d.name || type);
+            });
+            types.sort((a, b) => {
+                const la = MONSTER_TYPES[a].level != null ? Number(MONSTER_TYPES[a].level) : 0;
+                const lb = MONSTER_TYPES[b].level != null ? Number(MONSTER_TYPES[b].level) : 0;
+                if (la !== lb) return la - lb;
+                const na = MONSTER_TYPES[a].name || a;
+                const nb = MONSTER_TYPES[b].name || b;
+                return String(na).localeCompare(String(nb), 'zh');
+            });
+            types.forEach(type => {
                 const monsterData = MONSTER_TYPES[type];
                 const option = document.createElement('option');
                 option.value = type;
                 const eliteLabel = monsterData.isElite ? ' [精英]' : '';
-                option.textContent = `${monsterData.name}${eliteLabel} (${monsterData.level}级)`;
+                const dispName = monsterData.name || type;
+                const lv = monsterData.level != null ? monsterData.level : '?';
+                option.textContent = `${dispName}${eliteLabel} (${lv}级)`;
                 monsterSelect.appendChild(option);
             });
         }
         
-        // 监听假人类型切换
-        const typeRadios = document.querySelectorAll('input[name="dummy-type"]');
-        const monsterSelector = document.getElementById('monster-type-selector');
-        typeRadios.forEach(radio => {
-            radio.addEventListener('change', () => {
-                if (radio.value === 'monster') {
-                    monsterSelector.style.display = 'block';
-                } else {
-                    monsterSelector.style.display = 'none';
-                }
+        // 监听假人类型切换（只绑定一次，避免每次按 T 重复注册）
+        if (!this._dummySpawnTypeRadioBound) {
+            this._dummySpawnTypeRadioBound = true;
+            const typeRadios = document.querySelectorAll('input[name="dummy-type"]');
+            const monsterSelector = document.getElementById('monster-type-selector');
+            typeRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (!monsterSelector) return;
+                    if (radio.value === 'monster') {
+                        monsterSelector.style.display = 'block';
+                    } else {
+                        monsterSelector.style.display = 'none';
+                    }
+                });
             });
-        });
+        }
     }
     
     /**
@@ -9029,6 +9117,73 @@ class Game {
                     ctx.arc(effect.x, effect.y, vvR * 0.42, 0, Math.PI * 2);
                     ctx.fill();
                     break;
+
+                case 'oblivion_execute': // 终焉斩杀：目标处决 — 暗渊核 + 血红厚环 + 金边 + 旋转斩叉
+                    {
+                        const br = effect.radius || 138;
+                        const r0 = br * (0.08 + progress * 1.12);
+                        const r1 = br * (0.22 + progress * 0.98);
+                        const r2 = br * (0.38 + progress * 0.82);
+                        ctx.fillStyle = 'rgba(8, 0, 18, ' + Math.max(0.35, alpha * 0.92) + ')';
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, r0, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = 'rgba(255, 30, 50, ' + Math.max(0.75, alpha) + ')';
+                        ctx.lineWidth = 10;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, r1, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.strokeStyle = 'rgba(255, 230, 120, ' + Math.max(0.55, alpha) + ')';
+                        ctx.lineWidth = 4;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, r2, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.strokeStyle = 'rgba(255, 255, 255, ' + alpha + ')';
+                        ctx.lineWidth = 5;
+                        ctx.save();
+                        ctx.translate(effect.x, effect.y);
+                        ctx.rotate(elapsed * 0.012);
+                        const xs = br * (0.42 + progress * 0.55);
+                        ctx.beginPath();
+                        ctx.moveTo(-xs, -xs);
+                        ctx.lineTo(xs, xs);
+                        ctx.moveTo(xs, -xs);
+                        ctx.lineTo(-xs, xs);
+                        ctx.stroke();
+                        ctx.restore();
+                        ctx.fillStyle = 'rgba(255, 255, 255, ' + Math.max(0.5, alpha * 0.95) + ')';
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, br * 0.12 * (1 - progress * 0.35), 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+
+                case 'oblivion_execute_corona': // 终焉斩杀：玩家周身裁决冠状冲击波
+                    {
+                        const cr = (effect.radius || 220) * (0.18 + progress * 1.02);
+                        ctx.strokeStyle = 'rgba(255, 60, 40, ' + Math.max(0.5, alpha * 0.95) + ')';
+                        ctx.lineWidth = 12;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, cr, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.strokeStyle = 'rgba(255, 215, 80, ' + Math.max(0.4, alpha * 0.88) + ')';
+                        ctx.lineWidth = 5;
+                        ctx.setLineDash([14, 10]);
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, cr * 0.92, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                        ctx.strokeStyle = 'rgba(255, 255, 255, ' + Math.max(0.35, alpha * 0.75) + ')';
+                        ctx.lineWidth = 2;
+                        for (let ri = 0; ri < 8; ri++) {
+                            const ang = (ri / 8) * Math.PI * 2 - elapsed * 0.008;
+                            ctx.beginPath();
+                            ctx.moveTo(effect.x, effect.y);
+                            ctx.lineTo(effect.x + Math.cos(ang) * cr, effect.y + Math.sin(ang) * cr);
+                            ctx.stroke();
+                        }
+                    }
+                    break;
             }
             
             ctx.restore();
@@ -9322,15 +9477,99 @@ class Game {
         if (el) el.style.display = 'none';
     }
     
+    pickDistinctEliteBoonIds(count) {
+        const pool = typeof ELITE_BOON_IDS !== 'undefined' && Array.isArray(ELITE_BOON_IDS) ? [...ELITE_BOON_IDS] : [];
+        if (!pool.length) return [];
+        for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const t = pool[i];
+            pool[i] = pool[j];
+            pool[j] = t;
+        }
+        return pool.slice(0, Math.min(count | 0, pool.length));
+    }
+    
+    initEliteBoonChoiceModal() {
+        const skipBtn = document.getElementById('elite-boon-skip-btn');
+        const opts = document.getElementById('elite-boon-choice-options');
+        if (skipBtn) {
+            skipBtn.addEventListener('click', () => this.resolveEliteBoonChoice(null));
+        }
+        if (opts) {
+            opts.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-elite-boon-id]');
+                if (!btn) return;
+                const id = btn.getAttribute('data-elite-boon-id');
+                if (id) this.resolveEliteBoonChoice(id);
+            });
+        }
+    }
+    
+    openEliteBoonChoiceModal() {
+        if (this._eliteBoonChoiceActive) return;
+        const modal = document.getElementById('elite-boon-choice-modal');
+        const container = document.getElementById('elite-boon-choice-options');
+        const skipBtn = document.getElementById('elite-boon-skip-btn');
+        const ids = this.pickDistinctEliteBoonIds(3);
+        if (!modal || !container || !ids.length) {
+            this.continueTowerAfterEliteRoomFlow();
+            return;
+        }
+        this._eliteBoonChoiceActive = true;
+        this._eliteBoonSkipGold = Math.max(0, Math.floor(20 * (this.floor | 0)));
+        container.innerHTML = '';
+        ids.forEach((id) => {
+            const meta = typeof getEliteBoonMeta === 'function' ? getEliteBoonMeta(id) : { name: id, description: '' };
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.setAttribute('data-elite-boon-id', id);
+            btn.style.cssText = 'padding: 12px 10px; text-align: left; background: rgba(50, 70, 100, 0.9); color: #e8f0ff; border: 2px solid #6a9eff; border-radius: 6px; cursor: pointer; font-family: "Courier New", monospace; font-size: 12px; min-height: 88px;';
+            btn.innerHTML = `<strong style="color:#a8d8ff;">${meta.name}</strong><br/><span style="font-size:11px;color:#aaa;line-height:1.35;">${meta.description || ''}</span>`;
+            container.appendChild(btn);
+        });
+        if (skipBtn) {
+            skipBtn.textContent = this._eliteBoonSkipGold > 0
+                ? `放弃加护（+${this._eliteBoonSkipGold} 金币）`
+                : '放弃加护';
+        }
+        this.paused = true;
+        modal.classList.add('show');
+    }
+    
+    resolveEliteBoonChoice(id) {
+        if (!this._eliteBoonChoiceActive) return;
+        this._eliteBoonChoiceActive = false;
+        const modal = document.getElementById('elite-boon-choice-modal');
+        if (modal) modal.classList.remove('show');
+        this.paused = false;
+        const skipGold = this._eliteBoonSkipGold | 0;
+        this._eliteBoonSkipGold = 0;
+        if (id) {
+            this.grantEliteBoonById(id);
+        } else if (skipGold > 0) {
+            this.gainGold(skipGold);
+            this.addFloatingText(this.player.x, this.player.y, `放弃加护 +${skipGold} 金币`, '#ffd700');
+            this.updateHUD();
+        }
+        this.continueTowerAfterEliteRoomFlow();
+    }
+    
+    continueTowerAfterEliteRoomFlow() {
+        if (!this.demonInterferenceActive) {
+            if (this.currentScene === SCENE_TYPES.TOWER && Math.random() < this.demonInterferenceTriggerChance) {
+                this.startDemonInterference();
+            } else {
+                this.generatePortals();
+            }
+        }
+    }
+    
     /**
-     * 精英房通关：随机获得一条加护（可叠层）
+     * 精英加护：按 id 叠层（塔内有效）
      */
-    grantRandomEliteBoon() {
-        if (!this.player) return;
+    grantEliteBoonById(id) {
+        if (!this.player || !id) return;
         if (!Array.isArray(this.player.eliteBoons)) this.player.eliteBoons = [];
-        const ids = typeof ELITE_BOON_IDS !== 'undefined' ? ELITE_BOON_IDS : [];
-        if (!ids.length) return;
-        const id = ids[Math.floor(Math.random() * ids.length)];
         let entry = this.player.eliteBoons.find(b => b.id === id);
         let stacked = false;
         if (entry) {
@@ -9346,6 +9585,16 @@ class Game {
             this.addFloatingText(this.player.x, this.player.y, msg, '#88ccff');
         }
         this.updateHUD();
+    }
+    
+    /**
+     * 随机获得一条加护（隙间商店等）
+     */
+    grantRandomEliteBoon() {
+        const ids = typeof ELITE_BOON_IDS !== 'undefined' ? ELITE_BOON_IDS : [];
+        if (!ids.length || !this.player) return;
+        const id = ids[Math.floor(Math.random() * ids.length)];
+        this.grantEliteBoonById(id);
     }
     
     /**
@@ -9414,7 +9663,11 @@ class Game {
         if (!modal) return;
         this.paused = true;
         modal.classList.add('show');
-        this.renderGapShopPanel();
+        this.updateGapShopPricesAndGold();
+        requestAnimationFrame(() => {
+            if (!modal.classList.contains('show')) return;
+            this.renderGapShopSellList();
+        });
     }
     
     closeGapShopModal() {
@@ -9476,10 +9729,10 @@ class Game {
         }
         this.updateHUD();
         this.addFloatingText(this.player.x, this.player.y, '已购买', '#88ff88');
-        this.renderGapShopPanel();
+        this.renderGapShopPanel({ refreshSellList: false });
     }
     
-    renderGapShopPanel() {
+    updateGapShopPricesAndGold() {
         const m = this.gapShopPriceMult();
         const setPrice = (id, n) => {
             const el = document.getElementById(id);
@@ -9492,6 +9745,9 @@ class Game {
         setPrice('gap-price-revive', 95 * m);
         const goldEl = document.getElementById('gap-shop-gold');
         if (goldEl && this.player) goldEl.textContent = this.player.gold;
+    }
+    
+    renderGapShopSellList() {
         const list = document.getElementById('gap-shop-sell-list');
         if (!list || !this.player) return;
         const sellable = [];
@@ -9504,7 +9760,7 @@ class Game {
             list.innerHTML = '<p style="color:#888;font-size:12px;">暂无可出售物品</p>';
             return;
         }
-        list.innerHTML = '';
+        const frag = document.createDocumentFragment();
         sellable.forEach(({ item, index }) => {
             let sellPrice = 0;
             if (item.slot) {
@@ -9522,16 +9778,25 @@ class Game {
             const row = document.createElement('div');
             row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #444;font-size:12px;color:#ddd;';
             row.innerHTML = `<span>${item.name}</span><span>${sellPrice} 金 <button type="button" class="gap-sell-one" data-i="${index}" data-p="${sellPrice}">出售</button></span>`;
-            list.appendChild(row);
+            frag.appendChild(row);
         });
+        list.innerHTML = '';
+        list.appendChild(frag);
         list.querySelectorAll('.gap-sell-one').forEach(btn => {
             btn.addEventListener('click', () => {
                 const i = parseInt(btn.getAttribute('data-i'), 10);
                 const p = parseInt(btn.getAttribute('data-p'), 10);
                 this.sellItem(i, p);
-                this.renderGapShopPanel();
+                this.renderGapShopPanel({ refreshSellList: true });
             });
         });
+    }
+    
+    renderGapShopPanel(options = {}) {
+        this.updateGapShopPricesAndGold();
+        if (options.refreshSellList !== false) {
+            this.renderGapShopSellList();
+        }
     }
     
     /**
@@ -9638,24 +9903,29 @@ class Game {
     drawInteractionHint(ctx, interaction) {
         const x = interaction.x;
         const y = interaction.y;
+        const isGapShop = interaction.type === 'gap_shop';
+        const w = isGapShop ? 172 : 120;
+        const label = isGapShop ? '按 E 打开商店面板' : '按E交互';
+        const half = w / 2;
+        const h = isGapShop ? 28 : 30;
         
         // 绘制提示背景
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(x - 60, y - 15, 120, 30);
+        ctx.fillRect(x - half, y - h / 2, w, h);
         
         // 绘制边框
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2;
-        ctx.strokeRect(x - 60, y - 15, 120, 30);
+        ctx.strokeRect(x - half, y - h / 2, w, h);
         
         // 绘制文字
         ctx.fillStyle = '#fff';
-        ctx.font = '16px "Courier New", monospace';
+        ctx.font = isGapShop ? '14px "Courier New", monospace' : '16px "Courier New", monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('按E交互', x, y);
+        ctx.fillText(label, x, y);
     }
-
+    
     /**
      * 初始化存档系统
      */
@@ -10372,6 +10642,7 @@ class Game {
                 // 图鉴未打开时，显示普通开发者面板
                 normalPanel.classList.add('show');
                 codexPanel.classList.remove('show');
+                this.populateDevSetGrantSelect();
             }
         } else {
             normalPanel.classList.remove('show');
@@ -10907,6 +11178,118 @@ class Game {
         });
         
         this.addFloatingText(this.player.x, this.player.y, `已添加所有打造装备 (${CRAFTING_RECIPE_DEFINITIONS.length}件)`, '#ffaa00');
+    }
+
+    /**
+     * 填充开发者面板「整套套装」下拉框（SET_DEFINITIONS）
+     */
+    populateDevSetGrantSelect() {
+        const sel = document.getElementById('dev-set-grant-select');
+        if (!sel || typeof SET_DEFINITIONS === 'undefined') return;
+        const prev = sel.value;
+        sel.innerHTML = '';
+        const ph = document.createElement('option');
+        ph.value = '';
+        ph.textContent = '-- 选择套装系列 --';
+        sel.appendChild(ph);
+        const entries = Object.entries(SET_DEFINITIONS).sort((a, b) => {
+            const na = (a[1] && a[1].name) || a[0];
+            const nb = (b[1] && b[1].name) || b[0];
+            return na.localeCompare(nb, 'zh-CN');
+        });
+        entries.forEach(([setId, setData]) => {
+            const opt = document.createElement('option');
+            opt.value = setId;
+            opt.textContent = `${setData.name || setId} (${setId})`;
+            sel.appendChild(opt);
+        });
+        if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+    }
+
+    /**
+     * 从装备定义生成实例（与 generateEquipments 统计字段一致）
+     * @param {Object} def - EQUIPMENT_DEFINITIONS 中的一项
+     * @param {number} id - 装备 id
+     */
+    devCreateEquipmentFromDefinition(def, id) {
+        const stats = {};
+        if (def.slot === 'weapon') {
+            stats.attack = def.attack || 0;
+            stats.critRate = def.critRate || 0;
+            stats.critDamage = def.critDamage || 0;
+        } else if (['helmet', 'chest', 'legs', 'boots'].includes(def.slot)) {
+            stats.health = def.health || 0;
+            stats.defense = def.defense || 0;
+        } else if (['necklace', 'ring', 'belt'].includes(def.slot)) {
+            stats.dodge = def.dodge || 0;
+            stats.attackSpeed = def.attackSpeed || 0;
+            stats.moveSpeed = def.moveSpeed || 0;
+        }
+        ['lifeSteal', 'thorn', 'skillHaste', 'damageReduction', 'towerGoldBonus'].forEach(k => {
+            if (def[k] != null && def[k] !== '') stats[k] = def[k];
+        });
+        return new Equipment({
+            id: id,
+            name: def.name,
+            slot: def.slot,
+            weaponType: def.weaponType,
+            quality: def.quality,
+            level: def.level,
+            stats: stats,
+            refineLevel: 0
+        });
+    }
+
+    /**
+     * 开发者：发放当前选中套装的全部部位到背包（需装备栏有足够空位，共 8 件）
+     */
+    devGrantFullEquipmentSet() {
+        const sel = document.getElementById('dev-set-grant-select');
+        const setId = sel && sel.value;
+        const px = this.player.x;
+        const py = this.player.y;
+        if (!setId || typeof SET_DEFINITIONS === 'undefined' || !SET_DEFINITIONS[setId]) {
+            this.addFloatingText(px, py, '请先在下拉框中选择一套套装 (DEV)', '#ff6666');
+            return;
+        }
+        if (typeof EQUIPMENT_DEFINITIONS === 'undefined' || !EQUIPMENT_DEFINITIONS.length) {
+            this.addFloatingText(px, py, '装备配置未加载 (DEV)', '#ff6666');
+            return;
+        }
+        const setData = SET_DEFINITIONS[setId];
+        const pieces = setData.pieces || [];
+        const missing = [];
+        let added = 0;
+        let failedFull = 0;
+        const baseId = Date.now();
+        pieces.forEach((pieceName, idx) => {
+            const def = EQUIPMENT_DEFINITIONS.find(d => d.name === pieceName);
+            if (!def) {
+                missing.push(pieceName);
+                return;
+            }
+            const eq = this.devCreateEquipmentFromDefinition(def, baseId + idx);
+            if (this.addItemToInventory(eq, true)) added++;
+            else failedFull++;
+        });
+        const modal = document.getElementById('inventory-modal');
+        if (modal && modal.classList.contains('show')) {
+            this.updateInventoryUI();
+            this.updateInventoryCapacity();
+        }
+        const setLabel = setData.name || setId;
+        if (missing.length) {
+            this.addFloatingText(px, py, `套装「${setLabel}」有 ${missing.length} 件在配置中未找到 (DEV)`, '#ff8800');
+        }
+        if (failedFull) {
+            this.addFloatingText(px, py, `装备栏空位不足，少放入 ${failedFull} 件 (DEV)`, '#ff4444');
+        }
+        this.addFloatingText(
+            px,
+            py,
+            `已发放套装: ${setLabel} (${added}/${pieces.length} 件) (DEV)`,
+            added === pieces.length && !missing.length ? '#88ff88' : '#ffcc66'
+        );
     }
     
 

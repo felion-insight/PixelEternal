@@ -237,12 +237,18 @@
     "exit": "tile_portal_exit.png",
     "next": "tile_portal_next.png",
     "return_town": "tile_portal_return_town.png",
-    "fight": "tile_portal_fight.png"
+    "fight": "tile_portal_fight.png",
+    "exit_dungeon": "tile_portal_exit_dungeon.png"
   },
   "floor": {
     "town": "tile_town_floor.png",
     "tower": "tile_tower_floor_new.png",
-    "training": "tile_training_floor.png"
+    "training": "tile_training_floor.png",
+    "dungeon": "tile_dungeon_floor.png",
+    "dungeon_cave": "tile_dungeon_floor_cave.png",
+    "dungeon_forest": "tile_dungeon_floor_forest.png",
+    "dungeon_void": "tile_dungeon_floor_void.png",
+    "dungeon_volcano": "tile_dungeon_floor_volcano.png"
   },
   "monster": {
     "goblin": {
@@ -275,7 +281,7 @@
     },
     "skeletonKnight": {
       "image": "monster_skeleton_knight.png",
-      "scale": 2.0
+      "scale": 2
     },
     "skeletonMage": {
       "image": "monster_skeleton_mage.png",
@@ -291,7 +297,7 @@
     },
     "orcBerserker": {
       "image": "monster_orc_berserker.png",
-      "scale": 2.0
+      "scale": 2
     },
     "orcShaman": {
       "image": "monster_orc_shaman.png",
@@ -315,7 +321,7 @@
     },
     "demonGuardian": {
       "image": "monster_demon_guardian.png",
-      "scale": 3.0
+      "scale": 3
     },
     "demonSorcerer": {
       "image": "monster_demon_sorcerer.png",
@@ -327,7 +333,7 @@
     },
     "demonBoss": {
       "image": "monster_demon_boss.png",
-      "scale": 5.0
+      "scale": 5
     },
     "demonPrince": {
       "image": "monster_demon_prince.png",
@@ -339,11 +345,11 @@
     },
     "demonArchmage": {
       "image": "monster_demon_archmage.png",
-      "scale": 3.0
+      "scale": 3
     },
     "demonOverlord": {
       "image": "monster_demon_overlord.png",
-      "scale": 6.0
+      "scale": 6
     }
   },
   "player": {

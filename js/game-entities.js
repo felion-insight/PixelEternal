@@ -3434,6 +3434,63 @@ function queueSetProcFx(gameInstance, type, x, y, opts) {
     gameInstance.addEquipmentEffect(type, x, y, opts || {});
 }
 
+/** 装备等级档位（与击杀掉落、宝箱一致） */
+const EQUIPMENT_DROP_TIER_LEVELS = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
+
+/**
+ * 按怪物等级取允许的装备档位（与 processKillRewards 原逻辑：不超过怪物等级、且不低于约 22 级窗口）
+ */
+function getEquipmentDropTierLevelsForMonsterLevel(monsterLevel) {
+    const M = typeof monsterLevel === 'number' && monsterLevel > 0 ? monsterLevel : 1;
+    let levels = EQUIPMENT_DROP_TIER_LEVELS.filter(L => L <= M && L >= M - 22);
+    if (!levels.length) levels = EQUIPMENT_DROP_TIER_LEVELS.filter(L => L <= M);
+    if (!levels.length) levels = [1];
+    return levels;
+}
+
+/**
+ * 恶魔塔当前层对应的「装备等级上限」档位集合（与塔内怪物等级上限一致）
+ */
+function getEquipmentDropTierLevelsForTowerFloor(floor) {
+    const f = typeof floor === 'number' && floor >= 1 ? floor : 1;
+    const M = typeof maxMonsterLevelForFloor === 'function' ? maxMonsterLevelForFloor(f) : Math.min(60, Math.max(1, f * 3));
+    return getEquipmentDropTierLevelsForMonsterLevel(M);
+}
+
+/**
+ * 在怪物位置按概率掉落一件非打造装备（等级在 tierLevels 内；若无精确档位则放宽为不超过窗口上限）
+ */
+function rollEquipmentDropAtMonster(monster, gameInstance, dropChance) {
+    if (!gameInstance || !monster || typeof generateEquipments !== 'function' || typeof Equipment === 'undefined') return;
+    const p = typeof dropChance === 'number' ? dropChance : 0.3;
+    if (p <= 0 || Math.random() >= p) return;
+    const allEquipments = generateEquipments();
+    const lv = monster.level != null ? monster.level : 1;
+    const tierLevels = getEquipmentDropTierLevelsForMonsterLevel(lv);
+    let pool = allEquipments.filter(eq => tierLevels.includes(eq.level) && !eq.isCrafted);
+    if (!pool.length) {
+        const maxL = Math.max.apply(null, tierLevels);
+        pool = allEquipments.filter(eq => (eq.level || 0) <= maxL && !eq.isCrafted);
+    }
+    if (!pool.length) return;
+    const randomEq = pool[Math.floor(Math.random() * pool.length)];
+    const newEq = new Equipment({
+        id: randomEq.id,
+        name: randomEq.name,
+        slot: randomEq.slot,
+        weaponType: randomEq.weaponType,
+        quality: randomEq.quality,
+        level: randomEq.level,
+        stats: JSON.parse(JSON.stringify(randomEq.stats)),
+        refineLevel: 0
+    });
+    const dropAngle = Math.random() * Math.PI * 2;
+    const dropDistance = 20 + Math.random() * 40;
+    const dropX = monster.x + Math.cos(dropAngle) * dropDistance;
+    const dropY = monster.y + Math.sin(dropAngle) * dropDistance;
+    gameInstance.droppedItems.push(new DroppedItem(dropX, dropY, newEq, gameInstance));
+}
+
 /** 深阶「印蚀」：目标在持续时间内承受更高玩家伤害 */
 function applyDeepExposeDamageBonus(monster, damage) {
     if (!monster || typeof damage !== 'number' || damage <= 0) return damage;
@@ -5353,8 +5410,8 @@ class Player {
                     );
                 }
                 
-                // 只有普通怪物才会被击杀，训练桩不会死亡
-                if (killed && !isDummy && this.gameInstance) {
+                // 普通怪与怪物型训练假人进击杀列表，由 processKillRewards 统一结算（与普攻一致）
+                if (killed && this.gameInstance && (!isDummy || monster instanceof MonsterTrainingDummy)) {
                     killedMonsters.push(monster);
                 }
                 
@@ -5491,60 +5548,7 @@ class Player {
             }
         }
         
-        // 处理击杀奖励
-        killedMonsters.forEach(monster => {
-            if (this.gameInstance) {
-                this.gameInstance.gainExp(monster.expReward);
-                this.gameInstance.gainGold(monster.goldReward);
-                this.gameInstance.addFloatingText(
-                    this.x,
-                    this.y,
-                    `+${monster.expReward} 经验`,
-                    '#00ff00'
-                );
-                this.gameInstance.addFloatingText(
-                    this.x,
-                    this.y,
-                    `+${monster.goldReward} 金币`,
-                    '#ffd700'
-                );
-                
-                // 处理套装击杀效果
-                this.handleSetKillEffects(monster);
-                
-                // 掉落处理（与普通攻击相同）
-                if (Math.random() < 0.3) {
-                    const allEquipments = generateEquipments();
-                    const levelMap = {
-                        1: [1],
-                        5: [1, 5],
-                        10: [1, 5, 10],
-                        15: [5, 10, 15],
-                        20: [10, 15, 20]
-                    };
-                    const availableLevels = levelMap[monster.level] || levelMap[1];
-                    const levelEquipments = allEquipments.filter(eq => availableLevels.includes(eq.level));
-                    if (levelEquipments.length > 0) {
-                        const randomEq = levelEquipments[Math.floor(Math.random() * levelEquipments.length)];
-                        const newEq = new Equipment({
-                            id: randomEq.id,
-                            name: randomEq.name,
-                            slot: randomEq.slot,
-                            quality: randomEq.quality,
-                            level: randomEq.level,
-                            stats: JSON.parse(JSON.stringify(randomEq.stats)),
-                            refineLevel: 0 // 明确设置为0，确保掉落的装备是未精炼的
-                        });
-                        // 创建掉落物而不是直接添加到背包，随机分散在怪物周围
-                        const dropAngle = Math.random() * Math.PI * 2;
-                        const dropDistance = 20 + Math.random() * 40;
-                        const dropX = monster.x + Math.cos(dropAngle) * dropDistance;
-                        const dropY = monster.y + Math.sin(dropAngle) * dropDistance;
-                        this.gameInstance.droppedItems.push(new DroppedItem(dropX, dropY, newEq, this.gameInstance));
-                    }
-                }
-            }
-        });
+        this.processKillRewards(killedMonsters);
         
         return hit;
     }
@@ -5577,7 +5581,8 @@ class Player {
                 const PI = Math.PI;
                 const inCone = monsters.filter(m => {
                     if (m.hp <= 0) return false;
-                    if (m instanceof TrainingDummy || m instanceof MonsterTrainingDummy) return false;
+                    // 仅排除木桩训练靶；怪物型假人应可作为远程目标（训练场 T 键生成）
+                    if (m instanceof TrainingDummy) return false;
                     const dx = m.x - this.x;
                     const dy = m.y - this.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
@@ -5717,17 +5722,12 @@ class Player {
                     }
                 }
                 
-                // 只有普通怪物才会被击杀，训练桩不会死亡
-                // Boss有特殊的死亡处理逻辑
-                if (killed && !isDummy && !isBoss && this.gameInstance) {
-                    // 保存击杀信息，稍后处理
+                // 普通怪、Boss、怪物型训练假人进 processKillRewards（训练场内在内会直接 return，无经验金币掉落）
+                // 木桩 TrainingDummy 不可击杀，不进奖励列表
+                if (killed && !isBoss && this.gameInstance && (!isDummy || monster instanceof MonsterTrainingDummy)) {
                     killedMonsters.push(monster);
                 } else if (killed && isBoss && this.gameInstance) {
-                    // Boss死亡时立即调用onBossDefeated
-                    if (this.gameInstance.onBossDefeated) {
-                        console.log('Boss被击杀，调用onBossDefeated');
-                        this.gameInstance.onBossDefeated(monster);
-                    }
+                    killedMonsters.push(monster);
                 }
             }
         });
@@ -6099,7 +6099,7 @@ class Player {
             if (!effect || !effect.special) continue;
             
             // 击杀恢复生命值（青铜套装8件、星辰套装6件、终焉双噬等）
-            if (effect.special === 'killHeal' || effect.special === 'killBuff' || effect.special === 'killHealAndRegen') {
+            if (effect.special === 'killHeal' || effect.special === 'killBuff' || effect.special === 'killHealAndRegen' || effect.special === 'oblivionExecute') {
                 const hpPct = (typeof effect.killHealPercent === 'number' && effect.killHealPercent > 0)
                     ? effect.killHealPercent
                     : 0.05;
@@ -6116,20 +6116,23 @@ class Player {
                 }
             }
             
-            // 击杀buff效果（星辰套装6件）
+            // 击杀buff效果（星辰套装6件 / 深阶套装：killBuffStatFrac、killBuffDurationMs 等可在 set 配置中按品阶调整）
             if (effect.special === 'killBuff') {
                 const now = Date.now();
+                const frac = deepSetEffectNum(effect, 'killBuffStatFrac', 0.05);
+                const moveBonus = deepSetEffectNum(effect, 'killBuffMoveSpeedBonus', 5);
+                const durationMs = Math.floor(deepSetEffectNum(effect, 'killBuffDurationMs', 10000));
                 this.buffs.push({
                     effects: {
-                        attack: Math.floor(this.baseAttack * 0.05),
-                        defense: Math.floor(this.baseDefense * 0.05),
-                        critRate: Math.floor(this.baseCritRate * 0.05),
-                        critDamage: Math.floor(this.baseCritDamage * 0.05),
-                        dodge: Math.floor(this.baseDodge * 0.05),
-                        attackSpeed: Math.floor(this.baseAttackSpeed * 0.05),
-                        moveSpeed: 5
+                        attack: Math.floor(this.baseAttack * frac),
+                        defense: Math.floor(this.baseDefense * frac),
+                        critRate: Math.floor(this.baseCritRate * frac),
+                        critDamage: Math.floor(this.baseCritDamage * frac),
+                        dodge: Math.floor(this.baseDodge * frac),
+                        attackSpeed: Math.floor(this.baseAttackSpeed * frac),
+                        moveSpeed: moveBonus
                     },
-                    expireTime: now + 10000 // 持续10秒
+                    expireTime: now + durationMs
                 });
                 this.updateStats();
                 if (this.gameInstance) {
@@ -6308,6 +6311,64 @@ class Player {
                 gameInstance.addFloatingText(m.x, m.y, `天雷 ${bolt}`, '#00ffff', 1800, 18, true);
                 if (gameInstance.soundManager) gameInstance.soundManager.playSound('shock');
                 queueSetProcFx(gameInstance, 'deep_sky_bolt', m.x, m.y, { radius: 72, duration: 540 });
+            }
+        }
+    }
+
+    /**
+     * 终焉传说 8 件：**终焉斩杀**——周期性处决当前场景内生命比例低于阈值的敌方单位（非训练木桩）
+     */
+    tickOblivionExecuteSweep(gameInstance) {
+        if (!gameInstance || !this.setSpecialEffects || typeof SET_DEFINITIONS === 'undefined') return;
+        if (typeof Monster === 'undefined') return;
+        const now = Date.now();
+        if (!this._oblivionExecuteTs) this._oblivionExecuteTs = {};
+
+        for (const [setId, setEffect] of Object.entries(this.setSpecialEffects)) {
+            const setData = SET_DEFINITIONS[setId];
+            if (!setData) continue;
+            const effect = setData.effects[setEffect.pieceCount];
+            if (!effect || effect.special !== 'oblivionExecute' || setEffect.pieceCount !== 8) continue;
+
+            const iv = typeof effect.executeIntervalMs === 'number' && effect.executeIntervalMs >= 200
+                ? effect.executeIntervalMs
+                : 1000;
+            const last = this._oblivionExecuteTs[setId] || 0;
+            if (now - last < iv) continue;
+
+            const threshold = typeof effect.executeHpThreshold === 'number' && effect.executeHpThreshold > 0 && effect.executeHpThreshold < 1
+                ? effect.executeHpThreshold
+                : 0.15;
+            const targets = gameInstance.getCurrentSceneTargets();
+            const victims = [];
+            for (let i = 0; i < targets.length; i++) {
+                const m = targets[i];
+                if (!m || typeof m.takeDamage !== 'function') continue;
+                if (!(m instanceof Monster)) continue;
+                if (!isCombatTargetAliveForEquipmentProc(m)) continue;
+                const maxH = m.maxHp;
+                if (!(maxH > 0)) continue;
+                const ratio = m.hp / maxH;
+                if (ratio >= threshold) continue;
+                victims.push(m);
+            }
+            if (victims.length === 0) continue;
+
+            this._oblivionExecuteTs[setId] = now;
+            if (gameInstance.soundManager) {
+                gameInstance.soundManager.playSound('levelup');
+            }
+            queueSetProcFx(gameInstance, 'oblivion_execute_corona', this.x, this.y, { radius: 220, duration: 650 });
+
+            for (let v = 0; v < victims.length; v++) {
+                const m = victims[v];
+                if (!m || m.hp <= 0) continue;
+                const overkill = (m.hp || 0) + (m.startingShieldHp || 0) + (m.maxHp || 0) * 4;
+                const killed = m.takeDamage(overkill);
+                if (!killed) continue;
+                gameInstance.addFloatingText(m.x, m.y, '终焉斩杀!', '#ff1a1a', 2400, 24, true);
+                queueSetProcFx(gameInstance, 'oblivion_execute', m.x, m.y, { radius: 138, duration: 920 });
+                this.processKillRewards([m]);
             }
         }
     }
@@ -8740,48 +8801,32 @@ class Player {
      */
     processKillRewards(killedMonsters) {
         if (!this.gameInstance) return;
+        const inTraining = this.gameInstance.currentScene === SCENE_TYPES.TRAINING;
         killedMonsters.forEach(monster => {
-            if (this.gameInstance && typeof this.gameInstance.onMonsterSlain === 'function') {
-                this.gameInstance.onMonsterSlain(monster);
-            }
             const isBoss = monster instanceof Boss;
             if (isBoss) {
-                if (this.gameInstance.onBossDefeated) this.gameInstance.onBossDefeated(monster);
+                if (!inTraining) {
+                    if (typeof this.gameInstance.onMonsterSlain === 'function') {
+                        this.gameInstance.onMonsterSlain(monster);
+                    }
+                    if (this.gameInstance.onBossDefeated) this.gameInstance.onBossDefeated(monster);
+                }
                 return;
+            }
+            // 训练场：击杀任何目标（含怪物假人）不结算经验、金币、装备掉落，也不触发击杀类套装/词条（纯打桩）
+            if (inTraining) {
+                return;
+            }
+            if (typeof this.gameInstance.onMonsterSlain === 'function') {
+                this.gameInstance.onMonsterSlain(monster);
             }
             this.gameInstance.gainExp(monster.expReward);
             this.gameInstance.gainGold(monster.goldReward);
             this.processKillTraits(monster);
-            this.handleSetKillEffects(monster);
             this.gameInstance.addFloatingText(this.gameInstance.player.x, this.gameInstance.player.y, `+${monster.expReward} 经验`, '#00ff00');
             this.gameInstance.addFloatingText(this.gameInstance.player.x, this.gameInstance.player.y, `+${monster.goldReward} 金币`, '#ffd700');
-            if (Math.random() < 0.3) {
-                const allEquipments = generateEquipments();
-                const tierLevels = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
-                const M = monster.level;
-                let availableLevels = tierLevels.filter(L => L <= M && L >= M - 22);
-                if (!availableLevels.length) availableLevels = tierLevels.filter(L => L <= M);
-                if (!availableLevels.length) availableLevels = [1];
-                const levelEquipments = allEquipments.filter(eq => availableLevels.includes(eq.level) && !eq.isCrafted);
-                if (levelEquipments.length > 0) {
-                    const randomEq = levelEquipments[Math.floor(Math.random() * levelEquipments.length)];
-                    const newEq = new Equipment({
-                        id: randomEq.id,
-                        name: randomEq.name,
-                        slot: randomEq.slot,
-                        weaponType: randomEq.weaponType,
-                        quality: randomEq.quality,
-                        level: randomEq.level,
-                        stats: JSON.parse(JSON.stringify(randomEq.stats)),
-                        refineLevel: 0
-                    });
-                    const dropAngle = Math.random() * Math.PI * 2;
-                    const dropDistance = 20 + Math.random() * 40;
-                    const dropX = monster.x + Math.cos(dropAngle) * dropDistance;
-                    const dropY = monster.y + Math.sin(dropAngle) * dropDistance;
-                    this.gameInstance.droppedItems.push(new DroppedItem(dropX, dropY, newEq, this.gameInstance));
-                }
-            }
+            this.handleSetKillEffects(monster);
+            rollEquipmentDropAtMonster(monster, this.gameInstance, 0.3);
         });
     }
 

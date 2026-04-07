@@ -78,7 +78,7 @@ class AssetManager {
     /**
      * 加载并处理装备图片
      * @param {string} imageName - 图片文件名
-     * @returns {Promise<string>} 处理后的图片URL（data URL）
+     * @returns {Promise<string>} 用于 background-image 的 URL（同源 asset 路径或合铸 data URL）
      */
     async loadAndProcessEquipmentImage(imageName) {
         // 检查缓存
@@ -117,76 +117,12 @@ class AssetManager {
 
         return new Promise((resolve, reject) => {
             const img = new Image();
-            
+
             img.onload = () => {
-                try {
-                    // 创建canvas来处理图片
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    
-                    // 缩小一圈：缩小10%
-                    const scale = 0.9;
-                    const newWidth = Math.floor(img.width * scale);
-                    const newHeight = Math.floor(img.height * scale);
-                    const offsetX = Math.floor((img.width - newWidth) / 2);
-                    const offsetY = Math.floor((img.height - newHeight) / 2);
-                    
-                    canvas.width = newWidth;
-                    canvas.height = newHeight;
-                    
-                    // 绘制缩小后的图片（从原图中心区域裁剪）
-                    ctx.drawImage(
-                        img,
-                        offsetX, offsetY, newWidth, newHeight,  // 源图像区域
-                        0, 0, newWidth, newHeight  // 目标canvas区域
-                    );
-                    
-                    // 尝试去除右下角水印（可能会因为跨域问题失败）
-                    try {
-                        // 去除右下角水印：将右下角20%的区域设为透明
-                        const watermarkAreaWidth = Math.floor(newWidth * 0.2);
-                        const watermarkAreaHeight = Math.floor(newHeight * 0.2);
-                        const watermarkX = newWidth - watermarkAreaWidth;
-                        const watermarkY = newHeight - watermarkAreaHeight;
-                        
-                        // 获取右下角区域的图像数据（这里可能会触发跨域错误）
-                        const imageData = ctx.getImageData(watermarkX, watermarkY, watermarkAreaWidth, watermarkAreaHeight);
-                        const data = imageData.data;
-                        
-                        // 检测白色水印区域并设为透明
-                        for (let i = 0; i < data.length; i += 4) {
-                            const r = data[i];
-                            const g = data[i + 1];
-                            const b = data[i + 2];
-                            // 如果像素接近白色（RGB值都大于200），则设为透明
-                            if (r > 200 && g > 200 && b > 200) {
-                                data[i + 3] = 0; // alpha设为0（透明）
-                            }
-                        }
-                        
-                        // 将处理后的图像数据放回canvas
-                        ctx.putImageData(imageData, watermarkX, watermarkY);
-                    } catch (watermarkError) {
-                        // 如果去除水印失败（跨域问题），继续使用缩小后的图片（不去除水印）
-                        // 静默处理，不输出错误
-                    }
-                    
-                    // 尝试转换为data URL（如果canvas被污染，这里也会失败）
-                    try {
-                        const dataUrl = canvas.toDataURL('image/png');
-                        this.equipmentImageCache.set(imageName, dataUrl);
-                        resolve(dataUrl);
-                    } catch (dataUrlError) {
-                        // 如果转换为data URL失败（跨域问题），使用原始图片URL
-                        // 使用CSS的background-size来实现缩小效果
-                        this.equipmentImageCache.set(imageName, imagePath);
-                        resolve(imagePath);
-                    }
-                } catch (error) {
-                    // 如果整个处理过程失败（包括drawImage），直接使用原始图片URL
-                    this.equipmentImageCache.set(imageName, imagePath);
-                    resolve(imagePath);
-                }
+                // 直接使用同源 PNG URL，不再经 canvas → toDataURL。
+                // 旧管线会重编码 PNG，部分透明底素材在浏览器里会变成不透明黑底；CSS backgroundSize 负责缩放。
+                this.equipmentImageCache.set(imageName, imagePath);
+                resolve(imagePath);
             };
             
             img.onerror = (e) => {

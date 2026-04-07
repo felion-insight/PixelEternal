@@ -3,7 +3,7 @@
 """
 Pixel Eternal - 游戏美术资源生成工具
 使用自然语言描述需求，通过 GPT 规划提示词与风格，再调用 Imagen 生成图片并自动写入项目。
-技能/增幅/批量武器贴图等图标类输出经后处理为 EXPORT_ICON_SIZE×EXPORT_ICON_SIZE 的 RGBA 透明底 PNG（默认 68）。
+技能/增幅/飞射体/批量武器贴图等图标类输出经后处理为 EXPORT_ICON_SIZE（或飞射体 PE_PROJECTILE_ICON_SIZE）的 RGBA 透明底 PNG。
 
 装备生成约定与深阶提示词表见 tools/art-requirements-2026-03-19.md（主题×品质批量可用 --deep-theme / --deep-quality）。
 """
@@ -80,6 +80,8 @@ def require_art_api_key(purpose: str = "调用 LLM 或生图接口") -> None:
 ART_FOLDER = PROJECT_ROOT / "asset"
 ART_SKILL_ICONS = ART_FOLDER / "skill_icons"
 ART_BUFF_ICONS = ART_FOLDER / "buff_icons"  # 增幅/效果图标，画风与技能图标一致
+ART_PROJECTILES = ART_FOLDER / "projectiles"  # 飞射体/子弹精灵（tools/projectiles.md）
+PROJECTILES_MD = PROJECT_ROOT / "tools" / "projectiles.md"
 SKILL_ICON_EXAMPLES_DIR = ART_SKILL_ICONS / "Examples"  # 风格参考图目录
 # 深阶装备统一输出目录（相对 asset），可用环境变量覆盖
 DEEP_EQUIPMENT_FOLDER = os.environ.get("PE_DEEP_EQUIPMENT_FOLDER", "deep_equipment").strip() or "deep_equipment"
@@ -93,6 +95,8 @@ MAPPINGS_CONFIG = PROJECT_ROOT / "config" / "mappings.json"
 
 # 导出图标边长（技能/增幅/装备武器等经后处理统一为此尺寸，透明底 RGBA PNG）
 EXPORT_ICON_SIZE = int(os.environ.get("PE_EXPORT_ICON_SIZE", "68"))
+# 飞射体贴图边长（匀质黑底生图后经 flood 抠透明）
+PROJECTILE_ICON_SIZE = int(os.environ.get("PE_PROJECTILE_ICON_SIZE", "64"))
 # 与边缘连通的「背景黑」判据（RGB 均不超过此值则从边缘 flood 为透明；主体内闭合黑色会保留）
 CHROMA_KEY_THRESHOLD = int(os.environ.get("PE_CHROMA_KEY_THRESHOLD", "10"))
 
@@ -105,6 +109,11 @@ SKILL_ICON_CORE_TEMPLATE = (
 )
 # 三变量拼成 "... {shape} with {texture} in {color} palette"
 SKILL_ICON_NEGATIVE_PROMPT = "text, numbers, stars, borders, UI elements, decorations"
+# 飞射体（tools/projectiles.md）：与文档「纯黑底」配合 negative，生图后 process_transparent_icon_image 去黑底
+PROJECTILE_NEGATIVE_PROMPT = (
+    "gun, rifle, pistol, musket, firearm, realistic photo, photorealistic, 3d render, octane render, "
+    "text, watermark, UI frame, border, human figure, full scene portrait, blurry, smooth vector gradient"
+)
 
 # 武器装备栏贴图：与 tools/equipment-art-requirements.md 一致；远程与近战共用（仅主体由 GPT 描述，避免画风漂移）
 EQUIPMENT_WEAPON_TEXTURE_STYLE_TEMPLATE = (
@@ -922,6 +931,8 @@ def detect_batch_skill_icons(user_input: str) -> bool:
     t = user_input.strip()
     if not t:
         return False
+    if ("子弹" in t or "飞射体" in t or "飞射" in t or "弹道" in t or "projectile" in t.lower()) and "武器技能" not in t:
+        return False
     has_all = "所有" in t or "全部" in t or "批量" in t
     has_skill = "武器技能" in t or "技能" in t
     has_icon = "图标" in t or "icon" in t.lower() or "图" in t
@@ -1363,6 +1374,40 @@ def detect_batch_deep_equipment_textures(user_input: str) -> bool:
     return True
 
 
+def detect_batch_projectile_textures(user_input: str) -> bool:
+    """「一键/全部 子弹、飞射体、弹道贴图」：按 tools/projectiles.md 写入 asset/projectiles/。"""
+    t = user_input.strip()
+    if not t:
+        return False
+    if "武器技能" in t and not any(
+        k in t for k in ("子弹", "飞射体", "飞射", "弹道", "弹射物")
+    ) and "projectile" not in t.lower():
+        return False
+    topic = (
+        "子弹" in t
+        or "飞射体" in t
+        or "飞射" in t
+        or "弹道" in t
+        or "弹射物" in t
+        or "projectile" in t.lower()
+    )
+    if not topic:
+        return False
+    scope = (
+        "所有" in t
+        or "全部" in t
+        or "批量" in t
+        or "一键" in t
+        or "每个" in t
+    )
+    do = "生成" in t or "补齐" in t or "补全" in t or "做" in t or "出图" in t
+    if scope and (do or "贴图" in t or "sprite" in t.lower() or "精灵" in t):
+        return True
+    if "一键生成" in t and topic:
+        return True
+    return False
+
+
 def detect_batch_all_equipment_textures(user_input: str) -> bool:
     """「补齐/生成 所有装备 贴图」等：覆盖全部部位（含武器）。不含「装备」一词的仍走仅武器分支。"""
     t = user_input.strip()
@@ -1618,6 +1663,81 @@ def run_batch_deep_equipment_textures(
         only_ranged_weapons=only_ranged_weapons,
         force_hint="--force-deep-equipment-textures",
     )
+
+
+_PROJECTILE_SLUG_IN_MD = re.compile(r"`(proj_[a-z0-9_]+)`")
+
+
+def load_projectile_entries_from_md() -> list[dict]:
+    """解析 tools/projectiles.md 中表格行：反引号内 slug + 含 pixel art projectile 的完整英文提示词。
+    同一 slug 出现多次时第二次起文件名加 _v2、_v3…，避免法杖与弓弩表覆盖。
+    """
+    if not PROJECTILES_MD.is_file():
+        return []
+    text = PROJECTILES_MD.read_text(encoding="utf-8")
+    entries: list[dict] = []
+    slug_occurrence: dict[str, int] = {}
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line.startswith("|"):
+            continue
+        if re.search(r"\|\s*:?-{3,}", line):
+            continue
+        if "`proj_" not in line:
+            continue
+        sm = _PROJECTILE_SLUG_IN_MD.search(line)
+        if not sm:
+            continue
+        slug = sm.group(1)
+        chunks = re.findall(r"`([^`]*)`", line)
+        prompt = ""
+        for ch in chunks:
+            low = ch.lower()
+            if ch.startswith("proj_"):
+                continue
+            if "pixel art projectile" in low or "projectile sprite" in low:
+                if len(ch) > len(prompt):
+                    prompt = ch.strip()
+        if not prompt:
+            continue
+        slug_occurrence[slug] = slug_occurrence.get(slug, 0) + 1
+        n = slug_occurrence[slug]
+        filename = f"{slug}.png" if n == 1 else f"{slug}_v{n}.png"
+        entries.append({"slug": slug, "filename": filename, "prompt": prompt})
+    return entries
+
+
+def run_batch_projectile_textures(dry_run: bool = False, force: bool = False) -> None:
+    """按 projectiles.md 一键生成飞射体贴图，输出 asset/projectiles/，黑底生图后经 flood 抠透明。"""
+    entries = load_projectile_entries_from_md()
+    if not entries:
+        print(f"未从 {PROJECTILES_MD} 解析到任何 proj_* 条目，请检查文档表格。")
+        return
+    ART_PROJECTILES.mkdir(parents=True, exist_ok=True)
+    todo = list(entries) if force else [e for e in entries if not (ART_PROJECTILES / e["filename"]).is_file()]
+    if not todo:
+        print(f"共 {len(entries)} 条飞射体定义，文件均已存在。使用 --force-projectile-textures 可全部重绘。")
+        return
+    print(f"飞射体：文档共 {len(entries)} 条，将生成 {len(todo)} 个 PNG（透明底 {PROJECTILE_ICON_SIZE}×{PROJECTILE_ICON_SIZE}）…")
+    for i, e in enumerate(todo, 1):
+        dest = ART_PROJECTILES / e["filename"]
+        print(f"[{i}/{len(todo)}] {e['slug']} -> {dest.relative_to(PROJECT_ROOT)}")
+        if dry_run:
+            print(f"  [dry-run] prompt: {e['prompt'][:140]}{'…' if len(e['prompt']) > 140 else ''}")
+            continue
+        try:
+            raw = generate_image(
+                e["prompt"],
+                "",
+                for_skill_icon=False,
+                for_projectile=True,
+            )
+            image_bytes = process_transparent_icon_image(raw, size=PROJECTILE_ICON_SIZE)
+            dest.write_bytes(image_bytes)
+            print("  已保存（透明底）。")
+        except Exception as ex:
+            print(f"  失败: {ex}")
+    print("飞射体贴图批量处理完成。")
 
 
 def run_deep_equipment_batch(
@@ -1897,9 +2017,10 @@ def generate_image(
     for_skill_icon: bool = False,
     for_equipment_weapon: bool = False,
     for_equipment_non_weapon: bool = False,
+    for_projectile: bool = False,
     extra_negative: str = "",
 ) -> bytes:
-    """调用 Imagen API 生成图片，返回 PNG 字节。技能图标与装备贴图可带专用 negative_prompt。"""
+    """调用 Imagen API 生成图片，返回 PNG 字节。技能图标、飞射体与装备贴图可带专用 negative_prompt。"""
     try:
         import requests
     except ImportError:
@@ -1921,6 +2042,8 @@ def generate_image(
     base_neg = ""
     if for_skill_icon and SKILL_ICON_NEGATIVE_PROMPT:
         base_neg = SKILL_ICON_NEGATIVE_PROMPT
+    elif for_projectile and PROJECTILE_NEGATIVE_PROMPT:
+        base_neg = PROJECTILE_NEGATIVE_PROMPT
     elif for_equipment_weapon and EQUIPMENT_WEAPON_NEGATIVE_PROMPT:
         base_neg = EQUIPMENT_WEAPON_NEGATIVE_PROMPT
     elif for_equipment_non_weapon and EQUIPMENT_NON_WEAPON_NEGATIVE_PROMPT:
@@ -1928,7 +2051,7 @@ def generate_image(
     neg_parts = [p for p in (base_neg, (extra_negative or "").strip()) if p]
     if neg_parts:
         body["negative_prompt"] = ", ".join(neg_parts)
-    if for_skill_icon:
+    if for_skill_icon or for_projectile:
         body["quality"] = "ultra-detail"
         body["style_strength"] = 0.95
         body["steps"] = 60
@@ -2132,6 +2255,21 @@ def main():
         help="按 equipment-deep-config.json 对全部深阶装备逐项补缺/生图（真实名称如 渊隙凡·低语）",
     )
     parser.add_argument(
+        "--batch-projectile-textures",
+        action="store_true",
+        help="按 tools/projectiles.md 一键生成全部飞射体/子弹贴图至 asset/projectiles/（透明底 PNG）",
+    )
+    parser.add_argument(
+        "--list-missing-projectile-textures",
+        action="store_true",
+        help="列出 projectiles.md 中尚未生成对应 PNG 的飞射体条目（不调用 API）",
+    )
+    parser.add_argument(
+        "--force-projectile-textures",
+        action="store_true",
+        help="飞射体批量时重绘已有 PNG（与 --batch-projectile-textures 或自然语言联用）",
+    )
+    parser.add_argument(
         "--force-all-equipment-textures",
         action="store_true",
         help="全装备批量时重绘已有 PNG（与 --batch-all-equipment-textures 或自然语言全装备指令联用）",
@@ -2277,6 +2415,21 @@ def main():
         )
         return
 
+    if args.list_missing_projectile_textures:
+        entries = load_projectile_entries_from_md()
+        if not entries:
+            print(f"未解析到条目，请检查 {PROJECTILES_MD} 是否存在且含 proj_* 表格行。")
+            return
+        missing = [e for e in entries if not (ART_PROJECTILES / e["filename"]).is_file()]
+        print(f"飞射体条目: {len(entries)}，文件已存在: {len(entries) - len(missing)}，缺失: {len(missing)}")
+        for e in missing:
+            print(f"  - {e['slug']} -> asset/projectiles/{e['filename']}")
+        return
+
+    if args.batch_projectile_textures:
+        run_batch_projectile_textures(dry_run=args.dry_run, force=args.force_projectile_textures)
+        return
+
     user_input = args.input
     if not user_input:
         user_input = input("请用自然语言描述要生成的美术资源（例如：一把传说品质的龙炎剑图标 / 生成所有武器技能的图标 / 生成所有增幅的图标）：\n").strip()
@@ -2292,6 +2445,11 @@ def main():
     # 识别「生成所有武器技能图标」类请求，走批量补齐流程
     if detect_batch_skill_icons(user_input):
         run_batch_skill_icons(dry_run=args.dry_run)
+        return
+
+    # 飞射体：tools/projectiles.md（须在「深阶装备」之前，避免「深阶…弓弩子弹」类描述误走装备批量）
+    if detect_batch_projectile_textures(user_input):
+        run_batch_projectile_textures(dry_run=args.dry_run, force=args.force_projectile_textures)
         return
 
     # 深阶：equipment-deep-config.json（先于「所有装备」以免「所有深阶装备」误走基础表）

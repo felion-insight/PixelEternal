@@ -1233,6 +1233,41 @@ body {
     display: flex;
 }
 
+/* 恶魔塔：精英加护三选一、隙间商店（须全屏遮罩；否则仅在 #game-container 流式布局底部且被 overflow 裁切，暂停后看不到界面） */
+#elite-boon-choice-modal,
+#gap-shop-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.72);
+    display: none;
+    pointer-events: auto;
+    z-index: 3100;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 16px;
+}
+
+#elite-boon-choice-modal.show,
+#gap-shop-modal.show {
+    display: flex;
+}
+
+#elite-boon-choice-modal .modal-content,
+#gap-shop-modal .modal-content {
+    background: rgba(30, 30, 40, 0.98);
+    border: 3px solid #666;
+    border-radius: 10px;
+    padding: 22px;
+    color: #fff;
+    position: relative;
+    max-width: 92vw;
+    box-sizing: border-box;
+}
+
 #dungeon-enter-confirm-modal .modal-content, #dungeon-license-insufficient-modal .modal-content, #esc-menu-modal .modal-content, #tower-exit-confirm-modal .modal-content {
     background: rgba(30, 30, 40, 0.95);
     border: 3px solid #666;

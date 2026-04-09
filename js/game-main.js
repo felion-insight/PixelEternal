@@ -281,13 +281,38 @@ class Game {
                     loadFn: () => this.assetManager.loadPlayerGifFrames()
                 });
             }
+
+            // 5. 飞射体 / 子弹贴图（asset/projectiles）
+            if (typeof window.PROJECTILE_SPRITE_MAP !== 'undefined' && window.PROJECTILE_SPRITE_MAP) {
+                const pm = window.PROJECTILE_SPRITE_MAP;
+                const projIds = new Set();
+                ['weaponByName', 'monsterByName', 'bossSkillByName'].forEach((k) => {
+                    const o = pm[k];
+                    if (o && typeof o === 'object') {
+                        Object.values(o).forEach((v) => { if (v && typeof v === 'string') projIds.add(v); });
+                    }
+                });
+                if (pm.monsterDefault && typeof pm.monsterDefault === 'string') projIds.add(pm.monsterDefault);
+                if (Array.isArray(pm.allSpriteIds)) {
+                    pm.allSpriteIds.forEach((id) => { if (id && typeof id === 'string') projIds.add(id); });
+                }
+                projIds.forEach((id) => {
+                    resourcesToLoad.push({
+                        type: 'projectile',
+                        name: id,
+                        imageName: 'projectiles/' + id + '.png',
+                        loadFn: () => this.assetManager.loadProjectileSprite(id)
+                    });
+                });
+            }
             
             const totalImages = resourcesToLoad.length;
             console.log('需要加载的资源数量:', totalImages, {
                 equipment: resourcesToLoad.filter(r => r.type === 'equipment').length,
                 alchemy: resourcesToLoad.filter(r => r.type === 'alchemy').length,
                 monster: resourcesToLoad.filter(r => r.type === 'monster').length,
-                player: resourcesToLoad.filter(r => r.type === 'player').length
+                player: resourcesToLoad.filter(r => r.type === 'player').length,
+                projectile: resourcesToLoad.filter(r => r.type === 'projectile').length
             });
             let loadedImages = 0;
             
@@ -315,9 +340,10 @@ class Game {
                     equipment: resourcesToLoad.filter(r => r.type === 'equipment').length,
                     alchemy: resourcesToLoad.filter(r => r.type === 'alchemy').length,
                     monster: resourcesToLoad.filter(r => r.type === 'monster').length,
-                    player: resourcesToLoad.filter(r => r.type === 'player').length
+                    player: resourcesToLoad.filter(r => r.type === 'player').length,
+                    projectile: resourcesToLoad.filter(r => r.type === 'projectile').length
                 };
-                statusText.textContent = `准备加载 ${totalImages} 个资源 (装备:${typeCounts.equipment} 材料:${typeCounts.alchemy} 怪物:${typeCounts.monster} 玩家:${typeCounts.player})...`;
+                statusText.textContent = `准备加载 ${totalImages} 个资源 (装备:${typeCounts.equipment} 材料:${typeCounts.alchemy} 怪物:${typeCounts.monster} 玩家:${typeCounts.player} 飞射体:${typeCounts.projectile})...`;
                 console.log('状态文本已更新:', statusText.textContent);
             }
             updateProgress();
@@ -865,6 +891,8 @@ class Game {
         this.initShop();
         this.initGapShop();
         this.initEliteBoonChoiceModal();
+        this.initDemonInterferenceUi();
+        this.initDevPanelExtraControls();
         this.initTrainingAndCapacity();
         this.initLevelUpCapacity();
         this.initDungeonSelection();
@@ -1162,6 +1190,13 @@ class Game {
                 const index = parseInt((e.currentTarget && e.currentTarget.dataset.index) || e.target.dataset.index);
                 if (!isNaN(index)) {
                     this.handleInventorySlotClick(index);
+                }
+            });
+            slot.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                const index = parseInt((e.currentTarget && e.currentTarget.dataset.index) || e.target.dataset.index);
+                if (!isNaN(index) && this.player.inventory[index]) {
+                    this.discardInventoryItem(index);
                 }
             });
             inventoryItems.appendChild(slot);
@@ -1924,7 +1959,7 @@ class Game {
                         infoHTML += `<p><strong>类型:</strong> 立即生效</p>`;
                     }
                     
-                    infoHTML += `<p style="color: #aaa; font-size: 12px; margin-top: 10px;">提示：在背包中双击药水即可使用</p>`;
+                    infoHTML += `<p style="color: #aaa; font-size: 12px; margin-top: 10px;">提示：在背包中单击药水即可使用；右键物品可丢弃</p>`;
                     
                     info.innerHTML = infoHTML;
                     
@@ -2404,7 +2439,7 @@ class Game {
     handleInventorySlotClick(index) {
         const item = this.player.inventory[index];
         if (item) {
-            // 如果是消耗品（药水），使用它（神圣十字架不能通过双击使用）
+            // 如果是消耗品（药水），使用它（神圣十字架不能通过单击使用）
             if ((item.type === 'consumable' || item.type === 'potion') && 
                 item.consumableType !== 'resurrection' && 
                 item.name !== '神圣十字架') {
@@ -2458,6 +2493,27 @@ class Game {
                 this.updateHUD(); // 更新HUD以刷新套装效果显示
             }
         }
+    }
+
+    /**
+     * 从背包丢弃物品（永久消失，不会掉落在地上）
+     * @param {number} index - 背包索引
+     */
+    discardInventoryItem(index) {
+        const item = this.player.inventory[index];
+        if (!item) return;
+
+        const name = item.name || '物品';
+        if (!confirm(`确定要丢弃「${name}」吗？\n该物品将永久消失，不会掉落在地上。`)) {
+            return;
+        }
+
+        this.player.inventory[index] = null;
+        this.hideItemTooltip();
+        this.updateInventoryUI();
+        this.updateInventoryCapacity();
+        this.updateHUD();
+        this.addFloatingText(this.player.x, this.player.y, `已丢弃 ${name}`, '#888888');
     }
 
     // ====================================================================
@@ -8132,7 +8188,8 @@ class Game {
             color: options.color || '#ffffff',
             targetX: options.targetX,
             targetY: options.targetY,
-            followTarget: options.followTarget || null
+            followTarget: options.followTarget || null,
+            projectileSpriteId: options.projectileSpriteId || null
         };
         this.equipmentEffects.push(effect);
     }
@@ -8421,6 +8478,10 @@ class Game {
      * 添加怪物远程子弹（由远程怪 attack 内调用）
      */
     addMonsterProjectile(startX, startY, targetX, targetY, damage, monsterRef, duration = 400) {
+        let spriteId = null;
+        if (typeof resolveProjectileSpriteIdForMonster === 'function') {
+            spriteId = resolveProjectileSpriteIdForMonster(monsterRef);
+        }
         this.monsterProjectiles.push({
             x: startX,
             y: startY,
@@ -8431,7 +8492,8 @@ class Game {
             startTime: Date.now(),
             duration,
             damage,
-            monsterRef
+            monsterRef,
+            spriteId
         });
     }
     
@@ -8663,11 +8725,16 @@ class Game {
     drawMonsterProjectiles(ctx) {
         if (!this.monsterProjectiles || !this.monsterProjectiles.length) return;
         const now = Date.now();
+        const am = this.assetManager;
         this.monsterProjectiles.forEach(proj => {
             const elapsed = now - proj.startTime;
             const progress = Math.min(1, elapsed / proj.duration);
             const x = proj.startX + (proj.targetX - proj.startX) * progress;
             const y = proj.startY + (proj.targetY - proj.startY) * progress;
+            const ang = Math.atan2(proj.targetY - proj.startY, proj.targetX - proj.startX);
+            if (am && proj.spriteId && am.drawProjectileSprite(ctx, x, y, ang, proj.spriteId, 28)) {
+                return;
+            }
             ctx.save();
             ctx.fillStyle = '#ff3333';
             ctx.beginPath();
@@ -8802,11 +8869,16 @@ class Game {
                     ctx.fill();
                     break;
                     
-                case 'ranged_bullet': // 玩家远程子弹：红点从起点飞向目标
+                case 'ranged_bullet': { // 玩家远程子弹：贴图沿直线飞向目标
                     const tx = effect.targetX != null ? effect.targetX : effect.x;
                     const ty = effect.targetY != null ? effect.targetY : effect.y;
                     const bx = effect.x + (tx - effect.x) * progress;
                     const by = effect.y + (ty - effect.y) * progress;
+                    const bang = Math.atan2(ty - effect.y, tx - effect.x);
+                    const am = this.assetManager;
+                    if (am && effect.projectileSpriteId && am.drawProjectileSprite(ctx, bx, by, bang, effect.projectileSpriteId, 32)) {
+                        break;
+                    }
                     ctx.fillStyle = '#ff3333';
                     ctx.beginPath();
                     ctx.arc(bx, by, 4, 0, Math.PI * 2);
@@ -8815,6 +8887,7 @@ class Game {
                     ctx.lineWidth = 1;
                     ctx.stroke();
                     break;
+                }
                     
                 case 'reflect_shield': // 龙鳞护甲 - 金色圆形反弹（从外向内收缩）
                     const reflectRadius = effect.radius * (1 - progress * 0.5); // 从外向内
@@ -9371,10 +9444,82 @@ class Game {
         }
     }
     
+    initDemonInterferenceUi() {
+        const overlay = document.getElementById('demon-overlay');
+        if (!overlay || this._demonInterferenceUiInit) return;
+        this._demonInterferenceUiInit = true;
+        overlay.addEventListener('click', () => {
+            if (!this.demonInterferenceActive) return;
+            const hint = document.getElementById('demon-interference-hint');
+            if (!hint || hint.style.display === 'none') return;
+            document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', key: ' ', bubbles: true }));
+        });
+    }
+    
+    initDevPanelExtraControls() {
+        if (this._devPanelExtraInit) return;
+        this._devPanelExtraInit = true;
+        const bind = (btnId, fn) => {
+            const el = document.getElementById(btnId);
+            if (!el) return;
+            el.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fn.call(this);
+            });
+        };
+        bind('dev-btn-demon-trigger', this.devTriggerDemonInterference);
+        bind('dev-btn-demon-preview', this.devPreviewDemonInterferenceDialog);
+    }
+    
+    showDevPanelFeedback(message) {
+        const el = document.getElementById('dev-action-feedback');
+        if (el) el.textContent = message || '';
+        if (this._devFeedbackClearTimer) clearTimeout(this._devFeedbackClearTimer);
+        if (message) {
+            this._devFeedbackClearTimer = setTimeout(() => {
+                const fb = document.getElementById('dev-action-feedback');
+                if (fb) fb.textContent = '';
+            }, 6500);
+        }
+    }
+    
+    /** 若曾因异常留下 demonInterferenceActive 但界面已关，恢复可再次触发 */
+    _recoverStuckDemonInterferenceStateForDev() {
+        if (!this.demonInterferenceActive) return;
+        const modal = document.getElementById('demon-interference-modal');
+        const uiOpen = modal && modal.classList.contains('show');
+        if (uiOpen) return;
+        if (this.demonInterferenceTypingInterval) {
+            clearInterval(this.demonInterferenceTypingInterval);
+            this.demonInterferenceTypingInterval = null;
+        }
+        if (this.demonInterferenceSpaceHandler) {
+            document.removeEventListener('keydown', this.demonInterferenceSpaceHandler);
+            this.demonInterferenceSpaceHandler = null;
+        }
+        const overlay = document.getElementById('demon-overlay');
+        if (overlay) overlay.classList.remove('show');
+        if (modal) modal.classList.remove('show');
+        const textEl = document.getElementById('demon-interference-text');
+        const hintEl = document.getElementById('demon-interference-hint');
+        if (textEl) textEl.textContent = '';
+        if (hintEl) hintEl.style.display = 'none';
+        this.demonInterferenceActive = false;
+        this.demonInterferenceEffect = null;
+    }
+    
     showDemonInterferenceDialog(fullText, onClose) {
         const textEl = document.getElementById('demon-interference-text');
         const hintEl = document.getElementById('demon-interference-hint');
-        if (!textEl || !hintEl) return;
+        if (!textEl || !hintEl) {
+            console.error('恶魔干扰：未找到 demon-interference-text 或 demon-interference-hint，已关闭并恢复操作');
+            this.closeDemonInterference();
+            if (this.currentScene === SCENE_TYPES.TOWER) {
+                try { this.generatePortals(); } catch (e) { /* ignore */ }
+            }
+            return;
+        }
         
         textEl.textContent = '';
         hintEl.style.display = 'none';
@@ -9429,38 +9574,41 @@ class Game {
         if (this.soundManager) this.soundManager.resumeBgm();
     }
     
+    /**
+     * 开发者：在恶魔塔内触发一次完整的「恶魔的干扰」（与层间随机触发逻辑一致）
+     */
     devTriggerDemonInterference() {
-        if (this.currentScene !== SCENE_TYPES.TOWER) {
-            alert('恶魔的干扰仅在恶魔塔内可用');
+        this._recoverStuckDemonInterferenceStateForDev();
+        if (this.demonInterferenceActive) {
+            this.showDevPanelFeedback('请先按空格或点击遮罩关闭当前恶魔干扰对话框。');
             return;
         }
-        if (this.demonInterferenceActive) return;
+        if (this.currentScene !== SCENE_TYPES.TOWER) {
+            this.showDevPanelFeedback('需在恶魔塔内才能触发完整流程。请点「预览干扰对话框」测 UI。');
+            console.warn('[dev] 恶魔干扰：当前不在恶魔塔');
+            return;
+        }
+        this.startDemonInterference();
+    }
+    
+    /**
+     * 开发者：仅弹出恶魔干扰 UI，随机效果与传送门逻辑均不执行（任意场景可用，用于排查显示问题）
+     */
+    devPreviewDemonInterferenceDialog() {
+        this._recoverStuckDemonInterferenceStateForDev();
+        if (this.demonInterferenceActive) {
+            this.showDevPanelFeedback('请先按空格或点击遮罩关闭当前恶魔干扰对话框。');
+            return;
+        }
         this.demonInterferenceActive = true;
         this.paused = true;
         if (this.soundManager) this.soundManager.pauseBgm();
-        
         const overlay = document.getElementById('demon-overlay');
         const modal = document.getElementById('demon-interference-modal');
         if (overlay) overlay.classList.add('show');
         if (modal) modal.classList.add('show');
-        
-        const effect = this.pickRandomDemonEffect();
-        this.demonInterferenceEffect = effect;
-        this.demonEffectStatusText = effect.statusText || effect.text;
-        
-        this.showDemonInterferenceDialog(effect.text, () => {
-            if (effect.type === 'c') {
-                this.closeDemonInterference();
-                this.applyDemonEffect(effect);
-                return;
-            }
-            this.applyDemonEffect(effect);
-            this.demonInterferenceFlags = {};
-            if (effect.type === 'b') {
-                if (effect.sealExit) this.demonInterferenceFlags.sealExit = true;
-                if (effect.forceRoomTypes) this.demonInterferenceFlags.forceRoomTypes = effect.forceRoomTypes;
-            }
-            this.generatePortals();
+        const previewText = '【开发者预览】此为恶魔干扰对话框界面测试。按空格或点击暗色遮罩关闭后，不会施加任何恶魔塔效果，也不会生成传送门。';
+        this.showDemonInterferenceDialog(previewText, () => {
             this.closeDemonInterference();
         });
     }
@@ -9523,8 +9671,15 @@ class Game {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.setAttribute('data-elite-boon-id', id);
-            btn.style.cssText = 'padding: 12px 10px; text-align: left; background: rgba(50, 70, 100, 0.9); color: #e8f0ff; border: 2px solid #6a9eff; border-radius: 6px; cursor: pointer; font-family: "Courier New", monospace; font-size: 12px; min-height: 88px;';
-            btn.innerHTML = `<strong style="color:#a8d8ff;">${meta.name}</strong><br/><span style="font-size:11px;color:#aaa;line-height:1.35;">${meta.description || ''}</span>`;
+            btn.className = 'elite-boon-choice-btn';
+            const nameEl = document.createElement('span');
+            nameEl.className = 'elite-boon-name';
+            nameEl.textContent = meta.name;
+            const descEl = document.createElement('span');
+            descEl.className = 'elite-boon-desc';
+            descEl.textContent = meta.description || '';
+            btn.appendChild(nameEl);
+            btn.appendChild(descEl);
             container.appendChild(btn);
         });
         if (skipBtn) {

@@ -92,6 +92,15 @@ class ConfigLoader {
                 console.warn('deep-suffix-table.json 未加载（深阶装备词条名将无法解析）:', e);
             }
 
+            try {
+                const projSprites = await this.loadJSON('config/projectile-sprites.json');
+                if (projSprites && typeof projSprites === 'object') {
+                    this.configs.PROJECTILE_SPRITE_MAP = projSprites;
+                }
+            } catch (e) {
+                console.warn('projectile-sprites.json 未加载（飞射体将回退为几何绘制）:', e);
+            }
+
             // 将配置赋值给全局变量
             this.assignToGlobals();
             this.loaded = true;
@@ -222,6 +231,9 @@ class ConfigLoader {
         }
         if (this.configs.DEEP_SUFFIX_TABLE) {
             window.DEEP_SUFFIX_TABLE = this.configs.DEEP_SUFFIX_TABLE;
+        }
+        if (this.configs.PROJECTILE_SPRITE_MAP) {
+            window.PROJECTILE_SPRITE_MAP = this.configs.PROJECTILE_SPRITE_MAP;
         }
     }
 }

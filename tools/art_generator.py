@@ -4,6 +4,7 @@
 Pixel Eternal - 游戏美术资源生成工具
 使用自然语言描述需求，通过 GPT 规划提示词与风格，再调用 Imagen 生成图片并自动写入项目。
 技能/增幅/飞射体/批量武器贴图等图标类输出经后处理为 EXPORT_ICON_SIZE（或飞射体 PE_PROJECTILE_ICON_SIZE）的 RGBA 透明底 PNG。
+怪物/Boss 批量贴图经 PE_MONSTER_TEXTURE_SIZE（默认 128）抠透明，见 tools/monster-generation.md 与 --batch-monster-textures。
 
 装备生成约定与深阶提示词表见 tools/art-requirements-2026-03-19.md（主题×品质批量可用 --deep-theme / --deep-quality）。
 """
@@ -92,11 +93,16 @@ SKILL_ICON_CONFIG = PROJECT_ROOT / "config" / "skill-icon-config.json"
 BUFF_ICON_CONFIG = PROJECT_ROOT / "config" / "buff-icon-config.json"
 SET_CONFIG = PROJECT_ROOT / "config" / "set-config.json"
 MAPPINGS_CONFIG = PROJECT_ROOT / "config" / "mappings.json"
+MONSTER_CONFIG = PROJECT_ROOT / "config" / "monster-config.json"
+DEEP_MONSTERS_ADD = PROJECT_ROOT / "config" / "deep-monsters-add.json"
+BOSS_CONFIG = PROJECT_ROOT / "config" / "boss-config.json"
 
 # 导出图标边长（技能/增幅/装备武器等经后处理统一为此尺寸，透明底 RGBA PNG）
 EXPORT_ICON_SIZE = int(os.environ.get("PE_EXPORT_ICON_SIZE", "68"))
 # 飞射体贴图边长（匀质黑底生图后经 flood 抠透明）
 PROJECTILE_ICON_SIZE = int(os.environ.get("PE_PROJECTILE_ICON_SIZE", "64"))
+# 怪物站立精灵经抠透明后的边长（游戏内再按 scale 绘制）
+MONSTER_TEXTURE_SIZE = int(os.environ.get("PE_MONSTER_TEXTURE_SIZE", "128"))
 # 与边缘连通的「背景黑」判据（RGB 均不超过此值则从边缘 flood 为透明；主体内闭合黑色会保留）
 CHROMA_KEY_THRESHOLD = int(os.environ.get("PE_CHROMA_KEY_THRESHOLD", "10"))
 
@@ -109,10 +115,31 @@ SKILL_ICON_CORE_TEMPLATE = (
 )
 # 三变量拼成 "... {shape} with {texture} in {color} palette"
 SKILL_ICON_NEGATIVE_PROMPT = "text, numbers, stars, borders, UI elements, decorations"
-# 飞射体（tools/projectiles.md）：与文档「纯黑底」配合 negative，生图后 process_transparent_icon_image 去黑底
+# 飞射体（tools/projectiles.md）：弓弩用 PHYSICAL、第三节法杖用 STAFF_MAGIC（解析 staff_magic 标记）
+PROJECTILE_LAYOUT_SUFFIX_PHYSICAL = (
+    "Single isolated projectile only: one horizontal bow or crossbow arrow bolt or quarrel body, no other objects. "
+    "Strictly horizontal, pointing to the right, sharp tip on the right, tail or fletching on the left. "
+    "Optional glow trail sparks or afterimage must extend straight left along the same horizontal axis only, "
+    "perfectly collinear straight line, no curved wisp, no spiral, no arc, no S-curve, no loop. "
+    "No bow, no crossbow, no bow limbs, no bowstring, no quiver, no weapon frame except the projectile itself."
+)
+PROJECTILE_LAYOUT_SUFFIX_STAFF_MAGIC = (
+    "Single isolated staff-cast spell missile only: compact glowing mana orb arcane shard spell comet void slash rune disc or plasma core, "
+    "absolutely NOT a physical arrow, NOT a wooden shaft, NOT feather fletching, NOT crossbow bolt silhouette, NOT long thin arrow shape. "
+    "Strictly horizontal, flying to the right, brighter spell core or leading energy on the right, softer magical trail or particle exhaust straight left on the same axis only, "
+    "perfectly collinear straight line, no curved wisp, no spiral, no arc, no S-curve, no loop. "
+    "No bow, no crossbow, no staff weapon visible, no bowstring, no quiver, no hands."
+)
+PROJECTILE_STAFF_MAGIC_EXTRA_NEGATIVE = (
+    "wooden arrow, feather fletching, arrowhead on stick, hunting arrow, crossbow bolt ammo shape, metal dart, "
+    "needle arrow silhouette, long arrow shaft"
+)
 PROJECTILE_NEGATIVE_PROMPT = (
     "gun, rifle, pistol, musket, firearm, realistic photo, photorealistic, 3d render, octane render, "
-    "text, watermark, UI frame, border, human figure, full scene portrait, blurry, smooth vector gradient"
+    "text, letters, numbers, watermark, logo, caption, UI frame, border, human figure, hands, archer, full scene portrait, "
+    "bow, crossbow, bow limbs, bowstring, quiver, "
+    "curved trail, spiral trail, bent tail, looping trail, S-curve trail, wavy trail, tangled messy trail, "
+    "blurry, smooth vector gradient"
 )
 
 # 武器装备栏贴图：与 tools/equipment-art-requirements.md 一致；远程与近战共用（仅主体由 GPT 描述，避免画风漂移）
@@ -143,6 +170,57 @@ EQUIPMENT_NON_WEAPON_NEGATIVE_PROMPT = (
     "watermarks, text, letters, multiple items, character wearing armor, full body portrait, busy background, "
     "motion blur, explosion, battlefield scene, dramatic cinematic scene"
 )
+# 怪物贴图（tools/monster-generation.md）：全身站立精灵，纯黑底抠透明
+MONSTER_TEXTURE_STYLE_TEMPLATE = (
+    "Pixel art dark fantasy RPG enemy sprite, retro 16-bit style, ultra-detailed pixel clusters, "
+    "full body standing pose, front view or three-quarter view, single creature only, centered in frame, "
+    "solid pure black background (#000000) flat uniform behind the subject only, no ground plane, no floor tiles, "
+    "no text, no watermark, no UI frame, no health bar, no decorative border, "
+    "razor-sharp pixel edges, no anti-aliasing, no photorealism, no 3D render look"
+)
+MONSTER_TEXTURE_NEGATIVE_PROMPT = (
+    "photorealistic, realistic photo, photograph, 3d render, octane render, unreal engine, cinematic lighting, "
+    "vector illustration, smooth gradients, oil painting, watercolor, anime screenshot, "
+    "watermarks, text, letters, numbers, UI, HUD, health bar, speech bubble, multiple characters, crowd, "
+    "busy background, landscape, sky, gradient background, motion blur, cinematic wide shot"
+)
+MONSTER_BOSS_EXTRA_STYLE = (
+    "Boss scale silhouette, imposing stance, menacing presence, richer details than a normal mob, "
+    "still single centered subject, same pure black backdrop"
+)
+# 与 js/game-entities.js RANGED_MONSTER_NAMES 一致（用于提示词强调弓/杖/施法）
+RANGED_MONSTER_NAMES_CN = frozenset(
+    (
+        "哥布林萨满",
+        "哥布林斥候",
+        "骷髅弓箭手",
+        "骷髅法师",
+        "兽人萨满",
+        "恶魔术士",
+        "恶魔大法师",
+        "灰烬先知",
+        "熵能术士",
+        "星渊法师",
+        "雷纹蝠群",
+        "黑曜喷流",
+        "塔基弩炮",
+    )
+)
+# tools/monster-generation.md 第四节 Boss 视觉关键词（英文，与 GPT 无关时可直接拼接）
+BOSS_TEXTURE_VISUAL_EN = {
+    "boss_20": "pinkish armored knight, ornate tower shield, halberd, glowing pink eyes, pixel art",
+    "boss_40": "lava golem, cracked magma skin, hammer fist, burning core, pixel art",
+    "boss_60": "ice lich, frozen crown, frost staff, trailing ice crystals, pixel art",
+    "boss_80": "lightning elemental, thundercloud body, electric arcs, yellow-white glow, pixel art",
+    "boss_100": "shadow overlord, wispy cloak, dark scepter, purple-black aura, pixel art",
+    "boss_120": "blood knight, crimson plate armor, greatsword with blood drip, red mist, pixel art",
+    "boss_140": "infernal warden, chains and hooks, fiery horns, molten whip, pixel art",
+    "boss_160": "void entity, distorted sphere, tentacles, starless black with purple rim, pixel art",
+    "boss_180": "apocalypse knight, pale armor, scythe, spectral wings, pixel art",
+    "boss_200": "twin beings, one cyan one magenta, yin-yang stance, chaotic particles, pixel art",
+    "boss_220": "star skeleton king, gold crown, meteor shoulder pads, cosmic dust trail, pixel art",
+    "boss_240": "pixelated titan, retro 8-bit blocks, neon pink and cyan, subtle glitch accents, pixel art",
+}
 # 兼容旧逻辑命名：边缘暗像素在透明流程中同样视为可扩展背景
 EDGE_CLEAN_THRESHOLD = 10
 
@@ -751,6 +829,353 @@ def add_equipment_mapping(weapon_name: str, relative_path: str) -> None:
     data["equipment"][weapon_name] = relative_path.replace("\\", "/")
     with open(MAPPINGS_CONFIG, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def monster_type_id_to_snake(type_id: str) -> str:
+    """demonAbyssWarden -> demon_abyss_warden；goblin_elite 保持不变。"""
+    return re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", type_id).lower()
+
+
+def load_merged_monster_types() -> dict:
+    """合并 monster-config.json 与 deep-monsters-add.json 的 MONSTER_TYPES 条目（后者覆盖同名键）。"""
+    if not MONSTER_CONFIG.is_file():
+        return {}
+    with open(MONSTER_CONFIG, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    merged = dict(data.get("MONSTER_TYPES") or {})
+    if DEEP_MONSTERS_ADD.is_file():
+        with open(DEEP_MONSTERS_ADD, "r", encoding="utf-8") as f:
+            extra = json.load(f)
+        if isinstance(extra, dict):
+            merged.update(extra)
+    return merged
+
+
+def load_mappings_monster() -> dict:
+    if not MAPPINGS_CONFIG.is_file():
+        return {}
+    with open(MAPPINGS_CONFIG, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return dict(data.get("monster") or {})
+
+
+def set_monster_mapping(monster_type: str, image_basename: str, scale: float) -> None:
+    """写入或更新 mappings.json → monster[type] = { image, scale }。"""
+    MAPPINGS_CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    if not MAPPINGS_CONFIG.exists():
+        data: dict = {}
+    else:
+        with open(MAPPINGS_CONFIG, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    if "monster" not in data or not isinstance(data["monster"], dict):
+        data["monster"] = {}
+    img = (image_basename or "").strip().replace("\\", "/")
+    if "/" in img:
+        img = Path(img).name
+    data["monster"][monster_type] = {"image": img, "scale": float(scale)}
+    with open(MAPPINGS_CONFIG, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _inherit_monster_scale(
+    type_id: str,
+    merged: dict,
+    mappings_monster: dict,
+    default_scale: float = 2.0,
+) -> float:
+    seen: set[str] = set()
+    cur = type_id
+    while cur and cur not in seen:
+        seen.add(cur)
+        if cur in mappings_monster:
+            ent = mappings_monster[cur]
+            if isinstance(ent, dict) and ent.get("scale") is not None:
+                try:
+                    return float(ent["scale"])
+                except (TypeError, ValueError):
+                    pass
+        row = merged.get(cur) or {}
+        cur = (row.get("baseMonster") or "").strip()
+    if type_id.endswith("_elite"):
+        return max(default_scale, 2.2)
+    return default_scale
+
+
+def _monster_job_is_ranged(name_cn: str, md: dict) -> bool:
+    if name_cn in RANGED_MONSTER_NAMES_CN:
+        return True
+    for k in (
+        "rangedVolley",
+        "aoeOrbRanged",
+        "rangedRangeMult",
+    ):
+        if md.get(k) is not None:
+            return True
+    return False
+
+
+def build_monster_texture_jobs(merged: dict, mappings_monster: dict) -> list[dict]:
+    """为每个怪物 type 生成一条任务：含输出文件名、scale、中文名与描述等。"""
+    jobs: list[dict] = []
+    for type_id in sorted(merged.keys()):
+        md = merged[type_id] or {}
+        name_cn = (md.get("name") or type_id).strip()
+        desc = (md.get("description") or "").strip()
+        color = (md.get("color") or "#888888").strip()
+        explicit = type_id in mappings_monster and isinstance(mappings_monster.get(type_id), dict)
+        if explicit:
+            ent = mappings_monster[type_id]
+            image = (ent.get("image") or f"monster_{monster_type_id_to_snake(type_id)}.png").strip()
+            try:
+                scale = float(ent.get("scale", 2.0))
+            except (TypeError, ValueError):
+                scale = 2.0
+        else:
+            image = f"monster_{monster_type_id_to_snake(type_id)}.png"
+            scale = _inherit_monster_scale(type_id, merged, mappings_monster)
+        jobs.append(
+            {
+                "kind": "monster",
+                "type_id": type_id,
+                "image": image,
+                "scale": scale,
+                "name_cn": name_cn,
+                "description": desc,
+                "color": color,
+                "is_ranged": _monster_job_is_ranged(name_cn, md),
+                "is_elite": bool(md.get("isElite")),
+                "base_monster": (md.get("baseMonster") or "").strip(),
+                "had_explicit_mapping": explicit,
+            }
+        )
+    return jobs
+
+
+def build_boss_texture_jobs(mappings_monster: dict) -> list[dict]:
+    if not BOSS_CONFIG.is_file():
+        return []
+    with open(BOSS_CONFIG, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    bosses = data.get("BOSS_DEFINITIONS") or []
+    jobs: list[dict] = []
+    for b in bosses:
+        bid = (b.get("id") or "").strip()
+        if not bid:
+            continue
+        name_cn = (b.get("name") or bid).strip()
+        color = (b.get("color") or "#888888").strip()
+        image = f"{bid}.png"
+        scale: float | None = None
+        in_map = bid in mappings_monster
+        if in_map:
+            ent = mappings_monster[bid]
+            if isinstance(ent, dict):
+                image = (ent.get("image") or image).strip()
+                try:
+                    scale = float(ent.get("scale"))
+                except (TypeError, ValueError):
+                    scale = None
+        if scale is None:
+            try:
+                n = int(str(bid).split("_")[-1])
+                scale = 5.0 + min(2.5, (n / 240.0) * 2.5)
+            except (TypeError, ValueError):
+                scale = 6.0
+        visual = BOSS_TEXTURE_VISUAL_EN.get(bid, "dark fantasy boss, pixel art")
+        jobs.append(
+            {
+                "kind": "boss",
+                "type_id": bid,
+                "image": image,
+                "scale": float(scale),
+                "name_cn": name_cn,
+                "description": "",
+                "color": color,
+                "is_ranged": False,
+                "is_elite": False,
+                "base_monster": "",
+                "had_explicit_mapping": bid in mappings_monster,
+                "boss_visual_en": visual,
+            }
+        )
+    return jobs
+
+
+def call_gpt_plan_monster_texture(context: dict, job: dict) -> dict:
+    """为普通怪物规划英文 image_prompt（程序再追加 MONSTER_TEXTURE_STYLE_TEMPLATE）。"""
+    try:
+        import requests
+    except ImportError:
+        sys.exit("请安装 requests: pip install requests")
+
+    require_art_api_key("怪物贴图 GPT 规划")
+    type_id = job["type_id"]
+    name_cn = job["name_cn"]
+    desc = job["description"]
+    color = job["color"]
+    base = job.get("base_monster") or "（无）"
+    elite_note = "是精英变体，造型应比普通版更华丽、更有威胁感。" if job.get("is_elite") else "非精英。"
+    ranged_note = (
+        "是远程怪：必须画出弓、弩、法杖、喷口或明显施法手势之一，禁止画成纯近战空手。"
+        if job.get("is_ranged")
+        else "近战或通用：可持刃、爪、盾等，不要画成现代枪械。"
+    )
+
+    user_message = f"""为 Pixel Eternal 生成一只怪物的「战斗精灵立绘」用的英文主体描述。画风由程序统一追加（pixel art / 纯黑底 / 16-bit 全身站立），你只描述「画什么怪物」。
+
+【怪物类型 id】{type_id}
+【中文名】{name_cn}
+【设定摘要】{desc or "（配置中无描述）"}
+【主题色参考】{color}
+【基底类型 baseMonster】{base}
+【定位】{elite_note}
+【远程/近战】{ranged_note}
+
+项目调性参考（摘要）：{context.get('project_md', '')[:900]}
+
+请只输出以下 JSON，不要其他文字和 markdown 代码块：
+{{ "image_prompt": "英文，描述物种、盔甲、武器、体态与气质，呼应中文名与设定；不要写 pixel art、background、3d、photo、cinematic 等渲染类词汇", "style_notes": "" }}
+
+规则：
+1. image_prompt 为单个生物全身，居中，无多怪、无场景叙事背景。
+2. style_notes 必须为空字符串 ""。
+"""
+
+    headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
+    body = {
+        "model": CHAT_MODEL,
+        "messages": [{"role": "user", "content": user_message}],
+        "temperature": 0.42,
+    }
+    resp = requests.post(CHAT_URL, headers=headers, json=body, timeout=60)
+    resp.raise_for_status()
+    data = resp.json()
+    content = data["choices"][0]["message"]["content"].strip()
+    if "```" in content:
+        content = re.sub(r"^```\w*\n?", "", content)
+        content = re.sub(r"\n?```\s*$", "", content)
+    content = content.strip()
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError:
+        start = content.find("{")
+        end = content.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            return json.loads(content[start : end + 1])
+        raise RuntimeError(f"怪物贴图规划返回非 JSON：{content[:200]!r}")
+
+
+def detect_batch_monster_textures(user_input: str) -> bool:
+    """自然语言：批量生成怪物贴图（与装备批量区分）。"""
+    t = user_input.strip()
+    if not t:
+        return False
+    if "武器技能" in t:
+        return False
+    if "装备" in t and "怪物" not in t and "Boss" not in t and "boss" not in t.lower():
+        return False
+    if "怪物" not in t and "monster" not in t.lower():
+        return False
+    has_asset = (
+        "贴图" in t
+        or "sprite" in t.lower()
+        or "生图" in t
+        or ("图标" in t and "技能" not in t)
+    )
+    if not has_asset:
+        return False
+    scope = "所有" in t or "全部" in t or "批量" in t or "一键" in t or "每个" in t
+    do = "生成" in t or "补齐" in t or "补全" in t or "重绘" in t or "做" in t
+    return scope and do
+
+
+def run_batch_monster_textures(
+    dry_run: bool = False,
+    force: bool = False,
+    include_boss: bool = True,
+) -> None:
+    """枚举合并后的 MONSTER_TYPES（及可选 Boss），GPT 规划 + 生图 + 抠透明 + 更新 mappings。"""
+    merged = load_merged_monster_types()
+    if not merged:
+        print(f"未读取到怪物配置，请检查 {MONSTER_CONFIG}")
+        return
+    mappings_monster = load_mappings_monster()
+    jobs = build_monster_texture_jobs(merged, mappings_monster)
+    if include_boss:
+        jobs.extend(build_boss_texture_jobs(mappings_monster))
+
+    if force:
+        todo = jobs
+    else:
+        todo = []
+        for j in jobs:
+            dest = ART_FOLDER / j["image"]
+            if not dest.is_file():
+                todo.append(j)
+    if not todo:
+        print(
+            f"共 {len(jobs)} 条怪物/Boss 贴图任务，文件均已存在；"
+            "若需整套重绘请加 --force-monster-textures。"
+        )
+        return
+
+    mode = "强制重绘" if force else "补缺"
+    print(
+        f"怪物贴图批量（{mode}）：配置内共 {len(jobs)} 条，本次处理 {len(todo)} 条，将写入 asset/ 并更新 config/mappings.json。"
+    )
+    context = collect_project_context()
+    ART_FOLDER.mkdir(parents=True, exist_ok=True)
+
+    for i, job in enumerate(todo, 1):
+        type_id = job["type_id"]
+        image_name = job["image"]
+        dest = ART_FOLDER / image_name
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        label = "Boss" if job["kind"] == "boss" else "怪物"
+        print(f"[{i}/{len(todo)}] {label}：{type_id} ({job['name_cn']}) -> {image_name}")
+        if dry_run:
+            print("  [dry-run] 将规划并生图，未实际请求 API。")
+            continue
+        try:
+            if job["kind"] == "boss":
+                subj = (job.get("boss_visual_en") or "").strip()
+                full_prompt = (
+                    f"{subj}. {MONSTER_BOSS_EXTRA_STYLE}. {MONSTER_TEXTURE_STYLE_TEMPLATE}"
+                ).strip()
+                raw = generate_image(
+                    full_prompt, "", for_skill_icon=False, for_monster_texture=True
+                )
+            else:
+                plan = call_gpt_plan_monster_texture(context, job)
+                subject = (plan.get("image_prompt") or "").strip()
+                if not subject:
+                    print("  规划缺少 image_prompt，跳过")
+                    continue
+                full_prompt = f"{subject}. {MONSTER_TEXTURE_STYLE_TEMPLATE}".strip()
+                raw = generate_image(
+                    full_prompt, "", for_skill_icon=False, for_monster_texture=True
+                )
+            image_bytes = process_transparent_icon_image(raw, size=MONSTER_TEXTURE_SIZE)
+            dest.write_bytes(image_bytes)
+            set_monster_mapping(type_id, image_name, job["scale"])
+            print(f"  已保存 {MONSTER_TEXTURE_SIZE}×{MONSTER_TEXTURE_SIZE} 透明 PNG 并更新 mappings。")
+        except Exception as e:
+            print(f"  失败: {e}")
+
+    print("怪物贴图批量处理完成。")
+
+
+def list_monster_texture_status(include_boss: bool = True) -> None:
+    merged = load_merged_monster_types()
+    mappings_monster = load_mappings_monster()
+    jobs = build_monster_texture_jobs(merged, mappings_monster)
+    if include_boss:
+        jobs.extend(build_boss_texture_jobs(mappings_monster))
+    ok = sum(1 for j in jobs if (ART_FOLDER / j["image"]).is_file())
+    missing = [j for j in jobs if not (ART_FOLDER / j["image"]).is_file()]
+    print(f"怪物/Boss 贴图任务: {len(jobs)}，文件已存在: {ok}，缺失: {len(missing)}")
+    for j in missing:
+        print(f"  - [{j['kind']}] {j['type_id']} -> asset/{j['image']}")
 
 
 def _get_weapon_skills_js_weapon_block() -> str:
@@ -1671,14 +2096,22 @@ _PROJECTILE_SLUG_IN_MD = re.compile(r"`(proj_[a-z0-9_]+)`")
 def load_projectile_entries_from_md() -> list[dict]:
     """解析 tools/projectiles.md 中表格行：反引号内 slug + 含 pixel art projectile 的完整英文提示词。
     同一 slug 出现多次时第二次起文件名加 _v2、_v3…，避免法杖与弓弩表覆盖。
+    「## 三、…深阶法杖类」表格内的条目 staff_magic=True，生图时用法杖魔弹构图与 extra negative。
     """
     if not PROJECTILES_MD.is_file():
         return []
     text = PROJECTILES_MD.read_text(encoding="utf-8")
     entries: list[dict] = []
     slug_occurrence: dict[str, int] = {}
+    in_staff_section = False
     for raw in text.splitlines():
-        line = raw.strip()
+        st = raw.strip()
+        if st.startswith("## "):
+            if "深阶法杖" in st or ("三、" in st and "法杖" in st):
+                in_staff_section = True
+            elif any(m in st for m in ("## 一、", "## 二、", "## 四、", "## 五、", "## 使用说明")):
+                in_staff_section = False
+        line = st
         if not line.startswith("|"):
             continue
         if re.search(r"\|\s*:?-{3,}", line):
@@ -1703,7 +2136,14 @@ def load_projectile_entries_from_md() -> list[dict]:
         slug_occurrence[slug] = slug_occurrence.get(slug, 0) + 1
         n = slug_occurrence[slug]
         filename = f"{slug}.png" if n == 1 else f"{slug}_v{n}.png"
-        entries.append({"slug": slug, "filename": filename, "prompt": prompt})
+        entries.append(
+            {
+                "slug": slug,
+                "filename": filename,
+                "prompt": prompt,
+                "staff_magic": bool(in_staff_section),
+            }
+        )
     return entries
 
 
@@ -1731,6 +2171,7 @@ def run_batch_projectile_textures(dry_run: bool = False, force: bool = False) ->
                 "",
                 for_skill_icon=False,
                 for_projectile=True,
+                for_projectile_staff_magic=bool(e.get("staff_magic")),
             )
             image_bytes = process_transparent_icon_image(raw, size=PROJECTILE_ICON_SIZE)
             dest.write_bytes(image_bytes)
@@ -1738,6 +2179,42 @@ def run_batch_projectile_textures(dry_run: bool = False, force: bool = False) ->
         except Exception as ex:
             print(f"  失败: {ex}")
     print("飞射体贴图批量处理完成。")
+
+
+def run_batch_staff_magic_projectile_textures(dry_run: bool = False, force: bool = False) -> None:
+    """仅重绘 projectiles.md 第三节（深阶法杖）魔弹贴图；force 为 True 时覆盖已有 PNG。"""
+    entries = [e for e in load_projectile_entries_from_md() if e.get("staff_magic")]
+    if not entries:
+        print("未解析到任何法杖类飞射体条目。")
+        return
+    ART_PROJECTILES.mkdir(parents=True, exist_ok=True)
+    todo = list(entries) if force else [e for e in entries if not (ART_PROJECTILES / e["filename"]).is_file()]
+    if not todo:
+        print(f"法杖魔弹共 {len(entries)} 条，文件均已存在。使用 --force-staff-magic-projectiles 可重绘。")
+        return
+    print(
+        f"法杖魔弹：第三节共 {len(entries)} 条，将生成 {len(todo)} 个 PNG（透明底 {PROJECTILE_ICON_SIZE}×{PROJECTILE_ICON_SIZE}）…"
+    )
+    for i, e in enumerate(todo, 1):
+        dest = ART_PROJECTILES / e["filename"]
+        print(f"[{i}/{len(todo)}] {e['slug']} -> {dest.relative_to(PROJECT_ROOT)} (staff_magic)")
+        if dry_run:
+            print(f"  [dry-run] prompt: {e['prompt'][:140]}{'…' if len(e['prompt']) > 140 else ''}")
+            continue
+        try:
+            raw = generate_image(
+                e["prompt"],
+                "",
+                for_skill_icon=False,
+                for_projectile=True,
+                for_projectile_staff_magic=True,
+            )
+            image_bytes = process_transparent_icon_image(raw, size=PROJECTILE_ICON_SIZE)
+            dest.write_bytes(image_bytes)
+            print("  已保存（透明底）。")
+        except Exception as ex:
+            print(f"  失败: {ex}")
+    print("法杖魔弹贴图批量处理完成。")
 
 
 def run_deep_equipment_batch(
@@ -2018,9 +2495,11 @@ def generate_image(
     for_equipment_weapon: bool = False,
     for_equipment_non_weapon: bool = False,
     for_projectile: bool = False,
+    for_projectile_staff_magic: bool = False,
+    for_monster_texture: bool = False,
     extra_negative: str = "",
 ) -> bytes:
-    """调用 Imagen API 生成图片，返回 PNG 字节。技能图标、飞射体与装备贴图可带专用 negative_prompt。"""
+    """调用 Imagen API 生成图片，返回 PNG 字节。技能图标、飞射体、装备与怪物贴图可带专用 negative_prompt。"""
     try:
         import requests
     except ImportError:
@@ -2028,6 +2507,13 @@ def generate_image(
 
     require_art_api_key("生图")
     full_prompt = f"{prompt}. {style_notes}".strip() if style_notes else prompt
+    if for_projectile:
+        layout = (
+            PROJECTILE_LAYOUT_SUFFIX_STAFF_MAGIC
+            if for_projectile_staff_magic
+            else PROJECTILE_LAYOUT_SUFFIX_PHYSICAL
+        )
+        full_prompt = f"{full_prompt.rstrip()}. {layout}".strip()
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json",
@@ -2048,7 +2534,14 @@ def generate_image(
         base_neg = EQUIPMENT_WEAPON_NEGATIVE_PROMPT
     elif for_equipment_non_weapon and EQUIPMENT_NON_WEAPON_NEGATIVE_PROMPT:
         base_neg = EQUIPMENT_NON_WEAPON_NEGATIVE_PROMPT
-    neg_parts = [p for p in (base_neg, (extra_negative or "").strip()) if p]
+    elif for_monster_texture and MONSTER_TEXTURE_NEGATIVE_PROMPT:
+        base_neg = MONSTER_TEXTURE_NEGATIVE_PROMPT
+    staff_extra = (
+        PROJECTILE_STAFF_MAGIC_EXTRA_NEGATIVE
+        if (for_projectile and for_projectile_staff_magic)
+        else ""
+    )
+    neg_parts = [p for p in (base_neg, staff_extra, (extra_negative or "").strip()) if p]
     if neg_parts:
         body["negative_prompt"] = ", ".join(neg_parts)
     if for_skill_icon or for_projectile:
@@ -2270,6 +2763,16 @@ def main():
         help="飞射体批量时重绘已有 PNG（与 --batch-projectile-textures 或自然语言联用）",
     )
     parser.add_argument(
+        "--batch-staff-magic-projectiles",
+        action="store_true",
+        help="仅按 projectiles.md 第三节重绘深阶法杖魔弹贴图至 asset/projectiles/",
+    )
+    parser.add_argument(
+        "--force-staff-magic-projectiles",
+        action="store_true",
+        help="与 --batch-staff-magic-projectiles 联用：覆盖已有 PNG（否则只补缺）",
+    )
+    parser.add_argument(
         "--force-all-equipment-textures",
         action="store_true",
         help="全装备批量时重绘已有 PNG（与 --batch-all-equipment-textures 或自然语言全装备指令联用）",
@@ -2317,6 +2820,26 @@ def main():
         type=float,
         default=2.0,
         help="深阶批量时每件之间的间隔秒数（缓解 API 限流）",
+    )
+    parser.add_argument(
+        "--list-missing-monster-textures",
+        action="store_true",
+        help="列出 monster-config + deep-monsters-add 及 Boss 期望贴图路径下尚未生成的 PNG（不调用 API）",
+    )
+    parser.add_argument(
+        "--batch-monster-textures",
+        action="store_true",
+        help="按 tools/monster-generation.md 批量生成怪物与 Boss 贴图至 asset/ 并更新 mappings.json（普通怪走 GPT 规划）",
+    )
+    parser.add_argument(
+        "--force-monster-textures",
+        action="store_true",
+        help="怪物/Boss 批量时覆盖已有 PNG（整套重绘时与 --batch-monster-textures 联用）",
+    )
+    parser.add_argument(
+        "--monster-textures-no-boss",
+        action="store_true",
+        help="与 --batch-monster-textures 联用：跳过 Boss，仅处理合并后的 MONSTER_TYPES",
     )
     args = parser.parse_args()
 
@@ -2426,8 +2949,27 @@ def main():
             print(f"  - {e['slug']} -> asset/projectiles/{e['filename']}")
         return
 
+    if args.list_missing_monster_textures:
+        list_monster_texture_status(include_boss=not args.monster_textures_no_boss)
+        return
+
+    if args.batch_monster_textures:
+        run_batch_monster_textures(
+            dry_run=args.dry_run,
+            force=args.force_monster_textures,
+            include_boss=not args.monster_textures_no_boss,
+        )
+        return
+
     if args.batch_projectile_textures:
         run_batch_projectile_textures(dry_run=args.dry_run, force=args.force_projectile_textures)
+        return
+
+    if args.batch_staff_magic_projectiles:
+        run_batch_staff_magic_projectile_textures(
+            dry_run=args.dry_run,
+            force=args.force_staff_magic_projectiles,
+        )
         return
 
     user_input = args.input
@@ -2450,6 +2992,14 @@ def main():
     # 飞射体：tools/projectiles.md（须在「深阶装备」之前，避免「深阶…弓弩子弹」类描述误走装备批量）
     if detect_batch_projectile_textures(user_input):
         run_batch_projectile_textures(dry_run=args.dry_run, force=args.force_projectile_textures)
+        return
+
+    if detect_batch_monster_textures(user_input):
+        run_batch_monster_textures(
+            dry_run=args.dry_run,
+            force=args.force_monster_textures,
+            include_boss=not args.monster_textures_no_boss,
+        )
         return
 
     # 深阶：equipment-deep-config.json（先于「所有装备」以免「所有深阶装备」误走基础表）

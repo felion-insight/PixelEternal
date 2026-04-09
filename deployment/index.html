@@ -215,6 +215,7 @@
                         <span id="material-capacity">材料: 0/30</span> | 
                         <span id="consumable-capacity">消耗品: 0/18</span>
                     </div>
+                    <p style="padding: 0 20px 8px; margin: 0; font-size: 11px; color: #888; border-bottom: 1px solid #444;">右键背包内物品可丢弃（永久消失，不会掉落在地上）</p>
                     <div class="inventory-items" id="inventory-items">
                         <!-- 物品格子将动态生成 -->
                     </div>
@@ -336,30 +337,32 @@
         </div>
         <!-- 精英房通关：三选一加护 -->
         <div id="elite-boon-choice-modal" class="modal">
-            <div class="modal-content" style="max-width: 720px; max-height: 90vh; overflow-y: auto;">
-                <h2 style="color: #88ccff; margin-bottom: 6px;">精英加护</h2>
-                <p style="color: #aaa; font-size: 13px; margin-bottom: 14px;">击败精英：请选择一种加护，或放弃换取金币。</p>
-                <div id="elite-boon-choice-options" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 14px;"></div>
-                <div style="text-align: center;">
-                    <button type="button" id="elite-boon-skip-btn" style="padding: 10px 20px; background: rgba(80, 80, 90, 0.95); color: #ddd; border: 2px solid #888; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px;">放弃加护</button>
+            <div class="modal-content elite-boon-choice-panel">
+                <div class="elite-boon-choice-head">
+                    <h2 class="elite-boon-choice-title">精英加护</h2>
+                    <p class="elite-boon-choice-intro">击败精英：请选择一种加护，或放弃换取金币。</p>
+                </div>
+                <div id="elite-boon-choice-options" class="elite-boon-choice-options"></div>
+                <div class="elite-boon-choice-actions">
+                    <button type="button" id="elite-boon-skip-btn" class="elite-boon-skip-btn">放弃加护</button>
                 </div>
             </div>
         </div>
         <!-- 恶魔塔隙间商店（Boss 层前一层） -->
         <div id="gap-shop-modal" class="modal">
-            <div class="modal-content" style="max-width: 560px; max-height: 85vh; overflow-y: auto;">
+            <div class="modal-content gap-shop-panel">
                 <h2 style="color: #ffd700; margin-bottom: 8px;">隙间商店</h2>
-                <p style="color: #aaa; font-size: 13px; margin-bottom: 10px;">按 <strong style="color:#fff;">E</strong> 打开本面板。即刻生效，购买不限次数。当前金币：<span id="gap-shop-gold">0</span></p>
-                <h3 style="color: #ccc; font-size: 14px; margin-bottom: 8px;">可购买</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px;">
-                    <button type="button" id="gap-buy-heal-half" data-kind="healHalf" style="padding: 10px; background: rgba(40,120,80,0.85); color: #fff; border: 2px solid #8f8; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px;">回复 50% 生命<br/><span id="gap-price-heal-half">0</span> 金</button>
-                    <button type="button" id="gap-buy-heal-full" data-kind="healFull" style="padding: 10px; background: rgba(40,100,120,0.85); color: #fff; border: 2px solid #8cf; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px;">回复满生命<br/><span id="gap-price-heal-full">0</span> 金</button>
-                    <button type="button" id="gap-buy-maxhp" data-kind="maxHp" style="padding: 10px; background: rgba(100,60,120,0.85); color: #fff; border: 2px solid #c8c; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px;">生命上限 +5%（本次爬塔）<br/><span id="gap-price-maxhp">0</span> 金</button>
-                    <button type="button" id="gap-buy-boon" data-kind="boon" style="padding: 10px; background: rgba(80,60,140,0.85); color: #fff; border: 2px solid #aaf; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px;">随机精英加护 +1 层<br/><span id="gap-price-boon">0</span> 金</button>
-                    <button type="button" id="gap-buy-revive" data-kind="revive" style="padding: 10px; background: rgba(120,40,40,0.85); color: #fff; border: 2px solid #f88; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; grid-column: 1 / -1;">额外复活 1 次（本次爬塔，优先于十字架提示）<br/><span id="gap-price-revive">0</span> 金</button>
+                <p style="color: #aaa; font-size: 14px; margin-bottom: 12px;">按 <strong style="color:#fff;">E</strong> 打开本面板。即刻生效，购买不限次数。当前金币：<span id="gap-shop-gold">0</span></p>
+                <h3 style="color: #ccc; font-size: 15px; margin-bottom: 10px;">可购买</h3>
+                <div id="gap-shop-buy-row" class="gap-shop-buy-row">
+                    <button type="button" id="gap-buy-heal-half" class="gap-shop-buy-btn gap-shop-buy-heal-half" data-kind="healHalf">回复 50% 生命<br/><span id="gap-price-heal-half">0</span> 金</button>
+                    <button type="button" id="gap-buy-heal-full" class="gap-shop-buy-btn gap-shop-buy-heal-full" data-kind="healFull">回复满生命<br/><span id="gap-price-heal-full">0</span> 金</button>
+                    <button type="button" id="gap-buy-maxhp" class="gap-shop-buy-btn gap-shop-buy-maxhp" data-kind="maxHp">生命上限 +5%<span class="gap-shop-buy-sub">（本次爬塔）</span><br/><span id="gap-price-maxhp">0</span> 金</button>
+                    <button type="button" id="gap-buy-boon" class="gap-shop-buy-btn gap-shop-buy-boon" data-kind="boon">随机精英加护 +1 层<br/><span id="gap-price-boon">0</span> 金</button>
+                    <button type="button" id="gap-buy-revive" class="gap-shop-buy-btn gap-shop-buy-revive" data-kind="revive">额外复活 1 次<br/><span class="gap-shop-buy-sub">本次爬塔，优先于十字架提示</span><br/><span id="gap-price-revive">0</span> 金</button>
                 </div>
-                <h3 style="color: #ccc; font-size: 14px; margin-bottom: 6px;">出售物品</h3>
-                <div id="gap-shop-sell-list" style="max-height: 180px; overflow-y: auto; margin-bottom: 14px;"></div>
+                <h3 style="color: #ccc; font-size: 15px; margin-bottom: 8px;">出售物品</h3>
+                <div id="gap-shop-sell-list" class="gap-shop-sell-list"></div>
                 <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                     <button type="button" id="gap-shop-continue-btn" style="padding: 12px 24px; background: #6a0dad; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace;">前往 Boss 层（出现传送门）</button>
                     <button type="button" id="gap-shop-close-btn" style="padding: 12px 24px; background: #444; color: #fff; border: 2px solid #888; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace;">关闭</button>
@@ -740,6 +743,7 @@
         <!-- 开发者模式面板 -->
         <div id="dev-panel">
             <h3>开发者模式 (F1)</h3>
+            <p id="dev-action-feedback" style="color: #ffaa66; font-size: 11px; margin: 0 0 8px; min-height: 14px; line-height: 1.3;"></p>
             
             <div class="dev-section">
                 <h4 style="color: #fff; font-size: 14px; margin-bottom: 5px;">玩家属性</h4>
@@ -795,8 +799,10 @@
             
             <div class="dev-section">
                 <h4 style="color: #fff; font-size: 14px; margin-bottom: 5px;">恶魔的干扰</h4>
-                <button onclick="game.devTriggerDemonInterference()">恶魔的干扰</button>
-                <button onclick="game.devClearBuffs()">清除buff</button>
+                <p style="color: #888; font-size: 11px; margin: 0 0 8px; line-height: 1.35;">「触发」需在恶魔塔内，与层间随机干扰相同流程；「预览」任意场景仅测 UI。</p>
+                <button type="button" id="dev-btn-demon-trigger">触发恶魔干扰</button>
+                <button type="button" id="dev-btn-demon-preview">预览干扰对话框</button>
+                <button type="button" onclick="game.devClearBuffs()">清除塔内 debuff / 干扰显示</button>
             </div>
             
             <div class="dev-section">
@@ -912,14 +918,6 @@
                 </div>
             </div>
         </div>
-        <!-- 恶魔的干扰遮罩层 -->
-        <div id="demon-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 2400; pointer-events: auto; transition: opacity 0.5s ease;"></div>
-        <!-- 恶魔的干扰对话框 -->
-        <div id="demon-interference-modal" style="display: none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%); width: 80%; max-width: 600px; background: rgba(20,20,30,0.98); border: 3px solid #ff3333; border-radius: 10px; z-index: 2500; padding: 25px; box-shadow: 0 0 40px rgba(255,51,51,0.4);">
-            <h2 style="color: #ff3333; text-align: center; margin-bottom: 20px; font-size: 22px;">恶魔的干扰</h2>
-            <div id="demon-interference-text" style="color: #ff3333; font-size: 18px; line-height: 1.6; min-height: 60px;"></div>
-            <div id="demon-interference-hint" style="display: none; color: #888; font-size: 14px; text-align: right; margin-top: 15px; animation: demon-blink 1s infinite;">按空格关闭</div>
-        </div>
         <!-- 死亡惩罚信息窗口 -->
         <div id="death-penalty-modal">
             <div id="death-penalty-content">
@@ -945,6 +943,13 @@
                 </div>
             </div>
         </div>
+    </div>
+    <!-- 恶魔的干扰：放在 #game-container 外，避免 overflow/z-index 堆叠导致不显示或无法操作 -->
+    <div id="demon-overlay"></div>
+    <div id="demon-interference-modal">
+        <h2 style="color: #ff3333; text-align: center; margin-bottom: 20px; font-size: 22px;">恶魔的干扰</h2>
+        <div id="demon-interference-text" style="color: #ff3333; font-size: 18px; line-height: 1.6; min-height: 60px;"></div>
+        <div id="demon-interference-hint" style="display: none; color: #888; font-size: 14px; text-align: right; margin-top: 15px; animation: demon-blink 1s infinite;">按空格关闭</div>
     </div>
     <!-- 引入JavaScript模块 -->
     <script src="js/lz-string.min.js"></script>

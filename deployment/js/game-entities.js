@@ -17,6 +17,31 @@ function isMonsterRangedByName(name) {
     return RANGED_MONSTER_NAMES.includes(name);
 }
 
+/** 玩家当前远程武器对应的飞射体贴图 id（proj_*，不含 .png） */
+function resolveProjectileSpriteIdForPlayerWeapon(weapon) {
+    if (!weapon || !weapon.name) return 'proj_player_windfang';
+    const map = typeof window !== 'undefined' ? window.PROJECTILE_SPRITE_MAP : null;
+    if (!map || !map.weaponByName) return 'proj_player_windfang';
+    return map.weaponByName[weapon.name] || 'proj_player_windfang';
+}
+
+/** 怪物直线弹对应的贴图 id */
+function resolveProjectileSpriteIdForMonster(monster) {
+    const map = typeof window !== 'undefined' ? window.PROJECTILE_SPRITE_MAP : null;
+    const fallback = (map && map.monsterDefault) ? map.monsterDefault : 'proj_mob_skull_wisp';
+    if (!monster || !monster.name) return fallback;
+    if (!map || !map.monsterByName) return fallback;
+    return map.monsterByName[monster.name] || fallback;
+}
+
+/** Boss 追踪弹技能名 -> 贴图 id */
+function resolveProjectileSpriteIdForBossSkill(skillName) {
+    const map = typeof window !== 'undefined' ? window.PROJECTILE_SPRITE_MAP : null;
+    const fallback = 'proj_boss_thunder_orb';
+    if (!skillName || !map || !map.bossSkillByName) return fallback;
+    return map.bossSkillByName[skillName] || fallback;
+}
+
 /**
  * 读取怪物配置字段：精英优先自身，否则继承 baseMonster（与 MONSTER_TYPES 条目一致）
  */
@@ -1964,6 +1989,7 @@ class Boss extends Monster {
      * 追踪弹技能
      */
     projectileSkill(skill, player, now) {
+        const spriteId = skill.projectileSprite || resolveProjectileSpriteIdForBossSkill(skill.name);
         // 创建多个追踪弹
         for (let i = 0; i < skill.count; i++) {
             const angle = Math.atan2(player.y - this.y, player.x - this.x) + (Math.PI * 2 * i / skill.count);
@@ -1977,7 +2003,8 @@ class Boss extends Monster {
                 speed: skill.speed,
                 damage: skill.damage,
                 startTime: now,
-                duration: skill.duration
+                duration: skill.duration,
+                projectileSpriteId: spriteId
             });
         }
     }
@@ -2123,13 +2150,19 @@ class Boss extends Monster {
                     ctx.fill();
                     break;
                     
-                case 'projectile':
-                    // 绘制追踪弹（小圆形）
+                case 'projectile': {
+                    const ang = typeof effect.angle === 'number' ? effect.angle : 0;
+                    const sid = effect.projectileSpriteId;
+                    const am = this.gameInstance && this.gameInstance.assetManager;
+                    if (am && sid && am.drawProjectileSprite(ctx, effect.x, effect.y, ang, sid, 40)) {
+                        break;
+                    }
                     ctx.fillStyle = '#ffaa00';
                     ctx.beginPath();
                     ctx.arc(effect.x, effect.y, 10, 0, Math.PI * 2);
                     ctx.fill();
                     break;
+                }
             }
         });
     }
@@ -5625,7 +5658,12 @@ class Player {
                     const direction = Math.random() < 0.5 ? 'left' : 'right';
                     this.gameInstance.addFloatingText(nearest.x, nearest.y, Math.floor(damage).toString(), damageColor, 1500, fontSize, true, direction);
                     if (this.gameInstance.soundManager) this.gameInstance.soundManager.playSound('swing');
-                    this.gameInstance.addEquipmentEffect('ranged_bullet', this.x, this.y, { duration: 200, targetX: nearest.x, targetY: nearest.y });
+                    this.gameInstance.addEquipmentEffect('ranged_bullet', this.x, this.y, {
+                        duration: 200,
+                        targetX: nearest.x,
+                        targetY: nearest.y,
+                        projectileSpriteId: resolveProjectileSpriteIdForPlayerWeapon(weapon)
+                    });
                 }
                 if (killed && this.gameInstance) this.processKillRewards([nearest]);
                 return true;

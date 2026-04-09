@@ -1,11 +1,12 @@
 # 飞射体像素精灵图提示词文档
 
-> 本文档用于生成 **16-bit 风格像素艺术飞射体（子弹/魔法弹）**。所有提示词末尾请统一拼接通用后缀，如需调整颜色或形态可微调中间描述部分。
+> 本文档用于生成 **16-bit 风格像素艺术飞射体（子弹/魔法弹）**。所有提示词末尾请统一拼接通用后缀，如需调整颜色或形态可微调中间描述部分。  
+> **构图约定**：批量生图工具会对**弓弩类**追加实体箭式水平构图，对**第三节法杖类**追加「纯魔弹、禁止木箭尾羽」的专用构图与 negative；全量重绘用 `--force-projectile-textures`，只重画法杖魔弹用 `--batch-staff-magic-projectiles --force-staff-magic-projectiles`。
 
 ## 通用后缀（必须加在每条提示词末尾）
 
 ```
-pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt
+pixel art projectile sprite, retro 16-bit game asset, pure black background, horizontal pointing right tip on right tail straight left along axis, no bow no crossbow no bowstring, no text, no gun, no rifle, magic missile or fantasy bolt
 ```
 
 ---
@@ -97,24 +98,24 @@ pixel art projectile sprite, retro 16-bit game asset, pure black background, no 
 
 ## 三、玩家 · 深阶法杖类（14）
 
-> 以下为 **法杖/魔杖发射的魔法弹**：能量体、魔弹、晶尖射流，不是实体箭矢。
+> 以下为 **法杖/魔杖发射的魔法弹**：只能是能量体、魔弹、符文光团、裂隙光刃、晶尘球等，**禁止**画成实体箭、弩矢、木杆、尾羽。英文提示词中避免使用 *bolt / dart / arrow / flechette* 指物理弹药；若需「弹体」请写 *spell orb / mana core / arcane shard*。
 
 | 武器名 | slug | 提示词（已包含形态描述，末尾加通用后缀） |
 |--------|------|------------------------------------------|
-| 渊隙凡·穿云 | `proj_deep_rift_c` | `Riftgap Dust Shaft, narrow violet-black rift slash, void crack core, magic bolt not wooden arrow, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
-| 虚印良·印弓 | `proj_deep_sigil_r` | `Voidseal Seal Longshot, flat arcane seal orb, silver-blue glow, floating rune ring, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
-| 虚印湛·脉弦 | `proj_deep_sigil_f` | `Voidseal Vein String, thread-thin mana needle, cyan-white circuit trail, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
-| 腐噬湛·裂羽 | `proj_deep_rot_f` | `Rotmaw Split Feather, sickly green-brown split plume shard, ichor drip, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
-| 腐噬曜·吞弦 | `proj_deep_rot_l` | `Rotmaw Gullet String, swallowing vortex ellipsoid, dark olive-black, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
-| 黑曜湛·渊弦 | `proj_deep_obsidian_f` | `Obsidian Abyss String, glossy black glass spike, thin lava-red vein inside, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
-| 黑曜曜·壁矢 | `proj_deep_obsidian_l` | `Obsidian Rampart Bolt, heavy obsidian wedge, mirror black, red fracture web, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
-| 终幕凡·终弦 | `proj_deep_finale_c` | `Finale Last String, short curtain-shadow cone, dusk purple, muted gold edge, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
-| 终幕湛·誓弓 | `proj_deep_finale_f` | `Finale Oath Bow, compact oath orb, deep purple, antique gold filigree, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
-| 终幕炽·星羽 | `proj_deep_finale_e` | `Finale Star Plume, star-plume flechette, warm ember-gold core, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
-| 终幕曜·墟弦 | `proj_deep_finale_l` | `Finale Ruin String, collapsing ring pulse, ruin purple, ash-gold afterglow, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
-| 星骸炽·裂弦 | `proj_deep_starbone_e` | `Starbone Rift String, jagged star-crystal chunk, cobalt-blue, meteor silver shards, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
-| 裂点良·点羽 | `proj_deep_fissure_r` | `Fissure Pinion Shard, small crack-core sphere, electric cyan, lightning-thread tail, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
-| 终焉炽·归弦 | `proj_deep_term_e` | `Terminus Home String, returning-loop sigil dart, scorched black, ember-red groove, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
+| 渊隙凡·穿云 | `proj_deep_rift_c` | `Riftgap Spell Rift, narrow horizontal slash of violet-black void energy, bright crack core, pure magic missile made of light and shadow, no wood no metal arrowhead, no shaft, no feathers, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
+| 虚印良·印弓 | `proj_deep_sigil_r` | `Voidseal Sigil Disc, flat floating arcane seal plate, silver-blue glow, concentric rune rings, magical energy plate not a physical object, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
+| 虚印湛·脉弦 | `proj_deep_sigil_f` | `Voidseal Mana Thread, elongated bead of cyan-white spell light, hairline straight pixel trail of circuit-glow lines, energy filament not a metal needle, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
+| 腐噬湛·裂羽 | `proj_deep_rot_f` | `Rotmaw Ichor Splinter, sickly green-brown corrupted magic shard, dripping ichor glow, jagged spell crystal not feather not arrow, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
+| 腐噬曜·吞弦 | `proj_deep_rot_l` | `Rotmaw Hunger Orb, dark olive-black magical vortex blob, soft pull-in spiral glow, spell sphere not crossbow ammo, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
+| 黑曜湛·渊弦 | `proj_deep_obsidian_f` | `Obsidian Abyss Spike, glossy volcanic-glass spell spike, inner lava-red arcane vein, condensed shadow-magic shard not iron bolt, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
+| 黑曜曜·壁矢 | `proj_deep_obsidian_l` | `Obsidian Rampart Shard, heavy black mirror magic wedge, red fracture web glow, floating obsidian spell fragment not a quarrel, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
+| 终幕凡·终弦 | `proj_deep_finale_c` | `Finale Twilight Cone, short cone of curtain-shadow purple spell-light, muted gold rim, soft magical burst not wood, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
+| 终幕湛·誓弓 | `proj_deep_finale_f` | `Finale Oath Sphere, compact deep-purple oath magic orb, antique gold filigree runes, floating spell globe not bow weapon, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
+| 终幕炽·星羽 | `proj_deep_finale_e` | `Finale Starfire Comet, warm ember-gold magical comet head, soft trailing stardust pixels, spell fire mass not metal flechette, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
+| 终幕曜·墟弦 | `proj_deep_finale_l` | `Finale Ruin Pulse Ring, collapsing magical ring shockwave, ruin purple and ash-gold afterglow, annulus of spell energy not arrow, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
+| 星骸炽·裂弦 | `proj_deep_starbone_e` | `Starbone Meteor Crystal, jagged cobalt-blue star-magic crystal chunk, silver stardust shards orbiting, arcane meteor fragment not arrow shaft, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
+| 裂点良·点羽 | `proj_deep_fissure_r` | `Fissure Arc Core Orb, small electric crack-core magic sphere, cyan plasma threads, lightning spell ball not pinion feather, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
+| 终焉炽·归弦 | `proj_deep_term_e` | `Terminus Homing Sigil Loop, scorched black arcane loop glyph, ember-red groove glow, boomerang-shaped spell trace not physical dart, pixel art projectile sprite, retro 16-bit game asset, pure black background, no text, no gun, no rifle, magic missile or fantasy bolt` |
 
 ---
 
@@ -156,4 +157,4 @@ pixel art projectile sprite, retro 16-bit game asset, pure black background, no 
 
 1. 每条提示词直接复制，末尾已隐含通用后缀（上述每条都已完整写出，可直接使用）。
 3. 品质档位（凡/良/湛/炽/曜）的复杂度差异已在提示词中通过“matte finish → glow → particles → orbiting fragments → pulsating aura”体现，可按需调整。
-4. 法杖类与弓弩类的核心区别：弓弩类提示词包含“arrow/bolt/needle”等实体词汇；法杖类包含“slash/orb/needle(能量针)/shard/vortex”等非实体能量描述，且明确“magic bolt not wooden arrow”。
+4. 法杖类与弓弩类的核心区别：弓弩类可用 arrow/bolt/quarrel 等实体箭矢词；**法杖类第三节**必须用 orb/shard/sigil/spell energy/mana/plasma 等词，**避免** bolt、dart、flechette、arrow、feather、fletching 形容实体弹药。批量生图时程序对第三节条目自动追加「法杖魔弹」构图后缀。

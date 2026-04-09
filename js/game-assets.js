@@ -42,6 +42,9 @@ class AssetManager {
         
         // 怪物贴图缓存
         this.monsterImageCache = new Map();
+
+        // 飞射体 / 子弹精灵（asset/projectiles/*.png）
+        this.projectileSpriteImages = new Map();
         
         // 玩家 GIF 帧缓存
         this.playerGifFrames = []; // 存储每一帧的 ImageData 或 canvas
@@ -792,6 +795,78 @@ class AssetManager {
                 resolve({frames, delays});
             }
         });
+    }
+
+    /**
+     * 飞射体贴图 URL（与装备图相同规则：http 用页面基路径，file 用目录基路径）
+     * @param {string} relativeUnderAsset - 如 projectiles/proj_xxx.png
+     */
+    _resolveUnderAssetUrl(relativeUnderAsset) {
+        if (window.location.protocol === 'file:') {
+            const currentPath = window.location.pathname;
+            const pathBase = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+            return pathBase + 'asset/' + relativeUnderAsset;
+        }
+        const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+        return baseUrl + 'asset/' + relativeUnderAsset;
+    }
+
+    /**
+     * 异步加载单枚飞射体贴图（proj_ 基名，不含 .png）
+     * @param {string} spriteId
+     * @returns {Promise<HTMLImageElement|null>}
+     */
+    loadProjectileSprite(spriteId) {
+        if (!spriteId || typeof spriteId !== 'string') return Promise.resolve(null);
+        const existing = this.projectileSpriteImages.get(spriteId);
+        if (existing instanceof HTMLImageElement && existing.complete && existing.naturalWidth > 0) {
+            return Promise.resolve(existing);
+        }
+        if (existing instanceof HTMLImageElement && !existing.complete) {
+            return new Promise((resolve) => {
+                existing.onload = () => resolve(existing);
+                existing.onerror = () => resolve(null);
+            });
+        }
+        const img = new Image();
+        this.projectileSpriteImages.set(spriteId, img);
+        const url = this._resolveUnderAssetUrl('projectiles/' + spriteId + '.png');
+        return new Promise((resolve) => {
+            img.onload = () => resolve(img);
+            img.onerror = () => {
+                console.warn('[AssetManager] 飞射体贴图缺失:', spriteId);
+                resolve(null);
+            };
+            img.src = url;
+        });
+    }
+
+    /**
+     * @param {string} spriteId
+     * @returns {HTMLImageElement|null}
+     */
+    getProjectileImageSync(spriteId) {
+        if (!spriteId) return null;
+        const im = this.projectileSpriteImages.get(spriteId);
+        return (im instanceof HTMLImageElement && im.complete && im.naturalWidth > 0) ? im : null;
+    }
+
+    /**
+     * 绘制贴图：素材为水平向右，按 angleRad 旋转（飞行方向）
+     * @returns {boolean} 是否成功绘制（失败时可回退几何绘制）
+     */
+    drawProjectileSprite(ctx, x, y, angleRad, spriteId, drawSize = 32) {
+        const img = this.getProjectileImageSync(spriteId);
+        if (!img) return false;
+        const w = drawSize;
+        const h = drawSize;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angleRad);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, -w / 2, -h / 2, w, h);
+        ctx.restore();
+        return true;
     }
 
 }

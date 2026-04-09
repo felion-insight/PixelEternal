@@ -251,25 +251,293 @@
     "dungeon_volcano": "tile_dungeon_floor_volcano.png"
   },
   "monster": {
+    "boss_20": {
+      "image": "boss_20.png",
+      "scale": 5.21
+    },
+    "boss_40": {
+      "image": "boss_40.png",
+      "scale": 5.42
+    },
+    "boss_60": {
+      "image": "boss_60.png",
+      "scale": 5.62
+    },
+    "boss_80": {
+      "image": "boss_80.png",
+      "scale": 5.83
+    },
+    "boss_100": {
+      "image": "boss_100.png",
+      "scale": 6.04
+    },
+    "boss_120": {
+      "image": "boss_120.png",
+      "scale": 6.25
+    },
+    "boss_140": {
+      "image": "boss_140.png",
+      "scale": 6.46
+    },
+    "boss_160": {
+      "image": "boss_160.png",
+      "scale": 6.67
+    },
+    "boss_180": {
+      "image": "boss_180.png",
+      "scale": 6.88
+    },
+    "boss_200": {
+      "image": "boss_200.png",
+      "scale": 7.08
+    },
+    "boss_220": {
+      "image": "boss_220.png",
+      "scale": 7.29
+    },
+    "boss_240": {
+      "image": "boss_240.png",
+      "scale": 7.5
+    },
+    "acidStalker": {
+      "image": "monster_acid_stalker.png",
+      "scale": 2.5
+    },
+    "apostateFallenKnight": {
+      "image": "monster_apostate_fallen_knight.png",
+      "scale": 3.0
+    },
+    "bastionBallista": {
+      "image": "monster_bastion_ballista.png",
+      "scale": 1.3
+    },
+    "bloodLeechMass": {
+      "image": "monster_blood_leech_mass.png",
+      "scale": 2.5
+    },
+    "circlePriest": {
+      "image": "monster_circle_priest.png",
+      "scale": 2.5
+    },
+    "clockworkSlasher": {
+      "image": "monster_clockwork_slasher.png",
+      "scale": 2.0
+    },
+    "crystalColossus": {
+      "image": "monster_crystal_colossus.png",
+      "scale": 3.0
+    },
+    "crystalColossus_elite": {
+      "image": "monster_crystal_colossus_elite.png",
+      "scale": 3.0
+    },
+    "deepTowerMarshal": {
+      "image": "monster_deep_tower_marshal.png",
+      "scale": 3.5
+    },
+    "demon": {
+      "image": "monster_demon.png",
+      "scale": 2.5
+    },
+    "demonAbyssWarden": {
+      "image": "monster_demon_abyss_warden.png",
+      "scale": 3.0
+    },
+    "demonAbyss_elite": {
+      "image": "monster_demon_abyss_elite.png",
+      "scale": 2.5
+    },
+    "demonArchmage": {
+      "image": "monster_demon_archmage.png",
+      "scale": 3.0
+    },
+    "demonAshSeer": {
+      "image": "monster_demon_ash_seer.png",
+      "scale": 2.5
+    },
+    "demonBoss": {
+      "image": "monster_demon_boss.png",
+      "scale": 5.0
+    },
+    "demonBoss_elite": {
+      "image": "monster_demon_boss_elite.png",
+      "scale": 5.0
+    },
+    "demonCorruptionMarshal": {
+      "image": "monster_demon_corruption_marshal.png",
+      "scale": 3.5
+    },
+    "demonEntropySage": {
+      "image": "monster_demon_entropy_sage.png",
+      "scale": 2.5
+    },
+    "demonFinalKeeper": {
+      "image": "monster_demon_final_keeper.png",
+      "scale": 5.5
+    },
+    "demonGeneral": {
+      "image": "monster_demon_general.png",
+      "scale": 3.5
+    },
+    "demonGuardian": {
+      "image": "monster_demon_guardian.png",
+      "scale": 3.0
+    },
+    "demonImp": {
+      "image": "monster_demon_imp.png",
+      "scale": 1.5
+    },
+    "demonImp_elite": {
+      "image": "monster_demon_imp_elite.png",
+      "scale": 1.5
+    },
+    "demonNullKnight": {
+      "image": "monster_demon_null_knight.png",
+      "scale": 3.0
+    },
+    "demonOverlord": {
+      "image": "monster_demon_overlord.png",
+      "scale": 6.0
+    },
+    "demonPrince": {
+      "image": "monster_demon_prince.png",
+      "scale": 3.8
+    },
+    "demonSorcerer": {
+      "image": "monster_demon_sorcerer.png",
+      "scale": 2.5
+    },
+    "demonSoulRift": {
+      "image": "monster_demon_soul_rift.png",
+      "scale": 1.5
+    },
+    "demonStarVoidMage": {
+      "image": "monster_demon_star_void_mage.png",
+      "scale": 3.0
+    },
+    "demonTitan": {
+      "image": "monster_demon_titan.png",
+      "scale": 5.5
+    },
+    "demonTyrant_elite": {
+      "image": "monster_demon_tyrant_elite.png",
+      "scale": 5.0
+    },
+    "demonVoidRunner": {
+      "image": "monster_demon_void_runner.png",
+      "scale": 2.5
+    },
+    "demonVoid_elite": {
+      "image": "monster_demon_void_elite.png",
+      "scale": 1.5
+    },
+    "demon_elite": {
+      "image": "monster_demon_elite.png",
+      "scale": 2.5
+    },
+    "frostHound": {
+      "image": "monster_frost_hound.png",
+      "scale": 1.5
+    },
+    "galeWisp": {
+      "image": "monster_gale_wisp.png",
+      "scale": 1.5
+    },
     "goblin": {
       "image": "monster_goblin.png",
       "scale": 1.2
     },
-    "goblinWarrior": {
-      "image": "monster_goblin_warrior.png",
-      "scale": 1.3
-    },
-    "goblinShaman": {
-      "image": "monster_goblin_shaman.png",
-      "scale": 1.1
+    "goblinChief": {
+      "image": "monster_goblin_chief.png",
+      "scale": 1.6
     },
     "goblinScout": {
       "image": "monster_goblin_scout.png",
       "scale": 1.1
     },
-    "goblinChief": {
-      "image": "monster_goblin_chief.png",
-      "scale": 1.6
+    "goblinShaman": {
+      "image": "monster_goblin_shaman.png",
+      "scale": 1.1
+    },
+    "goblinShaman_elite": {
+      "image": "monster_goblin_shaman_elite.png",
+      "scale": 1.1
+    },
+    "goblinWarrior": {
+      "image": "monster_goblin_warrior.png",
+      "scale": 1.3
+    },
+    "goblinWarrior_elite": {
+      "image": "monster_goblin_warrior_elite.png",
+      "scale": 1.3
+    },
+    "goblin_elite": {
+      "image": "monster_goblin_elite.png",
+      "scale": 1.2
+    },
+    "goldGlareThief": {
+      "image": "monster_gold_glare_thief.png",
+      "scale": 1.1
+    },
+    "hollowPilgrim": {
+      "image": "monster_hollow_pilgrim.png",
+      "scale": 1.5
+    },
+    "mirrorPhantom": {
+      "image": "monster_mirror_phantom.png",
+      "scale": 1.5
+    },
+    "obsidianGargoyle": {
+      "image": "monster_obsidian_gargoyle.png",
+      "scale": 2.5
+    },
+    "orc": {
+      "image": "monster_orc.png",
+      "scale": 2.2
+    },
+    "orcBerserker": {
+      "image": "monster_orc_berserker.png",
+      "scale": 2.0
+    },
+    "orcShaman": {
+      "image": "monster_orc_shaman.png",
+      "scale": 2.1
+    },
+    "orcWarlord": {
+      "image": "monster_orc_warlord.png",
+      "scale": 3.5
+    },
+    "orcWarlord_elite": {
+      "image": "monster_orc_warlord_elite.png",
+      "scale": 3.5
+    },
+    "orcWarrior": {
+      "image": "monster_orc_warrior.png",
+      "scale": 2.3
+    },
+    "orcWarrior_elite": {
+      "image": "monster_orc_warrior_elite.png",
+      "scale": 2.3
+    },
+    "plateFiendSoldier": {
+      "image": "monster_plate_fiend_soldier.png",
+      "scale": 3.0
+    },
+    "riftAssassin": {
+      "image": "monster_rift_assassin.png",
+      "scale": 1.5
+    },
+    "rustChainShade": {
+      "image": "monster_rust_chain_shade.png",
+      "scale": 2.0
+    },
+    "rustChain_elite": {
+      "image": "monster_rust_chain_elite.png",
+      "scale": 2.0
+    },
+    "silentZealot": {
+      "image": "monster_silent_zealot.png",
+      "scale": 2.5
     },
     "skeleton": {
       "image": "monster_skeleton.png",
@@ -281,75 +549,43 @@
     },
     "skeletonKnight": {
       "image": "monster_skeleton_knight.png",
-      "scale": 2
+      "scale": 2.0
     },
-    "skeletonMage": {
-      "image": "monster_skeleton_mage.png",
-      "scale": 1.2
+    "skeletonKnight_elite": {
+      "image": "monster_skeleton_knight_elite.png",
+      "scale": 2.0
     },
     "skeletonLord": {
       "image": "monster_skeleton_lord.png",
       "scale": 2.5
     },
-    "orc": {
-      "image": "monster_orc.png",
-      "scale": 2.2
+    "skeletonMage": {
+      "image": "monster_skeleton_mage.png",
+      "scale": 1.2
     },
-    "orcBerserker": {
-      "image": "monster_orc_berserker.png",
-      "scale": 2
+    "skeletonMage_elite": {
+      "image": "monster_skeleton_mage_elite.png",
+      "scale": 1.2
     },
-    "orcShaman": {
-      "image": "monster_orc_shaman.png",
-      "scale": 2.1
-    },
-    "orcWarrior": {
-      "image": "monster_orc_warrior.png",
-      "scale": 2.3
-    },
-    "orcWarlord": {
-      "image": "monster_orc_warlord.png",
-      "scale": 3.5
-    },
-    "demon": {
-      "image": "monster_demon.png",
+    "sporeHorror_elite": {
+      "image": "monster_spore_horror_elite.png",
       "scale": 2.5
     },
-    "demonImp": {
-      "image": "monster_demon_imp.png",
+    "sporeMatriarch": {
+      "image": "monster_spore_matriarch.png",
+      "scale": 2.5
+    },
+    "twinVesselLeft": {
+      "image": "monster_twin_vessel_left.png",
       "scale": 1.5
     },
-    "demonGuardian": {
-      "image": "monster_demon_guardian.png",
-      "scale": 3
+    "twinVesselRight": {
+      "image": "monster_twin_vessel_right.png",
+      "scale": 1.5
     },
-    "demonSorcerer": {
-      "image": "monster_demon_sorcerer.png",
-      "scale": 2.5
-    },
-    "demonGeneral": {
-      "image": "monster_demon_general.png",
-      "scale": 3.5
-    },
-    "demonBoss": {
-      "image": "monster_demon_boss.png",
-      "scale": 5
-    },
-    "demonPrince": {
-      "image": "monster_demon_prince.png",
-      "scale": 3.8
-    },
-    "demonTitan": {
-      "image": "monster_demon_titan.png",
-      "scale": 5.5
-    },
-    "demonArchmage": {
-      "image": "monster_demon_archmage.png",
-      "scale": 3
-    },
-    "demonOverlord": {
-      "image": "monster_demon_overlord.png",
-      "scale": 6
+    "voltBatSwarm": {
+      "image": "monster_volt_bat_swarm.png",
+      "scale": 1.5
     }
   },
   "player": {

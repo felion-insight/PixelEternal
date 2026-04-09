@@ -1233,7 +1233,7 @@ body {
     display: flex;
 }
 
-/* 恶魔塔：精英加护三选一、隙间商店（须全屏遮罩；否则仅在 #game-container 流式布局底部且被 overflow 裁切，暂停后看不到界面） */
+/* 恶魔塔：精英加护三选一、隙间商店（fixed 全屏；关闭时用 display:none，避免透明层常驻挡住其它顶层 UI） */
 #elite-boon-choice-modal,
 #gap-shop-modal {
     position: fixed;
@@ -1241,14 +1241,14 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.72);
     display: none;
-    pointer-events: auto;
-    z-index: 3100;
     justify-content: center;
     align-items: center;
     box-sizing: border-box;
     padding: 16px;
+    z-index: 3100;
+    background: rgba(0, 0, 0, 0.72);
+    pointer-events: auto;
 }
 
 #elite-boon-choice-modal.show,
@@ -1266,6 +1266,211 @@ body {
     position: relative;
     max-width: 92vw;
     box-sizing: border-box;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(16px) scale(0.97);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+}
+
+#elite-boon-choice-modal.show .modal-content,
+#gap-shop-modal.show .modal-content {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+/* 精英加护：宽度对齐背包 #inventory-modal（1200px），黑底 + 蓝标题 + 灰说明 */
+#elite-boon-choice-modal .modal-content.elite-boon-choice-panel {
+    width: min(1200px, 96vw);
+    max-width: min(1200px, 96vw) !important;
+    background: #0a0a0d !important;
+    color: #8a8a8a;
+    border: 2px solid #1e3555 !important;
+    border-radius: 10px;
+    box-shadow: 0 0 0 1px rgba(40, 90, 160, 0.2), 0 18px 56px rgba(0, 0, 0, 0.65);
+    padding: 20px 24px 22px;
+}
+
+.elite-boon-choice-head {
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #1a2435;
+}
+
+.elite-boon-choice-title {
+    margin: 0 0 8px 0;
+    font-size: 22px;
+    font-weight: bold;
+    color: #4d9fff;
+    letter-spacing: 0.02em;
+}
+
+.elite-boon-choice-intro {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.45;
+    color: #7a7a7a;
+}
+
+.elite-boon-choice-options {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 14px;
+    justify-content: stretch;
+    align-items: stretch;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 960px) {
+    .elite-boon-choice-options {
+        flex-wrap: wrap;
+    }
+}
+
+.elite-boon-choice-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 128px;
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+    background: #0f0f12 !important;
+    color: #8a8a8a;
+    border: 1px solid #252b38 !important;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: "Courier New", monospace;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    box-sizing: border-box;
+}
+
+.elite-boon-choice-btn:hover {
+    background: #131820 !important;
+    border-color: #3566a8 !important;
+    box-shadow: 0 0 0 1px rgba(60, 130, 220, 0.25);
+}
+
+.elite-boon-choice-btn .elite-boon-name {
+    display: block;
+    color: #4d9fff;
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 1.35;
+    margin-bottom: 10px;
+}
+
+.elite-boon-choice-btn .elite-boon-desc {
+    display: block;
+    color: #777;
+    font-size: 13px;
+    line-height: 1.45;
+    flex: 1;
+}
+
+.elite-boon-choice-actions {
+    text-align: center;
+    padding-top: 4px;
+}
+
+.elite-boon-skip-btn {
+    padding: 12px 32px;
+    background: #121215 !important;
+    color: #777;
+    border: 1px solid #333842;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: "Courier New", monospace;
+    font-size: 13px;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.elite-boon-skip-btn:hover {
+    background: #18181c !important;
+    border-color: #4a5568;
+    color: #9a9a9a;
+}
+
+.gap-shop-panel {
+    max-width: min(1220px, 96vw) !important;
+    width: 100%;
+    border-color: rgba(218, 165, 32, 0.65) !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 32px rgba(255, 200, 80, 0.12);
+}
+
+.gap-shop-buy-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: stretch;
+    margin-bottom: 18px;
+}
+
+.gap-shop-buy-btn {
+    flex: 1 1 160px;
+    min-width: 140px;
+    min-height: 96px;
+    padding: 14px 12px;
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: "Courier New", monospace;
+    font-size: 14px;
+    line-height: 1.45;
+    text-align: center;
+    border-width: 2px;
+    border-style: solid;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.gap-shop-buy-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.gap-shop-buy-sub {
+    display: block;
+    font-size: 11px;
+    opacity: 0.88;
+    font-weight: normal;
+    margin-top: 2px;
+}
+
+.gap-shop-buy-heal-half {
+    background: rgba(40, 120, 80, 0.9);
+    border-color: #8f8;
+}
+
+.gap-shop-buy-heal-full {
+    background: rgba(40, 100, 120, 0.9);
+    border-color: #8cf;
+}
+
+.gap-shop-buy-maxhp {
+    background: rgba(100, 60, 120, 0.9);
+    border-color: #c8c;
+}
+
+.gap-shop-buy-boon {
+    background: rgba(80, 60, 140, 0.9);
+    border-color: #aaf;
+}
+
+.gap-shop-buy-revive {
+    background: rgba(120, 40, 40, 0.9);
+    border-color: #f88;
+}
+
+.gap-shop-sell-list {
+    max-height: 240px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+    padding: 4px 2px;
 }
 
 #dungeon-enter-confirm-modal .modal-content, #dungeon-license-insufficient-modal .modal-content, #esc-menu-modal .modal-content, #tower-exit-confirm-modal .modal-content {
@@ -1832,7 +2037,7 @@ body {
 
 /* 寮€鍙戣€呮ā寮忔牱寮?*/
 #dev-panel {
-    position: absolute;
+    position: fixed;
     top: 10px;
     right: 10px;
     background: rgba(0, 0, 0, 0.9);
@@ -1840,7 +2045,8 @@ body {
     padding: 15px;
     border-radius: 5px;
     display: none;
-    z-index: 2000;
+    /* 须高于画布与塔内模态，且可点到按钮；仍低于恶魔干扰全屏层(50000) */
+    z-index: 49000;
     max-width: 300px;
     max-height: 80vh;
     overflow-y: auto;
@@ -2159,15 +2365,53 @@ body {
 }
 
 #demon-overlay {
-    transition: opacity 0.5s ease;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    /* 挂在 body 下，须高于 #game-container(1) 与塔内全屏层；低于加载/开始界面(99998+) */
+    z-index: 50000;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
 }
 
 #demon-overlay.show {
-    display: block !important;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+#demon-interference-modal {
+    position: fixed;
+    top: 15%;
+    left: 50%;
+    width: 80%;
+    max-width: 640px;
+    margin: 0;
+    padding: 25px;
+    background: rgba(20, 20, 30, 0.98);
+    border: 3px solid #ff3333;
+    border-radius: 10px;
+    z-index: 50010;
+    box-shadow: 0 0 40px rgba(255, 51, 51, 0.4);
+    box-sizing: border-box;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate(-50%, -12px) scale(0.96);
+    /* 不对 visibility 做过渡，避免部分浏览器下长时间保持 hidden 导致面板不显示 */
+    transition: opacity 0.42s cubic-bezier(0.22, 1, 0.36, 1), transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #demon-interference-modal.show {
-    display: block !important;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate(-50%, 0) scale(1);
 }
 
 /* 存档代码模态框样式 */
@@ -2380,7 +2624,7 @@ body {
     padding: 20px;
     border-radius: 10px;
     display: none;
-    z-index: 3000;
+    z-index: 49000;
     overflow-y: auto;
     pointer-events: auto;
     box-shadow: 0 0 50px rgba(255, 0, 0, 0.5);

@@ -28,7 +28,6 @@ class ConfigLoader {
             const configFiles = [
                 { key: 'MONSTER_TYPES', file: 'config/monster-config.json' },
                 { key: 'EQUIPMENT_DEFINITIONS', file: 'config/equipment-config.json' },
-                { key: 'POTION_DEFINITIONS', file: 'config/potion-config.json' },
                 { key: 'SET_DEFINITIONS', file: 'config/set-config.json' },
                 { key: 'BOSS_DEFINITIONS', file: 'config/boss-config.json' },
                 { key: 'BUFF_ICON_MAP', file: 'config/buff-icon-config.json' },
@@ -199,9 +198,6 @@ class ConfigLoader {
         if (this.configs.EQUIPMENT_DEFINITIONS) {
             window.EQUIPMENT_DEFINITIONS = this.configs.EQUIPMENT_DEFINITIONS;
         }
-        if (this.configs.POTION_DEFINITIONS) {
-            window.POTION_DEFINITIONS = this.configs.POTION_DEFINITIONS;
-        }
         if (this.configs.SET_DEFINITIONS) {
             window.SET_DEFINITIONS = this.configs.SET_DEFINITIONS;
         }
@@ -217,14 +213,6 @@ class ConfigLoader {
             window.SKILL_ICON_MAP = this.configs.SKILL_ICON_MAP;
         }
 
-        // 炼金材料相关配置
-        if (this.configs.TRAIT_RETENTION_RATES) {
-            window.TRAIT_RETENTION_RATES = this.configs.TRAIT_RETENTION_RATES;
-        }
-        if (this.configs.EXTRA_TRAITS_POOL) {
-            window.EXTRA_TRAITS_POOL = this.configs.EXTRA_TRAITS_POOL;
-        }
-
         // 图片映射配置
         if (this.configs.MAPPINGS) {
             window.MAPPINGS = this.configs.MAPPINGS;
@@ -234,6 +222,10 @@ class ConfigLoader {
         }
         if (this.configs.PROJECTILE_SPRITE_MAP) {
             window.PROJECTILE_SPRITE_MAP = this.configs.PROJECTILE_SPRITE_MAP;
+        }
+
+        if (typeof window.applyPeSecretsToConfig === 'function') {
+            window.applyPeSecretsToConfig();
         }
     }
 }

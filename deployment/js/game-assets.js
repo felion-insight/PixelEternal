@@ -5,7 +5,7 @@
 
 /**
  * 资源管理器类
- * 管理装备和炼金材料的图片资源
+ * 管理装备等图片资源
  */
 class AssetManager {
     constructor() {
@@ -33,9 +33,6 @@ class AssetManager {
 
         // 装备图片缓存
         this.equipmentImageCache = new Map();
-        
-        // 炼金材料图片缓存
-        this.alchemyMaterialImageCache = new Map();
         
         // 实体贴图缓存（建筑、房间实体、传送门、地板）
         this.entityImageCache = new Map();
@@ -203,7 +200,7 @@ class AssetManager {
      * 为装备元素设置背景图片
      * @param {HTMLElement} element - 要设置背景的元素
      * @param {string} equipmentName - 装备名称
-     * @param {string} quality - 装备品质（已废弃，不再使用）
+     * @param {string|null} quality - 装备品质（无 eqInstance 时用于铺格子半透明品质底色）
      * @param {Object|null} eqInstance - 可选装备实例（合铸贴图按 fusionPairKey 解析）
      */
     async setEquipmentBackgroundImage(element, equipmentName, quality = null, eqInstance = null) {
@@ -229,7 +226,7 @@ class AssetManager {
             const imageUrl = this.equipmentImageCache.get(imageName);
             // 检查元素是否仍然存在（不需要parentNode，因为元素可能还未添加到DOM）
             if (element) {
-                this._applyImageToElement(element, imageUrl);
+                this._applyImageToElement(element, imageUrl, eqInstance, quality);
             }
             return Promise.resolve();
         }
@@ -246,7 +243,7 @@ class AssetManager {
                 
                 // 对于有itemId的元素，检查itemId是否仍然存在（防止异步加载期间装备被移除或更换）
                 if (!itemIdBeforeLoad || element.dataset.itemId === itemIdBeforeLoad) {
-                    this._applyImageToElement(element, imageUrl);
+                    this._applyImageToElement(element, imageUrl, eqInstance, quality);
                 }
             } else if (!element.dataset.itemId && element) {
                 element.style.backgroundImage = '';
@@ -262,10 +259,28 @@ class AssetManager {
     }
 
     /**
+     * 在透明底装备图下方铺品质色（与背包/装备栏 updateInventoryUI 一致）
+     * @private
+     */
+    _applyEquipmentQualityBackgroundTint(element, eqInstance, qualityOverride) {
+        const q = (eqInstance && eqInstance.quality) ? eqInstance.quality : qualityOverride;
+        if (!q || typeof window.QUALITY_COLORS === 'undefined' || !window.QUALITY_COLORS) return;
+        const qc = window.QUALITY_COLORS[q] || '#ffffff';
+        const alphaHex = {
+            common: '40',
+            rare: '50',
+            fine: '60',
+            epic: '70',
+            legendary: '80'
+        };
+        element.style.backgroundColor = qc + (alphaHex[q] || '40');
+    }
+
+    /**
      * 应用图片到元素（内部方法）
      * @private
      */
-    _applyImageToElement(element, imageUrl) {
+    _applyImageToElement(element, imageUrl, eqInstance = null, qualityOverride = null) {
         element.style.backgroundImage = `url(${imageUrl})`;
         element.style.backgroundPosition = 'center';
         element.style.backgroundRepeat = 'no-repeat';
@@ -277,147 +292,7 @@ class AssetManager {
         } else {
             element.style.backgroundSize = '90%';
         }
-    }
-
-    /**
-     * 获取炼金材料对应的图片文件名
-     * @param {string} materialName - 材料名称
-     * @returns {string|null} 图片文件名，如果没有对应图片则返回null
-     */
-    getAlchemyMaterialImageName(materialName) {
-        // 从 mappings.json 中读取映射
-        if (typeof MAPPINGS !== 'undefined' && MAPPINGS.alchemy_material && MAPPINGS.alchemy_material[materialName]) {
-            return MAPPINGS.alchemy_material[materialName];
-        }
-        
-        // 回退：如果映射中不存在，尝试使用材料名.png
-        return materialName + '.png';
-    }
-
-    /**
-     * 加载并处理炼金材料图片
-     * @param {string} imageName - 图片文件名
-     * @returns {Promise<string>} 处理后的图片URL（data URL）
-     */
-    async loadAndProcessAlchemyMaterialImage(imageName) {
-        if (this.alchemyMaterialImageCache.has(imageName)) {
-            return this.alchemyMaterialImageCache.get(imageName);
-        }
-        // imageName已经包含完整路径（如alchemy_materials/xxx.png），直接使用
-        let imagePath;
-        if (window.location.protocol === 'file:') {
-            imagePath = 'asset/' + imageName;
-        } else {
-            const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
-            imagePath = baseUrl + 'asset/' + imageName;
-        }
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => {
-                try {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const scale = 0.9;
-                    const newWidth = Math.floor(img.width * scale);
-                    const newHeight = Math.floor(img.height * scale);
-                    const offsetX = Math.floor((img.width - newWidth) / 2);
-                    const offsetY = Math.floor((img.height - newHeight) / 2);
-                    canvas.width = newWidth;
-                    canvas.height = newHeight;
-                    ctx.drawImage(img, offsetX, offsetY, newWidth, newHeight, 0, 0, newWidth, newHeight);
-                    try {
-                        const watermarkAreaWidth = Math.floor(newWidth * 0.2);
-                        const watermarkAreaHeight = Math.floor(newHeight * 0.2);
-                        ctx.clearRect(newWidth - watermarkAreaWidth, newHeight - watermarkAreaHeight, watermarkAreaWidth, watermarkAreaHeight);
-                    } catch (e) { /* Cross-origin issue, ignore */ }
-                    const dataUrl = canvas.toDataURL('image/png');
-                    this.alchemyMaterialImageCache.set(imageName, dataUrl);
-                    resolve(dataUrl);
-                } catch (error) {
-                    this.alchemyMaterialImageCache.set(imageName, imagePath);
-                    resolve(imagePath);
-                }
-            };
-            img.onerror = (e) => {
-                console.warn(`Failed to load alchemy material image: ${imagePath}`, e);
-                this.alchemyMaterialImageCache.set(imageName, imagePath);
-                resolve(imagePath);
-            };
-            img.src = imagePath;
-        });
-    }
-
-    /**
-     * 为炼金材料元素设置背景图片
-     * @param {HTMLElement} element - 要设置背景的元素
-     * @param {string} materialName - 材料名称
-     * @param {string} size - 背景大小（CSS值，如 '48px 48px' 或 'cover'）
-     */
-    async setAlchemyMaterialBackgroundImage(element, materialName, size = 'cover') {
-        if (!element) return Promise.resolve();
-        
-        // 保存当前的itemId（如果有），用于异步加载完成后的检查
-        const itemIdBeforeLoad = element.dataset.itemId;
-        
-        const imageName = this.getAlchemyMaterialImageName(materialName);
-        if (!imageName) {
-            if (element) {
-                element.style.backgroundImage = '';
-            }
-            return Promise.resolve();
-        }
-        if (this.alchemyMaterialImageCache && this.alchemyMaterialImageCache.has(imageName)) {
-            const imageUrl = this.alchemyMaterialImageCache.get(imageName);
-            // 检查元素是否仍然有效（不需要parentNode，因为元素可能还未添加到DOM）
-            if (element) {
-                // 如果有itemId，验证是否仍然匹配
-                if (!itemIdBeforeLoad || element.dataset.itemId === itemIdBeforeLoad) {
-                    element.style.backgroundImage = `url(${imageUrl})`;
-                    // 如果使用的是data URL（已处理的图片），使用contain；否则使用传入的size参数
-                    if (imageUrl.startsWith('data:')) {
-                        element.style.backgroundSize = 'contain';
-                    } else {
-                        element.style.backgroundSize = size;
-                    }
-                    element.style.backgroundPosition = 'center';
-                    element.style.backgroundRepeat = 'no-repeat';
-                }
-            }
-            return Promise.resolve();
-        }
-        try {
-            const imageUrl = await this.loadAndProcessAlchemyMaterialImage(imageName);
-            // 检查元素是否仍然存在（不需要parentNode，因为元素可能还未添加到DOM）
-            if (!element) {
-                return Promise.resolve();
-            }
-            
-            // 如果有itemId，验证是否仍然匹配
-            if (itemIdBeforeLoad && element.dataset.itemId !== itemIdBeforeLoad) {
-                // itemId已变化，不设置图片
-                return Promise.resolve();
-            }
-            
-            if (imageUrl) {
-                element.style.backgroundImage = `url(${imageUrl})`;
-                // 如果使用的是data URL（已处理的图片），使用contain；否则使用传入的size参数
-                if (imageUrl.startsWith('data:')) {
-                    element.style.backgroundSize = 'contain';
-                } else {
-                    element.style.backgroundSize = size;
-                }
-                element.style.backgroundPosition = 'center';
-                element.style.backgroundRepeat = 'no-repeat';
-            } else {
-                element.style.backgroundImage = '';
-            }
-            return Promise.resolve();
-        } catch (error) {
-            if (element) {
-                element.style.backgroundImage = '';
-            }
-            return Promise.resolve();
-        }
+        this._applyEquipmentQualityBackgroundTint(element, eqInstance, qualityOverride);
     }
 
     /**
@@ -434,7 +309,7 @@ class AssetManager {
 
     /**
      * 获取房间实体对应的图片文件名
-     * @param {string} entityType - 实体类型（treasure_chest, rest_campfire, rest_medkit, rest_fountain, rest_altar, alchemy_table）
+     * @param {string} entityType - 实体类型（treasure_chest, rest_campfire, rest_medkit, rest_fountain, rest_altar）
      * @returns {string|null} 图片文件名，如果没有对应图片则返回null
      */
     getRoomEntityImageName(entityType) {

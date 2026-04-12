@@ -1,6 +1,7 @@
 /**
  * 合铸成功后：调用与 tools/art_generator 相同的 OpenAI 兼容 Chat + Imagen 接口，
  * 生成与原材料装备名称、词条及新装备名有关联的装备贴图，写入 AssetManager 并持久化。
+ * 规划/生图任一步失败时按指数退避自动重试直至成功（可选 CONFIG.HEZHU_FUSION_ICON_RETRY_INITIAL_MS / _MAX_MS）。
  */
 (function () {
     'use strict';
@@ -9,6 +10,22 @@
     const CHROMA_THRESHOLD = 10;
     const CHAT_MODEL = (typeof CONFIG !== 'undefined' && CONFIG.HEZHU_FUSION_ICON_CHAT_MODEL) ? CONFIG.HEZHU_FUSION_ICON_CHAT_MODEL : 'gpt-4o-mini';
     const IMAGE_MODEL = (typeof CONFIG !== 'undefined' && CONFIG.HEZHU_FUSION_ICON_IMAGE_MODEL) ? CONFIG.HEZHU_FUSION_ICON_IMAGE_MODEL : 'imagen-4.0-ultra-generate-001';
+
+    function fusionIconRetryInitialMs() {
+        const v = typeof CONFIG !== 'undefined' ? CONFIG.HEZHU_FUSION_ICON_RETRY_INITIAL_MS : null;
+        const n = Number(v);
+        return Number.isFinite(n) && n > 0 ? n : 3000;
+    }
+
+    function fusionIconRetryMaxMs() {
+        const v = typeof CONFIG !== 'undefined' ? CONFIG.HEZHU_FUSION_ICON_RETRY_MAX_MS : null;
+        const n = Number(v);
+        return Number.isFinite(n) && n > 0 ? n : 90000;
+    }
+
+    function sleepMs(ms) {
+        return new Promise(function (resolve) { setTimeout(resolve, ms); });
+    }
 
     const STYLE_SUFFIX_BY_SLOT = {
         weapon: 'single weapon centered in frame, inventory item still-life, static pose, no action scene',
@@ -81,6 +98,115 @@
         );
     }
 
+    /** OpenAI 兼容：message.content 可能是 string 或 content-part 数组 */
+    function normalizeAssistantText(message) {
+        if (!message || message.content == null) return '';
+        const c = message.content;
+        if (typeof c === 'string') return c.trim();
+        if (Array.isArray(c)) {
+            const parts = [];
+            for (let i = 0; i < c.length; i++) {
+                const part = c[i];
+                if (typeof part === 'string') parts.push(part);
+                else if (part && typeof part.text === 'string') parts.push(part.text);
+            }
+            return parts.join('').trim();
+        }
+        return String(c).trim();
+    }
+
+    /** 从 /v1/chat/completions 或部分网关返回的类 Gemini 结构中取出助手文本 */
+    function extractPlanTextFromChatResponse(data) {
+        if (!data || typeof data !== 'object') return '';
+        const ch0 = data.choices && data.choices[0];
+        if (ch0 && ch0.message) {
+            return normalizeAssistantText(ch0.message);
+        }
+        const cand = data.candidates && data.candidates[0];
+        if (cand && cand.content) {
+            const cc = cand.content;
+            if (typeof cc === 'string') return cc.trim();
+            if (Array.isArray(cc.parts)) {
+                let t = '';
+                for (let j = 0; j < cc.parts.length; j++) {
+                    const p = cc.parts[j];
+                    if (p && typeof p.text === 'string') t += p.text;
+                }
+                return t.trim();
+            }
+        }
+        return '';
+    }
+
+    /**
+     * 从规划模型回复中解析 subject：整段 JSON、截取首个对象、或 "subject":"..." 正则（与 tools/art_generator 思路一致）。
+     */
+    function parsePlanSubjectFromAssistantText(raw) {
+        let s = String(raw || '').trim();
+        if (!s) return null;
+        if (s.indexOf('```') !== -1) {
+            s = s.replace(/^```\w*\s*\n?/m, '').replace(/\n?\s*```\s*$/m, '').trim();
+        }
+        function subjectFromObject(o) {
+            if (!o || typeof o !== 'object') return null;
+            const sub = o.subject;
+            if (typeof sub !== 'string') return null;
+            const t = sub.trim();
+            return t || null;
+        }
+        function tryParseObject(str) {
+            if (!str) return null;
+            try {
+                const o = JSON.parse(str);
+                return subjectFromObject(o);
+            } catch {
+                return null;
+            }
+        }
+        let out = tryParseObject(s);
+        if (out) return out;
+        const start = s.indexOf('{');
+        const end = s.lastIndexOf('}');
+        if (start !== -1 && end > start) {
+            out = tryParseObject(s.slice(start, end + 1));
+            if (out) return out;
+        }
+        const m = s.match(/"subject"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+        if (m) {
+            try {
+                const inner = JSON.parse('"' + m[1] + '"');
+                if (inner && String(inner).trim()) return String(inner).trim();
+            } catch {
+                /* ignore */
+            }
+        }
+        if (start === -1 && s.length >= 20 && s.length <= 1200 && /[a-zA-Z]{12,}/.test(s) && s.indexOf('{') === -1) {
+            return s.replace(/\s+/g, ' ').trim();
+        }
+        return null;
+    }
+
+    /** 解析网关返回的 JSON/text，便于排查鉴权类错误 */
+    function formatFusionUpstreamError(status, rawBody, label) {
+        const full = rawBody != null ? String(rawBody) : '';
+        let credentialHint = '';
+        if (/invalid_grant|account not found|access token|JWT|credentials|unauthorized|401|403/i.test(full)) {
+            credentialHint =
+                ' ［说明：多为网关用 Bearer 密钥换上游 token 失败——密钥错误/过期、或上游账号已删除；请核对 .env / pe-env.generated.js 中的 PE_ART_API_KEY（及网关文档要求的密钥），或联系 35.220.164.252 网关维护方。］';
+        }
+        try {
+            const o = JSON.parse(full);
+            const inner = o && o.error;
+            const msg = inner && typeof inner === 'object' && inner.message != null
+                ? String(inner.message)
+                : (typeof o.message === 'string' ? o.message : '');
+            if (msg) return label + ' HTTP ' + status + ': ' + msg.slice(0, 520) + credentialHint;
+        } catch (e) {
+            /* 非 JSON */
+        }
+        return label + ' HTTP ' + status + ': ' + full.slice(0, 400) + credentialHint;
+    }
+
     async function chatPlanSubject(prompt, apiKey) {
         const url = apiBase() + '/v1/chat/completions';
         const res = await fetch(url, {
@@ -97,21 +223,22 @@
         });
         if (!res.ok) {
             const t = await res.text();
-            throw new Error('合铸贴图规划失败: ' + res.status + ' ' + t.slice(0, 200));
+            throw new Error(formatFusionUpstreamError(res.status, t, '合铸贴图规划失败'));
         }
         const data = await res.json();
-        const content = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content)
-            ? data.choices[0].message.content.trim() : '';
-        let jsonStr = content;
-        if (jsonStr.indexOf('```') !== -1) {
-            jsonStr = jsonStr.replace(/^```\w*\n?/, '').replace(/\n?```\s*$/, '');
+        if (data.error) {
+            const em = data.error.message != null ? String(data.error.message) : JSON.stringify(data.error);
+            throw new Error('合铸贴图规划失败: ' + em.slice(0, 220));
         }
-        const start = jsonStr.indexOf('{');
-        const end = jsonStr.lastIndexOf('}');
-        if (start === -1 || end <= start) throw new Error('合铸贴图：规划返回非 JSON');
-        const parsed = JSON.parse(jsonStr.slice(start, end + 1));
-        const subject = String(parsed.subject || '').trim();
-        if (!subject) throw new Error('合铸贴图：规划缺少 subject');
+        const content = extractPlanTextFromChatResponse(data);
+        const subject = parsePlanSubjectFromAssistantText(content);
+        if (!subject) {
+            const keys = data && typeof data === 'object' ? Object.keys(data).join(',') : '';
+            const preview = content ? content.slice(0, 280) : '(空)';
+            throw new Error(
+                '合铸贴图：规划返回无法解析（需要含 subject 的 JSON）。响应键: ' + keys + '；正文前 280 字: ' + preview
+            );
+        }
         return subject;
     }
 
@@ -134,7 +261,7 @@
         });
         if (!res.ok) {
             const t = await res.text();
-            throw new Error('合铸贴图生图失败: ' + res.status + ' ' + t.slice(0, 200));
+            throw new Error(formatFusionUpstreamError(res.status, t, '合铸贴图生图失败'));
         }
         const data = await res.json();
         if (!data.data || !data.data[0]) throw new Error('合铸贴图：无图像数据');
@@ -164,9 +291,17 @@
     function floodEdgeTransparent(imageData, w, h) {
         const d = imageData.data;
         const thr = CHROMA_THRESHOLD;
+        /** 与边缘连通的暗底：纯黑附近 + 低饱和深灰（模型常给 #121212 而非纯黑） */
         function isBg(x, y) {
             const i = (y * w + x) * 4;
-            return d[i] <= thr && d[i + 1] <= thr && d[i + 2] <= thr;
+            const r = d[i];
+            const g = d[i + 1];
+            const b = d[i + 2];
+            const M = Math.max(r, g, b);
+            const m = Math.min(r, g, b);
+            if (r <= thr && g <= thr && b <= thr) return true;
+            if (M <= thr + 22 && (M - m) <= 24) return true;
+            return false;
         }
         const seen = new Uint8Array(w * h);
         const q = [];
@@ -211,6 +346,7 @@
                     canvas.height = EXPORT_SIZE;
                     const ctx = canvas.getContext('2d');
                     ctx.imageSmoothingEnabled = false;
+                    ctx.clearRect(0, 0, EXPORT_SIZE, EXPORT_SIZE);
                     ctx.drawImage(img, 0, 0, EXPORT_SIZE, EXPORT_SIZE);
                     const imageData = ctx.getImageData(0, 0, EXPORT_SIZE, EXPORT_SIZE);
                     floodEdgeTransparent(imageData, EXPORT_SIZE, EXPORT_SIZE);
@@ -230,7 +366,7 @@
     }
 
     /**
-     * 合铸成功后异步生成并注册贴图（失败仅打日志，不影响游戏）
+     * 合铸成功后异步生成并注册贴图；API 报错时按指数退避持续重试直至成功。
      * @param {Game} game
      * @param {string} newName
      * @param {Object} eqA
@@ -258,12 +394,30 @@
         const quality = meta.quality || 'rare';
         const traitDescription = meta.traitDescription || '';
         const planPrompt = buildPlanPrompt(newName, eqA, eqB, slot, quality, traitDescription);
-        const subject = await chatPlanSubject(planPrompt, apiKey);
-        const fullPrompt = subject + '. ' + styleTemplate(slot);
-        const b64 = await generateImageB64(fullPrompt, apiKey);
-        const dataUrl = await processToDataUrl(b64, slot);
-        if (am && typeof am.registerFusionEquipmentPairAndName === 'function') {
-            am.registerFusionEquipmentPairAndName(pairKey, newName, dataUrl);
+
+        let delay = fusionIconRetryInitialMs();
+        const delayCap = fusionIconRetryMaxMs();
+        for (let attempt = 1; ; attempt++) {
+            try {
+                const subject = await chatPlanSubject(planPrompt, apiKey);
+                const fullPrompt = subject + '. ' + styleTemplate(slot);
+                const b64 = await generateImageB64(fullPrompt, apiKey);
+                const dataUrl = await processToDataUrl(b64, slot);
+                if (am && typeof am.registerFusionEquipmentPairAndName === 'function') {
+                    am.registerFusionEquipmentPairAndName(pairKey, newName, dataUrl);
+                }
+                if (attempt > 1) {
+                    console.log('合铸贴图：第 ' + attempt + ' 次尝试后已成功生成');
+                }
+                return;
+            } catch (err) {
+                console.warn(
+                    '合铸贴图第 ' + attempt + ' 次失败，约 ' + Math.round(delay / 1000) + ' 秒后重试（直至成功）',
+                    err && err.message ? err.message : err
+                );
+                await sleepMs(delay);
+                delay = Math.min(delayCap, Math.max(delay + 1000, Math.floor(delay * 1.45)));
+            }
         }
     }
 

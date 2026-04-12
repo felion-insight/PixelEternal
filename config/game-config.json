@@ -21,7 +21,8 @@
     "TICKS_PER_SECOND": 60,
     "TOWER_MAX_FLOOR": 240,
     "TOWER_BOSS_INTERVAL": 20,
-    "MONSTER_MAX_LEVEL": 60
+    "MONSTER_MAX_LEVEL": 60,
+    "PLAYER_EXP_LEVEL_MULT": 1.18
   },
   "QUALITY_COLORS": {
     "common": "#ffffff",
@@ -52,7 +53,6 @@
     "TREASURE": "treasure",
     "REST": "rest",
     "ELITE": "elite",
-    "ALCHEMY": "alchemy",
     "GAP_SHOP": "gap_shop",
     "BOSS": "boss"
   },

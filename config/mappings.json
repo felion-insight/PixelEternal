@@ -480,22 +480,6 @@
     "终焉曜·墟环": "deep_equipment/deep_terminus_q05_1a426286.png",
     "终焉曜·墟缰": "deep_equipment/deep_terminus_q05_82d9f591.png"
   },
-  "alchemy_material": {
-    "霜凝幽卉": "alchemy_materials/mat_ed760555.png",
-    "凌云隼羽": "alchemy_materials/mat_c1fd163c.png",
-    "烬燃灵草": "alchemy_materials/mat_b8b5d15b.png",
-    "摧坚刚岩": "alchemy_materials/mat_af288f0b.png",
-    "荒古龙鳞": "alchemy_materials/mat_63bcb606.png",
-    "震天雷枢": "alchemy_materials/mat_6959bb81.png",
-    "磐石瑰晶": "alchemy_materials/mat_61a326a9.png",
-    "涅槃灵羽": "alchemy_materials/mat_326d75ea.png",
-    "瑞命元根": "alchemy_materials/mat_205262bd.png",
-    "湮灭源质": "alchemy_materials/mat_8d8de94a.png",
-    "曦和圣耀": "alchemy_materials/mat_9990315b.png",
-    "永夜魂髓": "alchemy_materials/mat_fdd3b02e.png",
-    "朔风惊叶": "alchemy_materials/mat_84d354c7.png",
-    "煞血魔珀": "alchemy_materials/mat_f524ae9b.png"
-  },
   "building": {
     "tower_entrance": "tile_tower_entrance.png",
     "blacksmith": "tile_blacksmith.png",
@@ -507,8 +491,7 @@
     "rest_campfire": "tile_rest_campfire.png",
     "rest_medkit": "tile_rest_medkit.png",
     "rest_fountain": "tile_rest_fountain.png",
-    "rest_altar": "tile_rest_altar.png",
-    "alchemy_table": "tile_alchemy_table.png"
+    "rest_altar": "tile_rest_altar.png"
   },
   "portal": {
     "exit": "tile_portal_exit.png",

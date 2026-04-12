@@ -207,12 +207,10 @@
                 <div id="inventory-grid">
                     <div id="inventory-tabs">
                         <div class="inventory-tab equipment-tab active" data-tab="equipment">装备</div>
-                        <div class="inventory-tab material-tab" data-tab="material">材料</div>
                         <div class="inventory-tab consumable-tab" data-tab="consumable">消耗品</div>
                     </div>
                     <div id="inventory-capacity-info" style="padding: 10px 20px; font-size: 12px; color: #aaa; border-bottom: 1px solid #666;">
                         <span id="equipment-capacity">装备: 0/18</span> | 
-                        <span id="material-capacity">材料: 0/30</span> | 
                         <span id="consumable-capacity">消耗品: 0/18</span>
                     </div>
                     <p style="padding: 0 20px 8px; margin: 0; font-size: 11px; color: #888; border-bottom: 1px solid #444;">右键背包内物品可丢弃（永久消失，不会掉落在地上）</p>
@@ -301,7 +299,6 @@
             <div id="shop-content">
                 <div id="shop-tabs">
                     <button class="shop-tab active" data-tab="equipments">装备</button>
-                    <button class="shop-tab" data-tab="consumables">消耗品</button>
                     <button class="shop-tab" data-tab="sell">出售</button>
                 </div>
                 <div id="shop-equipments" class="shop-section active">
@@ -326,9 +323,6 @@
                         </div>
                     </div>
                     <div id="shop-equipment-list"></div>
-                </div>
-                <div id="shop-consumables" class="shop-section">
-                    <div id="shop-consumable-list"></div>
                 </div>
                 <div id="shop-sell" class="shop-section">
                     <div id="shop-sell-list"></div>
@@ -389,6 +383,7 @@
                 <div style="display: flex; flex-direction: column; gap: 15px;">
                     <button id="esc-menu-guide-btn" style="padding: 12px 30px; background: rgba(200, 150, 100, 0.8); color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">游戏指导</button>
                     <button id="esc-menu-export-btn" style="padding: 12px 30px; background: rgba(100, 150, 200, 0.8); color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">导出存档</button>
+                    <button id="esc-menu-save-browser-btn" style="padding: 12px 30px; background: rgba(80, 160, 130, 0.85); color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">保存到浏览器</button>
                     <button id="esc-menu-import-btn" style="padding: 12px 30px; background: rgba(150, 100, 200, 0.8); color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">导入存档</button>
                     <button id="esc-menu-exit-tower-btn" style="padding: 12px 30px; background: rgba(255, 100, 100, 0.8); color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px; display: none;">退出恶魔塔</button>
                     <button id="esc-menu-close-btn" style="padding: 12px 30px; background: #666; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px; margin-top: 10px;">关闭 (ESC)</button>
@@ -400,7 +395,7 @@
             <div class="modal-content" style="max-width: 500px; text-align: center;">
                 <h2 style="color: #ffaa00; margin-bottom: 20px;">退出恶魔塔</h2>
                 <p style="color: #fff; font-size: 16px; margin-bottom: 10px;">确定要退出恶魔塔吗？</p>
-                <p style="color: #ff0000; font-size: 14px; margin-bottom: 20px; font-weight: bold;">警告：退出恶魔塔将丢失本次获得的所有装备、材料和金币！</p>
+                <p style="color: #ff0000; font-size: 14px; margin-bottom: 20px; font-weight: bold;">警告：退出恶魔塔将丢失本次获得的所有装备、消耗品与金币！</p>
                 <div style="display: flex; gap: 15px; justify-content: center;">
                     <button id="tower-exit-confirm-btn" style="padding: 12px 30px; background: #ff0000; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold;">确认退出</button>
                     <button id="tower-exit-cancel-btn" style="padding: 12px 30px; background: #666; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">取消</button>
@@ -488,7 +483,7 @@
                     <button class="codex-tab active" data-tab="monsters">怪物</button>
                     <button class="codex-tab" data-tab="equipments">装备</button>
                     <button class="codex-tab" data-tab="set_mechanics">套装机制</button>
-                    <button class="codex-tab" data-tab="potions">药水</button>
+                    <button class="codex-tab" data-tab="consumables">消耗品</button>
                 </div>
                 <div id="codex-monsters" class="codex-section active">
                     <div id="monster-filters" style="margin-bottom: 20px; padding: 15px; background: rgba(40, 40, 50, 0.8); border-radius: 5px; border: 2px solid #666;">
@@ -597,8 +592,8 @@
                     <p style="color: #aaa; font-size: 13px; margin: 0 0 14px 0; line-height: 1.5;">以下为配置中的<strong style="color:#c9a227;">深阶套装</strong>（<code style="color:#8cf;">deep_*</code>）各件数档位说明；战斗中触发对应机制时会播放画布特效（如爆裂、连锁电、电场、天雷、印蚀环等）。</p>
                     <div id="set-mechanics-list" style="max-height: 62vh; overflow-y: auto;"></div>
                 </div>
-                <div id="codex-potions" class="codex-section">
-                    <div id="potions-list"></div>
+                <div id="codex-consumables" class="codex-section">
+                    <div id="codex-consumables-list"></div>
                 </div>
             </div>
         </div>
@@ -630,7 +625,7 @@
                             <ul>
                                 <li><strong>恶魔塔入口：</strong>中央紫色大门，进入恶魔塔进行爬塔战斗</li>
                                 <li><strong>铁匠铺：</strong>左上，装备强化、精炼、打造</li>
-                                <li><strong>商店：</strong>右上，购买装备、消耗品随机箱、出售物品</li>
+                                <li><strong>商店：</strong>右上，购买装备与定向位、出售物品；神圣十字架低概率出现在装备商品中</li>
                                 <li><strong>训练场：</strong>左下，生成训练假人/怪物测试战斗</li>
                             </ul>
                         </div>
@@ -639,17 +634,16 @@
                     <div class="guide-section">
                         <h3>二、物品分类</h3>
                         <div class="guide-subsection">
-                            <p>背包分为三个页签：</p>
+                            <p>背包分为两个页签：</p>
                             <ul>
                                 <li><strong>装备：</strong>武器、头盔、胸甲等8部位装备</li>
-                                <li><strong>材料：</strong>炼金材料栏（当前版本为空，可存放未来材料类物品）</li>
-                                <li><strong>消耗品：</strong>药水、神圣十字架、打造配方、背包扩容等</li>
+                                <li><strong>消耗品：</strong>神圣十字架、打造配方、背包扩容等（常规药水已移除）</li>
                             </ul>
                         </div>
                     </div>
                     
                     <div class="guide-section">
-                        <h3>三、装备与材料获得方式</h3>
+                        <h3>三、装备获得方式</h3>
                         <div class="guide-subsection">
                             <h4>1. 怪物掉落</h4>
                             <ul>
@@ -666,9 +660,9 @@
                         <div class="guide-subsection">
                             <h4>3. 商店</h4>
                             <ul>
-                                <li><strong>装备页签：</strong>定向位+随机装备</li>
-                                <li><strong>消耗品页签：</strong>随机礼箱，可开出药水、神圣十字架、打造配方等</li>
-                                <li><strong>打造配方：</strong>仅在商店随机箱中刷新，打造装备不可在恶魔塔掉落</li>
+                                <li><strong>装备页签：</strong>定向位、随机装备，并有低概率出现神圣十字架</li>
+                                <li><strong>出售页签：</strong>出售背包中的装备与消耗品</li>
+                                <li><strong>打造配方：</strong>通过其他途径获得（如隙间商店等），打造装备不可在恶魔塔掉落</li>
                             </ul>
                         </div>
                     </div>
@@ -703,8 +697,8 @@
                         <div class="guide-subsection">
                             <h4>战力系统</h4>
                             <ul>
-                                <li>战力显示在左侧状态栏，综合等级和装备属性计算</li>
-                                <li>装备变更时战力实时更新，屏幕下方会显示战力变化提示</li>
+                                <li>战力显示在左侧状态栏，按等级与装备等「稳定」属性计算（不含临时 Buff、不含随当前血量波动的装备词条效果）</li>
+                                <li>装备或套装等改变稳定属性时战力会更新，屏幕下方会显示战力变化提示</li>
                             </ul>
                         </div>
                         <div class="guide-subsection">
@@ -732,7 +726,7 @@
                         <h3>七、商店回收</h3>
                         <div class="guide-subsection">
                             <ul>
-                                <li>装备/药水等材料类出售价格按规则折算（约购买价一定比例）</li>
+                                <li>装备与消耗品出售价格按规则折算（约购买价一定比例）</li>
                                 <li>无法出售已装备的物品</li>
                             </ul>
                         </div>
@@ -774,14 +768,10 @@
             </div>
             
             <div class="dev-section">
-                <h4 style="color: #fff; font-size: 14px; margin-bottom: 5px;">添加药水</h4>
-                <button onclick="game.devAddRandomPotion('common')">普通药水</button>
-                <button onclick="game.devAddRandomPotion('rare')">稀有药水</button>
-                <button onclick="game.devAddRandomPotion('fine')">精良药水</button>
-                <button onclick="game.devAddRandomPotion('epic')">史诗药水</button>
-                <button onclick="game.devAddRandomPotion('legendary')">传说药水</button>
+                <h4 style="color: #fff; font-size: 14px; margin-bottom: 5px;">消耗品（测试）</h4>
+                <button onclick="game.devAddHolyCrossConsumable()">神圣十字架</button>
             </div>
-            
+
             <div class="dev-section">
                 <h4 style="color: #fff; font-size: 14px; margin-bottom: 5px;">房间控制</h4>
                 <button onclick="game.devClearRoom()">清空当前房间</button>
@@ -829,7 +819,7 @@
             <h3>开发者模式 - 图鉴道具选择 (F1)</h3>
             <div id="dev-codex-tabs" style="display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #666; padding-bottom: 10px; flex-wrap: wrap;">
                 <button class="dev-codex-tab active" data-tab="equipments" onclick="game.showDevCodexTab('equipments')">装备</button>
-                <button class="dev-codex-tab" data-tab="potions" onclick="game.showDevCodexTab('potions')">药水</button>
+                <button class="dev-codex-tab" data-tab="consumables" onclick="game.showDevCodexTab('consumables')">消耗品</button>
                 <button class="dev-codex-tab" data-tab="recipes" onclick="game.showDevCodexTab('recipes')">图纸</button>
             </div>
             <div id="dev-codex-content" style="max-height: 60vh; overflow-y: auto;">
@@ -847,7 +837,7 @@
                         <div style="font-size: 12px; color: #aaa; margin-top: 5px;">当前: <span id="current-equipment-cap">18</span></div>
                     </button>
                     <button id="expand-potion-btn" class="capacity-expand-btn" data-type="potion">
-                        <div style="font-size: 18px; font-weight: bold;">药水栏</div>
+                        <div style="font-size: 18px; font-weight: bold;">消耗品栏</div>
                         <div style="font-size: 12px; color: #aaa; margin-top: 5px;">当前: <span id="current-potion-cap">18</span></div>
                     </button>
                 </div>
@@ -954,7 +944,10 @@
     <!-- 引入JavaScript模块 -->
     <script src="js/lz-string.min.js"></script>
     <script src="js/config-loader.js"></script>
+    <script>window.__PE_SECRETS__ = window.__PE_SECRETS__ || {};</script>
+    <script src="js/pe-env.generated.js"></script>
     <script src="js/config.js"></script>
+    <script src="js/pe-local-dev-server.js"></script>
     <script src="js/config-helpers.js"></script>
     <script src="js/trait-id-helpers.js"></script>
     <script src="js/data-classes.js"></script>
@@ -1048,9 +1041,9 @@
     <div id="fusion-town-complete-modal" class="fusion-town-modal" aria-hidden="true">
         <div class="fusion-town-modal-inner">
             <h3 style="margin: 0 0 10px; color: #ddaaff;">合铸完成</h3>
-            <p style="color: #ccc; font-size: 13px; line-height: 1.5;">可在铁匠铺合铸页签点击「领取合铸结果」，或点击下方立即领取（将播放合成动画）。</p>
+            <p style="color: #ccc; font-size: 13px; line-height: 1.5;">请前往铁匠铺，打开合铸界面，点击「领取合铸结果」完成领取（含合成动画）。此处仅作提示。</p>
             <div style="display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap;">
-                <button type="button" id="fusion-town-complete-claim" style="padding: 8px 16px; background: #6a0dad; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace;">领取</button>
+                <button type="button" id="fusion-town-complete-claim" style="padding: 8px 16px; background: #6a0dad; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace;">知道了</button>
                 <button type="button" id="fusion-town-complete-close" style="padding: 8px 16px; background: #444; color: #fff; border: 2px solid #888; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace;">稍后</button>
             </div>
         </div>

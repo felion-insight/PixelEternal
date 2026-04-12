@@ -17,6 +17,9 @@
  * 管理整个游戏的状态、循环、UI交互等
  */
 class Game {
+    /** localStorage 中存档码的键（与导出到剪贴板为同一 LZ/Base64 串） */
+    static BROWSER_SAVE_CODE_KEY = 'pixelEternal_saveCode_v1';
+
     constructor() {
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d', { alpha: true }); // 确保支持透明度
@@ -66,7 +69,9 @@ class Game {
         this.isTransitioning = false; // 标志：是否正在切换房间
         this.lastSceneTransitionTime = 0; // 上次场景切换的时间戳（用于E键交互冷却）
         this.floatingTexts = []; // 飘浮文字提示列表
-        this.devMode = false; // 开发者模式标志
+        this.devMode = false; // 开发者模式标志（仅本地 start-server.py 下可开启）
+        /** 是否由仓库根 start-server.py 注入的本地开发环境（静态网页托管为 false） */
+        this._localPeDevServer = window.__PE_LOCAL_DEV_SERVER__ === true;
         this.paused = false; // 游戏暂停标志
         this.lastFrameTime = performance.now(); // 上一帧时间
         this.frameCount = 0; // 帧计数器
@@ -91,8 +96,6 @@ class Game {
         this.shopRefreshCost = 150; // 商店刷新费用（固定值150）
         this.shopRefreshCount = 0; // 商店刷新次数（不再用于递增费用）
         this.shopEquipments = null; // 商店当前装备列表（保存状态，避免重新打开时免费刷新）
-        this.shopPotions = null; // 商店当前药水列表（保存状态，避免重新打开时免费刷新）
-        this.shopRecipes = null; // 商店当前图纸列表（保存状态，避免重新打开时免费刷新）
         this.shopLockedItems = new Set(); // 锁定的商品ID集合
         this.shopCapacityExpansionCount = 0; // 背包扩容购买次数（用于递增价格）
         this.shopHasCapacityExpansion = false; // 当前商店是否显示背包扩容
@@ -154,11 +157,14 @@ class Game {
         
         // 缓存生成的装备列表，避免重复生成
         this.cachedAllEquipments = null;
-        this.cachedAllPotions = null;
         this.cachedAllMaterials = null;
         
         // 将game实例暴露到全局，方便开发者模式调用
         window.game = this;
+
+        if (typeof document !== 'undefined' && document.body && !this._localPeDevServer) {
+            document.body.classList.add('pe-hide-dev-panels');
+        }
         
         // 不立即初始化，等待资源加载完成
         // this.init();
@@ -238,23 +244,7 @@ class Game {
                 }
             });
             
-            // 2. 炼金材料图片
-            console.log('获取所有炼金材料名称...');
-            if (typeof ALCHEMY_MATERIAL_DEFINITIONS !== 'undefined') {
-                ALCHEMY_MATERIAL_DEFINITIONS.forEach(material => {
-                    const imageName = this.assetManager.getAlchemyMaterialImageName(material.name);
-                    if (imageName && !this.assetManager.alchemyMaterialImageCache.has(imageName)) {
-                        resourcesToLoad.push({ 
-                            type: 'alchemy', 
-                            name: material.name, 
-                            imageName,
-                            loadFn: () => this.assetManager.loadAndProcessAlchemyMaterialImage(imageName)
-                        });
-                    }
-                });
-            }
-            
-            // 3. 怪物贴图
+            // 2. 怪物贴图
             console.log('获取所有怪物贴图...');
             if (typeof MONSTER_TYPES !== 'undefined') {
                 Object.keys(MONSTER_TYPES).forEach(monsterType => {
@@ -270,7 +260,7 @@ class Game {
                 });
             }
             
-            // 4. 玩家 GIF
+            // 3. 玩家 GIF
             console.log('获取玩家 GIF...');
             const playerConfig = this.assetManager.getPlayerGifConfig();
             if (playerConfig && playerConfig.image) {
@@ -282,7 +272,7 @@ class Game {
                 });
             }
 
-            // 5. 飞射体 / 子弹贴图（asset/projectiles）
+            // 4. 飞射体 / 子弹贴图（asset/projectiles）
             if (typeof window.PROJECTILE_SPRITE_MAP !== 'undefined' && window.PROJECTILE_SPRITE_MAP) {
                 const pm = window.PROJECTILE_SPRITE_MAP;
                 const projIds = new Set();
@@ -309,7 +299,6 @@ class Game {
             const totalImages = resourcesToLoad.length;
             console.log('需要加载的资源数量:', totalImages, {
                 equipment: resourcesToLoad.filter(r => r.type === 'equipment').length,
-                alchemy: resourcesToLoad.filter(r => r.type === 'alchemy').length,
                 monster: resourcesToLoad.filter(r => r.type === 'monster').length,
                 player: resourcesToLoad.filter(r => r.type === 'player').length,
                 projectile: resourcesToLoad.filter(r => r.type === 'projectile').length
@@ -338,12 +327,11 @@ class Game {
             if (statusText) {
                 const typeCounts = {
                     equipment: resourcesToLoad.filter(r => r.type === 'equipment').length,
-                    alchemy: resourcesToLoad.filter(r => r.type === 'alchemy').length,
                     monster: resourcesToLoad.filter(r => r.type === 'monster').length,
                     player: resourcesToLoad.filter(r => r.type === 'player').length,
                     projectile: resourcesToLoad.filter(r => r.type === 'projectile').length
                 };
-                statusText.textContent = `准备加载 ${totalImages} 个资源 (装备:${typeCounts.equipment} 材料:${typeCounts.alchemy} 怪物:${typeCounts.monster} 玩家:${typeCounts.player} 飞射体:${typeCounts.projectile})...`;
+                statusText.textContent = `准备加载 ${totalImages} 个资源 (装备:${typeCounts.equipment} 怪物:${typeCounts.monster} 玩家:${typeCounts.player} 飞射体:${typeCounts.projectile})...`;
                 console.log('状态文本已更新:', statusText.textContent);
             }
             updateProgress();
@@ -356,16 +344,14 @@ class Game {
                 
                 // 更新当前批次的状态
                 if (statusText && batch.length > 0) {
-                    const typeName = batch[0].type === 'equipment' ? '装备' : 
-                                   batch[0].type === 'alchemy' ? '炼金材料' : 
-                                   batch[0].type === 'monster' ? '怪物' : '玩家';
                     statusText.textContent = `正在加载: ${batch[0].imageName}... (${i + 1}/${totalImages})`;
                 }
                 
                 const batchPromises = batch.map((resource, index) => {
-                    const typeName = resource.type === 'equipment' ? '装备' : 
-                                   resource.type === 'alchemy' ? '炼金材料' : 
-                                   resource.type === 'monster' ? '怪物' : '玩家';
+                    const typeName = resource.type === 'equipment' ? '装备' :
+                                   resource.type === 'monster' ? '怪物' :
+                                   resource.type === 'player' ? '玩家' :
+                                   resource.type === 'projectile' ? '飞射体' : '资源';
                     console.log(`开始加载资源: ${typeName} ${resource.name} (${resource.imageName})`);
                     return resource.loadFn().catch(error => {
                         // 静默处理错误，继续加载其他资源
@@ -379,9 +365,6 @@ class Game {
                         
                         // 更新状态文本
                         if (statusText && index < batch.length - 1) {
-                            const nextTypeName = batch[index + 1].type === 'equipment' ? '装备' : 
-                                               batch[index + 1].type === 'alchemy' ? '炼金材料' : 
-                                               batch[index + 1].type === 'monster' ? '怪物' : '玩家';
                             statusText.textContent = `正在加载: ${batch[index + 1].imageName}... (${i + index + 2}/${totalImages})`;
                         }
                         
@@ -574,13 +557,15 @@ class Game {
         }
 
         this.initVolumeSettingsUI();
-        
+
         // 事件监听
         document.addEventListener('keydown', (e) => {
-            // F1键处理：开发者模式（在任何情况下都可以切换）
+            // F1：仅本地 start-server.py 启动时启用开发者模式
             if (e.key === 'F1') {
                 e.preventDefault();
-                this.toggleDevMode();
+                if (this._localPeDevServer) {
+                    this.toggleDevMode();
+                }
                 return;
             }
             
@@ -678,10 +663,14 @@ class Game {
                 this.showEscMenu();
             }
             
-            // 如果ESC菜单打开，禁用其他按键（除了F1开发者模式）
+            // 如果ESC菜单打开，禁用其他按键（本地开发时额外允许 F1）
             const escMenuModal = document.getElementById('esc-menu-modal');
             if (escMenuModal && escMenuModal.classList.contains('show')) {
-                // 只允许F1键和ESC键
+                const allowF1 = this._localPeDevServer;
+                if (e.key === 'F1' && !allowF1) {
+                    e.preventDefault();
+                    return;
+                }
                 if (e.key !== 'F1' && e.key !== 'Escape' && e.key !== 'Esc') {
                     e.preventDefault();
                     return;
@@ -818,8 +807,8 @@ class Game {
                         this.updateCodexEquipments();
                     } else if (targetTab === 'set_mechanics') {
                         this.updateCodexSetMechanics();
-                    } else if (targetTab === 'potions') {
-                        this.updateCodexPotions();
+                    } else if (targetTab === 'consumables') {
+                        this.updateCodexConsumables();
                     }
                 });
             });
@@ -913,6 +902,9 @@ class Game {
         this.updateHUD();
         document.getElementById('room-type').textContent = '主城';
         document.getElementById('floor-number').textContent = '准备中';
+        
+        // 若本机曾用「保存到浏览器」写入存档码，启动时自动导入（剪贴板导入仍保留）
+        this.tryAutoLoadBrowserSave();
         
         // 检查是否首次游戏
         this.checkFirstTimeGuide();
@@ -1053,10 +1045,12 @@ class Game {
                     belt: '腰带'
                 };
                 typeDiv.textContent = `${slotNames[item.slot] || item.slot} | ${QUALITY_NAMES[item.quality] || item.quality}`;
-            } else if (item.type === 'consumable' || item.type === 'potion') {
-                typeDiv.textContent = `药水 | ${QUALITY_NAMES[item.quality] || item.quality}`;
-            } else if (item.type === 'material' || item.type === 'alchemy') {
-                typeDiv.textContent = `炼金材料 | ${QUALITY_NAMES[item.quality] || item.quality}`;
+            } else if (item.type === 'consumable') {
+                const sub = item.consumableType === 'resurrection' ? '复活道具'
+                    : item.consumableType === 'recipe' ? '图纸'
+                    : item.consumableType === 'backpack_expansion' ? '背包扩容'
+                    : '消耗品';
+                typeDiv.textContent = `${sub} | ${QUALITY_NAMES[item.quality] || item.quality}`;
             } else {
                 typeDiv.textContent = `${item.type || '物品'} | ${QUALITY_NAMES[item.quality] || item.quality}`;
             }
@@ -1256,28 +1250,21 @@ class Game {
         const equipmentCount = this.player.inventory.slice(0, this.player.maxEquipmentCapacity || 18).filter(item => 
             item !== null && item !== undefined && (item.type === 'equipment' || (!item.type && item.slot))
         ).length;
-        // 材料：18-47区域中的材料（包括alchemy和material类型，兼容旧数据）
-        const materialCount = this.player.inventory.slice(18, 18 + (this.player.maxAlchemyCapacity || 30)).filter(item => 
-            item !== null && item !== undefined && (item.type === 'material' || item.type === 'alchemy')
-        ).length;
         // 消耗品：48-65区域中的消耗品（包括potion和consumable类型）
         const consumableStartIndex = 48;
-        const consumableCount = this.player.inventory.slice(consumableStartIndex, consumableStartIndex + (this.player.maxPotionCapacity || 18)).filter(item => 
-            item !== null && item !== undefined && (item.type === 'consumable' || item.type === 'potion')
+        const consumableCount = this.player.inventory.slice(consumableStartIndex, consumableStartIndex + (this.player.maxPotionCapacity || 18)).filter(item =>
+            item !== null && item !== undefined && item.type === 'consumable' && item.consumableType !== 'potion'
         ).length;
         
         // 获取各栏的最大容量（需要从玩家属性中获取，如果没有则使用默认值）
         const maxEquipment = this.player.maxEquipmentCapacity || 18;
-        const maxMaterial = this.player.maxAlchemyCapacity || 30;
         const maxConsumable = this.player.maxPotionCapacity || 18;
         
         // 更新显示
         const equipmentCap = document.getElementById('equipment-capacity');
-        const materialCap = document.getElementById('material-capacity');
         const consumableCap = document.getElementById('consumable-capacity');
         
         if (equipmentCap) equipmentCap.textContent = `装备: ${equipmentCount}/${maxEquipment}`;
-        if (materialCap) materialCap.textContent = `材料: ${materialCount}/${maxMaterial}`;
         if (consumableCap) consumableCap.textContent = `消耗品: ${consumableCount}/${maxConsumable}`;
     }
 
@@ -1334,7 +1321,7 @@ class Game {
             
             // 其他标签页的内容延迟加载，只在切换到对应标签时才加载
             // 这样可以避免打开图鉴时的卡顿
-            // 装备、药水、炼金材料列表会在用户点击对应标签时再加载
+            // 装备图鉴等会在用户点击对应标签时再加载
             
             // 如果开发者模式已经打开，切换到图鉴开发者面板
             if (this.devMode) {
@@ -1865,110 +1852,19 @@ class Game {
         container.appendChild(frag);
     }
 
-    updateCodexPotions() {
-        const container = document.getElementById('potions-list');
-        container.innerHTML = '';
-        
-        // 使用缓存的药水列表
-        if (!this.cachedAllPotions) {
-            this.cachedAllPotions = generatePotions();
+    /** 图鉴「消耗品」：常规药水已移除，展示神圣十字架等仍存在的条目 */
+    updateCodexConsumables() {
+        const container = document.getElementById('codex-consumables-list');
+        if (!container) return;
+        const sample = typeof createHolyCrossShopOffer === 'function' ? createHolyCrossShopOffer() : null;
+        let html = '<p style="color:#ccc;line-height:1.7;">常规药水已从游戏中移除。以下为仍存在的消耗品图鉴说明。</p>';
+        if (sample && sample.getTooltipHTML) {
+            const qc = QUALITY_COLORS[sample.quality] || '#a335ee';
+            html += `<div style="margin-top:16px;max-width:520px;padding:14px;background:rgba(50,50,60,0.85);border-radius:6px;border:2px solid ${qc}">`;
+            html += sample.getTooltipHTML();
+            html += '<p style="color:#888;font-size:12px;margin-top:12px;">神圣十字架会在商店<strong style="color:#ffd700;">装备</strong>分页商品中低概率随机出现（与「传说」品质掉落概率相同：每刷新约 2% 替换其中一格）。</p></div>';
         }
-        const allPotions = this.cachedAllPotions;
-        
-        // 按品质分组
-        const qualityGroups = {};
-        allPotions.forEach(potion => {
-            if (!qualityGroups[potion.quality]) {
-                qualityGroups[potion.quality] = [];
-            }
-            qualityGroups[potion.quality].push(potion);
-        });
-        
-        // 按品质顺序显示
-        const qualityOrder = ['common', 'rare', 'fine', 'epic', 'legendary'];
-        qualityOrder.forEach(quality => {
-            if (qualityGroups[quality] && qualityGroups[quality].length > 0) {
-                const header = document.createElement('h3');
-                header.textContent = QUALITY_NAMES[quality];
-                header.style.color = QUALITY_COLORS[quality] || '#fff';
-                header.style.marginTop = '20px';
-                header.style.marginBottom = '10px';
-                header.style.borderBottom = `2px solid ${QUALITY_COLORS[quality] || '#666'}`;
-                header.style.paddingBottom = '5px';
-                container.appendChild(header);
-                
-                qualityGroups[quality].forEach(potion => {
-                    const entry = document.createElement('div');
-                    entry.className = 'potion-entry';
-                    entry.style.background = 'rgba(50, 50, 60, 0.8)';
-                    entry.style.border = `2px solid ${QUALITY_COLORS[potion.quality] || '#555'}`;
-                    entry.style.borderRadius = '5px';
-                    entry.style.padding = '15px';
-                    entry.style.marginBottom = '10px';
-                    
-                    const name = document.createElement('h3');
-                    name.style.color = QUALITY_COLORS[potion.quality] || '#fff';
-                    name.style.fontSize = '18px';
-                    name.style.marginBottom = '10px';
-                    name.textContent = potion.name;
-                    
-                    const info = document.createElement('div');
-                    info.className = 'potion-info';
-                    let infoHTML = `<p><strong>品质:</strong> <span style="color: ${QUALITY_COLORS[potion.quality]}">${QUALITY_NAMES[potion.quality]}</span></p>`;
-                    
-                    if (potion.price) {
-                        infoHTML += `<p><strong>商店价格:</strong> <span style="color: #ffd700;">${potion.price} 金币</span></p>`;
-                    }
-                    
-                    if (potion.description) {
-                        infoHTML += `<p style="color: #aaa; font-style: italic; margin-top: 5px;">${potion.description}</p>`;
-                    }
-                    
-                    infoHTML += `<p>---</p>`;
-                    infoHTML += `<p><strong>效果:</strong></p>`;
-                    
-                    const effectNames = {
-                        attack: '攻击力',
-                        defense: '防御力',
-                        critRate: '暴击率',
-                        critDamage: '暴击伤害',
-                        dodge: '闪避率',
-                        attackSpeed: '攻击速度',
-                        moveSpeed: '移动速度',
-                        health: '生命值恢复'
-                    };
-                    
-                    let hasEffects = false;
-                    for (const [key, value] of Object.entries(potion.effects)) {
-                        if (key !== 'duration' && value !== 0) {
-                            hasEffects = true;
-                            const suffix = key.includes('Rate') || key.includes('Speed') || key.includes('dodge') ? '%' : '';
-                            infoHTML += `<p>${effectNames[key] || key}: +${value}${suffix}</p>`;
-                        }
-                    }
-                    
-                    if (!hasEffects) {
-                        infoHTML += `<p style="color: #aaa;">无效果</p>`;
-                    }
-                    
-                    infoHTML += `<p>---</p>`;
-                    
-                    if (potion.duration > 0) {
-                        infoHTML += `<p><strong>持续时间:</strong> ${potion.duration / 1000}秒</p>`;
-                    } else {
-                        infoHTML += `<p><strong>类型:</strong> 立即生效</p>`;
-                    }
-                    
-                    infoHTML += `<p style="color: #aaa; font-size: 12px; margin-top: 10px;">提示：在背包中单击药水即可使用；右键物品可丢弃</p>`;
-                    
-                    info.innerHTML = infoHTML;
-                    
-                    entry.appendChild(name);
-                    entry.appendChild(info);
-                    container.appendChild(entry);
-                });
-            }
-        });
+        container.innerHTML = html;
     }
 
     /**
@@ -2032,23 +1928,13 @@ class Game {
                     itemsToShow.push({ index: i, item: item });
                 }
             }
-        } else if (tabType === 'material') {
-            // 显示材料（18-47区域）
-            const materialStartIndex = 18;
-            const materialEndIndex = materialStartIndex + (this.player.maxAlchemyCapacity || 30);
-            for (let i = materialStartIndex; i < materialEndIndex; i++) {
-                const item = this.player.inventory[i];
-                if (item && (item.type === 'material' || item.type === 'alchemy')) {
-                    itemsToShow.push({ index: i, item: item });
-                }
-            }
         } else if (tabType === 'consumable') {
             // 显示消耗品（48-65区域，独立区域）
             const consumableStartIndex = 48;
             const consumableEndIndex = consumableStartIndex + (this.player.maxPotionCapacity || 18);
             for (let i = consumableStartIndex; i < consumableEndIndex; i++) {
                 const item = this.player.inventory[i];
-                if (item && (item.type === 'consumable' || item.type === 'potion')) {
+                if (item && item.type === 'consumable' && item.consumableType !== 'potion') {
                     itemsToShow.push({ index: i, item: item });
                 }
             }
@@ -2099,12 +1985,11 @@ class Game {
                 slot.title = item.name;
                 
                 // 如果是装备，检查是否需要更新图片
-                if (item.type === 'equipment') {
+                const isInventoryEquipment = item.type === 'equipment' || (!item.type && item.slot);
+                if (isInventoryEquipment) {
                     inventoryImageUpdates.push({ element: slot, name: item.name, quality: item.quality, item });
-                } else if (item.type === 'material' || item.type === 'alchemy') {
-                    inventoryImageUpdates.push({ element: slot, name: item.name, type: 'alchemy_material' });
-                } else if (item.type === 'consumable' || item.type === 'potion') {
-                    // 消耗品（图纸等）显示贴图和背景色
+                } else if (item.type === 'consumable' && item.consumableType !== 'potion') {
+                    // 消耗品（图纸、神圣十字架等）显示贴图和背景色
                     slot.textContent = ''; // 清除文字，使用贴图
                     slot.style.fontSize = '';
                     slot.style.textAlign = '';
@@ -2134,7 +2019,7 @@ class Game {
                         slot.style.backgroundPosition = 'center';
                         slot.style.backgroundRepeat = 'no-repeat';
                     } else {
-                        // 其他消耗品（如药水）显示文字
+                        // 其他消耗品显示文字
                         slot.textContent = item.name;
                         slot.style.fontSize = '10px';
                         slot.style.textAlign = 'center';
@@ -2205,13 +2090,7 @@ class Game {
                 updateBatch.forEach(({ element, name, quality, type, item, expectedItemId }) => {
                     // 验证元素是否仍然有效（检查itemId是否匹配，防止快速切换导致元素已被替换）
                     if (element && element.dataset.itemId === expectedItemId) {
-                        if (type === 'alchemy_material') {
-                            // 炼金材料图片
-                            this.assetManager.setAlchemyMaterialBackgroundImage(element, name, 'cover');
-                        } else {
-                            // 装备图片
-                            this.assetManager.setEquipmentBackgroundImage(element, name, quality, item || null);
-                        }
+                        this.assetManager.setEquipmentBackgroundImage(element, name, quality, item || null);
                     }
                 });
                 this.inventoryImageUpdateRequestId = null;
@@ -2439,20 +2318,6 @@ class Game {
     handleInventorySlotClick(index) {
         const item = this.player.inventory[index];
         if (item) {
-            // 如果是消耗品（药水），使用它（神圣十字架不能通过单击使用）
-            if ((item.type === 'consumable' || item.type === 'potion') && 
-                item.consumableType !== 'resurrection' && 
-                item.name !== '神圣十字架') {
-                // 只有药水类型的消耗品才能使用
-                if (item.consumableType === 'potion' || item.type === 'potion') {
-                    this.player.usePotion(item);
-                    this.player.inventory[index] = null; // 移除消耗品
-                    this.updateInventoryUI();
-                    this.updateHUD();
-                    return;
-                }
-            }
-            
             // 如果是装备，尝试装备
             if (item.type === 'equipment' && item.slot) {
                 // 检查玩家等级是否达到装备要求
@@ -2527,13 +2392,15 @@ class Game {
      * @returns {boolean} 是否成功添加
      */
     addItemToInventory(item, quiet = false) {
+        if (item && (item.type === 'material' || item.type === 'alchemy')) {
+            return false;
+        }
+        if (item && (item.type === 'potion' || item.consumableType === 'potion')) {
+            return false;
+        }
         // 根据物品类型确定应该放在哪个区域
         let startIndex, endIndex;
-        if (item.type === 'material' || item.type === 'alchemy') {
-            // 材料放在18-47
-            startIndex = 18;
-            endIndex = 18 + (this.player.maxAlchemyCapacity || 30);
-        } else if (item.type === 'consumable' || item.type === 'potion') {
+        if (item.type === 'consumable') {
             // 消耗品放在48-65（独立区域）
             startIndex = 48;
             endIndex = 48 + (this.player.maxPotionCapacity || 18);
@@ -2597,9 +2464,7 @@ class Game {
         } else {
             // 对应区域满了，显示红色提示
             let areaName = '装备区域';
-            if (item.type === 'material' || item.type === 'alchemy') {
-                areaName = '材料区域';
-            } else if (item.type === 'consumable' || item.type === 'potion') {
+            if (item.type === 'consumable') {
                 areaName = '消耗品区域';
             }
             console.log(`${areaName}已满！`);
@@ -2684,7 +2549,9 @@ class Game {
      * @param {string} forcedType - 强制指定的房间类型（可选）
      */
     generateNewRoom(forcedType = null) {
-        if (forcedType === 'alchemy') forcedType = null;
+        if (forcedType === 'alchemy') {
+            forcedType = ROOM_TYPES.BATTLE;
+        }
         const maxF = typeof window.getTowerMaxFloor === 'function' ? window.getTowerMaxFloor() : 240;
         this.floor = Math.min(this.floor, maxF);
         // 清空掉落物、传送门和怪物子弹
@@ -2745,11 +2612,11 @@ class Game {
             treasure: '宝箱',
             rest: '休整',
             elite: '精英',
-            alchemy: '炼金',
             gap_shop: '隙间商店',
             boss: 'Boss'
         };
-        document.getElementById('room-type').textContent = typeNames[selectedType] || selectedType;
+        const hudRt = selectedType === 'alchemy' ? 'battle' : selectedType;
+        document.getElementById('room-type').textContent = typeNames[hudRt] || hudRt;
         document.getElementById('floor-number').textContent = this.floor;
         
         if (selectedType === ROOM_TYPES.GAP_SHOP) {
@@ -2975,7 +2842,7 @@ class Game {
                     fusionTowerEl.textContent = '合铸中 ' + this._formatFusionRemainMs(this.fusionState.readyAt - Date.now());
                     fusionTowerEl.style.color = '#cccccc';
                 } else if (this.fusionState.phase === 'ready') {
-                    fusionTowerEl.textContent = '合铸完成';
+                    fusionTowerEl.textContent = '合铸完成（回城后打开铁匠铺合铸界面领取）';
                     fusionTowerEl.style.color = '#ffdd44';
                 } else {
                     fusionTowerEl.style.display = 'none';
@@ -3195,7 +3062,8 @@ class Game {
         
         // 根据物品类型设置背景图片
         // 优先使用缓存，避免不必要的异步请求
-        if (item.type === 'equipment' && item.name) {
+        const isIconEquipment = item.type === 'equipment' || (!item.type && item.slot);
+        if (isIconEquipment && item.name) {
             const imageName = this.assetManager.getEquipmentImageName(item.name, item);
             if (imageName && this.assetManager.equipmentImageCache.has(imageName)) {
                 // 缓存存在，直接同步设置
@@ -3211,23 +3079,6 @@ class Game {
             } else {
                 // 缓存不存在，异步加载
                 this.assetManager.setEquipmentBackgroundImage(iconDiv, item.name, item.quality, item);
-            }
-        } else if ((item.type === 'material' || item.type === 'alchemy') && item.name) {
-            const imageName = this.assetManager.getAlchemyMaterialImageName(item.name);
-            if (imageName && this.assetManager.alchemyMaterialImageCache.has(imageName)) {
-                // 缓存存在，直接同步设置
-                const imageUrl = this.assetManager.alchemyMaterialImageCache.get(imageName);
-                iconDiv.style.backgroundImage = `url(${imageUrl})`;
-                iconDiv.style.backgroundPosition = 'center';
-                iconDiv.style.backgroundRepeat = 'no-repeat';
-                if (imageUrl.startsWith('data:')) {
-                    iconDiv.style.backgroundSize = 'contain';
-                } else {
-                    iconDiv.style.backgroundSize = 'cover';
-                }
-            } else {
-                // 缓存不存在，异步加载
-                this.assetManager.setAlchemyMaterialBackgroundImage(iconDiv, item.name, 'cover');
             }
         } else if (item.type === 'consumable' && item.consumableType === 'recipe' && item.name) {
             // 图纸从 mappings 中读取图片
@@ -3249,8 +3100,17 @@ class Game {
                 'legendary': 'rgba(255, 200, 100, 0.4)'
             };
             iconDiv.style.backgroundColor = qualityColors[item.quality] || qualityColors['common'];
+        } else if (item.type === 'consumable' && item.consumableType === 'resurrection') {
+            iconDiv.style.display = 'flex';
+            iconDiv.style.alignItems = 'center';
+            iconDiv.style.justifyContent = 'center';
+            iconDiv.style.fontSize = `${Math.max(14, Math.floor(size * 0.42))}px`;
+            iconDiv.style.lineHeight = '1';
+            iconDiv.textContent = '✝';
+            iconDiv.style.color = '#fff';
+            iconDiv.style.textShadow = '0 0 4px rgba(0,0,0,0.85)';
         }
-        
+
         return iconDiv;
     }
     
@@ -4207,6 +4067,14 @@ class Game {
             this.exportSave();
         });
         
+        const escSaveBrowserBtn = document.getElementById('esc-menu-save-browser-btn');
+        if (escSaveBrowserBtn) {
+            escSaveBrowserBtn.addEventListener('click', () => {
+                this.closeEscMenu();
+                this.saveGameToBrowserStorage();
+            });
+        }
+        
         document.getElementById('esc-menu-import-btn').addEventListener('click', () => {
             this.closeEscMenu();
             this.showImportSaveModal();
@@ -4298,7 +4166,7 @@ class Game {
             if (typeof this._syncVolumeSlidersFromManager === 'function') {
                 this._syncVolumeSlidersFromManager();
             }
-            
+
             // 如果在恶魔塔中，显示退出按钮
             const exitBtn = document.getElementById('esc-menu-exit-tower-btn');
             if (exitBtn) {
@@ -5027,7 +4895,6 @@ class Game {
         // 这里不设置paused，让窗口关闭时处理
         
         // 关闭所有打开的界面
-        const alchemyModal = document.getElementById('alchemy-modal');
         const escMenuModalRt = document.getElementById('esc-menu-modal');
         const towerExitModalRt = document.getElementById('tower-exit-confirm-modal');
         const shopModal = document.getElementById('shop-modal');
@@ -5041,7 +4908,6 @@ class Game {
             escMenuModalRt.style.display = 'none';
         }
         if (towerExitModalRt) towerExitModalRt.classList.remove('show');
-        if (alchemyModal) alchemyModal.classList.remove('show');
         if (shopModal) shopModal.classList.remove('show');
         if (blacksmithModal) blacksmithModal.classList.remove('show');
         if (inventoryModal) inventoryModal.classList.remove('show');
@@ -5173,7 +5039,6 @@ class Game {
         if (fusionTownClaim) {
             fusionTownClaim.addEventListener('click', () => {
                 this.hideFusionTownCompleteModal();
-                this.startFusionClaimReveal();
             });
         }
         const fusionTownClose = document.getElementById('fusion-town-complete-close');
@@ -5287,8 +5152,6 @@ class Game {
                 document.getElementById(`shop-${targetTab}`).classList.add('active');
                 if (targetTab === 'equipments') {
                     this.updateShopEquipments();
-                } else if (targetTab === 'consumables') {
-                    this.updateShopConsumables();
                 } else if (targetTab === 'sell') {
                     this.updateShopSell();
                 }
@@ -5397,7 +5260,7 @@ class Game {
     
     /**
      * 扩大背包容量
-     * @param {string} type - 容量类型 ('equipment', 'alchemy', 'potion')
+     * @param {string} type - 容量类型 ('equipment', 'potion')
      */
     expandCapacity(type) {
         if (type === 'equipment') {
@@ -5420,7 +5283,6 @@ class Game {
         // 显示提示
         const typeNames = {
             equipment: '装备栏',
-            material: '材料栏',
             potion: '消耗品栏',
             consumable: '消耗品栏'
         };
@@ -5462,9 +5324,7 @@ class Game {
         this.updateHUD();
         this.updateShopEquipments(false); // 刷新商店，移除扩容选项
     }
-    
-        
-        // 延迟后进入下一层
+
     /**
      * 打开铁匠铺界面
      */
@@ -5612,7 +5472,7 @@ class Game {
         if (s.phase === 'processing') {
             return '合铸中 ' + this._formatFusionRemainMs(s.readyAt - Date.now());
         }
-        if (s.phase === 'ready') return '合铸完成（可领取）';
+        if (s.phase === 'ready') return '合铸完成（铁匠铺合铸界面领取）';
         return '合铸空闲';
     }
 
@@ -5679,6 +5539,30 @@ class Game {
         };
     }
 
+    /**
+     * 合铸 phase=ready 后预生成专属贴图，领取动画开始前尽量已完成。
+     * @param {{ readyPayload: object, fusionIconGenPromise?: Promise }} s fusionState
+     */
+    _ensureFusionIconGenFromReadyPayload(s) {
+        if (!s || !s.readyPayload || s.fusionIconGenPromise) return;
+        const p = s.readyPayload;
+        const eqAIcon = this.deserializeEquipment(p.eqASerialized);
+        const eqBIcon = this.deserializeEquipment(p.eqBSerialized);
+        if (typeof FusionIconAPI === 'undefined' || !FusionIconAPI.requestAndApply) {
+            s.fusionIconGenPromise = Promise.resolve();
+            return;
+        }
+        s.fusionIconGenPromise = FusionIconAPI.requestAndApply(
+            this,
+            p.fusionDisplayName,
+            eqAIcon,
+            eqBIcon,
+            p.fusionMeta
+        ).catch(function (err) {
+            console.warn('合铸预生成贴图失败', err);
+        });
+    }
+
     _tryCompleteFusionJob() {
         const s = this.fusionState;
         if (!s || s.phase !== 'processing') return;
@@ -5689,6 +5573,7 @@ class Game {
         const payload = this._buildFusionReadyPayloadFromResult(s.pendingFuseResult, eqA, eqB, s.stash, s.pairKeyEarly);
         s.phase = 'ready';
         s.readyPayload = payload;
+        this._ensureFusionIconGenFromReadyPayload(s);
         delete s.pendingFuseResult;
         delete s.stash;
         this.fusionCompletionBannerShown = false;
@@ -5880,17 +5765,22 @@ class Game {
             this._finishFusionRevealAndGrant();
         };
         overlay.addEventListener('click', this._fusionRevealClickHandler);
-        const loadPromises = [];
-        if (this.assetManager && typeof this.assetManager.setEquipmentBackgroundImage === 'function') {
-            loadPromises.push(this.assetManager.setEquipmentBackgroundImage(iconA, eqA.name, eqA.quality, eqA));
-            loadPromises.push(this.assetManager.setEquipmentBackgroundImage(iconB, eqB.name, eqB.quality, eqB));
-            loadPromises.push(this.assetManager.setEquipmentBackgroundImage(iconR, newEq.name, newEq.quality, newEq));
-        }
-        Promise.all(loadPromises).then(() => {
-            this._runFusionRevealMotionAndFlash(overlay, flyA, flyB, center, flash, hint);
-        }).catch(() => {
-            this._runFusionRevealMotionAndFlash(overlay, flyA, flyB, center, flash, hint);
-        });
+        this._ensureFusionIconGenFromReadyPayload(s);
+        const runRevealAfterIcon = () => {
+            const loadPromises = [];
+            if (this.assetManager && typeof this.assetManager.setEquipmentBackgroundImage === 'function') {
+                loadPromises.push(this.assetManager.setEquipmentBackgroundImage(iconA, eqA.name, eqA.quality, eqA));
+                loadPromises.push(this.assetManager.setEquipmentBackgroundImage(iconB, eqB.name, eqB.quality, eqB));
+                loadPromises.push(this.assetManager.setEquipmentBackgroundImage(iconR, newEq.name, newEq.quality, newEq));
+            }
+            Promise.all(loadPromises).then(() => {
+                this._runFusionRevealMotionAndFlash(overlay, flyA, flyB, center, flash, hint);
+            }).catch(() => {
+                this._runFusionRevealMotionAndFlash(overlay, flyA, flyB, center, flash, hint);
+            });
+        };
+        const iw = s.fusionIconGenPromise || Promise.resolve();
+        iw.then(runRevealAfterIcon).catch(runRevealAfterIcon);
     }
 
     /**
@@ -6000,18 +5890,27 @@ class Game {
         this.updateInventoryCapacity();
         this.hideFusionTownCompleteModal();
         const previewEl = document.getElementById('blacksmith-fusion-preview');
-        if (previewEl) previewEl.textContent = '合铸成功：' + fusionDisplayName + '（正在生成专属贴图…）';
+        const pairKeyInv = newEq.fusionPairKey;
+        const hasIconNow = !!(pairKeyInv && this.assetManager && typeof this.assetManager.getFusionIconDataUrlByPairKey === 'function' && this.assetManager.getFusionIconDataUrlByPairKey(pairKeyInv));
+        if (previewEl) {
+            previewEl.textContent = '合铸成功：' + fusionDisplayName + (hasIconNow ? '（贴图已就绪）' : '（贴图生成中…）');
+        }
         if (typeof showFloatingText === 'function') showFloatingText(this, '合铸成功', this.player.x, this.player.y - 40, '#88ff88');
         this.updateHUD();
         if (typeof FusionIconAPI !== 'undefined' && FusionIconAPI.requestAndApply) {
-            FusionIconAPI.requestAndApply(this, fusionDisplayName, eqAIcon, eqBIcon, fusionMeta).then(() => {
+            if (!hasIconNow) {
+                FusionIconAPI.requestAndApply(this, fusionDisplayName, eqAIcon, eqBIcon, fusionMeta).then(() => {
+                    this.updateInventoryUI();
+                    this.updateBlacksmithEquipmentList();
+                    if (previewEl) previewEl.textContent = '合铸成功：' + fusionDisplayName + '（贴图已生成）';
+                }).catch(function (iconErr) {
+                    console.warn('合铸装备贴图生成失败', iconErr);
+                    if (previewEl) previewEl.textContent = '合铸成功：' + fusionDisplayName + '（贴图生成失败，可稍后在有 Key 时重进游戏再试）';
+                });
+            } else {
                 this.updateInventoryUI();
                 this.updateBlacksmithEquipmentList();
-                if (previewEl) previewEl.textContent = '合铸成功：' + fusionDisplayName + '（贴图已生成）';
-            }).catch(function (iconErr) {
-                console.warn('合铸装备贴图生成失败', iconErr);
-                if (previewEl) previewEl.textContent = '合铸成功：' + fusionDisplayName + '（贴图生成失败，可稍后在有 Key 时重进游戏再试）';
-            });
+            }
         }
     }
 
@@ -6864,8 +6763,7 @@ class Game {
         // 强制刷新，生成新物品（但保留锁定的商品和定向位）
         // 注意：先使用定向位生成装备，然后再清空定向位
         this.updateShopEquipments(true);
-        this.updateShopConsumables(true);
-        
+
         // 刷新后清空定向位（但保留可用次数）
         Object.keys(this.shopTargetSlots).forEach(quality => {
             this.shopTargetSlots[quality].target = null;
@@ -6957,11 +6855,41 @@ class Game {
             const usedIds = new Set([...lockedEquipments.map(e => e.id), ...targetEquipments.map(e => e.id)]);
             const availableEquipments = allEquipments.filter(e => !usedIds.has(e.id) && !e.isCrafted);
             const remainingCount = Math.max(0, 12 - lockedEquipments.length - targetEquipments.length);
-            
-            for (let i = 0; i < remainingCount && i < availableEquipments.length; i++) {
-                const randomEq = availableEquipments[Math.floor(Math.random() * availableEquipments.length)];
+            const playerLv = Math.max(1, Math.floor(Number(this.player.level)) || 1);
+            const shopLevelBand = 5;
+            const shopNearLevelPickChance = 0.82;
+            for (let i = 0; i < remainingCount; i++) {
+                const candidates = availableEquipments.filter(e => !usedIds.has(e.id));
+                if (candidates.length === 0) break;
+                const nearLevel = candidates.filter(e => {
+                    const L = Number(e.level);
+                    return !isNaN(L) && L >= playerLv - shopLevelBand && L <= playerLv + shopLevelBand;
+                });
+                const pool = (nearLevel.length > 0 && Math.random() < shopNearLevelPickChance)
+                    ? nearLevel
+                    : candidates;
+                const randomEq = pool[Math.floor(Math.random() * pool.length)];
                 newEquipments.push(randomEq);
                 usedIds.add(randomEq.id);
+            }
+
+            // 神圣十字架：随机出现在装备栏某一格；概率与宝箱/掉落品质中「传说」一档相同（2%）
+            const SHOP_HOLY_CROSS_CHANCE = 0.02;
+            const hasHolyAlready = [...lockedEquipments, ...targetEquipments].some(
+                e => e && e.type === 'consumable' && e.consumableType === 'resurrection'
+            );
+            if (!hasHolyAlready && newEquipments.length > 0 && Math.random() < SHOP_HOLY_CROSS_CHANCE) {
+                const j = Math.floor(Math.random() * newEquipments.length);
+                newEquipments[j] = typeof createHolyCrossShopOffer === 'function'
+                    ? createHolyCrossShopOffer()
+                    : new Consumable({
+                        id: 399998,
+                        name: '神圣十字架',
+                        consumableType: 'resurrection',
+                        quality: 'epic',
+                        description: '死亡时可以使用，恢复满血并获得3秒无敌',
+                        price: 500
+                    });
             }
             
             // 合并：锁定的 + 定向的 + 新的
@@ -6976,90 +6904,92 @@ class Game {
         // 使用文档片段批量添加DOM元素
         const fragment = document.createDocumentFragment();
         
-        shopEquipments.forEach(eq => {
+        shopEquipments.forEach(listing => {
             const itemDiv = document.createElement('div');
-            
-            // 检查装备等级要求
-            const requiredLevel = Number(eq.level);
+            const isHoly = listing.type === 'consumable' && listing.consumableType === 'resurrection';
+
+            const requiredLevel = Number(listing.level);
             const playerLevel = Number(this.player.level);
-            const isLevelLocked = !isNaN(requiredLevel) && !isNaN(playerLevel) && playerLevel < requiredLevel;
-            
-            const isLocked = this.shopLockedItems.has(eq.id);
-            const isTargeted = Object.values(this.shopTargetSlots).some(slot => slot.target === eq.id);
-            
+            const isLevelLocked = !isHoly && !isNaN(requiredLevel) && !isNaN(playerLevel) && playerLevel < requiredLevel;
+
+            const isLocked = this.shopLockedItems.has(listing.id);
+            const isTargeted = !isHoly && Object.values(this.shopTargetSlots).some(slot => slot.target === listing.id);
+
             itemDiv.className = `shop-item${isLevelLocked ? ' level-locked' : ''}${isLocked ? ' locked' : ''}${isTargeted ? ' targeted' : ''}`;
             if (isTargeted) {
-                itemDiv.style.border = `3px solid ${QUALITY_COLORS[eq.quality]}`;
-                itemDiv.style.boxShadow = `0 0 10px ${QUALITY_COLORS[eq.quality]}`;
+                itemDiv.style.border = `3px solid ${QUALITY_COLORS[listing.quality]}`;
+                itemDiv.style.boxShadow = `0 0 10px ${QUALITY_COLORS[listing.quality]}`;
             }
-            
-            const price = (eq.level * 20 + Object.values(eq.stats).reduce((a, b) => a + b, 0) * 2) * (['common', 'rare', 'fine', 'epic', 'legendary'].indexOf(eq.quality) + 1);
-            
-            // 创建装备图标（使用通用函数）
-            const equipmentIcon = this.createItemIcon(eq, {
+
+            const price = isHoly
+                ? (listing.price || 500)
+                : (listing.level * 20 + Object.values(listing.stats).reduce((a, b) => a + b, 0) * 2) * (['common', 'rare', 'fine', 'epic', 'legendary'].indexOf(listing.quality) + 1);
+
+            const itemIcon = this.createItemIcon(listing, {
                 size: 50,
                 style: { marginRight: '15px' }
             });
-            
-            const equipmentNameDiv = document.createElement('div');
-            equipmentNameDiv.style.color = QUALITY_COLORS[eq.quality];
-            equipmentNameDiv.style.fontWeight = 'bold';
-            equipmentNameDiv.style.cursor = 'pointer';
-            equipmentNameDiv.textContent = eq.name;
-            equipmentNameDiv.dataset.itemId = eq.id;
-            
-            // 为装备名称添加鼠标悬停事件
-            equipmentNameDiv.addEventListener('mouseenter', (e) => {
-                this.showShopEquipmentTooltip(eq, e.clientX, e.clientY);
+
+            const nameDiv = document.createElement('div');
+            nameDiv.style.color = QUALITY_COLORS[listing.quality];
+            nameDiv.style.fontWeight = 'bold';
+            nameDiv.style.cursor = 'pointer';
+            nameDiv.textContent = listing.name;
+            nameDiv.dataset.itemId = listing.id;
+
+            nameDiv.addEventListener('mouseenter', (e) => {
+                this.showShopEquipmentTooltip(listing, e.clientX, e.clientY);
             });
-            equipmentNameDiv.addEventListener('mouseleave', () => {
+            nameDiv.addEventListener('mouseleave', () => {
                 this.tooltipManager.hideItemTooltip();
             });
-            
+
+            const typeLine = isHoly
+                ? `复活道具 | ${QUALITY_NAMES[listing.quality]}`
+                : `${SLOT_NAMES[listing.slot]} | ${QUALITY_NAMES[listing.quality]}${isLevelLocked ? ` | <span style="color: #ff6666;">需要等级 ${requiredLevel}</span>` : ''}${isTargeted ? ` | <span style="color: ${QUALITY_COLORS[listing.quality]};">定向</span>` : ''}`;
+
             itemDiv.innerHTML = `
                 <div class="shop-item-info">
-                    <div style="font-size: 12px; color: #aaa;">${SLOT_NAMES[eq.slot]} | ${QUALITY_NAMES[eq.quality]}${isLevelLocked ? ` | <span style="color: #ff6666;">需要等级 ${requiredLevel}</span>` : ''}${isTargeted ? ` | <span style="color: ${QUALITY_COLORS[eq.quality]};">定向</span>` : ''}</div>
+                    <div style="font-size: 12px; color: #aaa;">${typeLine}</div>
                 </div>
                 <div class="shop-item-price">${price} 金币</div>
                 <div style="display: flex; gap: 5px;">
-                    <button class="shop-buy-btn" data-item-id="${eq.id}" data-price="${price}">购买</button>
-                    <button class="shop-lock-btn" data-item-id="${eq.id}" style="padding: 5px 10px; background: ${isLocked ? '#ff6666' : '#666'}; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 11px;">${isLocked ? '解锁' : '锁定'}</button>
+                    <button class="shop-buy-btn" data-item-id="${listing.id}" data-price="${price}">购买</button>
+                    <button class="shop-lock-btn" data-item-id="${listing.id}" style="padding: 5px 10px; background: ${isLocked ? '#ff6666' : '#666'}; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 11px;">${isLocked ? '解锁' : '锁定'}</button>
                 </div>
             `;
-            
-            // 将装备图标和名称插入到shop-item-info的开头
+
             const shopItemInfo = itemDiv.querySelector('.shop-item-info');
             const iconAndNameContainer = document.createElement('div');
             iconAndNameContainer.style.display = 'flex';
             iconAndNameContainer.style.alignItems = 'center';
             iconAndNameContainer.style.marginBottom = '5px';
-            iconAndNameContainer.appendChild(equipmentIcon);
-            iconAndNameContainer.appendChild(equipmentNameDiv);
+            iconAndNameContainer.appendChild(itemIcon);
+            iconAndNameContainer.appendChild(nameDiv);
             shopItemInfo.insertBefore(iconAndNameContainer, shopItemInfo.firstChild);
-            
+
             const buyBtn = itemDiv.querySelector('.shop-buy-btn');
             buyBtn.addEventListener('click', () => {
-                this.buyEquipment(eq, price);
+                this.buyEquipment(listing, price);
             });
-            
+
             const lockBtn = itemDiv.querySelector('.shop-lock-btn');
             lockBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.toggleShopItemLock(eq.id);
+                this.toggleShopItemLock(listing.id);
             });
-            
-            // 添加定向位选择功能：如果该品质有可用的定向位，允许点击选择
-            const quality = eq.quality;
-            if (!isTargeted && this.shopTargetSlots[quality] && 
+
+            const quality = listing.quality;
+            if (!isHoly && !isTargeted && this.shopTargetSlots[quality] &&
                 (this.shopTargetSlots[quality].available > 0 || this.shopTargetSlots[quality].target)) {
                 itemDiv.style.cursor = 'pointer';
                 itemDiv.title = '点击选择为定向装备';
                 itemDiv.addEventListener('click', (e) => {
                     if (e.target.classList.contains('shop-buy-btn') || e.target.classList.contains('shop-lock-btn')) return;
-                    this.selectTargetSlot(eq);
+                    this.selectTargetSlot(listing);
                 });
             }
-            
+
             fragment.appendChild(itemDiv);
         });
         
@@ -7122,6 +7052,9 @@ class Game {
      * 选择定向位
      */
     selectTargetSlot(equipment) {
+        if (!equipment || equipment.type !== 'equipment' || !equipment.slot) {
+            return;
+        }
         const quality = equipment.quality;
         if (this.shopTargetSlots[quality]) {
             // 设置定向位目标（不需要检查available，因为购买时会增加available）
@@ -7298,357 +7231,11 @@ class Game {
     showShopEquipmentTooltip(equipment, x, y) {
         const tooltip = document.getElementById('item-tooltip');
         if (equipment && equipment.getTooltipHTML) {
-            tooltip.innerHTML = equipment.getTooltipHTML(this.player.equipment);
-            // 使用位置调整函数
+            const isEquipment = equipment.type === 'equipment' && equipment.slot;
+            tooltip.innerHTML = isEquipment ? equipment.getTooltipHTML(this.player.equipment) : equipment.getTooltipHTML();
             this.tooltipManager.adjustTooltipPosition(tooltip, x, y);
         }
     }
-
-    /**
-     * 更新商店药水列表
-     * @param {boolean} forceRefresh - 是否强制刷新（生成新物品）
-     */
-    /**
-     * 更新商店消耗品界面（随机礼箱和图纸）
-     */
-    updateShopConsumables(forceRefresh = false) {
-        const container = document.getElementById('shop-consumable-list');
-        container.innerHTML = '';
-        
-        // 随机礼箱价格
-        const randomBoxPrice = 200;
-        
-        // 创建随机礼箱
-        const randomBoxDiv = document.createElement('div');
-        randomBoxDiv.className = 'shop-item';
-        randomBoxDiv.style.padding = '20px';
-        randomBoxDiv.style.textAlign = 'center';
-        randomBoxDiv.style.background = 'rgba(100, 50, 150, 0.3)';
-        randomBoxDiv.style.border = '3px solid #aa00ff';
-        randomBoxDiv.style.borderRadius = '10px';
-        randomBoxDiv.style.marginBottom = '20px';
-        
-        randomBoxDiv.innerHTML = `
-            <div style="font-size: 24px; margin-bottom: 10px;">🎁</div>
-            <div style="font-size: 18px; font-weight: bold; color: #aa00ff; margin-bottom: 10px;">随机礼箱</div>
-            <div style="font-size: 12px; color: #aaa; margin-bottom: 15px;">打开后随机获得一种消耗品<br/>（药水、神圣十字架、打造配方、背包扩容等）</div>
-            <div class="shop-item-price" style="margin-bottom: 15px;">${randomBoxPrice} 金币</div>
-            <button class="shop-buy-random-box-btn" data-price="${randomBoxPrice}" style="padding: 10px 20px; background: #aa00ff; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold;">购买并打开</button>
-        `;
-        
-        const buyRandomBoxBtn = randomBoxDiv.querySelector('.shop-buy-random-box-btn');
-        buyRandomBoxBtn.addEventListener('click', () => {
-            this.showRandomBoxQuantityDialog(randomBoxPrice);
-        });
-        
-        container.appendChild(randomBoxDiv);
-    }
-    
-    /**
-     * 显示随机礼箱数量选择对话框
-     * @param {number} price - 单个礼箱价格
-     */
-    showRandomBoxQuantityDialog(price) {
-        // 暂停游戏
-        this.paused = true;
-        
-        // 创建或获取对话框
-        let modal = document.getElementById('random-box-quantity-modal');
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'random-box-quantity-modal';
-            modal.className = 'modal';
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width: 500px; text-align: center;">
-                    <h2 style="color: #aa00ff; margin-bottom: 20px;">购买随机礼箱</h2>
-                    <p style="color: #fff; font-size: 16px; margin-bottom: 10px;">单个价格: <span style="color: #ffd700;">${price} 金币</span></p>
-                    <p style="color: #aaa; font-size: 14px; margin-bottom: 20px;">当前金币: <span style="color: #ffd700;" id="random-box-current-gold">0</span></p>
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
-                        <button id="random-box-quantity-decrease" style="width: 40px; height: 40px; background: #666; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-size: 20px; font-weight: bold;">-</button>
-                        <input type="number" id="random-box-quantity-input" value="1" min="1" max="99" style="width: 80px; height: 40px; text-align: center; font-size: 18px; font-weight: bold; background: rgba(50, 50, 60, 0.8); color: #fff; border: 2px solid #666; border-radius: 5px; font-family: 'Courier New', monospace;">
-                        <button id="random-box-quantity-increase" style="width: 40px; height: 40px; background: #666; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-size: 20px; font-weight: bold;">+</button>
-                    </div>
-                    <p style="color: #fff; font-size: 18px; margin-bottom: 20px;">总价: <span style="color: #ffd700;" id="random-box-total-price">${price}</span> 金币</p>
-                    <div style="display: flex; gap: 15px; justify-content: center;">
-                        <button id="random-box-confirm-btn" style="padding: 12px 30px; background: #aa00ff; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold;">确认购买</button>
-                        <button id="random-box-cancel-btn" style="padding: 12px 30px; background: #666; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">取消</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            
-            // 添加事件监听
-            const quantityInput = modal.querySelector('#random-box-quantity-input');
-            const decreaseBtn = modal.querySelector('#random-box-quantity-decrease');
-            const increaseBtn = modal.querySelector('#random-box-quantity-increase');
-            const confirmBtn = modal.querySelector('#random-box-confirm-btn');
-            const cancelBtn = modal.querySelector('#random-box-cancel-btn');
-            
-            // 减少数量
-            decreaseBtn.addEventListener('click', () => {
-                let value = parseInt(quantityInput.value) || 1;
-                if (value > 1) {
-                    value--;
-                    quantityInput.value = value;
-                    this.updateRandomBoxQuantityPrice(price);
-                }
-            });
-            
-            // 增加数量
-            increaseBtn.addEventListener('click', () => {
-                let value = parseInt(quantityInput.value) || 1;
-                const maxQuantity = Math.floor(this.player.gold / price);
-                if (value < maxQuantity && value < 99) {
-                    value++;
-                    quantityInput.value = value;
-                    this.updateRandomBoxQuantityPrice(price);
-                }
-            });
-            
-            // 输入框变化
-            quantityInput.addEventListener('input', () => {
-                this.updateRandomBoxQuantityPrice(price);
-            });
-            
-            // 确认购买
-            confirmBtn.addEventListener('click', () => {
-                const quantity = parseInt(quantityInput.value) || 1;
-                if (quantity > 0) {
-                    modal.classList.remove('show');
-                    this.paused = false;
-                    this.buyRandomBox(price, quantity);
-                }
-            });
-            
-            // 取消
-            cancelBtn.addEventListener('click', () => {
-                modal.classList.remove('show');
-                this.paused = false;
-            });
-        }
-        
-        // 更新当前金币显示
-        const currentGoldSpan = modal.querySelector('#random-box-current-gold');
-        if (currentGoldSpan) {
-            currentGoldSpan.textContent = this.player.gold;
-        }
-        
-        // 计算最大可购买数量
-        const maxQuantity = Math.min(Math.floor(this.player.gold / price), 99);
-        const quantityInput = modal.querySelector('#random-box-quantity-input');
-        if (quantityInput) {
-            quantityInput.max = maxQuantity;
-            if (parseInt(quantityInput.value) > maxQuantity) {
-                quantityInput.value = maxQuantity || 1;
-            }
-        }
-        
-        // 更新总价显示
-        this.updateRandomBoxQuantityPrice(price);
-        
-        // 显示对话框
-        modal.classList.add('show');
-    }
-    
-    /**
-     * 更新随机礼箱数量选择对话框的价格显示
-     * @param {number} price - 单个礼箱价格
-     */
-    updateRandomBoxQuantityPrice(price) {
-        const modal = document.getElementById('random-box-quantity-modal');
-        if (!modal) return;
-        
-        const quantityInput = modal.querySelector('#random-box-quantity-input');
-        const totalPriceSpan = modal.querySelector('#random-box-total-price');
-        const confirmBtn = modal.querySelector('#random-box-confirm-btn');
-        
-        if (quantityInput && totalPriceSpan && confirmBtn) {
-            const quantity = parseInt(quantityInput.value) || 1;
-            const maxQuantity = Math.min(Math.floor(this.player.gold / price), 99);
-            const totalPrice = quantity * price;
-            
-            totalPriceSpan.textContent = totalPrice;
-            
-            // 检查是否可以购买
-            if (quantity <= 0 || quantity > maxQuantity || totalPrice > this.player.gold) {
-                confirmBtn.disabled = true;
-                confirmBtn.style.opacity = '0.5';
-                confirmBtn.style.cursor = 'not-allowed';
-            } else {
-                confirmBtn.disabled = false;
-                confirmBtn.style.opacity = '1';
-                confirmBtn.style.cursor = 'pointer';
-            }
-        }
-    }
-    
-    /**
-     * 购买并打开随机礼箱
-     * @param {number} price - 单个礼箱价格
-     * @param {number} quantity - 购买数量
-     */
-    buyRandomBox(price, quantity = 1) {
-        const totalPrice = price * quantity;
-        
-        if (this.player.gold < totalPrice) {
-            this.addFloatingText(this.player.x, this.player.y, '金币不足！', '#ff0000');
-            return;
-        }
-        
-        // 记录获得的消耗品
-        const obtainedItems = [];
-        let failedCount = 0;
-        
-        // 扣除金币
-        this.player.gold -= totalPrice;
-        // 播放购买音效
-        if (this.soundManager) {
-            this.soundManager.playSound('purchase');
-        }
-        this.updateHUD();
-        
-        // 批量购买
-        for (let i = 0; i < quantity; i++) {
-            // 生成随机消耗品
-            const randomConsumable = generateRandomConsumable();
-            
-            // 添加到背包
-            if (this.addItemToInventory(randomConsumable)) {
-                obtainedItems.push(randomConsumable);
-            } else {
-                // 如果背包满了，退还这个礼箱的金币
-                failedCount++;
-                this.player.gold += price;
-            }
-        }
-        
-        // 更新HUD
-        this.updateHUD();
-        
-        // 如果有失败的，显示提示
-        if (failedCount > 0) {
-            this.addFloatingText(this.player.x, this.player.y, `背包空间不足，退还了 ${failedCount} 个礼箱的金币`, '#ffaa00');
-        }
-        
-        // 显示获得的消耗品面板
-        if (obtainedItems.length > 0) {
-            this.showRandomBoxRewardsPanel(obtainedItems, totalPrice - (failedCount * price));
-        }
-    }
-    
-    /**
-     * 显示随机礼箱奖励面板
-     * @param {Array} items - 获得的消耗品数组
-     * @param {number} totalPrice - 实际花费的金币
-     */
-    showRandomBoxRewardsPanel(items, totalPrice) {
-        // 暂停游戏
-        this.paused = true;
-        
-        // 创建或获取面板
-        let modal = document.getElementById('random-box-rewards-modal');
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'random-box-rewards-modal';
-            modal.className = 'modal';
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width: 700px; max-height: 600px; overflow-y: auto;">
-                    <h2 style="color: #aa00ff; margin-bottom: 20px; text-align: center;">🎁 随机礼箱奖励</h2>
-                    <p style="color: #aaa; font-size: 14px; margin-bottom: 20px; text-align: center;">花费: <span style="color: #ffd700;">${totalPrice}</span> 金币 | 获得: <span style="color: #88ff88;">${items.length}</span> 个消耗品</p>
-                    <div id="random-box-rewards-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;"></div>
-                    <div style="text-align: center;">
-                        <button id="random-box-rewards-close-btn" style="padding: 12px 30px; background: #aa00ff; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold;">关闭</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            
-            // 添加关闭按钮事件
-            const closeBtn = modal.querySelector('#random-box-rewards-close-btn');
-            closeBtn.addEventListener('click', () => {
-                modal.classList.remove('show');
-                this.paused = false;
-            });
-        }
-        
-        // 更新花费和数量显示
-        const modalContent = modal.querySelector('.modal-content');
-        const priceText = modalContent.querySelector('p');
-        if (priceText) {
-            priceText.innerHTML = `花费: <span style="color: #ffd700;">${totalPrice}</span> 金币 | 获得: <span style="color: #88ff88;">${items.length}</span> 个消耗品`;
-        }
-        
-        // 显示获得的物品
-        const rewardsList = modal.querySelector('#random-box-rewards-list');
-        rewardsList.innerHTML = '';
-        
-        // 统计相同物品的数量
-        const itemCounts = {};
-        items.forEach(item => {
-            const key = item.name + '_' + item.quality;
-            if (!itemCounts[key]) {
-                itemCounts[key] = {
-                    item: item,
-                    count: 0
-                };
-            }
-            itemCounts[key].count++;
-        });
-        
-        // 显示物品
-        Object.values(itemCounts).forEach(({ item, count }) => {
-            const itemDiv = document.createElement('div');
-            itemDiv.style.padding = '15px';
-            itemDiv.style.background = 'rgba(50, 50, 60, 0.8)';
-            itemDiv.style.border = `2px solid ${QUALITY_COLORS[item.quality] || '#666'}`;
-            itemDiv.style.borderRadius = '5px';
-            itemDiv.style.textAlign = 'center';
-            itemDiv.style.cursor = 'pointer';
-            itemDiv.style.transition = 'all 0.2s';
-            
-            // 显示物品信息
-            const qualityColor = QUALITY_COLORS[item.quality] || '#fff';
-            itemDiv.innerHTML = `
-                <div style="font-size: 16px; font-weight: bold; color: ${qualityColor}; margin-bottom: 5px;">${item.name}</div>
-                <div style="font-size: 12px; color: #aaa; margin-bottom: 5px;">${QUALITY_NAMES[item.quality] || '普通'}</div>
-                ${count > 1 ? `<div style="font-size: 14px; color: #88ff88; font-weight: bold;">x${count}</div>` : ''}
-            `;
-            
-            // 鼠标悬停效果和工具提示
-            itemDiv.addEventListener('mouseenter', (e) => {
-                itemDiv.style.background = 'rgba(70, 70, 80, 0.9)';
-                itemDiv.style.transform = 'scale(1.05)';
-                
-                // 显示工具提示
-                if (item.getTooltipHTML) {
-                    const tooltip = document.getElementById('item-tooltip');
-                    const isEquipment = (item.type === 'equipment') || (item.slot != null && item.stats != null);
-                    tooltip.innerHTML = isEquipment ? item.getTooltipHTML(this.player.equipment) : item.getTooltipHTML();
-                    this.adjustTooltipPosition(tooltip, e.clientX, e.clientY);
-                }
-            });
-            itemDiv.addEventListener('mouseleave', () => {
-                itemDiv.style.background = 'rgba(50, 50, 60, 0.8)';
-                itemDiv.style.transform = 'scale(1)';
-                this.tooltipManager.hideItemTooltip();
-            });
-            
-            rewardsList.appendChild(itemDiv);
-        });
-        
-        // 显示面板
-        modal.classList.add('show');
-    }
-
-    showShopPotionTooltip(potion, x, y) {
-        const tooltip = document.getElementById('item-tooltip');
-        if (potion && potion.getTooltipHTML) {
-            tooltip.innerHTML = potion.getTooltipHTML();
-            // 使用位置调整函数
-            this.tooltipManager.adjustTooltipPosition(tooltip, x, y);
-        }
-    }
-
 
     /**
      * 购买装备
@@ -7667,7 +7254,39 @@ class Game {
             }
             return;
         }
-        
+
+        const isHolyCross =
+            equipment.type === 'consumable' && equipment.consumableType === 'resurrection';
+
+        if (isHolyCross) {
+            const newCross = new Consumable({
+                id: 400000000 + Math.floor(Math.random() * 100000000),
+                name: equipment.name,
+                consumableType: 'resurrection',
+                quality: equipment.quality,
+                description: equipment.description || '',
+                price: equipment.price || 500
+            });
+            if (this.addItemToInventory(newCross)) {
+                this.player.gold -= price;
+                if (this.soundManager) {
+                    this.soundManager.playSound('purchase');
+                }
+                this.updateHUD();
+                if (this.shopLockedItems.has(equipment.id)) {
+                    this.shopLockedItems.delete(equipment.id);
+                }
+                Object.keys(this.shopTargetSlots).forEach(quality => {
+                    if (this.shopTargetSlots[quality].target === equipment.id) {
+                        this.shopTargetSlots[quality].target = null;
+                    }
+                });
+                this.updateShopEquipments(false);
+                this.addFloatingText(this.player.x, this.player.y, `购买 ${newCross.name}`, QUALITY_COLORS[newCross.quality] || '#ffffff');
+            }
+            return;
+        }
+
         // 创建新装备实例（避免引用问题）
         // 注意：新购买的装备应该是未精炼的，所以不传递refineLevel（默认为0）
         const newEq = new Equipment({
@@ -7680,7 +7299,7 @@ class Game {
             stats: JSON.parse(JSON.stringify(equipment.stats)),
             refineLevel: 0
         });
-        
+
         if (this.addItemToInventory(newEq)) {
             this.player.gold -= price;
             // 播放购买音效
@@ -7710,15 +7329,14 @@ class Game {
         const container = document.getElementById('shop-sell-list');
         container.innerHTML = '';
         
-        // 收集玩家背包中可出售的物品（装备、材料和消耗品）
+        // 收集玩家背包中可出售的物品（装备与消耗品）
         const sellableItems = [];
         
         this.player.inventory.forEach((item, index) => {
-            if (item && (
-                item.type === 'equipment' || 
-                item.type === 'material' || item.type === 'alchemy' || 
-                item.type === 'consumable' || item.type === 'potion'
-            )) {
+            if (!item) return;
+            const isSellableConsumable =
+                item.type === 'consumable' && item.consumableType !== 'potion';
+            if (item.type === 'equipment' || isSellableConsumable) {
                 sellableItems.push({ item: item, index: index });
             }
         });
@@ -7740,31 +7358,13 @@ class Game {
                 const statSum = Object.values(item.stats).reduce((a, b) => a + Math.abs(b), 0);
                 const baseValue = item.level * 15 + statSum * 1.5;
                 sellPrice = Math.floor(baseValue * qualityMultiplier * 0.4);
-            } else if (item.type === 'material' || item.type === 'alchemy') {
-                // 炼金材料的基础价格计算
-                const qualityMultiplier = ['common', 'rare', 'fine', 'epic', 'legendary'].indexOf(item.quality) + 1;
-                const traitValue = Object.values(item.alchemyTraits).reduce((a, b) => a + Math.abs(b), 0);
-                const buyPrice = (traitValue * 3 + 20) * qualityMultiplier;
+            } else if (item.type === 'consumable') {
+                const buyPrice = item.price || 50;
                 sellPrice = Math.floor(buyPrice * 0.5);
-            } else if (item.type === 'consumable' || item.type === 'potion') {
-                // 药水的出售价格计算
-                if (item.isCrafted) {
-                    // 炼金得到的药水：回收价格 = (所有效果值总和 * 2 + 30) * 品质系数 * 0.5
-                    const effectValueSum = Object.values(item.effects || {}).reduce((a, b) => a + Math.abs(b), 0);
-                    const qualityMultiplier = ['common', 'rare', 'fine', 'epic', 'legendary'].indexOf(item.quality) + 1;
-                    const baseValue = effectValueSum * 2 + 30;
-                    sellPrice = Math.floor(baseValue * qualityMultiplier * 0.5);
-                } else {
-                    // 商店购买的药水：购买价格的50%
-                    const buyPrice = item.price || 50;
-                sellPrice = Math.floor(buyPrice * 0.5);
-                }
             }
             
-            // 如果是装备，创建装备图标
             let itemIcon = null;
-            if (item.type === 'equipment') {
-                // 使用通用函数创建物品图标（边框由函数统一处理）
+            if (item.type === 'equipment' || item.type === 'consumable') {
                 itemIcon = this.createItemIcon(item, {
                     size: 50,
                     style: { marginRight: '15px' }
@@ -7793,10 +7393,12 @@ class Game {
             let typeInfo = '';
             if (item.type === 'equipment') {
                 typeInfo = `${SLOT_NAMES[item.slot]} | ${QUALITY_NAMES[item.quality]}`;
-            } else if (item.type === 'material' || item.type === 'alchemy') {
-                typeInfo = `炼金材料 | ${QUALITY_NAMES[item.quality]}`;
-            } else if (item.type === 'consumable' || item.type === 'potion') {
-                typeInfo = `药水 | ${QUALITY_NAMES[item.quality]}`;
+            } else if (item.type === 'consumable') {
+                const sub =
+                    item.consumableType === 'resurrection' ? '复活道具' :
+                    item.consumableType === 'recipe' ? '图纸' :
+                    (item.consumableType || '消耗品');
+                typeInfo = `${sub} | ${QUALITY_NAMES[item.quality]}`;
             }
             
             itemDiv.innerHTML = `
@@ -9381,8 +8983,8 @@ class Game {
             };
         }
         if (roll < 0.85) {
-            const tabs = ['equipment','material','consumable'];
-            const tabLabels = { equipment:'装备', material:'材料', consumable:'消耗品' };
+            const tabs = ['equipment', 'consumable'];
+            const tabLabels = { equipment: '装备', consumable: '消耗品' };
             const tab = tabs[Math.floor(Math.random() * tabs.length)];
             return {
                 type: 'd',
@@ -9414,7 +9016,6 @@ class Game {
             }
         } else if (effect.type === 'd') {
             const [start, end] = effect.tab === 'equipment' ? [0, this.player.maxEquipmentCapacity] :
-                effect.tab === 'material' ? [18, 18 + this.player.maxAlchemyCapacity] :
                 [48, 48 + this.player.maxPotionCapacity];
             for (let i = start; i < end; i++) {
                 const item = this.player.inventory[i];
@@ -9918,12 +9519,12 @@ class Game {
         const frag = document.createDocumentFragment();
         sellable.forEach(({ item, index }) => {
             let sellPrice = 0;
-            if (item.slot) {
+            if (item.type === 'equipment' && item.slot) {
                 const statSum = item.stats ? Object.values(item.stats).reduce((a, b) => a + b, 0) : 0;
                 const baseValue = (item.level || 1) * 20 + statSum * 2;
                 const qm = (['common', 'rare', 'fine', 'epic', 'legendary'].indexOf(item.quality) + 1) || 1;
                 sellPrice = Math.floor(baseValue * qm * 0.4);
-            } else if (item.type === 'potion') {
+            } else if (item.type === 'consumable' || item.type === 'potion') {
                 const buyPrice = item.buyPrice || item.price || 50;
                 sellPrice = Math.floor(buyPrice * 0.5);
             } else {
@@ -9980,7 +9581,7 @@ class Game {
             nextPortals.push(new Portal(centerX, centerY - distance, nextFloor, 'next', ROOM_TYPES.GAP_SHOP));
         } else if (isCombatRoom) {
             const portalCount = 2 + Math.floor(Math.random() * 2);
-            const availableTypes = [ROOM_TYPES.BATTLE, ROOM_TYPES.TREASURE, ROOM_TYPES.REST, ROOM_TYPES.ALCHEMY, ROOM_TYPES.ELITE];
+            const availableTypes = [ROOM_TYPES.BATTLE, ROOM_TYPES.TREASURE, ROOM_TYPES.REST, ROOM_TYPES.ELITE];
             const selectedTypes = [];
             const shuffledTypes = [...availableTypes].sort(() => Math.random() - 0.5);
             for (let i = 0; i < portalCount && i < shuffledTypes.length; i++) {
@@ -10081,6 +9682,137 @@ class Game {
         ctx.fillText(label, x, y);
     }
     
+    /**
+     * 构建可序列化的存档对象（与导出/浏览器缓存共用）
+     * @returns {Object}
+     */
+    buildSaveDataObject() {
+        const saveData = {
+            version: '1.0',
+            timestamp: Date.now(),
+            player: {
+                x: this.player.x,
+                y: this.player.y,
+                hp: this.player.hp,
+                maxHp: this.player.maxHp,
+                level: this.player.level,
+                exp: this.player.exp,
+                expNeeded: this.player.expNeeded,
+                gold: this.player.gold,
+                equipment: {},
+                inventory: [],
+                maxEquipmentCapacity: this.player.maxEquipmentCapacity,
+                maxPotionCapacity: this.player.maxPotionCapacity
+            },
+            game: {
+                currentScene: this.currentScene,
+                floor: this.floor,
+                lastDeathFloor: this.lastDeathFloor,
+                needFloorRollback: this.needFloorRollback || false,
+                shopLockedItems: Array.from(this.shopLockedItems),
+                shopTargetSlots: JSON.parse(JSON.stringify(this.shopTargetSlots)),
+                shopCapacityExpansionCount: this.shopCapacityExpansionCount,
+                fusionState: this.fusionState ? JSON.parse(JSON.stringify(this.fusionState)) : null,
+                fusionCompletionBannerShown: !!this.fusionCompletionBannerShown
+            }
+        };
+        Object.keys(this.player.equipment).forEach(slot => {
+            const eq = this.player.equipment[slot];
+            if (eq) {
+                saveData.player.equipment[slot] = this.serializeEquipment(eq);
+            } else {
+                saveData.player.equipment[slot] = null;
+            }
+        });
+        saveData.player.inventory = new Array(CONFIG.INVENTORY_SIZE).fill(null);
+        this.player.inventory.forEach((item, index) => {
+            if (item && index < CONFIG.INVENTORY_SIZE) {
+                if (item.type === 'equipment') {
+                    saveData.player.inventory[index] = this.serializeEquipment(item);
+                } else if (item.type === 'consumable' || item.type === 'potion') {
+                    saveData.player.inventory[index] = this.serializePotion(item);
+                }
+            }
+        });
+        return saveData;
+    }
+
+    /**
+     * 将存档对象编码为存档码字符串（与剪贴板导出一致）
+     * @param {Object} saveData
+     * @returns {string}
+     */
+    encodeSaveDataToSaveCode(saveData) {
+        const jsonStr = JSON.stringify(saveData);
+        if (typeof LZString !== 'undefined') {
+            return LZString.compressToBase64(jsonStr);
+        }
+        return btoa(encodeURIComponent(jsonStr));
+    }
+
+    /**
+     * 解析存档码为存档对象（与导入弹窗逻辑一致）
+     * @param {string} saveCode
+     * @returns {Object}
+     */
+    parseSaveCodeToSaveData(saveCode) {
+        const trimmed = (saveCode || '').trim();
+        if (!trimmed) {
+            throw new Error('空存档代码');
+        }
+        let jsonStr;
+        if (typeof LZString !== 'undefined') {
+            try {
+                jsonStr = LZString.decompressFromBase64(trimmed);
+                if (!jsonStr) {
+                    throw new Error('LZString解压失败，尝试base64解码');
+                }
+            } catch (e) {
+                jsonStr = decodeURIComponent(atob(trimmed));
+            }
+        } else {
+            jsonStr = decodeURIComponent(atob(trimmed));
+        }
+        return JSON.parse(jsonStr);
+    }
+
+    /**
+     * 将当前进度对应的存档码写入 localStorage（下次打开页面自动读取）
+     */
+    saveGameToBrowserStorage() {
+        const key = Game.BROWSER_SAVE_CODE_KEY;
+        try {
+            const saveCode = this.encodeSaveDataToSaveCode(this.buildSaveDataObject());
+            localStorage.setItem(key, saveCode);
+            this.addFloatingText(this.player.x, this.player.y, '已保存到本浏览器', '#88ffcc');
+        } catch (e) {
+            if (e && e.name === 'QuotaExceededError') {
+                alert('浏览器存储空间不足，无法保存。请改用「导出存档」复制到剪贴板。');
+            } else {
+                alert('保存到浏览器失败：' + (e && e.message ? e.message : String(e)));
+            }
+            console.error('saveGameToBrowserStorage', e);
+        }
+    }
+
+    /**
+     * 启动时尝试从 localStorage 恢复存档码（静默；失败则清除坏数据）
+     */
+    tryAutoLoadBrowserSave() {
+        const key = Game.BROWSER_SAVE_CODE_KEY;
+        try {
+            const code = localStorage.getItem(key);
+            if (!code || !String(code).trim()) return;
+            const saveData = this.parseSaveCodeToSaveData(String(code).trim());
+            this.importSave(saveData, { quiet: true });
+        } catch (e) {
+            console.warn('浏览器缓存存档无效，已忽略', e);
+            try {
+                localStorage.removeItem(key);
+            } catch (_) { /* ignore */ }
+        }
+    }
+
     /**
      * 初始化存档系统
      */
@@ -10189,26 +9921,7 @@ class Game {
                 }
                 
                 try {
-                    let jsonStr;
-                    
-                    // 尝试使用LZString解压，如果失败则使用base64解码
-                    if (typeof LZString !== 'undefined') {
-                        try {
-                            jsonStr = LZString.decompressFromBase64(saveCode);
-                            if (!jsonStr) {
-                                // 如果解压失败，可能是旧格式的base64编码
-                                throw new Error('LZString解压失败，尝试base64解码');
-                            }
-                        } catch (e) {
-                            // 降级方案：使用base64解码
-                            jsonStr = decodeURIComponent(atob(saveCode));
-                        }
-                    } else {
-                        // 降级方案：使用base64解码
-                        jsonStr = decodeURIComponent(atob(saveCode));
-                    }
-                    
-                    const saveData = JSON.parse(jsonStr);
+                    const saveData = this.parseSaveCodeToSaveData(saveCode);
                     this.importSave(saveData);
                     this.closeImportSaveModal();
                     this.addFloatingText(this.player.x, this.player.y, '存档已导入', '#00ff00');
@@ -10252,86 +9965,18 @@ class Game {
      * 导出存档
      */
     exportSave() {
-        const saveData = {
-            version: '1.0',
-            timestamp: Date.now(),
-            player: {
-                x: this.player.x,
-                y: this.player.y,
-                hp: this.player.hp,
-                maxHp: this.player.maxHp,
-                level: this.player.level,
-                exp: this.player.exp,
-                expNeeded: this.player.expNeeded,
-                gold: this.player.gold,
-                equipment: {},
-                inventory: [],
-                maxEquipmentCapacity: this.player.maxEquipmentCapacity,
-                maxAlchemyCapacity: this.player.maxAlchemyCapacity,
-                maxPotionCapacity: this.player.maxPotionCapacity
-            },
-            game: {
-                currentScene: this.currentScene,
-                floor: this.floor,
-                lastDeathFloor: this.lastDeathFloor,
-                needFloorRollback: this.needFloorRollback || false,
-                shopLockedItems: Array.from(this.shopLockedItems),
-                shopTargetSlots: JSON.parse(JSON.stringify(this.shopTargetSlots)),
-                shopCapacityExpansionCount: this.shopCapacityExpansionCount,
-                fusionState: this.fusionState ? JSON.parse(JSON.stringify(this.fusionState)) : null,
-                fusionCompletionBannerShown: !!this.fusionCompletionBannerShown
-            }
-        };
-        
-        // 保存装备（需要序列化）
-        Object.keys(this.player.equipment).forEach(slot => {
-            const eq = this.player.equipment[slot];
-            if (eq) {
-                saveData.player.equipment[slot] = this.serializeEquipment(eq);
-            } else {
-                saveData.player.equipment[slot] = null;
-            }
-        });
-        
-        // 保存背包（需要序列化）
-        saveData.player.inventory = new Array(CONFIG.INVENTORY_SIZE).fill(null);
-        this.player.inventory.forEach((item, index) => {
-            if (item && index < CONFIG.INVENTORY_SIZE) {
-                if (item.type === 'equipment') {
-                    saveData.player.inventory[index] = this.serializeEquipment(item);
-                } else if (item.type === 'consumable' || item.type === 'potion') {
-                    saveData.player.inventory[index] = this.serializePotion(item);
-                } else if (item.type === 'material' || item.type === 'alchemy') {
-                    saveData.player.inventory[index] = this.serializeAlchemyMaterial(item);
-                }
-            }
-        });
-        
-        // 将存档数据压缩并编码为字符串
-        const jsonStr = JSON.stringify(saveData);
-        let saveCode;
-        
-        // 如果LZString可用，使用压缩；否则使用base64编码
-        if (typeof LZString !== 'undefined') {
-            // 使用LZString压缩，然后转换为base64
-            const compressed = LZString.compressToBase64(jsonStr);
-            saveCode = compressed;
-        } else {
-            // 降级方案：使用base64编码
-            saveCode = btoa(encodeURIComponent(jsonStr));
-        }
-        
-        // 显示存档代码模态框
+        const saveCode = this.encodeSaveDataToSaveCode(this.buildSaveDataObject());
         this.showSaveCodeModal(saveCode);
-        
         this.addFloatingText(this.player.x, this.player.y, '存档已导出', '#00ff00');
     }
     
     /**
      * 导入存档
      * @param {Object} saveData - 存档数据
+     * @param {{ quiet?: boolean }} [options] - quiet 为 true 时不弹窗、不飘字（用于浏览器自动读档）
      */
-    importSave(saveData) {
+    importSave(saveData, options) {
+        const quiet = options && options.quiet === true;
         try {
             // 验证存档版本
             if (!saveData.version || !saveData.player || !saveData.game) {
@@ -10345,12 +9990,14 @@ class Game {
             this.player.maxHp = saveData.player.maxHp || 100;
             this.player.level = saveData.player.level || 1;
             this.player.exp = saveData.player.exp || 0;
-            this.player.expNeeded = saveData.player.expNeeded || 50;
+            this.player.expNeeded = (typeof window.computePlayerExpToNextLevel === 'function')
+                ? window.computePlayerExpToNextLevel(this.player.level)
+                : (saveData.player.expNeeded || 20);
             this.player.gold = saveData.player.gold || 0;
             
             // 恢复背包容量
             this.player.maxEquipmentCapacity = saveData.player.maxEquipmentCapacity || 18;
-            this.player.maxAlchemyCapacity = saveData.player.maxAlchemyCapacity || 30;
+            this.player.maxAlchemyCapacity = 0;
             this.player.maxPotionCapacity = saveData.player.maxPotionCapacity || 18;
             
             // 恢复装备
@@ -10382,17 +10029,14 @@ class Game {
                             if (itemData.type === 'equipment') {
                                 this.player.inventory[index] = this.deserializeEquipment(itemData);
                             } else if (itemData.type === 'potion' || itemData.type === 'consumable') {
-                                if (itemData.consumableType === 'dungeon_license') {
+                                if (itemData.consumableType === 'dungeon_license' || itemData.type === 'potion') {
                                     this.player.inventory[index] = null;
                                 } else {
-                                    this.player.inventory[index] = this.deserializePotion(itemData);
+                                    const restored = this.deserializePotion(itemData);
+                                    this.player.inventory[index] = restored;
                                 }
                             } else if (itemData.type === 'alchemy' || itemData.type === 'material') {
-                                if (itemData.materialType === 'crafting') {
-                                    this.player.inventory[index] = null;
-                                } else {
-                                    this.player.inventory[index] = this.deserializeAlchemyMaterial(itemData);
-                                }
+                                this.player.inventory[index] = null;
                             }
                         } catch (error) {
                             console.error(`恢复背包物品失败 (索引 ${index}):`, error, itemData);
@@ -10461,10 +10105,15 @@ class Game {
                 document.getElementById('floor-number').textContent = `上次到达: ${this.lastDeathFloor}层`;
             }
             
-            this.addFloatingText(this.player.x, this.player.y, '存档已导入', '#00ff00');
+            if (!quiet) {
+                this.addFloatingText(this.player.x, this.player.y, '存档已导入', '#00ff00');
+            }
         } catch (error) {
-            alert('导入存档失败：' + error.message);
+            if (!quiet) {
+                alert('导入存档失败：' + error.message);
+            }
             console.error('导入存档失败:', error);
+            if (quiet) throw error;
         }
     }
     
@@ -10532,110 +10181,60 @@ class Game {
     }
     
     /**
-     * 序列化药水
-     * @param {Potion} potion - 药水对象
-     * @returns {Object} 序列化后的药水数据
+     * 序列化背包中的消耗品（药水已移除，旧药水存档返回 null）
+     * @param {Consumable} item
+     * @returns {Object|null}
      */
-    serializePotion(potion) {
+    serializePotion(item) {
+        if (!item) return null;
+        if (item.type === 'potion' || item.consumableType === 'potion') {
+            return null;
+        }
+        if (item.type !== 'consumable') {
+            return null;
+        }
         const result = {
-            id: potion.id,
-            name: potion.name,
-            type: potion.type || 'potion', // 保持原始类型
-            quality: potion.quality,
-            description: potion.description,
-            price: potion.price
+            id: item.id,
+            name: item.name,
+            type: 'consumable',
+            quality: item.quality,
+            description: item.description,
+            price: item.price,
+            consumableType: item.consumableType || 'misc'
         };
-        
-        // 如果是药水类型，添加药水特有属性
-        if (potion.type === 'potion' || potion.effects) {
-            result.effects = potion.effects;
-            result.duration = potion.duration;
-            result.isCrafted = potion.isCrafted || false;
+        if (item.recipeId !== undefined) {
+            result.recipeId = item.recipeId;
         }
-        
-        // 如果是消耗品类型，添加消耗品特有属性
-        if (potion.type === 'consumable') {
-            result.consumableType = potion.consumableType;
-            // 添加配方ID（如果是配方类型）
-            if (potion.recipeId !== undefined) {
-                result.recipeId = potion.recipeId;
-            }
-        }
-        
         return result;
     }
-    
+
     /**
-     * 反序列化药水/消耗品
-     * @param {Object} data - 药水/消耗品数据
-     * @returns {Potion|Consumable} 药水或消耗品对象
+     * 反序列化消耗品存档
+     * @param {Object} data
+     * @returns {Consumable|null}
      */
     deserializePotion(data) {
-        // 如果是consumable类型，创建Consumable实例
-        if (data.type === 'consumable') {
-            const consumableData = {
-                id: data.id,
-                name: data.name,
-                consumableType: data.consumableType || 'potion',
-                quality: data.quality || 'common',
-                description: data.description || '',
-                price: data.price || 50
-            };
-            
-            // 如果是配方，添加配方相关属性
-            if (data.recipeId !== undefined) {
-                consumableData.recipeId = data.recipeId;
-            }
-            
-            return new Consumable(consumableData);
+        if (!data) return null;
+        if (data.type === 'potion' || data.consumableType === 'potion') {
+            return null;
         }
-        
-        // 否则创建Potion实例
-        return new Potion({
+        if (data.type !== 'consumable') {
+            return null;
+        }
+        const consumableData = {
             id: data.id,
             name: data.name,
+            consumableType: data.consumableType || 'misc',
             quality: data.quality || 'common',
             description: data.description || '',
-            effects: data.effects || {},
-            duration: data.duration || 30000,
-            price: data.price || 50,
-            isCrafted: data.isCrafted || false
-        });
-    }
-    
-    /**
-     * 序列化炼金材料
-     * @param {AlchemyMaterial} material - 炼金材料对象
-     * @returns {Object} 序列化后的材料数据
-     */
-    serializeAlchemyMaterial(material) {
-        return {
-            id: material.id,
-            name: material.name,
-            type: 'alchemy',
-            quality: material.quality,
-            description: material.description,
-            alchemyTraits: material.alchemyTraits,
-            traitRetentionRate: material.traitRetentionRate
+            price: data.price || 50
         };
+        if (data.recipeId !== undefined) {
+            consumableData.recipeId = data.recipeId;
+        }
+        return new Consumable(consumableData);
     }
     
-    /**
-     * 反序列化炼金材料
-     * @param {Object} data - 材料数据
-     * @returns {AlchemyMaterial} 炼金材料对象
-     */
-    deserializeAlchemyMaterial(data) {
-        return new AlchemyMaterial({
-            id: data.id,
-            name: data.name,
-            quality: data.quality || 'common',
-            description: data.description || '',
-            alchemyTraits: data.alchemyTraits || {},
-            traitRetentionRate: data.traitRetentionRate || 0.5
-        });
-    }
-
     /**
      * 固定时间步长的逻辑更新（TPS）
      */
@@ -10778,6 +10377,9 @@ class Game {
      * 切换开发者模式
      */
     toggleDevMode() {
+        if (!this._localPeDevServer) {
+            return;
+        }
         this.devMode = !this.devMode;
         const codexModal = document.getElementById('codex-modal');
         const isCodexOpen = codexModal && codexModal.classList.contains('show');
@@ -10812,7 +10414,7 @@ class Game {
     
     /**
      * 显示图鉴开发者面板的指定标签页
-     * @param {string} tab - 标签页名称 ('equipments', 'materials', 'potions')
+     * @param {string} tab - 标签页名称 ('equipments', 'consumables', 'recipes')
      */
     showDevCodexTab(tab) {
         // 更新标签按钮状态
@@ -10837,10 +10439,8 @@ class Game {
         
         if (activeTab === 'equipments') {
             this.updateDevCodexEquipments(content);
-        } else if (activeTab === 'materials') {
-            this.updateDevCodexMaterials(content);
-        } else if (activeTab === 'potions') {
-            this.updateDevCodexPotions(content);
+        } else if (activeTab === 'consumables') {
+            this.updateDevCodexConsumables(content);
         } else if (activeTab === 'recipes') {
             this.updateDevCodexRecipes(content);
         }
@@ -10939,214 +10539,25 @@ class Game {
     }
     
     /**
-     * 更新图鉴开发者面板的炼金材料列表
+     * 更新图鉴开发者面板的消耗品（药水已移除，仅保留神圣十字架等）
      * @param {HTMLElement} container - 容器元素
      */
-    updateDevCodexMaterials(container) {
-        container.innerHTML = '<p style="color: #aaa; padding: 20px;">炼金系统已移除</p>';
-        return;
-        const allMaterials = generateAlchemyMaterials();
-        
-        // 按品质分组
-        const qualityGroups = {
-            common: [],
-            rare: [],
-            fine: [],
-            epic: [],
-            legendary: []
-        };
-        
-        allMaterials.forEach(m => {
-            qualityGroups[m.quality].push(m);
-        });
-        
-        const qualityNames = {
-            common: '普通',
-            rare: '稀有',
-            fine: '精良',
-            epic: '史诗',
-            legendary: '传说'
-        };
-        
-        const qualityColors = {
-            common: '#ffffff',
-            rare: '#1eff00',
-            fine: '#0070dd',
-            epic: '#a335ee',
-            legendary: '#ff8000'
-        };
-        
-        Object.keys(qualityGroups).forEach(quality => {
-            if (qualityGroups[quality].length === 0) return;
-            
-            const qualitySection = document.createElement('div');
-            qualitySection.style.marginBottom = '20px';
-            qualitySection.innerHTML = `<h4 style="color: ${qualityColors[quality]}; margin-bottom: 10px; font-size: 14px;">${qualityNames[quality]} (${qualityGroups[quality].length}种)</h4>`;
-            
-            const grid = document.createElement('div');
-            grid.style.display = 'grid';
-            grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(200px, 1fr))';
-            grid.style.gap = '10px';
-            
-            qualityGroups[quality].forEach(m => {
-                const itemDiv = document.createElement('div');
-                itemDiv.style.padding = '8px';
-                itemDiv.style.background = 'rgba(40, 40, 50, 0.8)';
-                itemDiv.style.border = `1px solid ${qualityColors[quality]}`;
-                itemDiv.style.borderRadius = '5px';
-                itemDiv.style.cursor = 'pointer';
-                itemDiv.style.transition = 'background 0.2s';
-                
-                itemDiv.onmouseover = () => {
-                    itemDiv.style.background = 'rgba(60, 60, 70, 0.9)';
-                };
-                itemDiv.onmouseout = () => {
-                    itemDiv.style.background = 'rgba(40, 40, 50, 0.8)';
-                };
-                
-                itemDiv.onclick = () => {
-                    this.devAddSpecificMaterial(m);
-                };
-                
-                const nameDiv = document.createElement('div');
-                nameDiv.style.color = qualityColors[quality];
-                nameDiv.style.fontWeight = 'bold';
-                nameDiv.style.marginBottom = '5px';
-                nameDiv.textContent = m.name;
-                
-                const infoDiv = document.createElement('div');
-                infoDiv.style.color = '#aaa';
-                infoDiv.style.fontSize = '11px';
-                const traitText = Object.keys(m.alchemyTraits).map(key => {
-                    const value = m.alchemyTraits[key];
-                    const traitNames = {
-                        attack: '攻击',
-                        defense: '防御',
-                        health: '生命',
-                        critRate: '暴击率',
-                        critDamage: '暴击伤害',
-                        dodge: '闪避',
-                        attackSpeed: '攻击速度',
-                        moveSpeed: '移动速度'
-                    };
-                    return `${traitNames[key] || key}+${value}`;
-                }).join(', ');
-                infoDiv.innerHTML = `<div>词条: ${traitText || '无'}</div>`;
-                
-                itemDiv.appendChild(nameDiv);
-                itemDiv.appendChild(infoDiv);
-                grid.appendChild(itemDiv);
-            });
-            
-            qualitySection.appendChild(grid);
-            container.appendChild(qualitySection);
-        });
+    updateDevCodexConsumables(container) {
+        container.innerHTML = '';
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'padding:12px;color:#ccc;line-height:1.6;';
+        wrap.innerHTML = '<p style="margin-bottom:12px;">药水已从游戏中移除。点击下方条目可获得与商店上架一致的神圣十字架（新实例 id）。</p>';
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;flex-wrap:wrap;gap:10px;';
+        const btn = document.createElement('button');
+        btn.textContent = '神圣十字架';
+        btn.style.cssText = 'padding:10px 16px;cursor:pointer;font-family:inherit;';
+        btn.onclick = () => this.devAddHolyCrossConsumable();
+        row.appendChild(btn);
+        wrap.appendChild(row);
+        container.appendChild(wrap);
     }
-    
-    /**
-     * 更新图鉴开发者面板的药水列表
-     * @param {HTMLElement} container - 容器元素
-     */
-    updateDevCodexPotions(container) {
-        const allPotions = generatePotions();
-        
-        // 按品质分组
-        const qualityGroups = {
-            common: [],
-            rare: [],
-            fine: [],
-            epic: [],
-            legendary: []
-        };
-        
-        allPotions.forEach(p => {
-            qualityGroups[p.quality].push(p);
-        });
-        
-        const qualityNames = {
-            common: '普通',
-            rare: '稀有',
-            fine: '精良',
-            epic: '史诗',
-            legendary: '传说'
-        };
-        
-        const qualityColors = {
-            common: '#ffffff',
-            rare: '#1eff00',
-            fine: '#0070dd',
-            epic: '#a335ee',
-            legendary: '#ff8000'
-        };
-        
-        Object.keys(qualityGroups).forEach(quality => {
-            if (qualityGroups[quality].length === 0) return;
-            
-            const qualitySection = document.createElement('div');
-            qualitySection.style.marginBottom = '20px';
-            qualitySection.innerHTML = `<h4 style="color: ${qualityColors[quality]}; margin-bottom: 10px; font-size: 14px;">${qualityNames[quality]} (${qualityGroups[quality].length}种)</h4>`;
-            
-            const grid = document.createElement('div');
-            grid.style.display = 'grid';
-            grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(200px, 1fr))';
-            grid.style.gap = '10px';
-            
-            qualityGroups[quality].forEach(p => {
-                const itemDiv = document.createElement('div');
-                itemDiv.style.padding = '8px';
-                itemDiv.style.background = 'rgba(40, 40, 50, 0.8)';
-                itemDiv.style.border = `1px solid ${qualityColors[quality]}`;
-                itemDiv.style.borderRadius = '5px';
-                itemDiv.style.cursor = 'pointer';
-                itemDiv.style.transition = 'background 0.2s';
-                
-                itemDiv.onmouseover = () => {
-                    itemDiv.style.background = 'rgba(60, 60, 70, 0.9)';
-                };
-                itemDiv.onmouseout = () => {
-                    itemDiv.style.background = 'rgba(40, 40, 50, 0.8)';
-                };
-                
-                itemDiv.onclick = () => {
-                    this.devAddSpecificPotion(p);
-                };
-                
-                const nameDiv = document.createElement('div');
-                nameDiv.style.color = qualityColors[quality];
-                nameDiv.style.fontWeight = 'bold';
-                nameDiv.style.marginBottom = '5px';
-                nameDiv.textContent = p.name;
-                
-                const infoDiv = document.createElement('div');
-                infoDiv.style.color = '#aaa';
-                infoDiv.style.fontSize = '11px';
-                const effectText = Object.keys(p.effects).map(key => {
-                    const value = p.effects[key];
-                    const effectNames = {
-                        attack: '攻击',
-                        defense: '防御',
-                        health: '生命',
-                        critRate: '暴击率',
-                        critDamage: '暴击伤害',
-                        dodge: '闪避',
-                        attackSpeed: '攻击速度',
-                        moveSpeed: '移动速度'
-                    };
-                    return `${effectNames[key] || key}+${value}`;
-                }).join(', ');
-                const durationText = p.duration > 0 ? `持续${p.duration / 1000}秒` : '立即生效';
-                infoDiv.innerHTML = `<div>效果: ${effectText || '无'}</div><div>${durationText}</div>`;
-                
-                itemDiv.appendChild(nameDiv);
-                itemDiv.appendChild(infoDiv);
-                grid.appendChild(itemDiv);
-            });
-            
-            qualitySection.appendChild(grid);
-            container.appendChild(qualitySection);
-        });
-    }
-    
+
     /**
      * 开发者功能：添加指定装备
      * @param {Equipment} equipment - 装备对象
@@ -11202,31 +10613,25 @@ class Game {
     }
     
     /**
-     * 开发者功能：添加指定炼金材料
-     * @param {AlchemyMaterial} material - 炼金材料对象
+     * 开发者功能：添加神圣十字架（背包用消耗品实例）
      */
-    devAddSpecificMaterial() {
-        // 炼金系统已移除
+    devAddHolyCrossConsumable() {
+        const c =
+            typeof createHolyCrossShopOffer === 'function'
+                ? createHolyCrossShopOffer()
+                : new Consumable({
+                      id: 399998,
+                      name: '神圣十字架',
+                      consumableType: 'resurrection',
+                      quality: 'epic',
+                      description: '死亡时可以使用，恢复满血并获得3秒无敌',
+                      price: 500
+                  });
+        c.id = 400000000 + Math.floor(Math.random() * 100000000);
+        this.addItemToInventory(c);
+        this.addFloatingText(this.player.x, this.player.y, `获得: ${c.name} (DEV)`, QUALITY_COLORS[c.quality] || '#ffffff');
     }
-    
-    /**
-     * 开发者功能：添加指定药水
-     * @param {Potion} potion - 药水对象
-     */
-    devAddSpecificPotion(potion) {
-        // 创建新的药水实例
-        const newPotion = new Potion({
-            id: potion.id,
-            name: potion.name,
-            quality: potion.quality,
-            description: potion.description,
-            effects: JSON.parse(JSON.stringify(potion.effects)),
-            duration: potion.duration
-        });
-        this.addItemToInventory(newPotion);
-        this.addFloatingText(this.player.x, this.player.y, `获得: ${potion.name} (DEV)`, QUALITY_COLORS[potion.quality] || '#ffffff');
-    }
-    
+
     /**
      * 更新图鉴开发者面板的图纸列表
      * @param {HTMLElement} container - 容器元素
@@ -11466,23 +10871,22 @@ class Game {
         
         if (this.devMode) {
             const equipmentCount = this.player.inventory.slice(0, 18).filter(item => item !== null).length;
-            const materialCount = this.player.inventory.slice(18, 48).filter(item => item !== null).length;
             const consumableCount = this.player.inventory.slice(48).filter(item => item !== null).length;
             document.getElementById('dev-inventory-count').textContent = 
-                `${equipmentCount}/${materialCount}/${consumableCount} (装备/材料/消耗品)`;
+                `${equipmentCount}/${consumableCount} (装备/消耗品)`;
             document.getElementById('dev-floor').textContent = this.floor;
             const roomTypeNames = {
                 battle: '战斗',
                 treasure: '宝箱',
                 rest: '休整',
-                alchemy: '炼金',
                 elite: '精英',
                 gap_shop: '隙间商店',
                 boss: 'Boss'
             };
             const roomTypeEl = document.getElementById('dev-room-type');
             if (roomTypeEl) {
-                roomTypeEl.textContent = this.currentRoom ? roomTypeNames[this.currentRoom.type] || '-' : '-';
+                const rt = this.currentRoom && this.currentRoom.type === 'alchemy' ? 'battle' : (this.currentRoom && this.currentRoom.type);
+                roomTypeEl.textContent = this.currentRoom ? (roomTypeNames[rt] || rt || '-') : '-';
             }
             const combatPowerEl = document.getElementById('dev-combat-power');
             if (combatPowerEl) {
@@ -11524,15 +10928,14 @@ class Game {
     }
 
     /**
-     * 与正常升级链一致：升到 level 时所需「下一级」经验条上限
+     * 与正常升级链一致：当前等级为 level 时，升到 level+1 所需经验条上限 = 20 × level²
      */
     computePlayerExpNeededForLevel(level) {
-        let e = 50;
-        const Lv = Math.max(1, Math.floor(Number(level)) || 1);
-        for (let L = 2; L <= Lv; L++) {
-            e = Math.floor(e * 1.3);
+        if (typeof window.computePlayerExpToNextLevel === 'function') {
+            return window.computePlayerExpToNextLevel(level);
         }
-        return e;
+        const Lv = Math.max(1, Math.floor(Number(level)) || 1);
+        return 20 * Lv * Lv;
     }
 
     /**
@@ -11616,13 +11019,13 @@ class Game {
     // 开发者功能：生成指定类型房间
     devGenerateRoom(type) {
         type = type && String(type).toLowerCase();
+        if (type === 'alchemy') type = 'battle';
         this.currentRoom = new Room(CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT, type, this.floor, this);
         this.currentRoom.generateRoom(this.player.level);
         const typeNames = {
             battle: '战斗',
             treasure: '宝箱',
             rest: '休整',
-            alchemy: '炼金',
             elite: '精英',
             gap_shop: '隙间商店',
             boss: 'Boss'
@@ -11635,21 +11038,6 @@ class Game {
         this.addFloatingText(this.player.x, this.player.y, '生成' + typeLabel + '房间 (DEV)', '#ff00ff');
     }
 
-    // 开发者功能：添加随机炼金材料
-    devAddRandomAlchemyMaterial() {
-        // 炼金系统已移除
-    }
-
-    // 开发者功能：添加随机药水
-    devAddRandomPotion(quality) {
-        const allPotions = generatePotions();
-        const qualityPotions = allPotions.filter(p => p.quality === quality);
-        if (qualityPotions.length > 0) {
-            const randomPotion = qualityPotions[Math.floor(Math.random() * qualityPotions.length)];
-            this.addItemToInventory(randomPotion);
-        }
-    }
-    
     // 开发者功能：添加随机图纸
     devAddRandomRecipe() {
         if (typeof CRAFTING_RECIPE_DEFINITIONS === 'undefined' || !CRAFTING_RECIPE_DEFINITIONS.length) {
@@ -11705,18 +11093,6 @@ class Game {
     
     async setEquipmentBackgroundImage(element, equipmentName, quality = null, eqInstance = null) {
         return this.assetManager.setEquipmentBackgroundImage(element, equipmentName, quality, eqInstance);
-    }
-    
-    getAlchemyMaterialImageName(materialName) {
-        return this.assetManager.getAlchemyMaterialImageName(materialName);
-    }
-    
-    async loadAndProcessAlchemyMaterialImage(imageName) {
-        return this.assetManager.loadAndProcessAlchemyMaterialImage(imageName);
-    }
-    
-    async setAlchemyMaterialBackgroundImage(element, materialName, size = 'cover') {
-        return this.assetManager.setAlchemyMaterialBackgroundImage(element, materialName, size);
     }
 }
 

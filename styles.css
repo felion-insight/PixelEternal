@@ -465,7 +465,8 @@ body {
     width: 60px;
     height: 60px;
     border: 2px solid #555;
-    background: #333;
+    background-color: #333;
+    background-image: none;
     display: block;
     position: relative;
     cursor: pointer;
@@ -515,12 +516,6 @@ body {
     background: rgba(74, 158, 255, 0.3);
     border-color: #4a9eff;
     color: #4a9eff;
-}
-
-.inventory-tab.alchemy-tab.active {
-    background: rgba(106, 13, 173, 0.3);
-    border-color: #6a0dad;
-    color: #6a0dad;
 }
 
 .inventory-tab.potion-tab.active {
@@ -649,15 +644,12 @@ body {
     color: #4a9eff;
 }
 
-.inventory-section-alchemy .inventory-section-title {
-    color: #6a0dad;
-}
-
 .inventory-slot {
     width: 60px;
     height: 60px;
     border: 2px solid #555;
-    background: #333;
+    background-color: #333;
+    background-image: none;
     position: relative;
     cursor: pointer;
     background-size: cover;
@@ -747,11 +739,19 @@ body {
     font-size: 11px;
 }
 
-.item-quality-common { background: #fff; }
-.item-quality-rare { background: #00ff00; }
-.item-quality-fine { background: #0088ff; }
-.item-quality-epic { background: #aa00ff; }
-.item-quality-legendary { background: #ff8800; }
+.item-quality-common { background-color: #ffffff; }
+.item-quality-rare { background-color: #00ff00; }
+.item-quality-fine { background-color: #0088ff; }
+.item-quality-epic { background-color: #aa00ff; }
+.item-quality-legendary { background-color: #ff8800; }
+
+/* 非本地 start-server.py 时隐藏开发者面板（F1 亦不可用） */
+body.pe-hide-dev-panels #dev-panel,
+body.pe-hide-dev-panels #dev-codex-panel {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
 
 .inventory-slot[data-item-id]::after {
     display: none; /* 隐藏色块，使用背景图片代替 */
@@ -1105,7 +1105,7 @@ body {
 }
 
 /* 閾佸尃閾哄拰鍟嗗簵鐣岄潰鏍峰紡 */
-#blacksmith-modal, #shop-modal, #alchemy-modal, #training-ground-modal, #dummy-spawn-modal, #dungeon-selection-modal {
+#blacksmith-modal, #shop-modal, #training-ground-modal, #dummy-spawn-modal, #dungeon-selection-modal {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -1120,7 +1120,7 @@ body {
     z-index: 1500;
 }
 
-#blacksmith-modal.show, #shop-modal.show, #alchemy-modal.show, #training-ground-modal.show, #dummy-spawn-modal.show, #target-slot-select-modal.show, #resurrection-modal.show, #random-box-quantity-modal.show, #random-box-rewards-modal.show, #dungeon-selection-modal.show {
+#blacksmith-modal.show, #shop-modal.show, #training-ground-modal.show, #dummy-spawn-modal.show, #target-slot-select-modal.show, #resurrection-modal.show, #random-box-quantity-modal.show, #random-box-rewards-modal.show, #dungeon-selection-modal.show {
     display: block;
 }
 
@@ -1611,7 +1611,7 @@ body {
     color: #fff;
 }
 
-#blacksmith-header, #shop-header, #alchemy-header, #training-ground-header, #dummy-spawn-header {
+#blacksmith-header, #shop-header, #training-ground-header, #dummy-spawn-header {
     padding: 15px;
     border-bottom: 2px solid #666;
     display: flex;
@@ -1624,7 +1624,7 @@ body {
     color: #fff;
 }
 
-#close-blacksmith, #close-shop, #close-alchemy, #close-training-ground, #close-dummy-spawn {
+#close-blacksmith, #close-shop, #close-training-ground, #close-dummy-spawn {
     background: #666;
     border: none;
     color: #fff;
@@ -1634,11 +1634,11 @@ body {
     font-family: 'Courier New', monospace;
 }
 
-#close-blacksmith:hover, #close-shop:hover, #close-alchemy:hover, #close-training-ground:hover, #close-dummy-spawn:hover {
+#close-blacksmith:hover, #close-shop:hover, #close-training-ground:hover, #close-dummy-spawn:hover {
     background: #888;
 }
 
-#alchemy-content, #training-ground-content, #dummy-spawn-content {
+#training-ground-content, #dummy-spawn-content {
     display: flex;
     height: calc(100% - 60px);
     padding: 20px;
@@ -1651,71 +1651,6 @@ body {
 
 #training-ground-controls {
     width: 100%;
-}
-
-#alchemy-materials-panel {
-    width: 400px;
-    padding: 20px;
-    border-right: 2px solid #666;
-    overflow-y: auto;
-}
-
-#alchemy-preview-panel {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-}
-
-.alchemy-material-item {
-    background: rgba(50, 50, 60, 0.8);
-    border: 2px solid #555;
-    border-radius: 5px;
-    padding: 10px;
-    margin-bottom: 10px;
-    cursor: pointer;
-}
-
-.alchemy-material-item:hover {
-    border-color: #888;
-}
-
-.alchemy-material-item.selected {
-    border-color: #6a0dad;
-}
-
-#alchemy-selected-list {
-    margin-top: 10px;
-    margin-bottom: 20px;
-    min-height: 100px;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.selected-material {
-    display: inline-block;
-    background: rgba(106, 13, 173, 0.3);
-    border: 1px solid #6a0dad;
-    border-radius: 3px;
-    padding: 5px 10px;
-    margin: 5px;
-    font-size: 12px;
-}
-
-#alchemy-result-info {
-    margin-top: 10px;
-    padding: 10px;
-    background: rgba(106, 13, 173, 0.2);
-    border: 1px solid #6a0dad;
-    border-radius: 5px;
-}
-
-#alchemy-craft-btn:hover {
-    background: #8b00ff;
-}
-
-#alchemy-craft-btn:disabled {
-    background: #666;
-    cursor: not-allowed;
 }
 
 #blacksmith-content {
@@ -2750,7 +2685,7 @@ body {
     box-sizing: border-box;
     border: 3px solid;
     border-radius: 10px;
-    background: rgba(22, 22, 32, 0.95);
+    background-color: transparent;
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;

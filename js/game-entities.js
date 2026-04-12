@@ -873,11 +873,11 @@ class Portal {
                                 treasure: '宝箱',
                                 rest: '休整',
                                 elite: '精英',
-                                alchemy: '炼金',
                                 gap_shop: '隙间商店',
                                 boss: 'Boss'
                             };
-                            const typeName = typeNames[this.roomType] || this.roomType;
+                            const rt = this.roomType === 'alchemy' ? 'battle' : this.roomType;
+                            const typeName = typeNames[rt] || rt;
                             ctx.fillText(`第${this.targetFloor}层`, this.x, this.y - this.size / 2 - 25);
                             ctx.fillText(typeName, this.x, this.y - this.size / 2 - 10);
                         } else {
@@ -926,11 +926,11 @@ class Portal {
                     treasure: '宝箱',
                     rest: '休整',
                     elite: '精英',
-                    alchemy: '炼金',
                     gap_shop: '隙间商店',
                     boss: 'Boss'
                 };
-                const typeName = typeNames[this.roomType] || this.roomType;
+                const rt = this.roomType === 'alchemy' ? 'battle' : this.roomType;
+                const typeName = typeNames[rt] || rt;
                 ctx.fillText(`第${this.targetFloor}层`, this.x, this.y - this.size / 2 - 25);
                 ctx.fillText(typeName, this.x, this.y - this.size / 2 - 10);
             } else {
@@ -3664,7 +3664,9 @@ class Player {
         this.maxHp = 100;
         this.level = 1;
         this.exp = 0;
-        this.expNeeded = 50; // 降低初始经验需求
+        this.expNeeded = (typeof window.computePlayerExpToNextLevel === 'function')
+            ? window.computePlayerExpToNextLevel(1)
+            : 20;
         this.gold = 0;
         this.lastAttackTime = 0;
         this._towerSilenceAttackCdMult = 1;
@@ -3690,7 +3692,7 @@ class Player {
         
         // 背包容量（可升级）
         this.maxEquipmentCapacity = 18; // 装备：0-17
-        this.maxAlchemyCapacity = 30; // 材料：18-47
+        this.maxAlchemyCapacity = 0; // 旧存档字段，材料栏已废弃，恒为 0
         this.maxPotionCapacity = 18; // 消耗品：48-65
         
         // Buff系统
@@ -3720,8 +3722,8 @@ class Player {
         this.skillDamageBoost = 1.0; // 技能伤害加成（咏咒词条）
         this.lastMoveTime = 0;
         
-        // 战力系统
-        this.combatPower = 0; // 当前战力
+        // 战力系统（展示用战力不含 Buff、不含随当前血量波动的装备词条与精英加护绝境之力等）
+        this.combatPower = 0; // 展示战力（稳定口径）
         this.lastCombatPower = 0; // 上次战力（用于检测变化）
         this.isInitialized = false; // 标记是否已初始化（避免初始化时触发变化提示）
         
@@ -4116,7 +4118,7 @@ class Player {
             this.hp = 1;
         }
         
-        // 计算战力
+        // 计算战力（稳定展示口径，与 Buff / 当前血量触发的装备词条无关）
         this.calculateCombatPower();
         
         // 标记为已初始化（第一次计算后）
@@ -4126,65 +4128,261 @@ class Player {
             this.lastCombatPower = this.combatPower;
         }
     }
+
+    /**
+     * 与 calculateCombatPower 相同的数值公式，入参为一次快照（不读 this 上的战斗属性）
+     */
+    _evaluateCombatPowerFromSnapshot(s) {
+        const playerSpeed = (typeof window !== 'undefined' && window.CONFIG && window.CONFIG.PLAYER_SPEED) ? window.CONFIG.PLAYER_SPEED : CONFIG.PLAYER_SPEED;
+        let power = s.level * 50;
+        power += s.baseAttack * 3;
+        const defenseValue = s.baseDefense * 0.5;
+        power += defenseValue * 2;
+        power += s.maxHp * 0.5;
+        const critMultiplier = 1 + (s.baseCritRate / 100) * (s.baseCritDamage / 100);
+        const critBonus = s.baseAttack * (critMultiplier - 1);
+        power += critBonus * 2;
+        const dodgeValue = (s.baseDodge / 100) * s.maxHp * 0.3;
+        power += dodgeValue;
+        const attackSpeedMultiplier = s.baseAttackSpeed / 100;
+        const attackSpeedBonus = s.baseAttack * (attackSpeedMultiplier - 1);
+        power += attackSpeedBonus * 1.5;
+        power += (s.lifeStealPercent || 0) * 8;
+        power += (s.thornPercent || 0) * 5;
+        power += (s.skillHastePercent || 0) * 4;
+        power += (s.damageReductionPercent || 0) * 10;
+        power += (s.towerGoldBonusPercent || 0) * 2;
+        const moveSpeedMultiplier = s.baseMoveSpeed / playerSpeed;
+        const moveSpeedBonus = (moveSpeedMultiplier - 1) * 100;
+        power += moveSpeedBonus * 0.5;
+        return Math.floor(power);
+    }
+
+    /**
+     * 重算「展示战力」：等级 + 装备 + 套装 + 词条（不含 Buff、不含依赖当前血量的词条效果）；
+     * 精英加护按满血评估（不触发绝境之力的低血攻击倍率）；仍含塔内生命加成、恶魔干扰等。
+     * @returns {number}
+     */
+    _computeStableCombatPowerValue() {
+        const lv = Math.max(1, this.level | 0);
+        let maxHp = 100;
+        let baseAttack = 10;
+        maxHp += (lv - 1) * 20;
+        baseAttack += (lv - 1) * 2;
+        if (lv > 20) {
+            baseAttack += Math.floor((lv - 20) * 4.5);
+        }
+        let baseDefense = 0;
+        let baseCritRate = 5;
+        let baseCritDamage = 20;
+        let baseDodge = 0;
+        let baseAttackSpeed = 100;
+        const baseSpeed = window.CONFIG ? window.CONFIG.PLAYER_SPEED : CONFIG.PLAYER_SPEED;
+        let moveSpeedPercent = 0;
+        let lifeStealPercent = 0;
+        let thornPercent = 0;
+        let skillHastePercent = 0;
+        let damageReductionPercent = 0;
+        let towerGoldBonusPercent = 0;
+
+        Object.values(this.equipment).forEach(eq => {
+            if (eq) {
+                if (eq.stats.health) maxHp += eq.stats.health;
+                if (eq.stats.attack) baseAttack += eq.stats.attack;
+                if (eq.stats.defense) baseDefense += eq.stats.defense;
+                if (eq.stats.critRate) baseCritRate += eq.stats.critRate;
+                if (eq.stats.critDamage) baseCritDamage += eq.stats.critDamage;
+                if (eq.stats.dodge) baseDodge += eq.stats.dodge;
+                if (eq.stats.attackSpeed) baseAttackSpeed += eq.stats.attackSpeed;
+                if (eq.stats.moveSpeed) moveSpeedPercent += eq.stats.moveSpeed;
+                if (eq.stats.lifeSteal) lifeStealPercent += eq.stats.lifeSteal;
+                if (eq.stats.thorn) thornPercent += eq.stats.thorn;
+                if (eq.stats.skillHaste) skillHastePercent += eq.stats.skillHaste;
+                if (eq.stats.damageReduction) damageReductionPercent += eq.stats.damageReduction;
+                if (eq.stats.towerGoldBonus) towerGoldBonusPercent += eq.stats.towerGoldBonus;
+            }
+        });
+        lifeStealPercent = Math.min(25, lifeStealPercent);
+        thornPercent = Math.min(40, thornPercent);
+        skillHastePercent = Math.min(50, skillHastePercent);
+        damageReductionPercent = Math.min(35, damageReductionPercent);
+        towerGoldBonusPercent = Math.min(100, towerGoldBonusPercent);
+
+        const activeSetEffects = getActiveSetEffects(this.equipment);
+        let setStatsMultiplier = 1;
+        activeSetEffects.forEach(setEffect => {
+            const effect = setEffect.effect;
+            if (effect.stats) {
+                if (effect.stats.attack) baseAttack += effect.stats.attack;
+                if (effect.stats.defense) baseDefense += effect.stats.defense;
+                if (effect.stats.health) maxHp += effect.stats.health;
+                if (effect.stats.critRate) baseCritRate += effect.stats.critRate;
+                if (effect.stats.critDamage) baseCritDamage += effect.stats.critDamage;
+                if (effect.stats.dodge) baseDodge += effect.stats.dodge;
+                if (effect.stats.attackSpeed) baseAttackSpeed += effect.stats.attackSpeed;
+                if (effect.stats.moveSpeed) moveSpeedPercent += effect.stats.moveSpeed;
+                if (effect.stats.allStats) {
+                    setStatsMultiplier += effect.stats.allStats;
+                }
+            }
+        });
+        if (setStatsMultiplier > 1) {
+            baseAttack = Math.floor(baseAttack * setStatsMultiplier);
+            baseDefense = Math.floor(baseDefense * setStatsMultiplier);
+            maxHp = Math.floor(maxHp * setStatsMultiplier);
+            baseCritRate = Math.floor(baseCritRate * setStatsMultiplier);
+            baseCritDamage = Math.floor(baseCritDamage * setStatsMultiplier);
+            baseDodge = Math.floor(baseDodge * setStatsMultiplier);
+            baseAttackSpeed = Math.floor(baseAttackSpeed * setStatsMultiplier);
+            moveSpeedPercent = Math.floor(moveSpeedPercent * setStatsMultiplier);
+        }
+
+        const traitIds = this.getEquipmentTraitIds();
+        let traitStatsMultiplier = 1.0;
+        if (traitIdsIncludeBase(traitIds, 'medal')) traitStatsMultiplier += 0.02;
+        if (traitIdsIncludeBase(traitIds, 'woven')) traitStatsMultiplier += 0.01;
+        if (traitIdsIncludeBase(traitIds, 'iron_belt')) traitStatsMultiplier += 0.05;
+        if (traitIdsIncludeBase(traitIds, 'divine_crown')) traitStatsMultiplier += 0.1;
+        if (traitIdsIncludeBase(traitIds, 'divine_favor')) traitStatsMultiplier += 0.12;
+        if (traitIdsIncludeBase(traitIds, 'celestial')) traitStatsMultiplier += 0.12;
+        if (traitIdsIncludeBase(traitIds, 'law')) traitStatsMultiplier += 0.08;
+        if (traitIdsIncludeBase(traitIds, 'creation_law')) traitStatsMultiplier += 0.15;
+        if (traitIdsIncludeBase(traitIds, 'divine_helmet')) traitStatsMultiplier += 0.12;
+        if (traitStatsMultiplier > 1.0) {
+            baseAttack = Math.floor(baseAttack * traitStatsMultiplier);
+            baseDefense = Math.floor(baseDefense * traitStatsMultiplier);
+            maxHp = Math.floor(maxHp * traitStatsMultiplier);
+            baseCritRate = Math.floor(baseCritRate * traitStatsMultiplier);
+            baseCritDamage = Math.floor(baseCritDamage * traitStatsMultiplier);
+            baseDodge = Math.floor(baseDodge * traitStatsMultiplier);
+            baseAttackSpeed = Math.floor(baseAttackSpeed * traitStatsMultiplier);
+            moveSpeedPercent = Math.floor(moveSpeedPercent * traitStatsMultiplier);
+        }
+
+        if (traitIdsIncludeBase(traitIds, 'armor_belt')) baseDefense = Math.floor(baseDefense * 1.03);
+        if (traitIdsIncludeBase(traitIds, 'dragon_scale')) baseDefense = Math.floor(baseDefense * 1.15);
+        if (traitIdsIncludeBase(traitIds, 'mithril_armor')) baseDefense = Math.floor(baseDefense * 1.2);
+        if (traitIdsIncludeBase(traitIds, 'steel_buckle')) {
+            baseAttack = Math.floor(baseAttack * 1.03);
+            baseDefense = Math.floor(baseDefense * 1.03);
+        }
+        if (traitIdsIncludeBase(traitIds, 'fortress')) {
+            baseDefense = Math.floor(baseDefense * 1.1);
+            baseAttack = Math.floor(baseAttack * 0.95);
+        }
+        if (traitIdsIncludeBase(traitIds, 'dragon_leather')) {
+            maxHp = Math.floor(maxHp * 1.15);
+            baseDefense = Math.floor(baseDefense * 1.08);
+        }
+        if (traitIdsIncludeBase(traitIds, 'mottled')) baseDefense = Math.floor(baseDefense * 1.05);
+        if (traitIdsIncludeBase(traitIds, 'heavy')) {
+            baseDefense = Math.floor(baseDefense * 1.08);
+            moveSpeedPercent = Math.max(0, moveSpeedPercent - 5);
+        }
+        if (traitIdsIncludeBase(traitIds, 'sturdy')) {
+            baseDefense = Math.floor(baseDefense * 1.05);
+            moveSpeedPercent += 3;
+        }
+        if (traitIdsIncludeBase(traitIds, 'thumb_ring')) baseAttackSpeed += Math.floor(baseAttackSpeed * 0.03);
+        if (traitIdsIncludeBase(traitIds, 'swift_shadow')) {
+            baseAttackSpeed += Math.floor(baseAttackSpeed * 0.08);
+            moveSpeedPercent += 5;
+        }
+        if (traitIdsIncludeBase(traitIds, 'flowing_silver')) baseAttackSpeed += Math.floor(baseAttackSpeed * 0.05);
+        if (traitIdsIncludeBase(traitIds, 'silver_wing')) {
+            moveSpeedPercent += 5;
+            baseAttackSpeed += Math.floor(baseAttackSpeed * 0.05);
+        }
+        if (traitIdsIncludeBase(traitIds, 'ranger')) {
+            moveSpeedPercent += 5;
+            baseDodge += Math.floor(baseDodge * 0.03);
+        }
+        if (traitIdsIncludeBase(traitIds, 'traveler')) moveSpeedPercent += 8;
+        if (traitIdsIncludeBase(traitIds, 'cheetah')) moveSpeedPercent += 10;
+        if (traitIdsIncludeBase(traitIds, 'god_chase')) moveSpeedPercent += 15;
+        if (traitIdsIncludeBase(traitIds, 'dragon_tendon')) moveSpeedPercent += 10;
+        if (traitIdsIncludeBase(traitIds, 'discipline')) {
+            baseCritRate += Math.floor(baseCritRate * 0.05);
+            baseCritDamage += Math.floor(baseCritDamage * 0.1);
+        }
+        if (traitIdsIncludeBase(traitIds, 'astrology')) {
+            baseCritRate += Math.floor(baseCritRate * 0.05);
+        }
+        if (traitIdBase(this.getCurrentWeaponTraitId()) === 'divine_judgment') {
+            baseCritDamage = Math.floor(baseCritDamage * 1.5);
+        }
+
+        // 依赖当前血量的装备词条（如亮月、逆鳞、狮心、坚守、冲锋等）不参与展示战力，避免掉血/回血时数字跳动
+
+        if (typeof applyEliteBoonPassivesInUpdateStats === 'function') {
+            const eliteStub = {
+                eliteBoons: this.eliteBoons,
+                maxHp,
+                baseAttack,
+                baseDefense,
+                baseCritRate,
+                baseCritDamage,
+                baseDodge,
+                baseAttackSpeed,
+                hp: maxHp
+            };
+            applyEliteBoonPassivesInUpdateStats(eliteStub);
+            maxHp = eliteStub.maxHp;
+            baseAttack = eliteStub.baseAttack;
+            baseDefense = eliteStub.baseDefense;
+            baseCritRate = eliteStub.baseCritRate;
+            baseCritDamage = eliteStub.baseCritDamage;
+            baseDodge = eliteStub.baseDodge;
+            baseAttackSpeed = eliteStub.baseAttackSpeed;
+            moveSpeedPercent += eliteStub._ebMoveSpeedPercent || 0;
+        }
+
+        if (this.towerMaxHpBonusPercent > 0) {
+            maxHp = Math.floor(maxHp * (1 + this.towerMaxHpBonusPercent / 100));
+        }
+
+        moveSpeedPercent = Math.min(moveSpeedPercent, 100);
+        let baseMoveSpeed = baseSpeed * (1 + moveSpeedPercent / 100);
+
+        if (this.demonDebuffs && Object.keys(this.demonDebuffs).length > 0) {
+            const mult = (key) => Math.max(0.1, 1 - (this.demonDebuffs[key] || 0));
+            if (this.demonDebuffs.maxHp) maxHp = Math.max(1, Math.floor(maxHp * mult('maxHp')));
+            if (this.demonDebuffs.defense) baseDefense = Math.max(0, Math.floor(baseDefense * mult('defense')));
+            if (this.demonDebuffs.attack) baseAttack = Math.max(1, Math.floor(baseAttack * mult('attack')));
+            if (this.demonDebuffs.critRate) baseCritRate = Math.max(0, Math.floor(baseCritRate * mult('critRate')));
+            if (this.demonDebuffs.critDamage) baseCritDamage = Math.max(0, Math.floor(baseCritDamage * mult('critDamage')));
+            if (this.demonDebuffs.moveSpeed) {
+                baseMoveSpeed = Math.max(baseSpeed * 0.1, baseMoveSpeed * mult('moveSpeed'));
+            }
+            if (this.demonDebuffs.attackSpeed) baseAttackSpeed = Math.max(10, Math.floor(baseAttackSpeed * mult('attackSpeed')));
+        }
+
+        return this._evaluateCombatPowerFromSnapshot({
+            level: lv,
+            maxHp,
+            baseAttack,
+            baseDefense,
+            baseCritRate,
+            baseCritDamage,
+            baseDodge,
+            baseAttackSpeed,
+            baseMoveSpeed,
+            lifeStealPercent,
+            thornPercent,
+            skillHastePercent,
+            damageReductionPercent,
+            towerGoldBonusPercent
+        });
+    }
     
     /**
-     * 计算战力
-     * 综合考虑等级、攻击、防御、生命、暴击、闪避、速度等属性
+     * 计算战力（展示用稳定口径，不随 Buff 与随血量触发的装备词条波动）
      */
     calculateCombatPower() {
         // 保存上次战力
         const previousPower = this.combatPower;
-        
-        // 基础战力（等级加成）
-        let power = this.level * 50;
-        
-        // 攻击力贡献（主要输出属性）
-        // 攻击力越高，贡献越大，但边际递减
-        power += this.baseAttack * 3;
-        
-        // 防御力贡献（生存能力）
-        // 防御力按百分比减伤，所以贡献需要考虑实际减伤效果
-        // 假设平均怪物攻击为50，防御力每点减少约1%伤害
-        const defenseValue = this.baseDefense * 0.5; // 防御力价值系数
-        power += defenseValue * 2;
-        
-        // 生命值贡献（生存能力）
-        // 生命值越高，能承受更多伤害
-        power += this.maxHp * 0.5;
-        
-        // 暴击系统贡献（输出加成）
-        // 暴击期望伤害 = 攻击力 * (1 + 暴击率 * 暴击伤害)
-        const critMultiplier = 1 + (this.baseCritRate / 100) * (this.baseCritDamage / 100);
-        const critBonus = this.baseAttack * (critMultiplier - 1);
-        power += critBonus * 2;
-        
-        // 闪避率贡献（生存能力）
-        // 闪避率越高，生存能力越强
-        // 假设平均怪物命中率为100%，闪避率直接转化为生存价值
-        const dodgeValue = (this.baseDodge / 100) * this.maxHp * 0.3;
-        power += dodgeValue;
-        
-        // 攻击速度贡献（输出频率）
-        // 攻击速度越高，DPS越高
-        // 基础攻击速度为100，每增加1%攻击速度，DPS增加1%
-        const attackSpeedMultiplier = this.baseAttackSpeed / 100;
-        const attackSpeedBonus = this.baseAttack * (attackSpeedMultiplier - 1);
-        power += attackSpeedBonus * 1.5;
-        
-        power += (this.lifeStealPercent || 0) * 8;
-        power += (this.thornPercent || 0) * 5;
-        power += (this.skillHastePercent || 0) * 4;
-        power += (this.damageReductionPercent || 0) * 10;
-        power += (this.towerGoldBonusPercent || 0) * 2;
-        
-        // 移动速度贡献（机动性）
-        // 移动速度影响走位和生存能力
-        const moveSpeedMultiplier = this.baseMoveSpeed / CONFIG.PLAYER_SPEED;
-        const moveSpeedBonus = (moveSpeedMultiplier - 1) * 100;
-        power += moveSpeedBonus * 0.5;
-        
-        // 取整
-        this.combatPower = Math.floor(power);
+
+        this.combatPower = this._computeStableCombatPowerValue();
         
         // 如果战力发生变化且已初始化，通知游戏实例
         if (this.gameInstance && this.isInitialized && this.combatPower !== previousPower) {
@@ -4192,35 +4390,7 @@ class Player {
             // 更新上次战力
             this.lastCombatPower = previousPower;
         }
-    }
-
-    // 使用药水
-    usePotion(potion) {
-        const now = Date.now();
-        
-        // 如果是生命药水，立即恢复生命值
-        if (potion.effects.health) {
-            this.heal(potion.effects.health);
-            if (this.gameInstance) {
-                this.gameInstance.addFloatingText(this.x, this.y, `恢复 ${potion.effects.health} 生命值`, '#00ff00');
-            }
-        }
-        
-        // 如果有持续时间，添加buff
-        if (potion.duration > 0) {
-            this.buffs.push({
-                name: potion.name,
-                effects: JSON.parse(JSON.stringify(potion.effects)),
-                expireTime: now + potion.duration
-            });
-            
-            // 更新属性
-            this.updateStats();
-            
-            if (this.gameInstance) {
-                this.gameInstance.addFloatingText(this.x, this.y, `使用 ${potion.name}`, QUALITY_COLORS[potion.quality] || '#ffffff');
-            }
-        }
+        return this.combatPower;
     }
 
     move(dx, dy) {
@@ -6432,7 +6602,9 @@ class Player {
         while (this.exp >= this.expNeeded) {
             this.exp -= this.expNeeded;
             this.level++;
-            this.expNeeded = Math.floor(this.expNeeded * 1.3); // 降低经验增长倍数（从1.5改为1.3）
+            this.expNeeded = (typeof window.computePlayerExpToNextLevel === 'function')
+                ? window.computePlayerExpToNextLevel(this.level)
+                : 20 * this.level * this.level;
             
             // 播放升级音效
             if (this.gameInstance && this.gameInstance.soundManager) {

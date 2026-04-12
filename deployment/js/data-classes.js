@@ -1,6 +1,6 @@
 /**
  * Pixel Eternal - 数据类模块
- * 包含AlchemyMaterial、Potion、Equipment类及其生成函数
+ * 包含 Equipment、Consumable 等类及其生成函数
  */
 
 /** 装备机制类数值：不受强化/精炼倍率放大，按配置固定值参与汇总 */
@@ -1083,135 +1083,21 @@ function formatStandardTierTraitDescription(baseDesc, tier, level) {
 }
 
 /**
- * 炼金材料类
- * 用于表示炼金材料，包含词条和保留率等信息
- */
-class AlchemyMaterial {
-    constructor(data) {
-        this.id = data.id;
-        this.name = data.name;
-        this.type = 'material'; // 标识为材料类型（炼金材料）
-        this.quality = data.quality || 'common'; // 品质
-        this.description = data.description || '';
-        this.alchemyTraits = data.alchemyTraits || {}; // 炼金词条：{ attack: 5, critRate: 3 } 等
-        this.traitRetentionRate = data.traitRetentionRate || 0.5; // 词条保留概率（基础值，品质越高越高）
-    }
-
-    getTooltipHTML() {
-        let html = `<h4 style="color: ${QUALITY_COLORS[this.quality]}">${this.name}</h4>`;
-        html += `<p>类型: 炼金材料</p>`;
-        html += `<p>品质: ${QUALITY_NAMES[this.quality]}</p>`;
-        if (this.description) {
-            html += `<p>${this.description}</p>`;
-        }
-        html += `<p>---</p>`;
-        html += `<p><strong>炼金词条:</strong></p>`;
-        
-        const traitNames = {
-            attack: '攻击力',
-            defense: '防御力',
-            critRate: '暴击率',
-            critDamage: '暴击伤害',
-            dodge: '闪避率',
-            attackSpeed: '攻击速度',
-            moveSpeed: '移动速度',
-            health: '生命值恢复',
-            duration: '持续时间'
-        };
-        
-        let hasTraits = false;
-        for (const [key, value] of Object.entries(this.alchemyTraits)) {
-            if (value !== 0) {
-                hasTraits = true;
-                const suffix = key.includes('Rate') || key.includes('Speed') || key.includes('dodge') ? '%' : 
-                             key === 'duration' ? '秒' : '';
-                html += `<p>${traitNames[key] || key}: +${value}${suffix}</p>`;
-            }
-        }
-        
-        if (!hasTraits) {
-            html += `<p style="color: #aaa;">无词条</p>`;
-        }
-        
-        html += `<p style="color: #aaa; font-size: 12px;">词条保留率: ${Math.floor(this.traitRetentionRate * 100)}%</p>`;
-        html += `<p style="color: #aaa; font-size: 12px;">用于炼金房间炼制</p>`;
-        
-        return html;
-    }
-}
-
-/**
- * 生成炼金材料数据
- * @returns {AlchemyMaterial[]} 所有炼金材料的数组
- * 材料定义数据从 config/alchemy-material-config.json 中读取
- */
-function generateAlchemyMaterials() {
-    const materials = [];
-    let id = 20000; // 炼金材料ID从20000开始（炼金系统已移除，保留空实现以兼容存档）
-    
-    const materialTypes = typeof ALCHEMY_MATERIAL_DEFINITIONS !== 'undefined' ? ALCHEMY_MATERIAL_DEFINITIONS : [];
-    if (!materialTypes.length) return materials;
-    
-    // 获取词条保留率（如果未定义，使用默认值）
-    const retentionRates = TRAIT_RETENTION_RATES || {
-        common: 0.4,
-        rare: 0.5,
-        fine: 0.6,
-        epic: 0.7,
-        legendary: 0.8
-    };
-    
-    // 获取额外词条池（如果未定义，使用空数组）
-    const extraTraitsPool = EXTRA_TRAITS_POOL || [];
-    
-    materialTypes.forEach(materialData => {
-        // 根据品质可能增加额外词条
-        const traits = JSON.parse(JSON.stringify(materialData.baseTraits));
-        const qualityIndex = ['common', 'rare', 'fine', 'epic', 'legendary'].indexOf(materialData.quality);
-        
-        // 高品质材料可能有多条词条
-        if (qualityIndex >= 2 && extraTraitsPool.length > 0) {
-            // 随机添加1-2个额外词条
-            const extraTraits = [...extraTraitsPool];
-            
-            const numExtra = Math.floor(Math.random() * 2) + 1;
-            for (let i = 0; i < numExtra && extraTraits.length > 0; i++) {
-                const randomTrait = extraTraits.splice(Math.floor(Math.random() * extraTraits.length), 1)[0];
-                for (const [key, value] of Object.entries(randomTrait)) {
-                    traits[key] = (traits[key] || 0) + value;
-                }
-            }
-        }
-        
-        materials.push(new AlchemyMaterial({
-            id: id++,
-            name: materialData.name,
-            quality: materialData.quality,
-            description: materialData.description || `品质为${QUALITY_NAMES[materialData.quality]}的炼金材料`,
-            alchemyTraits: traits,
-            traitRetentionRate: retentionRates[materialData.quality] || 0.5
-        }));
-    });
-    
-    return materials;
-}
-
-/**
  * 消耗品类
- * 用于表示消耗品，包括药水、背包扩容、副本门票、打造配方、神圣十字架等
+ * 用于表示消耗品：背包扩容、副本门票、打造配方、神圣十字架等（药水已移除）
  */
 class Consumable {
     constructor(data) {
         this.id = data.id;
         this.name = data.name;
         this.type = 'consumable'; // 标识为消耗品类型
-        this.consumableType = data.consumableType || 'potion'; // 消耗品子类型：potion（药水）、backpack_expansion（背包扩容）、dungeon_ticket（副本门票）、recipe（打造配方）、resurrection（神圣十字架）
+        this.consumableType = data.consumableType || 'misc'; // resurrection、recipe、backpack_expansion、dungeon_ticket、misc
         this.quality = data.quality || 'common'; // 品质
         this.description = data.description || '';
         this.effects = data.effects || {}; // 效果（仅药水）：{ attack: 10, duration: 30000 } 表示攻击力+10，持续30秒
         this.duration = data.duration || 30000; // 持续时间（毫秒，仅药水）
         this.price = data.price || 50; // 价格
-        this.isCrafted = data.isCrafted || false; // 是否为炼金得到的药水
+        this.isCrafted = data.isCrafted || false; // 是否为合成/打造的药水
         // 配方相关属性
         if (data.recipeId !== undefined) {
             this.recipeId = data.recipeId; // 配方ID（仅打造配方）
@@ -1222,36 +1108,7 @@ class Consumable {
         let html = `<h4 style="color: ${QUALITY_COLORS[this.quality]}">${this.name}</h4>`;
         html += `<p>类型: 消耗品</p>`;
         
-        if (this.consumableType === 'potion') {
-            html += `<p>子类型: 药水</p>`;
-            html += `<p>品质: ${QUALITY_NAMES[this.quality]}</p>`;
-            if (this.description) {
-                html += `<p>${this.description}</p>`;
-            }
-            html += `<p>---</p>`;
-            html += `<p><strong>效果:</strong></p>`;
-            
-            const effectNames = {
-                attack: '攻击力',
-                defense: '防御力',
-                critRate: '暴击率',
-                critDamage: '暴击伤害',
-                dodge: '闪避率',
-                attackSpeed: '攻击速度',
-                moveSpeed: '移动速度',
-                health: '生命值恢复'
-            };
-            
-            for (const [key, value] of Object.entries(this.effects)) {
-                if (key !== 'duration' && value !== 0) {
-                    const suffix = key.includes('Rate') || key.includes('Speed') || key.includes('dodge') ? '%' : '';
-                    html += `<p>${effectNames[key] || key}: +${value}${suffix}</p>`;
-                }
-            }
-            
-            html += `<p>持续时间: ${this.duration / 1000}秒</p>`;
-            html += `<p style="color: #aaa; font-size: 12px;">双击使用</p>`;
-        } else if (this.consumableType === 'resurrection') {
+        if (this.consumableType === 'resurrection') {
             html += `<p>子类型: 复活道具</p>`;
             html += `<p>品质: ${QUALITY_NAMES[this.quality]}</p>`;
             if (this.description) {
@@ -1284,167 +1141,17 @@ class Consumable {
 }
 
 /**
- * 药水类（保持向后兼容，实际使用Consumable）
- * 用于表示药水，包含效果、持续时间等信息
+ * 商店「装备」栏上架的神圣十字架（固定 id，便于锁定/去重）
  */
-class Potion extends Consumable {
-    constructor(data) {
-        super({
-            ...data,
-            consumableType: 'potion'
-        });
-        // 保持type为potion以兼容旧代码
-        this.type = 'potion';
-    }
-
-    getTooltipHTML() {
-        let html = `<h4 style="color: ${QUALITY_COLORS[this.quality]}">${this.name}</h4>`;
-        html += `<p>类型: 药水</p>`;
-        html += `<p>品质: ${QUALITY_NAMES[this.quality]}</p>`;
-        if (this.description) {
-            html += `<p>${this.description}</p>`;
-        }
-        html += `<p>---</p>`;
-        html += `<p><strong>效果:</strong></p>`;
-        
-        const effectNames = {
-            attack: '攻击力',
-            defense: '防御力',
-            critRate: '暴击率',
-            critDamage: '暴击伤害',
-            dodge: '闪避率',
-            attackSpeed: '攻击速度',
-            moveSpeed: '移动速度',
-            health: '生命值恢复'
-        };
-        
-        for (const [key, value] of Object.entries(this.effects)) {
-            if (key !== 'duration' && value !== 0) {
-                const suffix = key.includes('Rate') || key.includes('Speed') || key.includes('dodge') ? '%' : '';
-                html += `<p>${effectNames[key] || key}: +${value}${suffix}</p>`;
-            }
-        }
-        
-        html += `<p>持续时间: ${this.duration / 1000}秒</p>`;
-        html += `<p style="color: #aaa; font-size: 12px;">双击使用</p>`;
-        
-        return html;
-    }
-}
-
-/**
- * 生成药水数据
- * @returns {Potion[]} 所有药水的数组
- * 药水定义数据从 config/potion-config.json 中读取
- */
-function generatePotions() {
-    const potions = [];
-    let id = 10000; // 药水ID从10000开始，避免与装备ID冲突
-    
-    // 从全局配置中读取药水定义
-    const potionTypes = POTION_DEFINITIONS;
-    
-    potionTypes.forEach(potionData => {
-        potions.push(new Potion({
-            id: id++,
-            name: potionData.name,
-            quality: potionData.quality,
-            description: potionData.description,
-            effects: potionData.effects,
-            duration: potionData.duration,
-            price: potionData.price
-        }));
-    });
-    
-    return potions;
-}
-
-/**
- * 生成消耗品数据
- * @returns {Consumable[]} 所有消耗品的数组
- */
-function generateConsumables() {
-    const consumables = [];
-    let id = 30000; // 消耗品ID从30000开始
-    
-    // 生成神圣十字架
-    consumables.push(new Consumable({
-        id: id++,
+function createHolyCrossShopOffer() {
+    return new Consumable({
+        id: 399998,
         name: '神圣十字架',
         consumableType: 'resurrection',
         quality: 'epic',
         description: '死亡时可以使用，恢复满血并获得3秒无敌',
         price: 500
-    }));
-    
-    // 生成武器图纸（图纸可以在商店中购买，也可以在随机礼箱中出现）
-    // 注意：图纸不会在这里直接生成Consumable实例，而是在商店购买或随机礼箱中生成
-    // 这里只是定义图纸的数据结构，实际生成在商店刷新或随机礼箱时进行
-    
-    return consumables;
-}
-
-/**
- * 生成随机消耗品（用于随机礼箱）
- * @returns {Consumable|Potion} 随机消耗品
- */
-function generateRandomConsumable() {
-    const allPotions = generatePotions();
-    const allConsumables = generateConsumables();
-    
-    // 将所有消耗品合并
-    const allItems = [...allPotions, ...allConsumables];
-    
-    // 随机决定是否生成图纸（20%概率）
-    // 图纸也可以从随机礼箱中获得
-    if (typeof CRAFTING_RECIPE_DEFINITIONS !== 'undefined' && 
-        CRAFTING_RECIPE_DEFINITIONS.length > 0 && 
-        Math.random() < 0.2) {
-        // 随机选择一个图纸
-        const randomRecipe = CRAFTING_RECIPE_DEFINITIONS[Math.floor(Math.random() * CRAFTING_RECIPE_DEFINITIONS.length)];
-        return new Consumable({
-            id: Date.now() + Math.random(), // 使用时间戳+随机数作为唯一ID
-            name: randomRecipe.name,
-            consumableType: 'recipe',
-            recipeId: randomRecipe.id,
-            quality: randomRecipe.resultEquipment.quality,
-            description: randomRecipe.description,
-            price: randomRecipe.price
-        });
-    }
-    
-    // 否则从普通消耗品中随机选择
-    const randomItem = allItems[Math.floor(Math.random() * allItems.length)];
-    
-    // 如果是药水，返回Potion实例
-    if (randomItem instanceof Potion || randomItem.type === 'potion') {
-        return new Potion({
-            id: randomItem.id,
-            name: randomItem.name,
-            quality: randomItem.quality,
-            description: randomItem.description,
-            effects: JSON.parse(JSON.stringify(randomItem.effects || {})),
-            duration: randomItem.duration,
-            price: randomItem.price,
-            isCrafted: randomItem.isCrafted
-        });
-    }
-    
-    // 否则返回Consumable实例
-    const consumableData = {
-        id: randomItem.id,
-        name: randomItem.name,
-        consumableType: randomItem.consumableType,
-        quality: randomItem.quality,
-        description: randomItem.description,
-        price: randomItem.price
-    };
-    
-    // 如果是图纸，添加图纸相关属性
-    if (randomItem.consumableType === 'recipe' && randomItem.recipeId) {
-        consumableData.recipeId = randomItem.recipeId;
-    }
-    return new Consumable(consumableData);
+    });
 }
 
 /**

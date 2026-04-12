@@ -16,6 +16,8 @@
    脚本启动时会自动加载（不覆盖已在终端里 `export` / `$env:` 设置的变量）。模板见 `tools/.env.example`。
 2. 或在 PowerShell 里临时设置：`$env:PE_ART_API_KEY = "sk-你的密钥"`。
 
+**浏览器内游戏**（合铸、合铸成功生图等）通过 `js/pe-env.generated.js` 注入密钥：仓库根执行 `node scripts/build-pe-env-js.js` 从 `.env` 生成（勿提交含真实密钥的文件）。`config.js` 亦会读取本机 **localStorage** 中前缀 `pixel_eternal.api.` 的同名键（可选，用于不便跑构建脚本时自行写入）。变量别名见仓库根 `.env.example`。
+
 同一网关下常见路径（根地址默认为 `http://35.220.164.252:3888`，可用 `PE_API_BASE` 修改）：
 
 | 能力 | 方法 | 路径 |

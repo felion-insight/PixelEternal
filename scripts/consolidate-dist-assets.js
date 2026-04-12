@@ -79,15 +79,6 @@ function buildLookup() {
     }
   }
 
-  /** 炼金材料中文名.png */
-  const byAlchemyChinese = new Map();
-  const alch = mappings.alchemy_material || {};
-  for (const [zhName, rel] of Object.entries(alch)) {
-    if (typeof rel === 'string' && rel.endsWith('.png')) {
-      byAlchemyChinese.set(`${zhName}.png`, rel.replace(/\\/g, '/'));
-    }
-  }
-
   /** 技能图标：技能名.png -> 路径（与 equipment 类似，dist 里可能是中文名） */
   const bySkillChinese = new Map();
   const sk = mappings.skill_icons || {};
@@ -97,13 +88,12 @@ function buildLookup() {
     }
   }
 
-  return { byBasename, byEquipmentChinese, byAlchemyChinese, bySkillChinese };
+  return { byBasename, byEquipmentChinese, bySkillChinese };
 }
 
 function resolveDest(basename, lookup) {
   return (
     lookup.byEquipmentChinese.get(basename) ||
-    lookup.byAlchemyChinese.get(basename) ||
     lookup.bySkillChinese.get(basename) ||
     lookup.byBasename.get(basename) ||
     null

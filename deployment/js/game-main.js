@@ -72,6 +72,10 @@ class Game {
         this.devMode = false; // 开发者模式标志（仅本地 start-server.py 下可开启）
         /** 是否由仓库根 start-server.py 注入的本地开发环境（静态网页托管为 false） */
         this._localPeDevServer = window.__PE_LOCAL_DEV_SERVER__ === true;
+        /** 自动同步存档码到 localStorage：上次已写入的「内容指纹」（不含 timestamp） */
+        this._lastSyncedSaveFingerprint = null;
+        /** 自动同步节流时间戳 */
+        this._lastSaveCodeSyncTimeMs = 0;
         this.paused = false; // 游戏暂停标志
         this.lastFrameTime = performance.now(); // 上一帧时间
         this.frameCount = 0; // 帧计数器
@@ -105,6 +109,8 @@ class Game {
             fine: { available: 1, target: null } // 精良定向位
         }; // 定向位系统
         this.droppedItems = []; // 地面掉落物列表
+        /** 击杀/宝箱等产生的追踪型金币、经验光点（碰撞后才结算） */
+        this.rewardPickups = [];
         this.portals = []; // 传送门列表
         this.equipmentEffects = []; // 打造装备特效列表
         this.monsterProjectiles = []; // 远程怪物发射的子弹
@@ -145,6 +151,30 @@ class Game {
         
         // 粒子系统管理器
         this.particleManager = new ParticleManager();
+        
+        // 命中反馈（卡肉 + 视觉特效）
+        this.hitFxConfig = {
+            // 卡肉与震动参数对齐 change.md（约 70ms、振幅 3～5px、远程减半）
+            meleeHitStopMs: 70,
+            critHitStopMs: 95,
+            recoverySlowTicks: 1,
+            meleeShake: { ampMin: 3, ampMax: 5, durationMs: 100, bigFrames: 2 },
+            rangedShake: { ampMin: 1.5, ampMax: 2.5, durationMs: 70, bigFrames: 1 },
+            flash: { startR: 8, endR: 24, durationMs: 100, warmDelayMs: 20, warmEndR: 22, warmDurationMs: 80 },
+            ring: { startR: 8, endR: 36, durationMs: 120 },
+            impactLines: { count: 6, speedPerFrame: 4, maxLength: 28, decay: 0.85 },
+            particles: { melee: 48, ranged: 34 },
+            edgeFlash: { durationMs: 80, alpha: 0.45 },
+            enemyKnock: { melee: 8, ranged: 6, flashMs: 100, stunMs: 90, rangedStunMs: 70 }
+        };
+        this.hitStopTimer = 0; // ms
+        this._hitStopRecoveryTicks = 0;
+        this._hitStopRecoveryAccumulator = 0;
+        this.screenShake = { amplitude: 0, timer: 0, duration: 0, bigFrames: 0 };
+        this.hitImpactEffects = [];
+        this._lastHitImpactVfxTime = 0;
+        this.edgeDamageFlash = { timer: 0, duration: 100, alpha: 0 };
+        this.hitStretchFrames = 0;
         
         /** 合铸：30 秒锻炉 + 领取动画（见 doFusion / claim） */
         this.fusionState = null;
@@ -305,23 +335,24 @@ class Game {
             });
             let loadedImages = 0;
             
-            // 更新进度条的函数
+            // 更新进度条的函数（后台标签页会节流 requestAnimationFrame，此处直接写 DOM）
             const updateProgress = () => {
                 const progress = totalImages > 0 ? Math.floor((loadedImages / totalImages) * 100) : 0;
                 console.log(`更新进度: ${loadedImages}/${totalImages} = ${progress}%`);
-                
-                // 使用 requestAnimationFrame 确保UI更新
-                requestAnimationFrame(() => {
-                    if (progressFill) {
-                        progressFill.style.width = `${progress}%`;
-                        console.log('进度条宽度已更新:', progressFill.style.width);
-                    }
-                    if (progressText) {
-                        progressText.textContent = `${progress}%`;
-                        console.log('进度文本已更新:', progressText.textContent);
-                    }
-                });
+                if (progressFill) {
+                    progressFill.style.width = `${progress}%`;
+                    console.log('进度条宽度已更新:', progressFill.style.width);
+                }
+                if (progressText) {
+                    progressText.textContent = `${progress}%`;
+                    console.log('进度文本已更新:', progressText.textContent);
+                }
             };
+
+            const yieldAfterResourceTick = () => new Promise((r) => {
+                const ms = (typeof document !== 'undefined' && document.hidden) ? 48 : 12;
+                setTimeout(r, ms);
+            });
             
             // 更新状态：开始加载资源
             if (statusText) {
@@ -368,12 +399,8 @@ class Game {
                             statusText.textContent = `正在加载: ${batch[index + 1].imageName}... (${i + index + 2}/${totalImages})`;
                         }
                         
-                        // 强制UI更新
-                        return new Promise(resolve => {
-                            requestAnimationFrame(() => {
-                                setTimeout(resolve, 10);
-                            });
-                        });
+                        // 让出主线程；不依赖 rAF，避免后台标签页整批 Promise.all 长期不 resolve
+                        return yieldAfterResourceTick();
                     });
                 });
                 
@@ -1120,6 +1147,7 @@ class Game {
             
             // 清空掉落物和传送门（返回主城时清理）
             this.droppedItems = [];
+            this.rewardPickups = [];
             this.portals = [];
             
             // 确保主城场景已初始化
@@ -1190,7 +1218,11 @@ class Game {
                 e.preventDefault();
                 const index = parseInt((e.currentTarget && e.currentTarget.dataset.index) || e.target.dataset.index);
                 if (!isNaN(index) && this.player.inventory[index]) {
-                    this.discardInventoryItem(index);
+                    if (this.currentScene === SCENE_TYPES.TOWER) {
+                        this.dropInventoryItemToGround(index);
+                    } else {
+                        this.discardInventoryItem(index);
+                    }
                 }
             });
             inventoryItems.appendChild(slot);
@@ -2301,7 +2333,7 @@ class Game {
         if (item) {
             // 卸下装备
             this.player.equipment[slot] = null;
-            this.addItemToInventory(item);
+            this.addItemToInventory(item, false, { markAsTowerNew: false });
             this.player.updateStats();
             if (typeof this.player.onEquipmentSlotChanged === 'function') {
                 this.player.onEquipmentSlotChanged(slot);
@@ -2381,6 +2413,45 @@ class Game {
         this.addFloatingText(this.player.x, this.player.y, `已丢弃 ${name}`, '#888888');
     }
 
+    /**
+     * 恶魔塔内：右键丢弃装备不弹确认，直接丢到地面上（可再次拾取）
+     * @param {number} index
+     */
+    dropInventoryItemToGround(index) {
+        if (this.currentScene !== SCENE_TYPES.TOWER) {
+            this.discardInventoryItem(index);
+            return;
+        }
+        const item = this.player.inventory[index];
+        if (!item) return;
+        // 仅处理装备（与“右键丢弃装备”一致）；其它类型走原逻辑
+        if (item.type && item.type !== 'equipment') {
+            this.discardInventoryItem(index);
+            return;
+        }
+        if (!item.uniqueId) {
+            item.uniqueId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        }
+        const name = item.name || '装备';
+        item._towerPlayerDropped = true;
+        // 从背包移除
+        this.player.inventory[index] = null;
+        this.hideItemTooltip();
+        this.updateInventoryUI();
+        this.updateInventoryCapacity();
+        this.updateHUD();
+
+        // 丢到玩家附近地面
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 22 + Math.random() * 26;
+        const dropX = this.player.x + Math.cos(ang) * dist;
+        const dropY = this.player.y + Math.sin(ang) * dist;
+        if (typeof DroppedItem !== 'undefined') {
+            this.droppedItems.push(new DroppedItem(dropX, dropY, item, this));
+        }
+        this.addFloatingText(this.player.x, this.player.y, `已丢到地面：${name}`, '#cccccc');
+    }
+
     // ====================================================================
     // 物品管理方法组
     // ====================================================================
@@ -2391,7 +2462,7 @@ class Game {
      * @param {boolean} [quiet=false] - 为 true 时不弹出「获得」飘字（开发者批量发放等）
      * @returns {boolean} 是否成功添加
      */
-    addItemToInventory(item, quiet = false) {
+    addItemToInventory(item, quiet = false, options = null) {
         if (item && (item.type === 'material' || item.type === 'alchemy')) {
             return false;
         }
@@ -2427,8 +2498,9 @@ class Game {
                 item.uniqueId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
             }
             
-            // 如果当前在恶魔塔中，标记这个物品
-            if (this.currentScene === SCENE_TYPES.TOWER) {
+            const markAsTowerNew = !options || options.markAsTowerNew !== false;
+            // 如果当前在恶魔塔中，且本次应计入“塔内新获得”时，标记这个物品
+            if (this.currentScene === SCENE_TYPES.TOWER && markAsTowerNew) {
                 this.towerItems.add(item.uniqueId);
                 console.log(`标记恶魔塔物品: ${item.name} (uniqueId: ${item.uniqueId})`);
             }
@@ -2556,6 +2628,7 @@ class Game {
         this.floor = Math.min(this.floor, maxF);
         // 清空掉落物、传送门和怪物子弹
         this.droppedItems = [];
+        this.rewardPickups = [];
         this.portals = [];
         this.monsterProjectiles = [];
         this.groundHazards = [];
@@ -3279,6 +3352,338 @@ class Game {
         }
     }
 
+    _rewardPickupOrbCount(total) {
+        if (total <= 0) return 0;
+        return Math.min(12, Math.max(4, 2 + Math.ceil(Math.sqrt(total))));
+    }
+
+    _splitIntRewardTotal(total, parts) {
+        if (parts <= 0 || total <= 0) return [];
+        const base = Math.floor(total / parts);
+        let rem = total - base * parts;
+        const out = [];
+        for (let i = 0; i < parts; i++) {
+            out.push(base + (rem > 0 ? 1 : 0));
+            if (rem > 0) rem--;
+        }
+        return out;
+    }
+
+    /**
+     * 在指定位置生成多枚金色/绿色追踪光点，玩家碰到后才 gainGold / gainExp
+     * @param {number} originX
+     * @param {number} originY
+     * @param {number} goldAmount
+     * @param {number} expAmount
+     * @param {number} [spreadRadius]
+     */
+    spawnRewardPickupOrbs(originX, originY, goldAmount, expAmount, spreadRadius = 30) {
+        if (typeof RewardHomingPickup === 'undefined') return;
+        if (!this.rewardPickups) this.rewardPickups = [];
+        const gold = Math.max(0, Math.floor(goldAmount || 0));
+        const exp = Math.max(0, Math.floor(expAmount || 0));
+        const ng = this._rewardPickupOrbCount(gold);
+        const ne = this._rewardPickupOrbCount(exp);
+        const goldParts = ng ? this._splitIntRewardTotal(gold, ng) : [];
+        const expParts = ne ? this._splitIntRewardTotal(exp, ne) : [];
+        const place = (i, n, kind, amt, color) => {
+            const ang = (Math.PI * 2 * i) / Math.max(1, n) + (Math.random() * 0.55 - 0.275);
+            const r = spreadRadius * (0.85 + Math.random() * 1.35) + 14;
+            const px = originX + Math.cos(ang) * r;
+            const py = originY + Math.sin(ang) * r;
+            this.rewardPickups.push(new RewardHomingPickup(this, originX, originY, kind, amt, color, {
+                outwardX: px,
+                outwardY: py,
+                pauseMs: 110 + Math.random() * 70,
+                burstSpeed: 560,
+                homeSpeed: 520
+            }));
+        };
+        goldParts.forEach((amt, i) => place(i, goldParts.length, 'gold', amt, '#ffd700'));
+        expParts.forEach((amt, i) => place(i, expParts.length, 'exp', amt, '#00ff66'));
+    }
+
+    /**
+     * 触发命中反馈：近战完整卡肉，远程强反馈但不断流
+     * @param {number} x
+     * @param {number} y
+     * @param {{isRanged?: boolean, isCrit?: boolean, target?: any, sourceX?: number, sourceY?: number, skipSound?: boolean}} options
+     */
+    triggerHitImpact(x, y, options = {}) {
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+        const cfg = this.hitFxConfig;
+        const isRanged = options.isRanged === true;
+        const isCrit = options.isCrit === true;
+        const now = Date.now();
+        const skipSound = options.skipSound === true;
+
+        if (!isRanged) {
+            const d = isCrit ? cfg.critHitStopMs : cfg.meleeHitStopMs;
+            this.hitStopTimer = Math.max(this.hitStopTimer, d);
+        }
+        this._hitStopRecoveryTicks = Math.max(this._hitStopRecoveryTicks, cfg.recoverySlowTicks);
+        this.hitStretchFrames = Math.max(this.hitStretchFrames, 1);
+
+        const s = isRanged ? cfg.rangedShake : cfg.meleeShake;
+        const amp = s.ampMin + Math.random() * (s.ampMax - s.ampMin);
+        this.screenShake.amplitude = Math.max(this.screenShake.amplitude, amp);
+        this.screenShake.timer = Math.max(this.screenShake.timer, s.durationMs);
+        this.screenShake.duration = Math.max(this.screenShake.duration, s.durationMs);
+        this.screenShake.bigFrames = Math.max(this.screenShake.bigFrames, s.bigFrames);
+
+        this.edgeDamageFlash.timer = Math.max(this.edgeDamageFlash.timer, cfg.edgeFlash.durationMs);
+        this.edgeDamageFlash.duration = cfg.edgeFlash.durationMs;
+        this.edgeDamageFlash.alpha = Math.min(0.9, Math.max(this.edgeDamageFlash.alpha, cfg.edgeFlash.alpha + (isCrit ? 0.08 : 0)));
+
+        if (!this.hitImpactEffects) this.hitImpactEffects = [];
+        if (this.hitImpactEffects.length >= 10) this.hitImpactEffects.shift();
+        const ilc = (cfg.impactLines && cfg.impactLines.count) ? cfg.impactLines.count : 6;
+        this.hitImpactEffects.push({
+            x, y,
+            createdAt: now,
+            isRanged,
+            isCrit,
+            flash: {
+                radius: cfg.flash.startR,
+                alpha: 1.0,
+                maxR: cfg.flash.endR,
+                duration: cfg.flash.durationMs,
+                elapsed: 0
+            },
+            warmFlash: {
+                delay: cfg.flash.warmDelayMs,
+                radius: cfg.flash.startR * 0.65,
+                alpha: 0.88,
+                maxR: cfg.flash.warmEndR,
+                duration: cfg.flash.warmDurationMs,
+                elapsed: 0,
+                active: false
+            },
+            rings: [
+                { color: '255,255,255', radius: cfg.ring.startR, alpha: 0.85, maxR: cfg.ring.endR, elapsed: 0, duration: cfg.ring.durationMs },
+                { color: '255,210,80', radius: cfg.ring.startR + 4, alpha: 0.72, maxR: cfg.ring.endR - 6, elapsed: 0, duration: cfg.ring.durationMs },
+                { color: '255,70,40', radius: cfg.ring.startR + 6, alpha: 0.62, maxR: cfg.ring.endR - 10, elapsed: 0, duration: cfg.ring.durationMs }
+            ],
+            impactLines: Array.from({ length: ilc }, (_, i) => ({
+                angle: (Math.PI * 2 * i) / ilc,
+                length: 0,
+                alpha: 1
+            }))
+        });
+
+        this._spawnHitExplosionParticles(x, y, isRanged, isCrit);
+
+        this._applyEnemyHitReaction(options.target, options.sourceX, options.sourceY, isRanged);
+        if (!skipSound) {
+            this.playHitSound(isRanged ? 'ranged' : 'melee', isCrit);
+        }
+        this._lastHitImpactVfxTime = now;
+    }
+
+    _spawnHitExplosionParticles(x, y, isRanged, isCrit) {
+        if (!this.particleManager || typeof this.particleManager.createSystem !== 'function') return;
+        const cfg = this.hitFxConfig.particles;
+        const baseCount = isRanged ? cfg.ranged : cfg.melee;
+        const count = isCrit ? Math.floor(baseCount * 2) : baseCount;
+        this.particleManager.createSystem(x, y, {
+            color: '#ffffff',
+            size: 2.6,
+            count: Math.floor(count * 0.42),
+            lifetime: 220,
+            fadeoutTime: 160,
+            speed: 12,
+            speedVariation: 5,
+            angleSpread: Math.PI * 2,
+            pixelStyle: true
+        });
+        this.particleManager.createSystem(x, y, {
+            color: '#ff6622',
+            size: 3,
+            count: Math.floor(count * 0.4),
+            lifetime: 420,
+            fadeoutTime: 220,
+            speed: 10,
+            speedVariation: 4,
+            gravity: 0.65,
+            angleSpread: Math.PI * 2,
+            pixelStyle: true
+        });
+        this.particleManager.createSystem(x, y, {
+            color: '#1a1a1a',
+            size: 3.2,
+            count: Math.floor(count * 0.24),
+            lifetime: 520,
+            fadeoutTime: 320,
+            speed: 5.6,
+            speedVariation: 2.2,
+            gravity: -0.06,
+            angleSpread: Math.PI * 2,
+            pixelStyle: true
+        });
+    }
+
+    _applyEnemyHitReaction(target, sourceX, sourceY, isRanged) {
+        if (!target || typeof target.x !== 'number' || typeof target.y !== 'number') return;
+        const now = Date.now();
+        const cfg = this.hitFxConfig.enemyKnock;
+        const knock = isRanged ? cfg.ranged : cfg.melee;
+        const sx = Number.isFinite(sourceX) ? sourceX : (this.player ? this.player.x : target.x - 1);
+        const sy = Number.isFinite(sourceY) ? sourceY : (this.player ? this.player.y : target.y);
+        const dx = target.x - sx;
+        const dy = target.y - sy;
+        const dist = Math.hypot(dx, dy) || 1;
+        target.x += (dx / dist) * knock;
+        target.y += (dy / dist) * knock;
+        target._hitFlashUntil = now + cfg.flashMs;
+        target._hitStunUntil = now + (isRanged ? cfg.rangedStunMs : cfg.stunMs);
+    }
+
+    playHitSound(kind = 'melee', isCrit = false) {
+        // 预留接口：可在此叠加“重击/骨裂”音效资源
+        if (!this.soundManager) return;
+        if (typeof this.soundManager.playSound === 'function') {
+            this.soundManager.playSound(isCrit ? 'critical' : 'swing');
+            if (kind === 'melee' && isCrit) this.soundManager.playSound('swing');
+        }
+    }
+
+    updateHitImpactEffects(deltaTime) {
+        const frameScale = Math.max(0.5, deltaTime / (1000 / 60));
+        if (this.screenShake.timer > 0) {
+            this.screenShake.timer = Math.max(0, this.screenShake.timer - deltaTime);
+            if (this.screenShake.timer <= 0) {
+                this.screenShake.amplitude = 0;
+                this.screenShake.bigFrames = 0;
+            } else if (this.screenShake.bigFrames > 0) {
+                this.screenShake.bigFrames--;
+            } else {
+                this.screenShake.amplitude *= Math.pow(0.85, frameScale);
+            }
+        }
+        if (this.edgeDamageFlash.timer > 0) {
+            this.edgeDamageFlash.timer = Math.max(0, this.edgeDamageFlash.timer - deltaTime);
+            const t = this.edgeDamageFlash.timer / Math.max(1, this.edgeDamageFlash.duration);
+            this.edgeDamageFlash.alpha = Math.max(0, this.edgeDamageFlash.alpha * Math.pow(0.78, frameScale) * t);
+        }
+        if (!this.hitImpactEffects || this.hitImpactEffects.length === 0) return;
+        this.hitImpactEffects = this.hitImpactEffects.filter(e => {
+            e.flash.elapsed += deltaTime;
+            const fp = Math.min(1, e.flash.elapsed / e.flash.duration);
+            e.flash.radius = e.flash.maxR * fp + e.flash.radius * (1 - fp);
+            e.flash.alpha = 1 - fp;
+            if (!e.warmFlash.active) {
+                e.warmFlash.delay -= deltaTime;
+                if (e.warmFlash.delay <= 0) e.warmFlash.active = true;
+            } else {
+                e.warmFlash.elapsed += deltaTime;
+                const wp = Math.min(1, e.warmFlash.elapsed / e.warmFlash.duration);
+                e.warmFlash.radius = e.warmFlash.maxR * wp + e.warmFlash.radius * (1 - wp);
+                e.warmFlash.alpha = 0.88 * (1 - wp);
+            }
+            e.rings.forEach(r => {
+                r.elapsed += deltaTime;
+                const rp = Math.min(1, r.elapsed / r.duration);
+                r.radius = this.hitFxConfig.ring.startR + (r.maxR - this.hitFxConfig.ring.startR) * rp;
+                r.alpha = Math.max(0, r.alpha * Math.pow(0.86, frameScale));
+            });
+            const ilCfg = this.hitFxConfig.impactLines || { speedPerFrame: 4, maxLength: 28, decay: 0.85 };
+            if (e.impactLines && e.impactLines.length) {
+                e.impactLines.forEach(line => {
+                    line.length = Math.min(ilCfg.maxLength, line.length + ilCfg.speedPerFrame * frameScale);
+                    line.alpha *= Math.pow(ilCfg.decay, frameScale);
+                });
+            }
+            const ringAlive = e.rings.some(r => r.alpha > 0.03);
+            const linesAlive = e.impactLines && e.impactLines.some(l => l.alpha > 0.03 && l.length > 0.5);
+            return e.flash.alpha > 0.03 || e.warmFlash.alpha > 0.03 || ringAlive || linesAlive;
+        });
+    }
+
+    drawHitImpactEffects(ctx) {
+        if (!this.hitImpactEffects || this.hitImpactEffects.length === 0) return;
+        this.hitImpactEffects.forEach(e => {
+            ctx.save();
+            const grad = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.flash.radius);
+            grad.addColorStop(0, `rgba(255,255,255,${Math.max(0, e.flash.alpha)})`);
+            grad.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(e.x, e.y, e.flash.radius, 0, Math.PI * 2);
+            ctx.fill();
+            if (e.warmFlash.alpha > 0) {
+                const wgrad = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.warmFlash.radius);
+                wgrad.addColorStop(0, `rgba(255,180,60,${Math.max(0, e.warmFlash.alpha)})`);
+                wgrad.addColorStop(1, 'rgba(255,80,10,0)');
+                ctx.fillStyle = wgrad;
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, e.warmFlash.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            e.rings.forEach((r, idx) => this._drawPixelRing(ctx, e.x, e.y, r.radius, `rgba(${r.color},${r.alpha})`, idx));
+            if (e.impactLines && e.impactLines.length) {
+                ctx.lineWidth = 2;
+                e.impactLines.forEach(line => {
+                    if (line.alpha <= 0.02 || line.length < 0.5) return;
+                    const x2 = e.x + Math.cos(line.angle) * line.length;
+                    const y2 = e.y + Math.sin(line.angle) * line.length;
+                    ctx.beginPath();
+                    ctx.moveTo(e.x, e.y);
+                    ctx.lineTo(x2, y2);
+                    ctx.strokeStyle = `rgba(255,255,255,${Math.max(0, line.alpha)})`;
+                    ctx.stroke();
+                });
+            }
+            ctx.restore();
+        });
+    }
+
+    _drawPixelRing(ctx, cx, cy, radius, color, jagSeed) {
+        const seg = 20;
+        ctx.beginPath();
+        for (let i = 0; i <= seg; i++) {
+            const t = i / seg;
+            const a = t * Math.PI * 2;
+            const j = ((i + jagSeed * 3) % 2 === 0 ? 2.4 : -2.4);
+            const r = radius + j;
+            const x = Math.floor(cx + Math.cos(a) * r);
+            const y = Math.floor(cy + Math.sin(a) * r);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    drawMonsterHitFlashOverlay(ctx) {
+        if (!this.currentRoom || !Array.isArray(this.currentRoom.monsters)) return;
+        const now = Date.now();
+        this.currentRoom.monsters.forEach(m => {
+            if (!m || m.hp <= 0 || !m._hitFlashUntil || now >= m._hitFlashUntil) return;
+            const life = Math.max(0, (m._hitFlashUntil - now) / 120);
+            const size = (m.size || 22) + 10;
+            ctx.save();
+            ctx.globalCompositeOperation = 'screen';
+            ctx.fillStyle = `rgba(255,255,255,${0.35 + 0.45 * life})`;
+            ctx.fillRect(Math.floor(m.x - size / 2), Math.floor(m.y - size / 2), Math.floor(size), Math.floor(size));
+            ctx.restore();
+        });
+    }
+
+    drawEdgeDamageFlash(ctx) {
+        if (!this.edgeDamageFlash || this.edgeDamageFlash.alpha <= 0 || this.edgeDamageFlash.timer <= 0) return;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        ctx.save();
+        ctx.fillStyle = `rgba(140,10,10,${Math.min(0.9, this.edgeDamageFlash.alpha)})`;
+        const edge = 52;
+        ctx.fillRect(0, 0, w, edge);
+        ctx.fillRect(0, h - edge, w, edge);
+        ctx.fillRect(0, edge, edge, h - edge * 2);
+        ctx.fillRect(w - edge, edge, edge, h - edge * 2);
+        ctx.restore();
+    }
+
     // ====================================================================
     // 游戏循环方法组
     // ====================================================================
@@ -3307,6 +3712,7 @@ class Game {
                 });
                 // 更新HUD
                 this.updateHUD();
+                this.maybeAutoSyncSaveCodeToLocalStorage(false);
                 return;
             }
             
@@ -3724,8 +4130,13 @@ class Game {
                 
                 // 更新掉落物（检查拾取）
                 this.droppedItems = this.droppedItems.filter(item => {
-                    return !item.update(this); // update返回true表示已拾取，需要移除
+                    return !item.update(this, eKeyPressed); // 靠近后按 E 才会尝试拾取
                 });
+
+                if (this.rewardPickups && this.rewardPickups.length && this.player) {
+                    const dt = this.fixedTimeStep;
+                    this.rewardPickups = this.rewardPickups.filter(p => !p.update(dt, this.player));
+                }
             
                 // 检查房间交互
                 if (this.currentRoom.type === ROOM_TYPES.BATTLE || this.currentRoom.type === ROOM_TYPES.ELITE || this.currentRoom.type === ROOM_TYPES.BOSS) {
@@ -3851,18 +4262,27 @@ class Game {
                     
                     if (qualityEquipments.length > 0) {
                         const randomEq = qualityEquipments[Math.floor(Math.random() * qualityEquipments.length)];
-                        // addItemToInventory会显示获得物品的提示
-                        this.addItemToInventory(randomEq);
+                        // 宝箱奖励改为地面掉落：玩家靠近后按 E 拾取，拾取后计入塔内新获得
+                        const rewardEq = JSON.parse(JSON.stringify(randomEq));
+                        if (!rewardEq.uniqueId) {
+                            rewardEq.uniqueId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                        }
+                        const dropX = this.currentRoom.treasureChest.x + (Math.random() * 20 - 10);
+                        const dropY = this.currentRoom.treasureChest.y + 30 + (Math.random() * 16 - 8);
+                        if (typeof DroppedItem !== 'undefined') {
+                            this.droppedItems.push(new DroppedItem(dropX, dropY, rewardEq, this));
+                            this.addFloatingText(dropX, dropY, '宝箱掉落了装备（按 E 拾取）', '#ffd700');
+                        } else {
+                            // 兜底：极端情况下仍可直接入包，避免奖励丢失
+                            this.addItemToInventory(rewardEq);
+                        }
                     }
                     
                     const goldAmount = 10 + this.floor * 5;
                     const expAmount = 20 + this.floor * 5;
-                    this.gainGold(goldAmount);
-                    this.gainExp(expAmount);
-                    
-                    // 显示金币和经验提示（会自动错开显示）
-                    this.addFloatingText(this.player.x, this.player.y, `+${goldAmount} 金币`, '#ffd700');
-                    this.addFloatingText(this.player.x, this.player.y, `+${expAmount} 经验`, '#00ff00');
+                    const cx = this.currentRoom.treasureChest.x;
+                    const cy = this.currentRoom.treasureChest.y;
+                    this.spawnRewardPickupOrbs(cx, cy, goldAmount, expAmount, 36);
                 }
                 
                 // 检查宝箱是否已打开，如果已打开则生成传送门
@@ -4004,6 +4424,7 @@ class Game {
             this.lastEKeyState = currentEKeyState;
             
             this.updateHUD();
+            this.maybeAutoSyncSaveCodeToLocalStorage(false);
         } catch (error) {
             console.error('游戏更新循环出错:', error);
             // 确保游戏不会因为异常而完全停止
@@ -4923,6 +5344,7 @@ class Game {
         
         // 清空掉落物和传送门（返回主城时清理）
         this.droppedItems = [];
+        this.rewardPickups = [];
         this.portals = [];
         
         // 确保主城场景已初始化
@@ -5563,7 +5985,7 @@ class Game {
         });
     }
 
-    _tryCompleteFusionJob() {
+    async _tryCompleteFusionJob() {
         const s = this.fusionState;
         if (!s || s.phase !== 'processing') return;
         if (!s.pendingFuseResult) return;
@@ -5571,9 +5993,21 @@ class Game {
         const eqA = this.deserializeEquipment(s.stash[0].serialized);
         const eqB = this.deserializeEquipment(s.stash[1].serialized);
         const payload = this._buildFusionReadyPayloadFromResult(s.pendingFuseResult, eqA, eqB, s.stash, s.pairKeyEarly);
+        // 按需求：贴图只尝试一次；若因网络/额度原因没拿到贴图，视为本次合铸失败（只扣金币，材料全返还）。
+        if (typeof FusionIconAPI !== 'undefined' && FusionIconAPI.requestAndApply) {
+            try {
+                const p = payload;
+                const eqAIcon = this.deserializeEquipment(p.eqASerialized);
+                const eqBIcon = this.deserializeEquipment(p.eqBSerialized);
+                await FusionIconAPI.requestAndApply(this, p.fusionDisplayName, eqAIcon, eqBIcon, p.fusionMeta);
+            } catch (iconErr) {
+                this._abortFusionJob(iconErr);
+                return;
+            }
+        }
+
         s.phase = 'ready';
         s.readyPayload = payload;
-        this._ensureFusionIconGenFromReadyPayload(s);
         delete s.pendingFuseResult;
         delete s.stash;
         this.fusionCompletionBannerShown = false;
@@ -5615,7 +6049,7 @@ class Game {
         const stash = s.stash;
         const gold = s.goldSpent || 0;
         this.fusionState = null;
-        if (gold) this.player.gold += gold;
+        // 合铸失败：只消耗金币，材料全返还（不退金币）
         if (stash) this._restoreFusionStash(stash);
         this.updateFusionUI();
         this.updateBlacksmithEquipmentList();
@@ -5624,7 +6058,7 @@ class Game {
         this.updateHUD();
         const previewEl = document.getElementById('blacksmith-fusion-preview');
         const msg = err && err.message ? err.message : String(err || '未知错误');
-        if (previewEl) previewEl.textContent = '合铸失败（已退回材料与金币）：' + msg;
+        if (previewEl) previewEl.textContent = '合铸失败（已退回材料，仅扣除金币）：' + msg;
         console.error('合铸失败', err);
     }
 
@@ -7545,8 +7979,15 @@ class Game {
         const playerScreenX = CONFIG.CANVAS_WIDTH / 2;
         const playerScreenY = CONFIG.CANVAS_HEIGHT / 2;
         this.ctx.translate(playerScreenX, playerScreenY);
-        this.ctx.scale(visionScale, visionScale);
+        const stretchScale = this.hitStretchFrames > 0 ? 1.02 : 1;
+        this.ctx.scale(visionScale * stretchScale, visionScale / stretchScale);
         this.ctx.translate(-playerScreenX, -playerScreenY);
+        if (this.hitStretchFrames > 0) this.hitStretchFrames--;
+        if (this.screenShake && this.screenShake.timer > 0 && this.screenShake.amplitude > 0) {
+            const sx = (Math.random() - 0.5) * this.screenShake.amplitude * 2;
+            const sy = (Math.random() - 0.5) * this.screenShake.amplitude * 2;
+            this.ctx.translate(sx, sy);
+        }
         
         // 应用相机偏移量，使地图和实体随玩家移动
         // 相机偏移量 = 玩家位置 - 屏幕中心，所以需要反向平移
@@ -7565,11 +8006,16 @@ class Game {
             // 绘制训练场
             this.trainingGroundScene.draw(this.ctx);
         }
+        this.drawMonsterHitFlashOverlay(this.ctx);
         
         // 绘制掉落物
         this.droppedItems.forEach(item => {
             item.draw(this.ctx);
         });
+
+        if (this.rewardPickups && this.rewardPickups.length) {
+            this.rewardPickups.forEach(p => p.draw(this.ctx));
+        }
         
         // 绘制传送门
         this.portals.forEach(portal => {
@@ -7598,6 +8044,7 @@ class Game {
         // 绘制粒子系统（在世界坐标系中）- 需要应用相机偏移
         this.ctx.translate(-this.cameraX, -this.cameraY);
         this.particleManager.draw(this.ctx);
+        this.drawHitImpactEffects(this.ctx);
         this.ctx.translate(this.cameraX, this.cameraY);
         
         // 绘制飘浮文字（在玩家上方）- 需要应用相机偏移
@@ -7626,6 +8073,7 @@ class Game {
         
         // 恢复缩放状态
         this.ctx.restore();
+        this.drawEdgeDamageFlash(this.ctx);
         
         // 绘制小地图
         this.drawMinimap();
@@ -8109,8 +8557,7 @@ class Game {
             this.addGroundHazard(monster.x, monster.y, h.radius, h.durationMs, h.dps, 'poison');
         }
         if (monster.goldBonusOnDeath > 0) {
-            this.gainGold(monster.goldBonusOnDeath);
-            this.addFloatingText(this.player.x, this.player.y, `额外 +${monster.goldBonusOnDeath} 金币`, '#ffee88', 1800, 16, true);
+            this.spawnRewardPickupOrbs(monster.x, monster.y, monster.goldBonusOnDeath, 0, 22);
         }
     }
 
@@ -9360,10 +9807,7 @@ class Game {
         if (!monster) return;
         if (monster._bossRewardGranted) return;
         monster._bossRewardGranted = true;
-        this.gainExp(monster.expReward);
-        this.gainGold(monster.goldReward);
-        this.addFloatingText(this.player.x, this.player.y, `+${monster.expReward} 经验`, '#00ff00');
-        this.addFloatingText(this.player.x, this.player.y, `+${monster.goldReward} 金币`, '#ffd700');
+        this.spawnRewardPickupOrbs(monster.x, monster.y, monster.goldReward, monster.expReward, 34);
         const maxF = typeof window.getTowerMaxFloor === 'function' ? window.getTowerMaxFloor() : 240;
         if (this.floor >= maxF) {
             this.addFloatingText(this.player.x, this.player.y, '恭喜通关恶魔塔！', '#ffdd00');
@@ -9738,6 +10182,55 @@ class Game {
     }
 
     /**
+     * 存档内容指纹（排除顶层 timestamp），用于判断是否与上次写入 localStorage 的存档码对应的数据一致。
+     * @returns {string}
+     */
+    _computeSaveFingerprintSansTimestamp() {
+        const data = this.buildSaveDataObject();
+        const clone = JSON.parse(JSON.stringify(data));
+        delete clone.timestamp;
+        return JSON.stringify(clone);
+    }
+
+    _rememberSyncedSaveFingerprint() {
+        try {
+            this._lastSyncedSaveFingerprint = this._computeSaveFingerprintSansTimestamp();
+            this._lastSaveCodeSyncTimeMs = Date.now();
+        } catch (e) {
+            this._lastSyncedSaveFingerprint = null;
+        }
+    }
+
+    /**
+     * 当存档数据相对上次同步有变化时，将最新存档码写入 localStorage（与「保存到浏览器」同一键）。
+     * @param {boolean} [immediate=false] 为 true 时忽略节流（导入、手动保存、导出后等）
+     */
+    maybeAutoSyncSaveCodeToLocalStorage(immediate) {
+        const now = Date.now();
+        const intervalMs = 900;
+        if (!immediate && now - this._lastSaveCodeSyncTimeMs < intervalMs) return;
+        let fp;
+        try {
+            fp = this._computeSaveFingerprintSansTimestamp();
+        } catch (e) {
+            return;
+        }
+        if (!immediate && fp === this._lastSyncedSaveFingerprint) return;
+        try {
+            const saveCode = this.encodeSaveDataToSaveCode(this.buildSaveDataObject());
+            localStorage.setItem(Game.BROWSER_SAVE_CODE_KEY, saveCode);
+            this._lastSyncedSaveFingerprint = fp;
+            this._lastSaveCodeSyncTimeMs = now;
+        } catch (e) {
+            if (e && e.name === 'QuotaExceededError') {
+                console.warn('自动同步存档码：浏览器存储空间不足');
+            } else {
+                console.warn('自动同步存档码失败', e);
+            }
+        }
+    }
+
+    /**
      * 将存档对象编码为存档码字符串（与剪贴板导出一致）
      * @param {Object} saveData
      * @returns {string}
@@ -9784,6 +10277,7 @@ class Game {
         try {
             const saveCode = this.encodeSaveDataToSaveCode(this.buildSaveDataObject());
             localStorage.setItem(key, saveCode);
+            this._rememberSyncedSaveFingerprint();
             this.addFloatingText(this.player.x, this.player.y, '已保存到本浏览器', '#88ffcc');
         } catch (e) {
             if (e && e.name === 'QuotaExceededError') {
@@ -9967,6 +10461,12 @@ class Game {
     exportSave() {
         const saveCode = this.encodeSaveDataToSaveCode(this.buildSaveDataObject());
         this.showSaveCodeModal(saveCode);
+        try {
+            localStorage.setItem(Game.BROWSER_SAVE_CODE_KEY, saveCode);
+            this._rememberSyncedSaveFingerprint();
+        } catch (e) {
+            console.warn('导出后同步存档码到 localStorage 失败', e);
+        }
         this.addFloatingText(this.player.x, this.player.y, '存档已导出', '#00ff00');
     }
     
@@ -10069,6 +10569,7 @@ class Game {
             
             // 清空掉落物和传送门
             this.droppedItems = [];
+            this.rewardPickups = [];
             this.portals = [];
             
             // 更新玩家属性
@@ -10108,6 +10609,7 @@ class Game {
             if (!quiet) {
                 this.addFloatingText(this.player.x, this.player.y, '存档已导入', '#00ff00');
             }
+            this.maybeAutoSyncSaveCodeToLocalStorage(true);
         } catch (error) {
             if (!quiet) {
                 alert('导入存档失败：' + error.message);
@@ -10241,9 +10743,23 @@ class Game {
     fixedUpdate() {
         try {
             const tickStartTime = performance.now();
-            
+            this.updateHitImpactEffects(this.fixedTimeStep);
             if (!this.paused) {
-                this.update();
+                if (this.hitStopTimer > 0) {
+                    this.hitStopTimer = Math.max(0, this.hitStopTimer - this.fixedTimeStep);
+                    if (this.hitStopTimer === 0) this._hitStopRecoveryAccumulator = 0;
+                } else {
+                    if (this._hitStopRecoveryTicks > 0) {
+                        this._hitStopRecoveryAccumulator += 0.5;
+                        if (this._hitStopRecoveryAccumulator >= 1) {
+                            this._hitStopRecoveryAccumulator -= 1;
+                            this._hitStopRecoveryTicks--;
+                            this.update();
+                        }
+                    } else {
+                        this.update();
+                    }
+                }
             }
             
             // 计算本次tick耗时

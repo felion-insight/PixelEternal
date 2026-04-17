@@ -7,6 +7,8 @@ Pixel Eternal - 游戏美术资源生成工具
 怪物/Boss 批量贴图经 PE_MONSTER_TEXTURE_SIZE（默认 128）抠透明，见 tools/monster-generation.md 与 --batch-monster-textures。
 
 装备生成约定与深阶提示词表见 tools/art-requirements-2026-03-19.md（主题×品质批量可用 --deep-theme / --deep-quality）。
+
+原神风格角色立绘：GPT 读取 Boss/怪物表与 PROJECT.md 等后规划英文 prompt，生图至 asset/character_splash/；主角可附 player.gif 首帧多模态参考，见 --genshin-character-splash / --genshin-protagonist-splash。纯白底可用 --genshin-white-bg 或描述里写「白底」；武器参考图可用 --genshin-weapon-ref 或环境变量 PE_GENSHIN_WEAPON_REF。
 """
 
 import os
@@ -81,6 +83,7 @@ def require_art_api_key(purpose: str = "调用 LLM 或生图接口") -> None:
 ART_FOLDER = PROJECT_ROOT / "asset"
 ART_SKILL_ICONS = ART_FOLDER / "skill_icons"
 ART_BUFF_ICONS = ART_FOLDER / "buff_icons"  # 增幅/效果图标，画风与技能图标一致
+ART_CHARACTER_SPLASH = ART_FOLDER / "character_splash"  # 原神风格等非像素立绘（不参与游戏内 Canvas 加载，供展示/参考）
 ART_PROJECTILES = ART_FOLDER / "projectiles"  # 飞射体/子弹精灵（tools/projectiles.md）
 PROJECTILES_MD = PROJECT_ROOT / "tools" / "projectiles.md"
 SKILL_ICON_EXAMPLES_DIR = ART_SKILL_ICONS / "Examples"  # 风格参考图目录
@@ -221,6 +224,31 @@ BOSS_TEXTURE_VISUAL_EN = {
     "boss_220": "star skeleton king, gold crown, meteor shoulder pads, cosmic dust trail, pixel art",
     "boss_240": "pixelated titan, retro 8-bit blocks, neon pink and cyan, subtle glitch accents, pixel art",
 }
+# 原神风格角色立绘（非像素、非游戏内精灵；供宣传/参考图）
+GENSHIN_CHARACTER_STYLE_TEMPLATE = (
+    "Genshin Impact–inspired character splash illustration, HoYoverse-style official promo art quality, "
+    "polished anime illustration with soft painterly shading and luminous highlights, "
+    "full body or elegant three-quarter pose, ornate fantasy costume with jewelry and layered fabrics, "
+    "expressive eyes, clean readable silhouette, subtle magical particles, "
+    "atmospheric gradient or soft bokeh background, cinematic rim light, single hero as focal subject, "
+    "high resolution illustration look, NOT pixel art, NOT 8-bit or 16-bit sprite, NOT chibi unless explicitly requested"
+)
+GENSHIN_CHARACTER_NEGATIVE_PROMPT = (
+    "pixel art, 8-bit, 16-bit, retro sprite, low resolution sprite sheet, "
+    "UI frame, HUD, watermark, logo, text, letters, subtitles, "
+    "multiple crowded characters in foreground, photorealistic wax figure, gore, explicit content, "
+    "bad anatomy, deformed hands, extra fingers, muddy compression artifacts"
+)
+# 追加到生图 prompt 末尾，覆盖模板里的渐变背景描述
+GENSHIN_WHITE_BACKDROP_SUFFIX = (
+    "CRITICAL background override: entire canvas behind the character must be flat solid pure white (#FFFFFF) only, "
+    "no sky, no gradient backdrop, no scenery, no colored fog; only a very soft subtle contact shadow under feet allowed; "
+    "high-key studio portrait lighting"
+)
+GENSHIN_SPLASH_EXTRA_NEGATIVE_WHITE_BG = (
+    "non-white background, gray backdrop, gradient sky, clouds, scenery, ground texture, dungeon, "
+    "colored ambient haze filling frame, vignette darkening corners"
+)
 # 兼容旧逻辑命名：边缘暗像素在透明流程中同样视为可扩展背景
 EDGE_CLEAN_THRESHOLD = 10
 
@@ -849,6 +877,125 @@ def load_merged_monster_types() -> dict:
         if isinstance(extra, dict):
             merged.update(extra)
     return merged
+
+
+def collect_genshin_character_game_context() -> dict:
+    """供「原神风格立绘」规划模型自主阅读：世界观摘要、Boss、怪物、装备名抽样、可选概览文档。"""
+    ctx: dict = {
+        "project_md": "",
+        "bosses": [],
+        "monsters_compact": [],
+        "equipment_names_sample": [],
+        "monsters_overview_excerpt": "",
+    }
+    pmd = PROJECT_ROOT / "PROJECT.md"
+    if pmd.is_file():
+        ctx["project_md"] = pmd.read_text(encoding="utf-8")[:9000]
+
+    if BOSS_CONFIG.is_file():
+        with open(BOSS_CONFIG, "r", encoding="utf-8") as f:
+            bdata = json.load(f)
+        for b in (bdata.get("BOSS_DEFINITIONS") or []):
+            skills = [
+                (s.get("name") or "").strip()
+                for s in (b.get("skills") or [])
+                if isinstance(s, dict) and (s.get("name") or "").strip()
+            ]
+            ctx["bosses"].append(
+                {
+                    "id": (b.get("id") or "").strip(),
+                    "name": (b.get("name") or "").strip(),
+                    "level": b.get("level"),
+                    "theme_color": (b.get("color") or "").strip(),
+                    "skills": skills[:8],
+                }
+            )
+
+    merged = load_merged_monster_types()
+    for type_id in sorted(merged.keys())[:140]:
+        md = merged[type_id] or {}
+        desc = ((md.get("description") or "")[:120]).replace("\n", " ").strip()
+        ctx["monsters_compact"].append(
+            {
+                "type_id": type_id,
+                "name": (md.get("name") or "").strip(),
+                "description": desc,
+                "color": (md.get("color") or "").strip(),
+                "elite": bool(md.get("isElite")),
+            }
+        )
+
+    if EQUIPMENT_CONFIG.is_file():
+        with open(EQUIPMENT_CONFIG, "r", encoding="utf-8") as f:
+            edata = json.load(f)
+        names = [
+            (e.get("name") or "").strip()
+            for e in (edata.get("EQUIPMENT_DEFINITIONS") or [])
+            if (e.get("name") or "").strip()
+        ]
+        ctx["equipment_names_sample"] = names[:50]
+
+    overview = PROJECT_ROOT / "docs" / "monsters-overview.md"
+    if overview.is_file():
+        ctx["monsters_overview_excerpt"] = overview.read_text(encoding="utf-8")[:2800]
+
+    return ctx
+
+
+def resolve_player_gif_path() -> Path | None:
+    """定位游戏中玩家精灵：asset/player.gif、asset/player/player.gif 或 deployment 副本。"""
+    candidates = (
+        ART_FOLDER / "player.gif",
+        ART_FOLDER / "player" / "player.gif",
+        PROJECT_ROOT / "deployment" / "asset" / "player.gif",
+    )
+    for p in candidates:
+        if p.is_file():
+            return p
+    return None
+
+
+def player_gif_first_frame_data_url() -> str | None:
+    """将 player.gif 第 0 帧转为 data:image/png;base64,...，供 Chat 多模态规划（网关需支持 vision）。"""
+    path = resolve_player_gif_path()
+    if not path:
+        return None
+    try:
+        from PIL import Image
+        import io
+
+        im = Image.open(path)
+        im.seek(0)
+        frame = im.convert("RGBA")
+        buf = io.BytesIO()
+        frame.save(buf, format="PNG")
+        b64 = base64.standard_b64encode(buf.getvalue()).decode("ascii")
+        return f"data:image/png;base64,{b64}"
+    except Exception:
+        return None
+
+
+def image_file_to_png_data_url(path: Path) -> str | None:
+    """将任意常见图片路径转为 data:image/png;base64,...（GIF 取首帧），供多模态规划。"""
+    if not path or not path.is_file():
+        return None
+    try:
+        from PIL import Image
+        import io
+
+        im = Image.open(path)
+        if getattr(im, "is_animated", False):
+            try:
+                im.seek(0)
+            except EOFError:
+                pass
+        frame = im.convert("RGBA")
+        buf = io.BytesIO()
+        frame.save(buf, format="PNG")
+        b64 = base64.standard_b64encode(buf.getvalue()).decode("ascii")
+        return f"data:image/png;base64,{b64}"
+    except Exception:
+        return None
 
 
 def load_mappings_monster() -> dict:
@@ -2438,6 +2585,311 @@ JSON 格式如下（所有字段必填，除非注明可选）：
     return plan
 
 
+def call_gpt_plan_genshin_character_splash(
+    game_ctx: dict,
+    user_input: str,
+    *,
+    reference_player_gif: bool = False,
+    player_sprite_data_url: str | None = None,
+    white_background: bool = False,
+    weapon_sprite_data_url: str | None = None,
+) -> dict:
+    """根据游戏内 Boss/怪物/PROJECT.md 等上下文与用户意图，规划原神风格立绘的英文 image_prompt 与保存名。
+
+    reference_player_gif=True 且提供 player_sprite_data_url 时，附上 player.gif 首帧；weapon_sprite_data_url 为装备参考图；
+    white_background=True 时在规划与 image_prompt 中强制纯白底。
+    """
+    try:
+        import requests
+    except ImportError:
+        sys.exit("请安装 requests: pip install requests")
+
+    require_art_api_key("原神风格立绘 GPT 规划")
+    system_prompt = """你是 Pixel Eternal（暗黑奇幻像素 RPG）项目的美术策划，现在要产出一张「原神 / 崩铁 类商业手游」品质的角色宣传立绘（非像素精灵）。
+
+你必须先阅读用户消息与提供的游戏数据（Boss 中文名与技能、怪物中文名与设定摘要、PROJECT.md 世界观、可选 monsters-overview 摘录），再决定画谁：
+- 若用户点名了游戏中的 Boss、怪物中文名或 type_id，请把设定翻译成英文立绘要素（服装气质、武器、神态、配色呼应 theme_color）；
+- 若用户描述的是原创「旅行者式」主角或自设，可自由发挥，但仍需贴合 PROJECT.md 里塔与恶魔的世界观氛围。
+
+只输出一个 JSON 对象，不要 markdown 代码块，不要其他文字。字段如下：
+{
+  "character_concept_cn": "一句话说明画了谁（中文）",
+  "image_prompt": "给图像模型的英文主体描述：外貌、发型、服饰层次、武器或法器、姿态、眼神、环境氛围；必须强调高质量二次元插画、立绘构图；不要重复程序会追加的整段画风套话",
+  "style_notes": "通常填空字符串 \"\"；若有极少量补充可写英文短语",
+  "filename": "仅英文字母数字下划线和 .png，如 gi_splash_demon_warden_v1.png",
+  "relative_folder": "必须填 character_splash"
+}
+
+规则：
+1. image_prompt 不得包含敏感违规内容；避免直接复制受版权保护的角色名作为「扮演某官方角色」，应转化为原创造型 + 本项目或用户描述的气质。
+2. 立绘为单主体，背景可为渐变/光斑/虚化的塔或星空等，不要 UI、不要文字水印。
+3. filename 需 ASCII，便于写入仓库。"""
+    if white_background:
+        system_prompt += """
+
+【背景】用户要求整幅立绘背景为**纯白色 #FFFFFF**：无天空、无渐变场景、无环境叙事；image_prompt 必须用英文明确写出 flat solid white studio backdrop / pure white #FFFFFF background。"""
+    if reference_player_gif and player_sprite_data_url:
+        system_prompt += """
+
+【主角与 player.gif 特别声明】
+用户要画的是本游戏「玩家主角」。你收到的 user 消息中除文字外，还附带一张 **player.gif 第一帧** 的像素精灵参考图。你必须：
+- 仔细阅读参考图中的发型轮廓、发色块、衣着版型与主色、武器或道具剪影、披风/斗篷等，在 character_concept_cn 中写明「主角（与 player 精灵一致的气质与配色）」；
+- image_prompt 用英文将上述元素 **翻译** 为高清二次元立绘（细化布料与金属材质、正常比例五官与手指），并明确写出「match the silhouette, weapon shape, and dominant colors of the attached pixel sprite reference」；
+- 成图是插画而非放大马赛克；不要复制低分辨率像素格作为最终质感。"""
+    if weapon_sprite_data_url:
+        system_prompt += """
+
+【武器装备参考图】
+在 player 精灵参考（若有）之后，另附一张**游戏内装备武器贴图**。主角手中所持主武器必须为该参考的 HD 二次元演绎：宽厚暗色剑身、黑与血红交织的能量/焰边、宽大带锯齿的护手、护手中央醒目的**红色发光核心/宝石**；整体为诅咒/深渊大剑气质。若与 player 精灵武器剪影冲突，以本装备参考为准细化造型与配色。"""
+
+    user_message = f"""【用户本次需求】
+{user_input.strip()}
+
+【PROJECT.md 摘录（前约 9000 字）】
+{game_ctx.get("project_md", "")}
+
+【Boss 列表（含技能名，供你对号入座）】
+{json.dumps(game_ctx.get("bosses") or [], ensure_ascii=False)}
+
+【怪物抽样（type_id、中文名、简述、主题色）】
+{json.dumps(game_ctx.get("monsters_compact") or [], ensure_ascii=False)}
+
+【装备中文名抽样（氛围参考，不必画装备静物）】
+{json.dumps(game_ctx.get("equipment_names_sample") or [], ensure_ascii=False)}
+
+【monsters-overview.md 摘录（若有）】
+{game_ctx.get("monsters_overview_excerpt", "")[:2600]}
+"""
+    if reference_player_gif and not player_sprite_data_url:
+        user_message += "\n\n【说明】未找到或未读取 player.gif 首帧；请仅根据文字与 PROJECT.md 推断暗黑奇幻主角立绘。"
+
+    headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
+    user_content: list | str = user_message
+    parts: list = [{"type": "text", "text": user_message}]
+    if player_sprite_data_url:
+        parts.append({"type": "image_url", "image_url": {"url": player_sprite_data_url}})
+    if weapon_sprite_data_url:
+        parts.append({"type": "image_url", "image_url": {"url": weapon_sprite_data_url}})
+    if len(parts) > 1:
+        user_content = parts
+
+    body = {
+        "model": CHAT_MODEL,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_content},
+        ],
+        "temperature": 0.45,
+    }
+    resp = requests.post(CHAT_URL, headers=headers, json=body, timeout=180)
+    if not resp.ok and isinstance(user_content, list) and len(user_content) > 1:
+        # 部分网关不支持多模态，回退为纯文本（仍提示模型按主角文案与 PROJECT 推断）
+        print(
+            f"提示：多模态规划请求失败（HTTP {resp.status_code}），将改为纯文本规划；"
+            "若需参考图对齐，请换用支持 vision 的 PE_CHAT_MODEL 或检查网关。"
+        )
+        body["messages"] = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_message + "\n\n【说明】无法上传参考图，请仅根据文字设计立绘。"},
+        ]
+        resp = requests.post(CHAT_URL, headers=headers, json=body, timeout=180)
+    resp.raise_for_status()
+    data = resp.json()
+    content = data["choices"][0]["message"]["content"].strip()
+    if "```" in content:
+        content = re.sub(r"^```\w*\n?", "", content)
+        content = re.sub(r"\n?```\s*$", "", content)
+        content = content.strip()
+    try:
+        plan = json.loads(content)
+    except json.JSONDecodeError:
+        start = content.find("{")
+        end = content.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            plan = json.loads(content[start : end + 1])
+        else:
+            raise RuntimeError(f"立绘规划返回非 JSON：{content[:240]!r}")
+    plan.setdefault("style_notes", "")
+    plan.setdefault("relative_folder", "character_splash")
+    if reference_player_gif:
+        plan.setdefault("filename", f"gi_splash_protagonist_{_asset_digest8(user_input)}.png")
+    else:
+        plan.setdefault("filename", f"gi_splash_{_asset_digest8(user_input)}.png")
+    return plan
+
+
+def detect_genshin_character_splash_nl(user_input: str) -> bool:
+    """自然语言：原神风格 / Genshin + 立绘或生成类动词。"""
+    t = user_input.strip()
+    if not t:
+        return False
+    tl = t.lower()
+    has_style = (
+        "原神" in t
+        or "genshin" in tl
+        or "米哈游" in t
+        or "hoyoverse" in tl
+        or "星铁" in t
+        or "崩铁" in t
+    )
+    has_art = (
+        "立绘" in t
+        or "splash" in tl
+        or "宣传图" in t
+        or "角色画" in t
+        or "插画" in t
+    )
+    has_do = any(k in t for k in ("生成", "画", "做", "出图", "来一张", "帮我", "要", "弄个"))
+    return has_style and (has_art or has_do)
+
+
+def detect_genshin_protagonist_splash_nl(user_input: str) -> bool:
+    """自然语言：主角/主人公 + 原神类风格 + 立绘类意图（优先于普通立绘检测）。"""
+    t = user_input.strip()
+    if not t:
+        return False
+    if "主角" not in t and "主人公" not in t:
+        return False
+    return detect_genshin_character_splash_nl(user_input)
+
+
+def infer_protagonist_player_sprite_from_text(user_request: str) -> bool:
+    """根据用户文案判断是否应附带 player.gif 参考（主角 / player.gif）。"""
+    t = user_request or ""
+    tl = t.lower()
+    return (
+        "主角" in t
+        or "主人公" in t
+        or "player.gif" in tl
+        or "player gif" in tl
+    )
+
+
+def infer_white_background_from_text(user_request: str) -> bool:
+    """用户文案是否要求纯白背景。"""
+    t = user_request or ""
+    tl = t.lower()
+    return (
+        "白底" in t
+        or "白色背景" in t
+        or "纯白" in t
+        or "白背景" in t
+        or "白色底" in t
+        or "white background" in tl
+        or "white backdrop" in tl
+    )
+
+
+def resolve_weapon_ref_path(weapon_ref_path: str | Path | None) -> Path | None:
+    """CLI / 调用方给出的装备参考图路径；未给时读环境变量 PE_GENSHIN_WEAPON_REF。"""
+    raw = weapon_ref_path
+    if raw is None or (isinstance(raw, str) and not str(raw).strip()):
+        env = (os.environ.get("PE_GENSHIN_WEAPON_REF") or "").strip()
+        if not env:
+            return None
+        raw = env
+    p = Path(str(raw).strip())
+    if not p.is_absolute():
+        p = (PROJECT_ROOT / p).resolve()
+    return p if p.is_file() else None
+
+
+def run_genshin_character_splash(
+    user_request: str,
+    dry_run: bool = False,
+    *,
+    reference_player_gif: bool | None = None,
+    white_background: bool | None = None,
+    weapon_ref_path: str | Path | None = None,
+) -> None:
+    """收集游戏上下文 → GPT 规划（可选 player.gif / 装备图 / 白底）→ Imagen 生成原神风格立绘 → 写入 asset/character_splash/。"""
+    user_request = (user_request or "").strip()
+    if not user_request:
+        print("请提供要画的对象或说明，例如：为「霜渊领主」生成原神风格立绘。")
+        return
+    use_player_ref = (
+        bool(reference_player_gif)
+        if reference_player_gif is not None
+        else infer_protagonist_player_sprite_from_text(user_request)
+    )
+    use_white_bg = (
+        bool(white_background)
+        if white_background is not None
+        else infer_white_background_from_text(user_request)
+    )
+    wpath = resolve_weapon_ref_path(weapon_ref_path)
+    weapon_url = image_file_to_png_data_url(wpath) if wpath else None
+    attempt_weapon = (weapon_ref_path is not None and str(weapon_ref_path).strip() != "") or bool(
+        (os.environ.get("PE_GENSHIN_WEAPON_REF") or "").strip()
+    )
+    if attempt_weapon and not weapon_url:
+        print("提示：已指定装备参考图路径或 PE_GENSHIN_WEAPON_REF，但文件不存在或无法解码。")
+    elif wpath and weapon_url:
+        try:
+            rel_disp = wpath.relative_to(PROJECT_ROOT)
+        except ValueError:
+            rel_disp = wpath
+        print(f"已读取装备武器参考图：{rel_disp}")
+
+    player_url = player_gif_first_frame_data_url() if use_player_ref else None
+    if use_player_ref and not player_url:
+        print(
+            "提示：未找到或未读取 player.gif（已查 asset/player.gif、asset/player/player.gif、"
+            "deployment/asset/player.gif）。将仅用文字与 PROJECT.md 规划主角立绘。"
+        )
+    elif use_player_ref and player_url:
+        print("已读取 player.gif 首帧，将作为多模态参考传给规划模型（需网关支持 vision）。")
+
+    req_for_plan = user_request
+    if attempt_weapon and not weapon_url:
+        req_for_plan += (
+            "\n\n【系统说明】未能加载装备参考图文件；请在 image_prompt 中用英文具体描述双手大剑："
+            "broad dark blade, black and blood-red swirling energy along the edge, jagged crossguard, "
+            "prominent glowing red gem or eye at the center of the guard, cursed claymore aesthetic."
+        )
+
+    print("正在收集游戏内容（PROJECT.md、Boss、怪物表、装备名抽样）…")
+    gctx = collect_genshin_character_game_context()
+    print("正在由 GPT 结合游戏数据规划立绘提示词…")
+    plan = call_gpt_plan_genshin_character_splash(
+        gctx,
+        req_for_plan,
+        reference_player_gif=use_player_ref,
+        player_sprite_data_url=player_url,
+        white_background=use_white_bg,
+        weapon_sprite_data_url=weapon_url,
+    )
+    print("规划结果：")
+    print(json.dumps(plan, ensure_ascii=False, indent=2))
+    if dry_run:
+        print("（dry-run，未请求生图）")
+        return
+    base = (plan.get("image_prompt") or "").strip()
+    if not base:
+        print("规划缺少 image_prompt，中止。")
+        return
+    notes = (plan.get("style_notes") or "").strip()
+    full_prompt = f"{base}. {notes}. {GENSHIN_CHARACTER_STYLE_TEMPLATE}".strip()
+    if use_white_bg:
+        full_prompt = f"{full_prompt.rstrip()}. {GENSHIN_WHITE_BACKDROP_SUFFIX}".strip()
+    extra_neg = GENSHIN_SPLASH_EXTRA_NEGATIVE_WHITE_BG if use_white_bg else ""
+    print("正在调用图像模型生成立绘（可能需数十秒）…")
+    raw = generate_image(
+        full_prompt,
+        "",
+        for_genshin_character_splash=True,
+        extra_negative=extra_neg,
+    )
+    folder = (plan.get("relative_folder") or "character_splash").strip() or "character_splash"
+    fname = (plan.get("filename") or "").strip()
+    if not fname.lower().endswith(".png"):
+        fname = f"{fname or 'gi_splash'}.png"
+    fname = sanitize_generated_asset_filename(fname, seed=user_request)
+    ART_CHARACTER_SPLASH.mkdir(parents=True, exist_ok=True)
+    dest = save_image(raw, folder, fname)
+    print(f"已保存：{dest.relative_to(PROJECT_ROOT)}")
+
+
 def _bytes_from_gemini_style_response(data):
     """从 generateContent 类 JSON 中递归查找 inlineData/base64 图片。"""
 
@@ -2497,9 +2949,10 @@ def generate_image(
     for_projectile: bool = False,
     for_projectile_staff_magic: bool = False,
     for_monster_texture: bool = False,
+    for_genshin_character_splash: bool = False,
     extra_negative: str = "",
 ) -> bytes:
-    """调用 Imagen API 生成图片，返回 PNG 字节。技能图标、飞射体、装备与怪物贴图可带专用 negative_prompt。"""
+    """调用 Imagen API 生成图片，返回 PNG 字节。技能图标、飞射体、装备、怪物贴图与原神风立绘可带专用 negative_prompt。"""
     try:
         import requests
     except ImportError:
@@ -2536,6 +2989,8 @@ def generate_image(
         base_neg = EQUIPMENT_NON_WEAPON_NEGATIVE_PROMPT
     elif for_monster_texture and MONSTER_TEXTURE_NEGATIVE_PROMPT:
         base_neg = MONSTER_TEXTURE_NEGATIVE_PROMPT
+    elif for_genshin_character_splash and GENSHIN_CHARACTER_NEGATIVE_PROMPT:
+        base_neg = GENSHIN_CHARACTER_NEGATIVE_PROMPT
     staff_extra = (
         PROJECTILE_STAFF_MAGIC_EXTRA_NEGATIVE
         if (for_projectile and for_projectile_staff_magic)
@@ -2544,7 +2999,7 @@ def generate_image(
     neg_parts = [p for p in (base_neg, staff_extra, (extra_negative or "").strip()) if p]
     if neg_parts:
         body["negative_prompt"] = ", ".join(neg_parts)
-    if for_skill_icon or for_projectile:
+    if for_skill_icon or for_projectile or for_genshin_character_splash:
         body["quality"] = "ultra-detail"
         body["style_strength"] = 0.95
         body["steps"] = 60
@@ -2841,7 +3296,61 @@ def main():
         action="store_true",
         help="与 --batch-monster-textures 联用：跳过 Boss，仅处理合并后的 MONSTER_TYPES",
     )
+    parser.add_argument(
+        "--genshin-character-splash",
+        nargs="*",
+        default=argparse.SUPPRESS,
+        metavar="描述",
+        help="读取游戏内 Boss/怪物/PROJECT.md 等上下文，由 GPT 规划原神风格角色立绘并生图至 asset/character_splash/",
+    )
+    parser.add_argument(
+        "--genshin-protagonist-splash",
+        nargs="*",
+        default=argparse.SUPPRESS,
+        metavar="描述",
+        help="主角专用：附 player.gif 首帧作多模态参考（若文件存在），生成原神风立绘至 asset/character_splash/",
+    )
+    parser.add_argument(
+        "--genshin-white-bg",
+        action="store_true",
+        help="原神立绘：纯白背景 #FFFFFF（也可在描述里写「白底/白色背景」自动识别）",
+    )
+    parser.add_argument(
+        "--genshin-weapon-ref",
+        default="",
+        metavar="PATH",
+        help="原神立绘：手中武器参考图（PNG/JPG/GIF 首帧），相对项目根或绝对路径；或设环境变量 PE_GENSHIN_WEAPON_REF",
+    )
     args = parser.parse_args()
+
+    _wref = (getattr(args, "genshin_weapon_ref", "") or "").strip()
+    _splash_kw = {
+        "white_background": (True if getattr(args, "genshin_white_bg", False) else None),
+        "weapon_ref_path": (_wref if _wref else None),
+    }
+
+    if hasattr(args, "genshin_protagonist_splash"):
+        req = " ".join(args.genshin_protagonist_splash or []).strip()
+        if not req:
+            req = (getattr(args, "input", None) or "").strip()
+        if not req:
+            req = "为像素永恒主角生成原神风格全身立绘，气质贴合暗黑塔防 RPG"
+        run_genshin_character_splash(
+            req, dry_run=args.dry_run, reference_player_gif=True, **_splash_kw
+        )
+        return
+
+    if hasattr(args, "genshin_character_splash"):
+        req = " ".join(args.genshin_character_splash or []).strip()
+        if not req:
+            req = (getattr(args, "input", None) or "").strip()
+        if not req:
+            print(
+                "请提供立绘需求，例如：python tools/art_generator.py --genshin-character-splash 为塔卫·初临画原神风立绘"
+            )
+            sys.exit(1)
+        run_genshin_character_splash(req, dry_run=args.dry_run, **_splash_kw)
+        return
 
     if args.deep_theme or args.deep_quality:
         if not (args.deep_theme and args.deep_quality):
@@ -3000,6 +3509,14 @@ def main():
             force=args.force_monster_textures,
             include_boss=not args.monster_textures_no_boss,
         )
+        return
+
+    if detect_genshin_protagonist_splash_nl(user_input):
+        run_genshin_character_splash(user_input, dry_run=args.dry_run, reference_player_gif=True)
+        return
+
+    if detect_genshin_character_splash_nl(user_input):
+        run_genshin_character_splash(user_input, dry_run=args.dry_run)
         return
 
     # 深阶：equipment-deep-config.json（先于「所有装备」以免「所有深阶装备」误走基础表）

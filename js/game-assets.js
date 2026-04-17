@@ -4,6 +4,56 @@
  */
 
 /**
+ * 为重试请求追加 cache-bust 参数（保留原有 query）
+ * @param {string} originalUrl
+ * @param {number} attempt
+ * @returns {string}
+ */
+function peBustUrl(originalUrl, attempt) {
+    try {
+        const u = new URL(originalUrl, typeof window !== 'undefined' ? window.location.href : undefined);
+        u.searchParams.delete('_pebust');
+        u.searchParams.set('_pebust', String(attempt) + '.' + Date.now());
+        return u.href;
+    } catch (e) {
+        const s = String(originalUrl);
+        const stripped = s.replace(/([?&])_pebust=[^&#]*/g, '').replace(/[?&]$/, '');
+        const sep = stripped.indexOf('?') >= 0 ? '&' : '?';
+        return stripped + sep + '_pebust=' + attempt + '.' + Date.now();
+    }
+}
+
+/**
+ * 通过 Image 加载 PNG；后台标签页可能节流或偶发失败，带短退避重试。
+ * @param {string} url
+ * @param {number} [maxAttempts=4]
+ * @returns {Promise<HTMLImageElement|null>}
+ */
+function peLoadImageWithRetry(url, maxAttempts) {
+    const n = maxAttempts == null ? 4 : maxAttempts;
+    return new Promise((resolve) => {
+        let attempt = 0;
+        function tryLoad() {
+            attempt++;
+            const img = new Image();
+            const src = attempt === 1 ? url : peBustUrl(url, attempt);
+            img.onload = () => resolve(img);
+            img.onerror = () => {
+                if (attempt < n) {
+                    const hidden = typeof document !== 'undefined' && document.hidden;
+                    const delay = hidden ? 180 + attempt * 140 : 40 + attempt * 50;
+                    setTimeout(tryLoad, delay);
+                } else {
+                    resolve(null);
+                }
+            };
+            img.src = src;
+        }
+        tryLoad();
+    });
+}
+
+/**
  * 资源管理器类
  * 管理装备等图片资源
  */
@@ -115,24 +165,14 @@ class AssetManager {
             imagePath = baseUrl + 'asset/' + imageName;
         }
 
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-
-            img.onload = () => {
-                // 直接使用同源 PNG URL，不再经 canvas → toDataURL。
-                // 旧管线会重编码 PNG，部分透明底素材在浏览器里会变成不透明黑底；CSS backgroundSize 负责缩放。
-                this.equipmentImageCache.set(imageName, imagePath);
-                resolve(imagePath);
-            };
-            
-            img.onerror = (e) => {
-                console.error(`无法加载装备图片: ${imageName}`, e);
+        return peLoadImageWithRetry(imagePath, 4).then((img) => {
+            if (!img) {
+                console.error(`无法加载装备图片: ${imageName}`);
                 console.error(`尝试的路径: ${imagePath}`);
-                reject(new Error(`无法加载图片: ${imageName}`));
-            };
-            
-            // 设置图片源
-            img.src = imagePath;
+                return Promise.reject(new Error(`无法加载图片: ${imageName}`));
+            }
+            this.equipmentImageCache.set(imageName, imagePath);
+            return imagePath;
         });
     }
 
@@ -396,22 +436,14 @@ class AssetManager {
             imagePath = baseUrl + 'asset/' + imageName;
         }
 
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            
-            img.onload = () => {
-                this.monsterImageCache.set(imageName, img);
-                resolve(img);
-            };
-            
-            img.onerror = (e) => {
-                console.warn(`无法加载怪物贴图: ${imageName}`, e);
-                // 即使加载失败也缓存null，避免重复尝试
+        return peLoadImageWithRetry(imagePath, 4).then((img) => {
+            if (!img) {
+                console.warn(`无法加载怪物贴图: ${imageName}`);
                 this.monsterImageCache.set(imageName, null);
-                resolve(null);
-            };
-            
-            img.src = imagePath;
+                return null;
+            }
+            this.monsterImageCache.set(imageName, img);
+            return img;
         });
     }
 
@@ -435,23 +467,15 @@ class AssetManager {
             imagePath = baseUrl + 'asset/' + imageName;
         }
 
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            
-            img.onload = () => {
-                this.entityImageCache.set(imageName, img);
-                resolve(img);
-            };
-            
-            img.onerror = (e) => {
-                console.warn(`无法加载实体贴图: ${imageName}`, e);
+        return peLoadImageWithRetry(imagePath, 4).then((img) => {
+            if (!img) {
+                console.warn(`无法加载实体贴图: ${imageName}`);
                 console.warn(`尝试的路径: ${imagePath}`);
-                // 即使加载失败也缓存null，避免重复尝试
                 this.entityImageCache.set(imageName, null);
-                resolve(null);
-            };
-            
-            img.src = imagePath;
+                return null;
+            }
+            this.entityImageCache.set(imageName, img);
+            return img;
         });
     }
 
@@ -518,49 +542,61 @@ class AssetManager {
 
         console.log('loadPlayerGifFrames: 开始加载并分解 GIF，路径:', imagePath);
 
-        return new Promise((resolve, reject) => {
-            // 使用 libgif.js 来解析 GIF
-            // 如果没有 libgif.js，使用备用方案：创建一个隐藏的 img 元素并逐帧提取
-            const img = document.createElement('img');
-            img.style.display = 'none';
-            img.style.position = 'absolute';
-            img.style.visibility = 'hidden';
-            document.body.appendChild(img);
+        return new Promise((resolve) => {
+            let attempt = 0;
+            const maxAttempts = 4;
+            const tryLoad = () => {
+                attempt++;
+                const img = document.createElement('img');
+                img.style.display = 'none';
+                img.style.position = 'absolute';
+                img.style.visibility = 'hidden';
+                document.body.appendChild(img);
 
-            // 安全的移除函数
-            const safeRemove = () => {
-                try {
-                    if (img && img.parentNode === document.body) {
-                        document.body.removeChild(img);
+                const safeRemove = () => {
+                    try {
+                        if (img && img.parentNode === document.body) {
+                            document.body.removeChild(img);
+                        }
+                    } catch (e) {
+                        // 忽略移除错误
                     }
-                } catch (e) {
-                    // 忽略移除错误
-                }
-            };
+                };
 
-            img.onload = () => {
-                console.log('loadPlayerGifFrames: GIF 加载成功，开始分解帧');
-                this._extractGifFrames(img).then(({frames, delays}) => {
-                    this.playerGifFrames = frames;
-                    this.playerGifFrameDelays = delays;
-                    this.playerGifLoaded = true;
+                const pathToTry = attempt === 1 ? imagePath : peBustUrl(imagePath, attempt);
+
+                img.onload = () => {
+                    console.log('loadPlayerGifFrames: GIF 加载成功，开始分解帧');
+                    this._extractGifFrames(img).then(({ frames, delays }) => {
+                        this.playerGifFrames = frames;
+                        this.playerGifFrameDelays = delays;
+                        this.playerGifLoaded = true;
+                        safeRemove();
+                        console.log(`loadPlayerGifFrames: 成功分解 ${frames.length} 帧`);
+                        resolve({ frames, delays });
+                    }).catch((error) => {
+                        console.error('loadPlayerGifFrames: 分解帧失败', error);
+                        safeRemove();
+                        resolve({ frames: [], delays: [] });
+                    });
+                };
+
+                img.onerror = (e) => {
+                    console.warn(`无法加载玩家 GIF (尝试 ${attempt}/${maxAttempts}): ${pathToTry}`, e);
                     safeRemove();
-                    console.log(`loadPlayerGifFrames: 成功分解 ${frames.length} 帧`);
-                    resolve({frames, delays});
-                }).catch(error => {
-                    console.error('loadPlayerGifFrames: 分解帧失败', error);
-                    safeRemove();
-                    resolve({frames: [], delays: []});
-                });
-            };
+                    if (attempt < maxAttempts) {
+                        const hidden = typeof document !== 'undefined' && document.hidden;
+                        const delay = hidden ? 200 + attempt * 150 : 80 + attempt * 60;
+                        setTimeout(tryLoad, delay);
+                    } else {
+                        console.error(`无法加载玩家 GIF: ${imagePath}`, e);
+                        resolve({ frames: [], delays: [] });
+                    }
+                };
 
-            img.onerror = (e) => {
-                console.error(`无法加载玩家 GIF: ${imagePath}`, e);
-                safeRemove();
-                resolve({frames: [], delays: []});
+                img.src = pathToTry;
             };
-
-            img.src = imagePath;
+            tryLoad();
         });
     }
 
@@ -698,21 +734,16 @@ class AssetManager {
             return Promise.resolve(existing);
         }
         if (existing instanceof HTMLImageElement && !existing.complete) {
-            return new Promise((resolve) => {
-                existing.onload = () => resolve(existing);
-                existing.onerror = () => resolve(null);
-            });
+            this.projectileSpriteImages.delete(spriteId);
         }
-        const img = new Image();
-        this.projectileSpriteImages.set(spriteId, img);
         const url = this._resolveUnderAssetUrl('projectiles/' + spriteId + '.png');
-        return new Promise((resolve) => {
-            img.onload = () => resolve(img);
-            img.onerror = () => {
+        return peLoadImageWithRetry(url, 4).then((img) => {
+            if (!img) {
                 console.warn('[AssetManager] 飞射体贴图缺失:', spriteId);
-                resolve(null);
-            };
-            img.src = url;
+                return null;
+            }
+            this.projectileSpriteImages.set(spriteId, img);
+            return img;
         });
     }
 

@@ -1,7 +1,7 @@
 /**
  * 合铸成功后：调用与 tools/art_generator 相同的 OpenAI 兼容 Chat + Imagen 接口，
  * 生成与原材料装备名称、词条及新装备名有关联的装备贴图，写入 AssetManager 并持久化。
- * 规划/生图任一步失败时按指数退避自动重试直至成功（可选 CONFIG.HEZHU_FUSION_ICON_RETRY_INITIAL_MS / _MAX_MS）。
+ * 规划/生图仅尝试一次：失败即由上层判定本次合铸失败。
  */
 (function () {
     'use strict';
@@ -10,22 +10,6 @@
     const CHROMA_THRESHOLD = 10;
     const CHAT_MODEL = (typeof CONFIG !== 'undefined' && CONFIG.HEZHU_FUSION_ICON_CHAT_MODEL) ? CONFIG.HEZHU_FUSION_ICON_CHAT_MODEL : 'gpt-4o-mini';
     const IMAGE_MODEL = (typeof CONFIG !== 'undefined' && CONFIG.HEZHU_FUSION_ICON_IMAGE_MODEL) ? CONFIG.HEZHU_FUSION_ICON_IMAGE_MODEL : 'imagen-4.0-ultra-generate-001';
-
-    function fusionIconRetryInitialMs() {
-        const v = typeof CONFIG !== 'undefined' ? CONFIG.HEZHU_FUSION_ICON_RETRY_INITIAL_MS : null;
-        const n = Number(v);
-        return Number.isFinite(n) && n > 0 ? n : 3000;
-    }
-
-    function fusionIconRetryMaxMs() {
-        const v = typeof CONFIG !== 'undefined' ? CONFIG.HEZHU_FUSION_ICON_RETRY_MAX_MS : null;
-        const n = Number(v);
-        return Number.isFinite(n) && n > 0 ? n : 90000;
-    }
-
-    function sleepMs(ms) {
-        return new Promise(function (resolve) { setTimeout(resolve, ms); });
-    }
 
     const STYLE_SUFFIX_BY_SLOT = {
         weapon: 'single weapon centered in frame, inventory item still-life, static pose, no action scene',
@@ -207,6 +191,11 @@
         return label + ' HTTP ' + status + ': ' + full.slice(0, 400) + credentialHint;
     }
 
+    function isQuotaExhaustedErrorMessage(msg) {
+        const s = String(msg || '');
+        return /insufficient_quota|quota|resource_exhausted|rate limit|billing|额度|配额|超额|429/i.test(s);
+    }
+
     async function chatPlanSubject(prompt, apiKey) {
         const url = apiBase() + '/v1/chat/completions';
         const res = await fetch(url, {
@@ -366,7 +355,7 @@
     }
 
     /**
-     * 合铸成功后异步生成并注册贴图；API 报错时按指数退避持续重试直至成功。
+     * 合铸成功后异步生成并注册贴图；仅尝试一次。
      * @param {Game} game
      * @param {string} newName
      * @param {Object} eqA
@@ -395,29 +384,21 @@
         const traitDescription = meta.traitDescription || '';
         const planPrompt = buildPlanPrompt(newName, eqA, eqB, slot, quality, traitDescription);
 
-        let delay = fusionIconRetryInitialMs();
-        const delayCap = fusionIconRetryMaxMs();
-        for (let attempt = 1; ; attempt++) {
-            try {
-                const subject = await chatPlanSubject(planPrompt, apiKey);
-                const fullPrompt = subject + '. ' + styleTemplate(slot);
-                const b64 = await generateImageB64(fullPrompt, apiKey);
-                const dataUrl = await processToDataUrl(b64, slot);
-                if (am && typeof am.registerFusionEquipmentPairAndName === 'function') {
-                    am.registerFusionEquipmentPairAndName(pairKey, newName, dataUrl);
-                }
-                if (attempt > 1) {
-                    console.log('合铸贴图：第 ' + attempt + ' 次尝试后已成功生成');
-                }
-                return;
-            } catch (err) {
-                console.warn(
-                    '合铸贴图第 ' + attempt + ' 次失败，约 ' + Math.round(delay / 1000) + ' 秒后重试（直至成功）',
-                    err && err.message ? err.message : err
-                );
-                await sleepMs(delay);
-                delay = Math.min(delayCap, Math.max(delay + 1000, Math.floor(delay * 1.45)));
+        try {
+            const subject = await chatPlanSubject(planPrompt, apiKey);
+            const fullPrompt = subject + '. ' + styleTemplate(slot);
+            const b64 = await generateImageB64(fullPrompt, apiKey);
+            const dataUrl = await processToDataUrl(b64, slot);
+            if (am && typeof am.registerFusionEquipmentPairAndName === 'function') {
+                am.registerFusionEquipmentPairAndName(pairKey, newName, dataUrl);
             }
+            return;
+        } catch (err) {
+            const msg = err && err.message ? String(err.message) : String(err || '未知错误');
+            if (isQuotaExhaustedErrorMessage(msg)) {
+                throw new Error('合铸台坏了，需要等待管理员大大修复喵~');
+            }
+            throw new Error('合铸失败，已返还装备');
         }
     }
 

@@ -413,3 +413,120 @@ class ParticleManager {
     }
 }
 
+/**
+ * 击杀怪物 / 宝箱等掉落的金币或经验光点：快速飞向玩家，同色拖尾，碰撞后才调用 game.gainGold / gainExp
+ */
+class RewardHomingPickup {
+    constructor(game, x, y, kind, amount, color, options = {}) {
+        this.game = game;
+        this.kind = kind === 'exp' ? 'exp' : 'gold';
+        this.amount = Math.max(0, Math.floor(amount || 0));
+        this.color = color || (this.kind === 'gold' ? '#ffd700' : '#00ff66');
+        this.x = x;
+        this.y = y;
+        this._originX = x;
+        this._originY = y;
+        this._outwardX = typeof options.outwardX === 'number' ? options.outwardX : x;
+        this._outwardY = typeof options.outwardY === 'number' ? options.outwardY : y;
+        this.radius = 5;
+        this.trailMax = 20;
+        this.trail = [];
+        this.age = 0;
+        /** 超时自动结算，避免奖励丢失 */
+        this.maxAgeMs = 85000;
+        /** 三段状态：外扩 -> 停顿 -> 追踪 */
+        this._phase = 'burst';
+        this._pauseMs = typeof options.pauseMs === 'number' ? options.pauseMs : 120;
+        this._burstSpeed = typeof options.burstSpeed === 'number' ? options.burstSpeed : 560;
+        this._homeSpeed = typeof options.homeSpeed === 'number' ? options.homeSpeed : 520;
+    }
+
+    _hexToRgba(hex, alpha) {
+        let h = (hex || '#ffffff').replace('#', '');
+        if (h.length === 3) {
+            h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+        }
+        const n = parseInt(h, 16);
+        if (Number.isNaN(n)) return `rgba(255,255,255,${alpha})`;
+        const r = (n >> 16) & 255;
+        const g = (n >> 8) & 255;
+        const b = n & 255;
+        return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    /**
+     * @param {number} dtMs
+     * @param {Player} player
+     * @returns {boolean} true 表示已拾取或销毁，应从列表移除
+     */
+    update(dtMs, player) {
+        if (this.amount <= 0 || !player) return true;
+        this.age += dtMs;
+        this.trail.push({ x: this.x, y: this.y });
+        if (this.trail.length > this.trailMax) this.trail.shift();
+
+        const ps = typeof CONFIG !== 'undefined' && CONFIG.PLAYER_SIZE ? CONFIG.PLAYER_SIZE : 20;
+        const pickupR = ps * 0.5 + this.radius + 8;
+        if (this._phase === 'burst') {
+            const dx = this._outwardX - this.x;
+            const dy = this._outwardY - this.y;
+            const dist = Math.hypot(dx, dy) || 1;
+            const step = this._burstSpeed * (dtMs / 1000);
+            this.x += (dx / dist) * Math.min(step, dist);
+            this.y += (dy / dist) * Math.min(step, dist);
+            if (dist < 8) {
+                this._phase = 'pause';
+            }
+        } else if (this._phase === 'pause') {
+            this._pauseMs -= dtMs;
+            if (this._pauseMs <= 0) {
+                this._phase = 'home';
+            }
+        } else {
+            const dx = player.x - this.x;
+            const dy = player.y - this.y;
+            const dist = Math.hypot(dx, dy) || 1;
+            const step = this._homeSpeed * (dtMs / 1000);
+            this.x += (dx / dist) * Math.min(step, dist);
+            this.y += (dy / dist) * Math.min(step, dist);
+            const distAfter = Math.hypot(player.x - this.x, player.y - this.y);
+            if (distAfter < pickupR) {
+                if (this.kind === 'gold') this.game.gainGold(this.amount);
+                else this.game.gainExp(this.amount);
+                return true;
+            }
+        }
+        if (this.age >= this.maxAgeMs) {
+            if (this.kind === 'gold') this.game.gainGold(this.amount);
+            else this.game.gainExp(this.amount);
+            return true;
+        }
+        return false;
+    }
+
+    draw(ctx) {
+        if (this.trail.length >= 2) {
+            ctx.save();
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            for (let i = 1; i < this.trail.length; i++) {
+                const t = i / (this.trail.length - 1);
+                ctx.strokeStyle = this._hexToRgba(this.color, 0.06 + t * 0.28);
+                ctx.lineWidth = 1.2 + t * 2.8;
+                ctx.beginPath();
+                ctx.moveTo(this.trail[i - 1].x, this.trail[i - 1].y);
+                ctx.lineTo(this.trail[i].x, this.trail[i].y);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+        ctx.save();
+        ctx.globalAlpha = 0.68;
+        ctx.fillStyle = this.color;
+        const s = 5;
+        const half = Math.floor(s / 2);
+        ctx.fillRect(Math.floor(this.x) - half, Math.floor(this.y) - half, s, s);
+        ctx.restore();
+    }
+}
+

@@ -655,7 +655,9 @@ class DroppedItem {
         this.glowIntensity = 0; // 光芒强度（0-1）
         this.glowDirection = 1; // 光芒方向（1向上，-1向下）
         this.createdTime = Date.now();
-        this.canPickup = true; // 是否可以拾取
+        this.canPickup = true; // 是否可以拾取（保留字段；不再用于“背包满后永久禁用”）
+        this.nextPickupTryAt = 0; // 下次允许尝试拾取的时间戳（避免每帧重试）
+        this.lastPickupFailTextAt = 0; // 上次显示“无法拾取”提示时间（避免刷屏）
         this.gameInstance = gameInstance; // 保存gameInstance引用，用于访问assetManager
         this.imageUrl = null; // 缓存的图片URL
         this.image = null; // 缓存的Image对象
@@ -663,7 +665,7 @@ class DroppedItem {
         this.imageLoading = false; // 是否正在加载图片
     }
     
-    update(gameInstance) {
+    update(gameInstance, pickupTriggered = false) {
         // 保存gameInstance引用（如果传入）
         if (gameInstance && !this.gameInstance) {
             this.gameInstance = gameInstance;
@@ -694,14 +696,23 @@ class DroppedItem {
             const dy = this.y - gameInstance.player.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            if (distance < this.pickupRange && this.canPickup) {
+            if (distance < this.pickupRange) {
+                if (!pickupTriggered) return false;
+                const now = Date.now();
+                if (now < (this.nextPickupTryAt || 0)) return false;
                 // 尝试拾取
-                if (gameInstance.addItemToInventory(this.item)) {
+                const markAsTowerNew = !(this.item && this.item._towerPlayerDropped);
+                if (gameInstance.addItemToInventory(this.item, false, { markAsTowerNew: markAsTowerNew })) {
+                    if (this.item && this.item._towerPlayerDropped) {
+                        delete this.item._towerPlayerDropped;
+                    }
                     // 拾取成功，移除掉落物
                     return true;
-                } else {
-                    // 无法拾取（背包满了）
-                    this.canPickup = false;
+                }
+                // 无法拾取（通常是背包满）：不要永久禁用，给个冷却后允许再次尝试
+                this.nextPickupTryAt = now + 900;
+                if (now - (this.lastPickupFailTextAt || 0) > 1200) {
+                    this.lastPickupFailTextAt = now;
                     gameInstance.addFloatingText(this.x, this.y, '无法拾取', '#ff0000');
                 }
             }
@@ -1025,6 +1036,13 @@ class Monster {
             return; // 被冰冻时不能移动
         } else if (this.frozenUntil && now >= this.frozenUntil) {
             this.frozenUntil = null; // 冰冻效果结束
+        }
+        if (this._hitStunUntil && now < this._hitStunUntil) {
+            this.vx *= 0.78;
+            this.vy *= 0.78;
+            this.x += this.vx;
+            this.y += this.vy;
+            return;
         }
 
         if (!this.isElite && this._pendulumSweep && this._tickPendulumSweep(player, now)) {
@@ -5190,6 +5208,16 @@ class Player {
                 if (this.gameInstance && this.gameInstance.soundManager) {
                     this.gameInstance.soundManager.playSound('hit');
                 }
+                if (this.gameInstance && mainSkillDmg > 0) {
+                    this.gameInstance.triggerHitImpact(monster.x, monster.y, {
+                        isRanged: isPlayerWeaponRanged(weapon),
+                        isCrit: isCrit,
+                        target: monster,
+                        sourceX: this.x,
+                        sourceY: this.y,
+                        skipSound: true
+                    });
+                }
                 
                 // 应用精炼效果：技能命中后恢复生命（坠星裁决4-5级）
                 if (skill.refine_healOnHit && this.gameInstance) {
@@ -5834,8 +5862,20 @@ class Player {
                         targetY: nearest.y,
                         projectileSpriteId: resolveProjectileSpriteIdForPlayerWeapon(weapon)
                     });
+                    if (Math.floor(damage) > 0) {
+                        this.gameInstance.triggerHitImpact(nearest.x, nearest.y, {
+                            isRanged: true,
+                            isCrit: isCrit,
+                            target: nearest,
+                            sourceX: this.x,
+                            sourceY: this.y,
+                            skipSound: true
+                        });
+                    }
                 }
-                if (killed && this.gameInstance) this.processKillRewards([nearest]);
+                if (killed && this.gameInstance) {
+                    this.processKillRewards([nearest]);
+                }
                 return true;
             }
             
@@ -5899,6 +5939,16 @@ class Player {
                 if (!isDummy && damage > 0) this.applyLifeStealFromHit(Math.floor(damage));
                 if (!isDummy && this._ebOnHitHeal > 0 && damage > 0) {
                     this.heal(this._ebOnHitHeal, { playSound: false });
+                }
+                if (this.gameInstance && Math.floor(damage) > 0) {
+                    this.gameInstance.triggerHitImpact(monster.x, monster.y, {
+                        isRanged: false,
+                        isCrit: isCrit,
+                        target: monster,
+                        sourceX: this.x,
+                        sourceY: this.y,
+                        skipSound: true
+                    });
                 }
                 
                 // 显示伤害数字
@@ -9030,11 +9080,13 @@ class Player {
             if (typeof this.gameInstance.onMonsterSlain === 'function') {
                 this.gameInstance.onMonsterSlain(monster);
             }
-            this.gameInstance.gainExp(monster.expReward);
-            this.gameInstance.gainGold(monster.goldReward);
+            if (typeof this.gameInstance.spawnRewardPickupOrbs === 'function') {
+                this.gameInstance.spawnRewardPickupOrbs(monster.x, monster.y, monster.goldReward, monster.expReward, 32);
+            } else {
+                this.gameInstance.gainExp(monster.expReward);
+                this.gameInstance.gainGold(monster.goldReward);
+            }
             this.processKillTraits(monster);
-            this.gameInstance.addFloatingText(this.gameInstance.player.x, this.gameInstance.player.y, `+${monster.expReward} 经验`, '#00ff00');
-            this.gameInstance.addFloatingText(this.gameInstance.player.x, this.gameInstance.player.y, `+${monster.goldReward} 金币`, '#ffd700');
             this.handleSetKillEffects(monster);
             rollEquipmentDropAtMonster(monster, this.gameInstance, 0.3);
         });
@@ -9115,9 +9167,13 @@ class Player {
         // 猎手词条：攻击怪物时，有10%概率获得额外经验
         if (traitIdsIncludeBase(traitIds, 'hunter') && Math.random() < 0.1) {
             const extraExp = Math.floor(monster.expReward * 0.5);
-            if (this.gameInstance) {
-                this.gameInstance.gainExp(extraExp);
-                this.gameInstance.addFloatingText(this.x, this.y, `额外经验! +${extraExp}`, '#00ff00');
+            if (this.gameInstance && extraExp > 0) {
+                if (typeof this.gameInstance.spawnRewardPickupOrbs === 'function') {
+                    this.gameInstance.spawnRewardPickupOrbs(this.x, this.y, 0, extraExp, 18);
+                } else {
+                    this.gameInstance.gainExp(extraExp);
+                    this.gameInstance.addFloatingText(this.x, this.y, `额外经验! +${extraExp}`, '#00ff00');
+                }
             }
         }
         
@@ -9125,10 +9181,14 @@ class Player {
         if (traitIdsIncludeBase(traitIds, 'golden_contract')) {
             const extraGold = Math.floor(monster.goldReward * 0.3);
             const extraExp = Math.floor(monster.expReward * 0.3);
-            if (this.gameInstance) {
-                this.gameInstance.gainGold(extraGold);
-                this.gameInstance.gainExp(extraExp);
-                this.gameInstance.addFloatingText(this.x, this.y, `契约! +${extraGold}金 +${extraExp}经验`, '#ffd700');
+            if (this.gameInstance && (extraGold > 0 || extraExp > 0)) {
+                if (typeof this.gameInstance.spawnRewardPickupOrbs === 'function') {
+                    this.gameInstance.spawnRewardPickupOrbs(this.x, this.y, extraGold, extraExp, 22);
+                } else {
+                    this.gameInstance.gainGold(extraGold);
+                    this.gameInstance.gainExp(extraExp);
+                    this.gameInstance.addFloatingText(this.x, this.y, `契约! +${extraGold}金 +${extraExp}经验`, '#ffd700');
+                }
             }
         }
         
@@ -9144,9 +9204,13 @@ class Player {
         // 岁月青铜词条：击杀后有10%概率获得额外经验
         if (traitIdsIncludeBase(traitIds, 'years') && Math.random() < 0.1) {
             const extraExp = Math.floor(monster.expReward * 0.4);
-            if (this.gameInstance) {
-                this.gameInstance.gainExp(extraExp);
-                this.gameInstance.addFloatingText(this.x, this.y, `岁月! +${extraExp}`, '#00ff00');
+            if (this.gameInstance && extraExp > 0) {
+                if (typeof this.gameInstance.spawnRewardPickupOrbs === 'function') {
+                    this.gameInstance.spawnRewardPickupOrbs(this.x, this.y, 0, extraExp, 18);
+                } else {
+                    this.gameInstance.gainExp(extraExp);
+                    this.gameInstance.addFloatingText(this.x, this.y, `岁月! +${extraExp}`, '#00ff00');
+                }
             }
         }
 

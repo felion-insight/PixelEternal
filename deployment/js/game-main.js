@@ -164,6 +164,9 @@ class Game {
             ring: { startR: 8, endR: 36, durationMs: 120 },
             impactLines: { count: 6, speedPerFrame: 4, maxLength: 28, decay: 0.85 },
             particles: { melee: 48, ranged: 34 },
+            /** 非暴击：相对当前满额特效的粒子与震动比例（暴击仍用满额） */
+            nonCritParticleScale: 0.38,
+            nonCritShakeScale: 0.52,
             edgeFlash: { durationMs: 80, alpha: 0.45 },
             enemyKnock: { melee: 8, ranged: 6, flashMs: 100, stunMs: 90, rangedStunMs: 70 }
         };
@@ -3422,9 +3425,16 @@ class Game {
             this.hitStopTimer = Math.max(this.hitStopTimer, d);
         }
         this._hitStopRecoveryTicks = Math.max(this._hitStopRecoveryTicks, cfg.recoverySlowTicks);
-        this.hitStretchFrames = Math.max(this.hitStretchFrames, 1);
+        this.hitStretchFrames = Math.max(this.hitStretchFrames, isCrit ? 1 : 0);
 
-        const s = isRanged ? cfg.rangedShake : cfg.meleeShake;
+        const s0 = isRanged ? cfg.rangedShake : cfg.meleeShake;
+        const shakeSc = isCrit ? 1 : Math.max(0.2, cfg.nonCritShakeScale != null ? cfg.nonCritShakeScale : 0.52);
+        const s = {
+            ampMin: s0.ampMin * shakeSc,
+            ampMax: s0.ampMax * shakeSc,
+            durationMs: s0.durationMs,
+            bigFrames: isCrit ? s0.bigFrames : Math.max(0, (s0.bigFrames || 0) - 1)
+        };
         const amp = s.ampMin + Math.random() * (s.ampMax - s.ampMin);
         this.screenShake.amplitude = Math.max(this.screenShake.amplitude, amp);
         this.screenShake.timer = Math.max(this.screenShake.timer, s.durationMs);
@@ -3433,7 +3443,7 @@ class Game {
 
         this.edgeDamageFlash.timer = Math.max(this.edgeDamageFlash.timer, cfg.edgeFlash.durationMs);
         this.edgeDamageFlash.duration = cfg.edgeFlash.durationMs;
-        this.edgeDamageFlash.alpha = Math.min(0.9, Math.max(this.edgeDamageFlash.alpha, cfg.edgeFlash.alpha + (isCrit ? 0.08 : 0)));
+        this.edgeDamageFlash.alpha = Math.min(0.9, Math.max(this.edgeDamageFlash.alpha, cfg.edgeFlash.alpha + (isCrit ? 0.08 : 0.03)));
 
         if (!this.hitImpactEffects) this.hitImpactEffects = [];
         if (this.hitImpactEffects.length >= 10) this.hitImpactEffects.shift();
@@ -3482,9 +3492,15 @@ class Game {
 
     _spawnHitExplosionParticles(x, y, isRanged, isCrit) {
         if (!this.particleManager || typeof this.particleManager.createSystem !== 'function') return;
-        const cfg = this.hitFxConfig.particles;
-        const baseCount = isRanged ? cfg.ranged : cfg.melee;
-        const count = isCrit ? Math.floor(baseCount * 2) : baseCount;
+        const pcfg = this.hitFxConfig.particles;
+        const baseCount = isRanged ? pcfg.ranged : pcfg.melee;
+        const weakSc = this.hitFxConfig.nonCritParticleScale != null ? this.hitFxConfig.nonCritParticleScale : 0.38;
+        let count;
+        if (isCrit) {
+            count = Math.floor(baseCount * 2);
+        } else {
+            count = Math.max(10, Math.floor(baseCount * weakSc));
+        }
         this.particleManager.createSystem(x, y, {
             color: '#ffffff',
             size: 2.6,

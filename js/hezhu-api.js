@@ -5,8 +5,18 @@
 (function () {
     'use strict';
 
-    const API_BASE = (typeof CONFIG !== 'undefined' && CONFIG.HEZHU_API_BASE) ? CONFIG.HEZHU_API_BASE : 'https://generativelanguage.googleapis.com';
     const MODEL = (typeof CONFIG !== 'undefined' && CONFIG.HEZHU_MODEL) ? CONFIG.HEZHU_MODEL : 'gemini-3.1-flash-lite-preview';
+
+    /** 合铸文本 API 根地址（每次读取 CONFIG，避免异步合并配置后仍用旧字符串） */
+    function hezhuApiBase() {
+        const raw = (typeof CONFIG !== 'undefined' && CONFIG.HEZHU_API_BASE)
+            ? String(CONFIG.HEZHU_API_BASE).trim().replace(/\/+$/, '')
+            : 'https://generativelanguage.googleapis.com';
+        if (typeof window.resolveHezhuApiBaseForFetch === 'function') {
+            return window.resolveHezhuApiBaseForFetch(raw);
+        }
+        return raw;
+    }
     const STAT_KEYS = ['attack', 'critRate', 'critDamage', 'health', 'defense', 'dodge', 'attackSpeed', 'moveSpeed'];
 
     /**
@@ -113,7 +123,7 @@ ${JSON.stringify(payloadB, null, 2)}
             if (!apiKey) {
                 return localFuse(eqA, eqB);
             }
-            const url = `${API_BASE}/v1beta/models/${MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
+            const url = `${hezhuApiBase()}/v1beta/models/${MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
             const prompt = buildPrompt(gameContext, eqA, eqB);
             const body = {
                 contents: [{ parts: [{ text: prompt }] }],

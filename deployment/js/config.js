@@ -29,7 +29,7 @@ if (typeof window.CONFIG === 'undefined') {
         TICKS_PER_SECOND: 60,
         // 合铸功能（对应 docs/fusion.md 第5-7行）：API 根地址、API Key、模型名
         // 密钥请放在项目根或 tools/.env，并运行 node scripts/build-pe-env-js.js 生成 js/pe-env.generated.js
-        HEZHU_API_BASE: 'http://35.220.164.252:3888',
+        HEZHU_API_BASE: 'https://35.220.164.252:3888',
         HEZHU_API_KEY: '',
         HEZHU_MODEL: 'gemini-3.1-flash-lite-preview',
         // 设为 true 时合铸始终使用本地规则（不请求外网），无需 VPN
@@ -141,6 +141,25 @@ const CONFIG = window.CONFIG;
 window.PE_API_SECRET_LS_PREFIX = 'pixel_eternal.api.';
 
 /**
+ * 在 HTTPS 页面下将合铸网关的 http:// 基址升级为 https://，避免 Mixed Content 被浏览器拦截。
+ * 若网关未提供 TLS，需在部署侧配置反向代理（同源 HTTPS）或显式设置可用的 HEZHU_API_BASE。
+ * @param {string} base
+ * @returns {string}
+ */
+window.resolveHezhuApiBaseForFetch = function resolveHezhuApiBaseForFetch(base) {
+    const b = String(base == null ? '' : base).trim().replace(/\/+$/, '');
+    if (!b) return b;
+    try {
+        if (typeof location !== 'undefined' && location.protocol === 'https:' && /^http:\/\//i.test(b)) {
+            return b.replace(/^http:/i, 'https:');
+        }
+    } catch (e) {
+        /* ignore */
+    }
+    return b;
+};
+
+/**
  * 将 window.__PE_SECRETS__（pe-env.generated.js）与本机 localStorage 中的密钥合并进 CONFIG。
  * 顺序：生成文件 → localStorage 覆盖。
  * 在 config-loader 合并 JSON 之后会再次调用。
@@ -190,6 +209,10 @@ window.applyPeSecretsToConfig = function applyPeSecretsToConfig() {
     const hz = String(cfg.HEZHU_API_KEY || '').trim();
     if (!hz && art) {
         cfg.HEZHU_API_KEY = art;
+    }
+
+    if (cfg.HEZHU_API_BASE && typeof window.resolveHezhuApiBaseForFetch === 'function') {
+        cfg.HEZHU_API_BASE = window.resolveHezhuApiBaseForFetch(cfg.HEZHU_API_BASE);
     }
 };
 window.applyPeSecretsToConfig();

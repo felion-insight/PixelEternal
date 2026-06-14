@@ -110,13 +110,26 @@ class TooltipManager {
         }
         
         if (item) {
+            let displayItem = item;
+            const looksLikeEquipment =
+                displayItem.type === 'equipment' ||
+                (displayItem.slot != null && displayItem.stats != null && displayItem.quality != null);
+            if (!displayItem.getTooltipHTML && looksLikeEquipment &&
+                typeof this.game.serializeEquipment === 'function' &&
+                typeof this.game.deserializeEquipment === 'function') {
+                try {
+                    displayItem = this.game.deserializeEquipment(this.game.serializeEquipment(displayItem));
+                } catch (e) {
+                    console.warn('showItemTooltip: 无法将背包/穿戴数据还原为 Equipment 实例', e);
+                }
+            }
             // 支持装备和药水，装备传入当前已穿戴以区分套装激活/未激活
-            if (item.getTooltipHTML) {
-                const isEquipment = (item.type === 'equipment') || (item.slot != null && item.stats != null);
-                tooltip.innerHTML = isEquipment ? item.getTooltipHTML(this.game.player.equipment) : item.getTooltipHTML();
+            if (displayItem.getTooltipHTML) {
+                const isEquipment = (displayItem.type === 'equipment') || (displayItem.slot != null && displayItem.stats != null);
+                tooltip.innerHTML = isEquipment ? displayItem.getTooltipHTML(this.game.player.equipment) : displayItem.getTooltipHTML();
             } else {
                 // 兼容旧代码
-                tooltip.innerHTML = `<h4>${item.name || '未知物品'}</h4>`;
+                tooltip.innerHTML = `<h4>${displayItem.name || '未知物品'}</h4>`;
             }
             // 使用位置调整函数
             this.adjustTooltipPosition(tooltip, x, y);

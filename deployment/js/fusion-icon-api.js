@@ -39,8 +39,12 @@
     );
 
     function apiBase() {
-        const b = (typeof CONFIG !== 'undefined' && CONFIG.HEZHU_API_BASE) ? String(CONFIG.HEZHU_API_BASE) : 'http://35.220.164.252:3888';
-        return b.replace(/\/+$/, '');
+        const b = (typeof CONFIG !== 'undefined' && CONFIG.HEZHU_API_BASE) ? String(CONFIG.HEZHU_API_BASE) : 'https://35.220.164.252:3888';
+        const trimmed = b.replace(/\/+$/, '');
+        if (typeof window.resolveHezhuApiBaseForFetch === 'function') {
+            return window.resolveHezhuApiBaseForFetch(trimmed);
+        }
+        return trimmed;
     }
 
     function imageApiKey() {

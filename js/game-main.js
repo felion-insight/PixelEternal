@@ -4278,8 +4278,18 @@ class Game {
                     
                     if (qualityEquipments.length > 0) {
                         const randomEq = qualityEquipments[Math.floor(Math.random() * qualityEquipments.length)];
-                        // 宝箱奖励改为地面掉落：玩家靠近后按 E 拾取，拾取后计入塔内新获得
-                        const rewardEq = JSON.parse(JSON.stringify(randomEq));
+                        // 宝箱奖励改为地面掉落：须保留 Equipment 实例，JSON 深拷贝会变成普通对象导致悬停无详情
+                        const rewardEq = new Equipment({
+                            id: randomEq.id,
+                            name: randomEq.name,
+                            slot: randomEq.slot,
+                            weaponType: randomEq.weaponType,
+                            quality: randomEq.quality,
+                            level: randomEq.level,
+                            stats: JSON.parse(JSON.stringify(randomEq.stats)),
+                            refineLevel: randomEq.refineLevel || 0,
+                            enhanceLevel: randomEq.enhanceLevel || 0
+                        });
                         if (!rewardEq.uniqueId) {
                             rewardEq.uniqueId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
                         }

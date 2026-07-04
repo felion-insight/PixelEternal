@@ -27,7 +27,7 @@
         "slot": "weapon",
         "name": "魔法水晶剑",
         "level": 10,
-        "quality": "fine",
+        "quality": "magic",
         "attack": 50,
         "critRate": 17,
         "critDamage": 42,
@@ -47,7 +47,7 @@
         "slot": "chest",
         "name": "龙鳞护甲",
         "level": 10,
-        "quality": "fine",
+        "quality": "magic",
         "health": 64,
         "defense": 9,
         "isCrafted": true

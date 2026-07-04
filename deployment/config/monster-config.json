@@ -6,7 +6,7 @@
       "damage": 12,
       "color": "#00ff00",
       "level": 1,
-      "expReward": 10,
+      "expReward": 13,
       "goldReward": 5,
       "description": "弱小的绿色生物，是恶魔塔中最基础的敌人。虽然实力不强，但数量众多。",
       "dropInfo": "掉落1级装备（普通品质）"
@@ -17,7 +17,7 @@
       "damage": 15,
       "color": "#00cc00",
       "level": 1,
-      "expReward": 12,
+      "expReward": 15,
       "goldReward": 6,
       "moveSpeedMult": 0.96,
       "description": "经过训练的哥布林战士，比普通哥布林更强壮；步伐略沉但劈砍更有力。",
@@ -26,7 +26,7 @@
     "goblinShaman": {
       "name": "哥布林萨满",
       "hp": 55,
-      "damage": 18,
+      "damage": 15,
       "color": "#00ff88",
       "level": 1,
       "expReward": 13,

@@ -52,19 +52,10 @@ function loadMergedEnv() {
 function buildSecretsObject(env) {
     const get = (k) => (env[k] != null ? String(env[k]).trim() : '');
     const out = {};
-
-    const artKey = get('HEZHU_ART_API_KEY') || get('PE_ART_API_KEY');
-    if (artKey) out.HEZHU_ART_API_KEY = artKey;
-
-    const fusionIcon = get('HEZHU_FUSION_ICON_API_KEY') || artKey;
-    if (fusionIcon) out.HEZHU_FUSION_ICON_API_KEY = fusionIcon;
-
-    const hezhuApi = get('HEZHU_API_KEY') || get('PE_GEMINI_API_KEY') || artKey;
-    if (hezhuApi) out.HEZHU_API_KEY = hezhuApi;
-
-    const base = get('HEZHU_API_BASE') || get('PE_API_BASE');
-    if (base) out.HEZHU_API_BASE = base.replace(/\/+$/, '');
-
+    const artKey = get('PE_ART_API_KEY');
+    if (artKey) out.PE_ART_API_KEY = artKey;
+    const apiBase = get('PE_API_BASE');
+    if (apiBase) out.PE_API_BASE = apiBase.replace(/\/+$/, '');
     return out;
 }
 
@@ -94,7 +85,7 @@ function main() {
     console.log('已写入:', outMain);
     console.log('已写入:', outDeploy);
     if (Object.keys(secrets).length === 0) {
-        console.warn('提示: .env 中未找到 HEZHU_* / PE_ART_API_KEY / PE_API_BASE 等变量，生成文件为空对象。');
+        console.warn('提示: .env 中未找到 PE_ART_API_KEY / PE_API_BASE 等变量，生成文件为空对象。');
     }
 }
 

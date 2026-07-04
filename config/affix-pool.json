@@ -1,0 +1,840 @@
+{
+  "version": "1.0",
+  "prefixes": [
+    {
+      "id": "assault",
+      "name": "强袭",
+      "stat": "attack",
+      "isPercent": false,
+      "slots": [
+        "weapon",
+        "hands",
+        "ring"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 2,
+          "max": 8
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 7,
+          "max": 65
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 8,
+          "max": 80
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 10,
+          "max": 100
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 13,
+          "max": 125
+        }
+      ],
+      "classWeights": {
+        "warrior": 2,
+        "assassin": 1.5
+      }
+    },
+    {
+      "id": "vitality",
+      "name": "坚韧",
+      "stat": "health",
+      "isPercent": false,
+      "slots": [
+        "helmet",
+        "body",
+        "legs",
+        "belt"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 20,
+          "max": 200
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 26,
+          "max": 260
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 32,
+          "max": 320
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 40,
+          "max": 400
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 50,
+          "max": 500
+        }
+      ],
+      "classWeights": {
+        "warrior": 2
+      }
+    },
+    {
+      "id": "bulwark",
+      "name": "壁垒",
+      "stat": "defense",
+      "isPercent": false,
+      "slots": [
+        "helmet",
+        "body",
+        "legs",
+        "feet"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 5,
+          "max": 40
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 7,
+          "max": 52
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 8,
+          "max": 64
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 10,
+          "max": 80
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 13,
+          "max": 100
+        }
+      ],
+      "classWeights": {
+        "warrior": 2
+      }
+    },
+    {
+      "id": "arcane",
+      "name": "咒术",
+      "stat": "magicAttack",
+      "isPercent": false,
+      "slots": [
+        "weapon",
+        "helmet",
+        "amulet"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 4,
+          "max": 30
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 5,
+          "max": 39
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 6,
+          "max": 48
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 8,
+          "max": 60
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 10,
+          "max": 75
+        }
+      ],
+      "classWeights": {
+        "mage": 2
+      }
+    },
+    {
+      "id": "mend",
+      "name": "治愈",
+      "stat": "health",
+      "isPercent": false,
+      "slots": [
+        "amulet",
+        "ring"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 15,
+          "max": 80
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 20,
+          "max": 104
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 24,
+          "max": 128
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 30,
+          "max": 160
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 38,
+          "max": 200
+        }
+      ],
+      "classWeights": {
+        "mage": 1.5
+      }
+    },
+    {
+      "id": "leech",
+      "name": "汲取",
+      "stat": "lifeSteal",
+      "isPercent": true,
+      "slots": [
+        "weapon",
+        "hands"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 1,
+          "max": 5
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 1,
+          "max": 7
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 2,
+          "max": 8
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 2,
+          "max": 10
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 3,
+          "max": 13
+        }
+      ],
+      "classWeights": {
+        "assassin": 2,
+        "warrior": 1.5
+      }
+    },
+    {
+      "id": "thorn",
+      "name": "荆棘",
+      "stat": "thorn",
+      "isPercent": true,
+      "slots": [
+        "body",
+        "legs"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 2,
+          "max": 25
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 3,
+          "max": 33
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 3,
+          "max": 40
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 4,
+          "max": 50
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 5,
+          "max": 63
+        }
+      ],
+      "classWeights": {
+        "warrior": 2
+      }
+    },
+    {
+      "id": "flame",
+      "name": "火焰",
+      "stat": "attack",
+      "isPercent": false,
+      "slots": [
+        "weapon",
+        "amulet"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 3,
+          "max": 20
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 4,
+          "max": 26
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 5,
+          "max": 32
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 6,
+          "max": 40
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 8,
+          "max": 50
+        }
+      ],
+      "classWeights": {
+        "mage": 1.5
+      }
+    }
+  ],
+  "suffixes": [
+    {
+      "id": "precision",
+      "name": "精准",
+      "stat": "critRate",
+      "isPercent": true,
+      "slots": [
+        "weapon",
+        "hands",
+        "ring"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 2,
+          "max": 12
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 3,
+          "max": 16
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 3,
+          "max": 19
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 4,
+          "max": 24
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 5,
+          "max": 30
+        }
+      ],
+      "classWeights": {
+        "archer": 2,
+        "assassin": 2
+      }
+    },
+    {
+      "id": "deadly",
+      "name": "致命",
+      "stat": "critDamage",
+      "isPercent": true,
+      "slots": [
+        "weapon",
+        "hands",
+        "ring"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 8,
+          "max": 50
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 10,
+          "max": 65
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 13,
+          "max": 80
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 16,
+          "max": 100
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 20,
+          "max": 125
+        }
+      ],
+      "classWeights": {
+        "archer": 2,
+        "assassin": 2
+      }
+    },
+    {
+      "id": "haste",
+      "name": "疾风",
+      "stat": "attackSpeed",
+      "isPercent": true,
+      "slots": [
+        "weapon",
+        "hands",
+        "feet"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 5,
+          "max": 25
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 7,
+          "max": 33
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 8,
+          "max": 40
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 10,
+          "max": 50
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 13,
+          "max": 63
+        }
+      ],
+      "classWeights": {
+        "archer": 2,
+        "assassin": 1.5
+      }
+    },
+    {
+      "id": "swift",
+      "name": "迅捷",
+      "stat": "moveSpeed",
+      "isPercent": true,
+      "slots": [
+        "feet",
+        "belt"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 3,
+          "max": 15
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 4,
+          "max": 20
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 5,
+          "max": 24
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 6,
+          "max": 30
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 8,
+          "max": 38
+        }
+      ],
+      "classWeights": {
+        "archer": 2
+      }
+    },
+    {
+      "id": "evasion",
+      "name": "闪避",
+      "stat": "dodge",
+      "isPercent": true,
+      "slots": [
+        "legs",
+        "feet",
+        "ring"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 2,
+          "max": 12
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 3,
+          "max": 16
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 3,
+          "max": 19
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 4,
+          "max": 24
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 5,
+          "max": 30
+        }
+      ],
+      "classWeights": {
+        "assassin": 2
+      }
+    },
+    {
+      "id": "calm",
+      "name": "冷静",
+      "stat": "skillHaste",
+      "isPercent": true,
+      "slots": [
+        "helmet",
+        "amulet",
+        "belt"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 3,
+          "max": 15
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 4,
+          "max": 20
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 5,
+          "max": 24
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 6,
+          "max": 30
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 8,
+          "max": 38
+        }
+      ],
+      "classWeights": {
+        "mage": 2
+      }
+    },
+    {
+      "id": "spring",
+      "name": "涌泉",
+      "stat": "skillHaste",
+      "isPercent": true,
+      "slots": [
+        "amulet",
+        "ring",
+        "belt"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 5,
+          "max": 25
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 7,
+          "max": 33
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 8,
+          "max": 40
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 10,
+          "max": 50
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 13,
+          "max": 63
+        }
+      ],
+      "classWeights": {
+        "mage": 2
+      }
+    },
+    {
+      "id": "ward",
+      "name": "减伤",
+      "stat": "damageReduction",
+      "isPercent": true,
+      "slots": [
+        "body",
+        "helmet",
+        "amulet"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 1,
+          "max": 6
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 1,
+          "max": 8
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 2,
+          "max": 10
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 2,
+          "max": 12
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 3,
+          "max": 15
+        }
+      ],
+      "classWeights": {
+        "warrior": 2
+      }
+    },
+    {
+      "id": "greed",
+      "name": "贪婪",
+      "stat": "towerGoldBonus",
+      "isPercent": true,
+      "slots": [
+        "belt",
+        "ring"
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "minLevel": 1,
+          "min": 5,
+          "max": 35
+        },
+        {
+          "tier": 2,
+          "minLevel": 10,
+          "min": 7,
+          "max": 46
+        },
+        {
+          "tier": 3,
+          "minLevel": 20,
+          "min": 8,
+          "max": 56
+        },
+        {
+          "tier": 4,
+          "minLevel": 35,
+          "min": 10,
+          "max": 70
+        },
+        {
+          "tier": 5,
+          "minLevel": 50,
+          "min": 13,
+          "max": 88
+        }
+      ],
+      "classWeights": {}
+    }
+  ],
+  "tierColors": [
+    "#cccccc",
+    "#44cc44",
+    "#4488ff",
+    "#aa44ff",
+    "#ff8800"
+  ],
+  "tierNames": [
+    "凡",
+    "良",
+    "湛",
+    "炽",
+    "曜"
+  ],
+  "affixCounts": {
+    "normal": {
+      "prefixes": 0,
+      "suffixes": 0
+    },
+    "magic": {
+      "prefixes": 1,
+      "suffixes": [
+        0,
+        1
+      ]
+    },
+    "rare": {
+      "prefixes": [
+        1,
+        2
+      ],
+      "suffixes": [
+        1,
+        2
+      ]
+    },
+    "epic": {
+      "prefixes": [
+        2,
+        3
+      ],
+      "suffixes": 2
+    },
+    "legendary": {
+      "prefixes": 3,
+      "suffixes": 2
+    },
+    "mythic": {
+      "prefixes": 3,
+      "suffixes": 2
+    }
+  }
+}

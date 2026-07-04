@@ -59,6 +59,12 @@ class Game {
         this.currentScene = SCENE_TYPES.TOWN; // 当前场景：主城、恶魔塔、训练场
         this.townScene = new TownScene(this); // 主城场景
         this.trainingGroundScene = new TrainingGroundScene(this); // 训练场场景
+        this.skillLabScene = new SkillLabScene(this); // 技能实验场
+        this.trialScene = new TrialScene(this); // 转职试炼场景
+        this.dungeonScene = typeof window.DungeonScene !== 'undefined' ? new window.DungeonScene(this) : null;
+        this.activeTrial = null; // { kind, targetId, bossId, title }
+        this.activeDungeon = null; // { def, tier, dungeonId, tierId }
+        this.dungeonUI = null;
         this.currentRoom = null; // 恶魔塔房间
         this.floor = 1; // 当前层数
         this.lastDeathFloor = 1; // 上次死亡的层数
@@ -77,6 +83,7 @@ class Game {
         /** 自动同步节流时间戳 */
         this._lastSaveCodeSyncTimeMs = 0;
         this.paused = false; // 游戏暂停标志
+        this.classUI = null;
         this.lastFrameTime = performance.now(); // 上一帧时间
         this.frameCount = 0; // 帧计数器
         this.fps = 0; // 当前渲染FPS（保留用于显示）
@@ -137,10 +144,13 @@ class Game {
         this.combatPowerNotificationTimer = null;
         
         this.keys = {};
-        this.lastEKeyState = false; // 上次E键状态，用于检测按键按下事件
+        this.lastInteractKeyState = false; // 上次交互键状态，用于检测按键按下边沿
+        this.actionKeyState = {};
         this.mouse = { x: 0, y: 0, left: false };
         /** 落点技/锁定技：长按 Q、技能键或右键蓄力，松手释放；null 表示未在蓄力 */
         this.weaponSkillAim = null;
+        /** 职业技能长按瞄准预览 */
+        this.classSkillAim = null;
         this._weaponSkillGlobalMouseUp = (e) => {
             if (e.button === 0) this._onWeaponSkillInputUp('btn');
             else if (e.button === 2) this._onWeaponSkillInputUp('rmb');
@@ -178,12 +188,6 @@ class Game {
         this._lastHitImpactVfxTime = 0;
         this.edgeDamageFlash = { timer: 0, duration: 100, alpha: 0 };
         this.hitStretchFrames = 0;
-        
-        /** 合铸：30 秒锻炉 + 领取动画（见 doFusion / claim） */
-        this.fusionState = null;
-        this.fusionCompletionBannerShown = false;
-        this.lastFusionWeaponParticleTime = 0;
-        this._fusionRevealClickHandler = null;
         
         // 背包图片更新请求ID（用于取消之前的更新）
         this.inventoryImageUpdateRequestId = null;
@@ -261,16 +265,26 @@ class Game {
             // 收集所有需要加载的资源
             const resourcesToLoad = [];
             
-            // 1. 装备图片
-            console.log('获取所有装备名称...');
-            const allEquipments = generateEquipments();
-            const equipmentNames = [...new Set(allEquipments.map(eq => eq.name))];
-            equipmentNames.forEach(name => {
-                const imageName = this.assetManager.getEquipmentImageName(name);
-                if (imageName && !this.assetManager.equipmentImageCache.has(imageName)) {
-                    resourcesToLoad.push({ 
-                        type: 'equipment', 
-                        name, 
+            // 1. 装备图片（基型 + 槽位占位）
+            console.log('收集程序化装备图片路径...');
+            const imageNames = new Set();
+            if (typeof BASE_TYPES !== 'undefined' && BASE_TYPES) {
+                const addMap = (map) => {
+                    Object.keys(map || {}).forEach(id => imageNames.add('equipment/base/' + id + '.png'));
+                };
+                addMap(BASE_TYPES.weapons);
+                addMap(BASE_TYPES.offHand);
+                addMap(BASE_TYPES.armor);
+                addMap(BASE_TYPES.accessories);
+            }
+            ['weapon', 'offHand', 'helmet', 'body', 'hands', 'legs', 'feet', 'amulet', 'ring', 'belt'].forEach(slot => {
+                imageNames.add('equipment/slots/' + slot + '.png');
+            });
+            imageNames.forEach(imageName => {
+                if (!this.assetManager.equipmentImageCache.has(imageName)) {
+                    resourcesToLoad.push({
+                        type: 'equipment',
+                        name: imageName,
                         imageName,
                         loadFn: () => this.assetManager.loadAndProcessEquipmentImage(imageName)
                     });
@@ -542,6 +556,8 @@ class Game {
                     requestAnimationFrame(() => {
                         this.startGameLoop();
                         console.log(`游戏循环已启动（逻辑${ticksPerSecond}tps，渲染无上限）`);
+                        if (this.tutorialUI) this.tutorialUI.beginOnboarding();
+                        else if (this.classUI) this.classUI.maybeShowClassSelectOnStart();
                     });
                 }, 500); // 等待0.5秒（与CSS过渡时间一致）
                 
@@ -587,9 +603,19 @@ class Game {
         }
 
         this.initVolumeSettingsUI();
+        if (window.KeybindSystem) window.KeybindSystem.initSettingsUI(this);
 
         // 事件监听
         document.addEventListener('keydown', (e) => {
+            const KB = window.KeybindSystem;
+            if (KB && KB.isCapturing()) {
+                KB.handleCaptureKeydown(e);
+                return;
+            }
+
+            const action = KB ? KB.getActionForEvent(e) : null;
+            if (action) KB.setActionPressed(this, action, true);
+
             // F1：仅本地 start-server.py 启动时启用开发者模式
             if (e.key === 'F1') {
                 e.preventDefault();
@@ -598,9 +624,9 @@ class Game {
                 }
                 return;
             }
-            
-            // Q键：非落点技立即释放；落点技按下开始蓄力瞄准（松开后短按仍瞬发）
-            if (e.key.toLowerCase() === 'q' && !e.repeat && !this.player.isDashing) {
+
+            // 武器技能：非落点技立即释放；落点技按下开始蓄力瞄准
+            if (action === 'weaponSkill' && !e.repeat && !this.player.isDashing) {
                 this._onWeaponSkillInputDown('q');
             }
             
@@ -610,6 +636,10 @@ class Game {
                 
                 if (this.weaponSkillAim) {
                     this.cancelWeaponSkillAim();
+                    return;
+                }
+                if (this.classSkillAim) {
+                    this.cancelClassSkillAim();
                     return;
                 }
                 
@@ -624,6 +654,9 @@ class Game {
                 const dummySpawnModal = document.getElementById('dummy-spawn-modal');
                 const saveCodeModal = document.getElementById('save-code-modal');
                 const importSaveModal = document.getElementById('import-save-modal');
+                const characterPanelModal = document.getElementById('character-panel-modal');
+                const skillPanelModal = document.getElementById('skill-panel-modal');
+                const classSelectModal = document.getElementById('class-select-modal');
                 // 优先关闭确认对话框
                 if (towerExitConfirmModal && towerExitConfirmModal.classList.contains('show')) {
                     this.cancelExitTower();
@@ -658,12 +691,29 @@ class Game {
                     this.closeGapShopModal();
                     return;
                 }
-                if (shopModal && shopModal.classList.contains('show')) {
-                    this.closeShop();
-                    return;
-                }
                 if (blacksmithModal && blacksmithModal.classList.contains('show')) {
                     this.closeBlacksmith();
+                    return;
+                }
+                if (this.npcUI) {
+                    const npcModals = [
+                        ['class-master-modal', () => this.npcUI.closeClassMaster()],
+                        ['enchanter-modal', () => this.npcUI.closeEnchanter()],
+                        ['jeweler-modal', () => this.npcUI.closeJeweler()],
+                        ['chronicle-modal', () => this.npcUI.closeChronicle()],
+                        ['awakening-modal', () => this.npcUI.closeAwakening()],
+                        ['dungeon-hub-modal', () => this.dungeonUI && this.dungeonUI.close()]
+                    ];
+                    for (const [id, closeFn] of npcModals) {
+                        const el = document.getElementById(id);
+                        if (el && el.classList.contains('show')) {
+                            closeFn();
+                            return;
+                        }
+                    }
+                }
+                if (shopModal && shopModal.classList.contains('show')) {
+                    this.closeShop();
                     return;
                 }
                 if (inventoryModal && inventoryModal.classList.contains('show')) {
@@ -682,10 +732,39 @@ class Game {
                     this.closeTrainingGround();
                     return;
                 }
+                const skillLabModal = document.getElementById('skill-lab-modal');
+                if (skillLabModal && skillLabModal.classList.contains('show')) {
+                    if (this.skillLabUI) this.skillLabUI.close();
+                    return;
+                }
+                if (characterPanelModal && characterPanelModal.classList.contains('show')) {
+                    this.classUI.hideCharacterPanel();
+                    return;
+                }
+                if (skillPanelModal && skillPanelModal.classList.contains('show')) {
+                    this.classUI.hideSkillPanel();
+                    return;
+                }
+                if (classSelectModal && classSelectModal.classList.contains('show')) {
+                    if (window.hasPlayerClass(this.player.classData)) this.classUI.hideClassSelect();
+                    return;
+                }
                 
                 // 如果在训练场场景且没有其他模态框打开，直接返回主城
                 if (this.currentScene === SCENE_TYPES.TRAINING) {
                     this.returnToTown();
+                    return;
+                }
+                if (this.currentScene === SCENE_TYPES.SKILL_LAB) {
+                    this.exitSkillLab();
+                    return;
+                }
+                if (this.currentScene === SCENE_TYPES.TRIAL) {
+                    this.abortTrial();
+                    return;
+                }
+                if (this.currentScene === SCENE_TYPES.DUNGEON) {
+                    this.abortDungeon();
                     return;
                 }
                 
@@ -709,19 +788,19 @@ class Game {
             
             // 如果游戏暂停，只允许关闭界面
             if (this.paused) {
-                if (e.key.toLowerCase() === 'b') {
+                if (action === 'inventory') {
                     const modal = document.getElementById('inventory-modal');
                     if (modal.classList.contains('show')) {
                         this.toggleInventory();
                     }
                 }
-                if (e.key.toLowerCase() === 'h') {
+                if (action === 'codex') {
                     const codexModal = document.getElementById('codex-modal');
                     if (codexModal.classList.contains('show')) {
                         this.toggleCodex();
                     }
                 }
-                if (e.key.toLowerCase() === 'g') {
+                if (action === 'guide') {
                     const guideModal = document.getElementById('guide-modal');
                     if (guideModal.classList.contains('show')) {
                         this.toggleGuide();
@@ -729,39 +808,71 @@ class Game {
                 }
                 return; // 暂停时不处理其他按键
             }
-            
-            // 处理k键（冲刺键）
-            if (e.key.toLowerCase() === 'k') {
+
+            if (action === 'skillPanel' && !e.repeat) {
                 e.preventDefault();
-                this.keys['k'] = true;
-            } else {
+                if (this.classUI) this.classUI.toggleSkillPanel();
+                return;
+            }
+            if (action === 'characterPanel' && !e.repeat) {
+                e.preventDefault();
+                if (this.classUI) this.classUI.toggleCharacterPanel();
+                return;
+            }
+
+            if (e.key === 'Shift' && !action) {
+                this.keys['shift'] = true;
+            } else if (!action && e.key.toLowerCase() !== 'k') {
                 this.keys[e.key.toLowerCase()] = true;
             }
-            
-            if (e.key.toLowerCase() === 'b') {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                this.keys[e.key] = true;
+            }
+
+            if (!e.repeat && !this.player.isDashing) {
+                if (action === 'skill1') this._onClassSkillInputDown(0, 'skill1');
+                else if (action === 'skill2') this._onClassSkillInputDown(1, 'skill2');
+                else if (action === 'skill3') this._onClassSkillInputDown(2, 'skill3');
+                else if (action === 'skill4') this._onClassSkillInputDown(3, 'skill4');
+            }
+
+            if (action === 'inventory') {
                 this.toggleInventory();
             }
-            
-            // 图鉴快捷键：H
-            if (e.key.toLowerCase() === 'h') {
+            if (action === 'codex') {
                 this.toggleCodex();
             }
-            
-            // 游戏指导快捷键：G
-            if (e.key.toLowerCase() === 'g') {
+            if (action === 'guide') {
                 this.toggleGuide();
             }
+            if (action === 'trainingDummy' && !e.repeat && this.currentScene === SCENE_TYPES.TRAINING) {
+                this.openDummySpawnPanel();
+            }
+            if (!e.repeat && e.code === 'KeyL' && this.currentScene === SCENE_TYPES.SKILL_LAB && this.skillLabUI) {
+                e.preventDefault();
+                if (this.skillLabUI.isOpen()) this.skillLabUI.close();
+                else this.skillLabUI.open();
+            }
         });
-        
+
         document.addEventListener('keyup', (e) => {
-            if (e.key.toLowerCase() === 'q') {
+            const KB = window.KeybindSystem;
+            const action = KB ? KB.getActionForEvent(e) : null;
+            if (action) KB.setActionPressed(this, action, false);
+            if (action === 'weaponSkill') {
                 this._onWeaponSkillInputUp('q');
             }
-            // 处理k键（冲刺键）
-            if (e.key.toLowerCase() === 'k') {
-                this.keys['k'] = false;
-            } else {
+            if (action === 'skill1') this._onClassSkillInputUp('skill1');
+            else if (action === 'skill2') this._onClassSkillInputUp('skill2');
+            else if (action === 'skill3') this._onClassSkillInputUp('skill3');
+            else if (action === 'skill4') this._onClassSkillInputUp('skill4');
+            if (e.key === 'Shift' && !action) {
+                this.keys['shift'] = false;
+            } else if (!action) {
                 this.keys[e.key.toLowerCase()] = false;
+            }
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                this.keys[e.key] = false;
             }
         });
         
@@ -770,7 +881,7 @@ class Game {
         });
         
         this.canvas.addEventListener('contextmenu', (e) => {
-            if (this.currentScene === SCENE_TYPES.TOWER || this.currentScene === SCENE_TYPES.TRAINING) {
+            if (this.currentScene === SCENE_TYPES.TOWER || this.currentScene === SCENE_TYPES.TRAINING || this.currentScene === SCENE_TYPES.SKILL_LAB || this.currentScene === SCENE_TYPES.TRIAL || this.currentScene === SCENE_TYPES.DUNGEON) {
                 e.preventDefault();
             }
         });
@@ -835,6 +946,14 @@ class Game {
                         this.updateCodexMonsters();
                     } else if (targetTab === 'equipments') {
                         this.updateCodexEquipments();
+                    } else if (targetTab === 'base_types') {
+                        this.updateCodexBaseTypes();
+                    } else if (targetTab === 'affixes') {
+                        this.updateCodexAffixes();
+                    } else if (targetTab === 'powers') {
+                        this.updateCodexPowers();
+                    } else if (targetTab === 'sets_v2') {
+                        this.updateCodexSetsV2();
                     } else if (targetTab === 'set_mechanics') {
                         this.updateCodexSetMechanics();
                     } else if (targetTab === 'consumables') {
@@ -849,6 +968,7 @@ class Game {
         const filterSlot = document.getElementById('filter-slot');
         const filterQuality = document.getElementById('filter-quality');
         const filterSet = document.getElementById('filter-set');
+        const filterSource = document.getElementById('filter-source');
         const resetFilters = document.getElementById('reset-filters');
         
         // 防抖函数
@@ -874,13 +994,38 @@ class Game {
         if (filterSet) {
             filterSet.addEventListener('change', debouncedUpdateCodex);
         }
+        if (filterSource) {
+            filterSource.addEventListener('change', debouncedUpdateCodex);
+        }
         if (resetFilters) {
             resetFilters.addEventListener('click', () => {
                 filterLevel.value = 'all';
                 filterSlot.value = 'all';
                 filterQuality.value = 'all';
                 filterSet.value = 'all';
+                if (filterSource) filterSource.value = 'procedural';
                 this.updateCodexEquipments();
+            });
+        }
+        if (typeof SET_DEFINITIONS_V2 !== 'undefined') {
+            this.populateCodexSetFilter();
+        }
+
+        const filterBaseSlot = document.getElementById('filter-base-slot');
+        const filterBaseWeapon = document.getElementById('filter-base-weapon');
+        const resetBaseFilters = document.getElementById('reset-base-filters');
+        const debouncedUpdateBaseTypes = () => {
+            if (document.getElementById('codex-base_types')?.classList.contains('active')) {
+                this.updateCodexBaseTypes();
+            }
+        };
+        if (filterBaseSlot) filterBaseSlot.addEventListener('change', debouncedUpdateBaseTypes);
+        if (filterBaseWeapon) filterBaseWeapon.addEventListener('change', debouncedUpdateBaseTypes);
+        if (resetBaseFilters) {
+            resetBaseFilters.addEventListener('click', () => {
+                if (filterBaseSlot) filterBaseSlot.value = 'all';
+                if (filterBaseWeapon) filterBaseWeapon.value = 'all';
+                this.updateCodexBaseTypes();
             });
         }
         
@@ -936,9 +1081,6 @@ class Game {
         // 若本机曾用「保存到浏览器」写入存档码，启动时自动导入（剪贴板导入仍保留）
         this.tryAutoLoadBrowserSave();
         
-        // 检查是否首次游戏
-        this.checkFirstTimeGuide();
-        
         // 初始化背景音乐系统（但不播放，等待用户点击）
         // 注意：这里只初始化，不播放，因为需要用户交互才能播放音频
         if (this.soundManager) {
@@ -953,6 +1095,18 @@ class Game {
         }
         
         // 显示启动界面，等待用户点击以解锁音频播放权限
+        this.classUI = new ClassUI(this);
+        this.classUI.init();
+        this.skillLabUI = typeof SkillLabUI !== 'undefined' ? new SkillLabUI(this) : null;
+        this.npcUI = new NpcUI(this);
+        this.npcUI.init();
+        if (typeof window.DungeonUI !== 'undefined') {
+            this.dungeonUI = new window.DungeonUI(this);
+            this.dungeonUI.init();
+        }
+        this.tutorialUI = new TutorialUI(this);
+        this.tutorialUI.init();
+        this.tutorialHighlightBuilding = null;
         this.showStartScreen();
         } catch (error) {
             console.error('init() 方法执行出错:', error, error.stack);
@@ -1064,15 +1218,9 @@ class Game {
             
             // 根据物品类型显示信息
             if (item.type === 'equipment') {
-                const slotNames = {
-                    weapon: '武器',
-                    helmet: '头盔',
-                    chest: '胸甲',
-                    legs: '腿甲',
-                    boots: '足具',
-                    necklace: '项链',
-                    ring: '指环',
-                    belt: '腰带'
+                const slotNames = (typeof SLOT_NAMES !== 'undefined') ? SLOT_NAMES : {
+                    weapon: '武器', offHand: '副手', helmet: '头盔', body: '胸甲', hands: '手套',
+                    legs: '腿甲', feet: '足具', amulet: '护符', ring: '指环', belt: '腰带'
                 };
                 typeDiv.textContent = `${slotNames[item.slot] || item.slot} | ${QUALITY_NAMES[item.quality] || item.quality}`;
             } else if (item.type === 'consumable') {
@@ -1190,21 +1338,37 @@ class Game {
         }
     }
 
-    /**
-     * 初始化背包界面
-     */
-    initInventory() {
-        // 初始化当前选中的页签
-        this.currentInventoryTab = 'equipment';
-        
-        // 创建统一的物品格子容器（48个格子）
+    getInventoryTabCapacity(tabType) {
+        if (tabType === 'consumable') {
+            return this.player.maxPotionCapacity || 18;
+        }
+        return this.player.maxEquipmentCapacity || 18;
+    }
+
+    getInventoryTabStartIndex(tabType) {
+        return tabType === 'consumable' ? 48 : 0;
+    }
+
+    getInventoryItemForTab(tabType, inventoryIndex) {
+        const item = this.player.inventory[inventoryIndex];
+        if (!item) return null;
+        if (tabType === 'equipment') {
+            return (item.type === 'equipment' || (!item.type && item.slot)) ? item : null;
+        }
+        if (tabType === 'consumable') {
+            return (item.type === 'consumable' && item.consumableType !== 'potion') ? item : null;
+        }
+        return null;
+    }
+
+    ensureInventorySlotElements(minCount) {
         const inventoryItems = document.getElementById('inventory-items');
-        inventoryItems.innerHTML = '';
-        
-        for (let i = 0; i < CONFIG.INVENTORY_SIZE; i++) {
+        if (!inventoryItems) return;
+
+        const existing = inventoryItems.querySelectorAll('.inventory-slot').length;
+        for (let i = existing; i < minCount; i++) {
             const slot = document.createElement('div');
             slot.className = 'inventory-slot';
-            slot.dataset.index = i;
             slot.addEventListener('mouseenter', (e) => {
                 this.showItemTooltip(e.currentTarget, e.clientX, e.clientY);
             });
@@ -1230,6 +1394,22 @@ class Game {
             });
             inventoryItems.appendChild(slot);
         }
+    }
+
+    /**
+     * 初始化背包界面
+     */
+    initInventory() {
+        // 初始化当前选中的页签
+        this.currentInventoryTab = 'equipment';
+        
+        const inventoryItems = document.getElementById('inventory-items');
+        inventoryItems.innerHTML = '';
+        const initialSlots = Math.max(
+            this.player.maxEquipmentCapacity || 18,
+            this.player.maxPotionCapacity || 18
+        );
+        this.ensureInventorySlotElements(initialSlots);
         
         // 页签切换事件
         document.querySelectorAll('.inventory-tab').forEach(tab => {
@@ -1566,14 +1746,30 @@ class Game {
         
         // 获取筛选条件
         const filterLevel = document.getElementById('filter-level')?.value || 'all';
-        const filterSlot = document.getElementById('filter-slot')?.value || 'all';
-        const filterQuality = document.getElementById('filter-quality')?.value || 'all';
+        const filterSlotRaw = document.getElementById('filter-slot')?.value || 'all';
+        const filterQualityRaw = document.getElementById('filter-quality')?.value || 'all';
         const filterSet = document.getElementById('filter-set')?.value || 'all';
-        // 使用缓存的装备列表，避免重复生成
-        if (!this.cachedAllEquipments) {
-            this.cachedAllEquipments = generateEquipments();
+        const filterSource = document.getElementById('filter-source')?.value || 'procedural';
+        const normSlot = window.EquipmentCodex ? window.EquipmentCodex.normalizeSlotFilter(filterSlotRaw) : filterSlotRaw;
+        const normQuality = window.EquipmentCodex ? window.EquipmentCodex.normalizeQualityFilter(filterQualityRaw) : filterQualityRaw;
+
+        let allEquipments = [];
+        if ((filterSource === 'procedural' || filterSource === 'all') && window.EquipmentCodex) {
+            const cacheKey = [filterLevel, normSlot, normQuality, filterSet, filterSource].join('|');
+            if (!this._codexProcCache || this._codexProcCacheKey !== cacheKey) {
+                this._codexProcCacheKey = cacheKey;
+                this._codexProcCache = window.EquipmentCodex.generateProceduralSamples({
+                    count: 36,
+                    slot: normSlot,
+                    quality: normQuality,
+                    level: filterLevel,
+                    setId: String(filterSet).startsWith('v2_') ? filterSet.slice(3) : null,
+                    classId: this.player && typeof window.getPlayerBaseClassId === 'function'
+                        ? window.getPlayerBaseClassId(this.player.classData) : null
+                });
+            }
+            allEquipments = allEquipments.concat(this._codexProcCache || []);
         }
-        let allEquipments = this.cachedAllEquipments;
         
         // 缓存套装效果计算结果，避免在循环中重复计算
         const cachedActiveSetEffects = typeof getActiveSetEffects === 'function' 
@@ -1584,36 +1780,29 @@ class Game {
         // 应用筛选条件
         let filteredEquipments = allEquipments.filter(eq => {
             // 等级筛选
-            if (filterLevel !== 'all' && eq.level !== parseInt(filterLevel)) {
+            if (filterLevel !== 'all' && eq.level !== parseInt(filterLevel, 10)) {
                 return false;
             }
             // 部位筛选
-            if (filterSlot !== 'all' && eq.slot !== filterSlot) {
+            if (normSlot !== 'all' && eq.slot !== normSlot) {
                 return false;
             }
-            // 品质筛选
-            if (filterQuality !== 'all' && eq.quality !== filterQuality) {
-                return false;
+            // 品质筛选（兼容旧键 common/fine）
+            if (normQuality !== 'all') {
+                const eqQ = window.EquipmentCodex
+                    ? window.EquipmentCodex.normalizeQualityFilter(eq.quality)
+                    : eq.quality;
+                if (eqQ !== normQuality) return false;
             }
-            // 套装筛选
+            // 套装筛选（程序化装备用 setId）
             if (filterSet !== 'all') {
                 if (filterSet === 'none') {
-                    // 筛选无套装的装备
-                    const setId = getSetForEquipment(eq.name);
-                    if (setId !== null) {
-                        return false;
-                    }
-                } else if (filterSet === 'deep') {
-                    const setId = getSetForEquipment(eq.name);
-                    if (!setId || !String(setId).startsWith('deep_')) {
-                        return false;
-                    }
-                } else {
-                    // 筛选特定套装的装备
-                    const setId = getSetForEquipment(eq.name);
-                    if (setId !== filterSet) {
-                        return false;
-                    }
+                    if (eq.setId) return false;
+                } else if (String(filterSet).startsWith('v2_')) {
+                    const v2Id = filterSet.slice(3);
+                    if (eq.setId !== v2Id) return false;
+                } else if (eq.setId !== filterSet) {
+                    return false;
                 }
             }
             return true;
@@ -1621,6 +1810,7 @@ class Game {
         
         // 如果没有符合条件的装备，显示提示
         if (filteredEquipments.length === 0) {
+            container.innerHTML = '';
             const noResult = document.createElement('div');
             noResult.style.textAlign = 'center';
             noResult.style.padding = '40px';
@@ -1633,7 +1823,10 @@ class Game {
         // 对所有装备进行排序：先按部位，再按等级，最后按品质
         filteredEquipments.sort((a, b) => {
             // 先按部位排序
-            const slotOrder = { weapon: 1, helmet: 2, chest: 3, legs: 4, boots: 5, necklace: 6, ring: 7, belt: 8 };
+            const slotOrder = {
+                weapon: 1, offHand: 2, helmet: 3, body: 4, hands: 5, legs: 6, feet: 7,
+                amulet: 8, ring: 9, belt: 10
+            };
             if (slotOrder[a.slot] !== slotOrder[b.slot]) {
                 return slotOrder[a.slot] - slotOrder[b.slot];
             }
@@ -1642,8 +1835,11 @@ class Game {
                 return a.level - b.level;
             }
             // 等级相同则按品质排序
-            const qualityOrder = { common: 1, rare: 2, fine: 3, epic: 4, legendary: 5 };
-            return qualityOrder[a.quality] - qualityOrder[b.quality];
+            const qualityOrder = { normal: 1, magic: 2, rare: 3, epic: 4, legendary: 5, mythic: 6,
+                common: 1, fine: 2 };
+            const qA = qualityOrder[a.quality] || qualityOrder[window.EquipmentCodex?.normalizeQualityFilter(a.quality)] || 0;
+            const qB = qualityOrder[b.quality] || qualityOrder[window.EquipmentCodex?.normalizeQualityFilter(b.quality)] || 0;
+            return qA - qB;
         });
         
         // 清除加载提示
@@ -1691,85 +1887,81 @@ class Game {
                 name.style.fontSize = '18px';
                 name.style.margin = '0';
                 name.textContent = eq.name;
+                if (eq.procedural || eq.baseTypeId) {
+                    const badge = document.createElement('span');
+                    badge.className = 'codex-proc-badge';
+                    badge.textContent = '程序化';
+                    name.appendChild(badge);
+                }
                 headerDiv.appendChild(visual);
                 headerDiv.appendChild(name);
                 
                 const stats = document.createElement('div');
                 stats.className = 'equipment-stats';
-                let statsHTML = `<p><strong>品质:</strong> <span style="color: ${QUALITY_COLORS[eq.quality]}">${QUALITY_NAMES[eq.quality]}</span></p>`;
-                statsHTML += `<p style="color: #ffaa00;"><strong>需要等级:</strong> ${eq.level}</p>`;
-                statsHTML += `<p>---</p>`;
-                statsHTML += `<p><strong>属性:</strong></p>`;
-                
-                let hasStats = false;
-                for (const [key, value] of Object.entries(eq.stats)) {
-                    if (value !== 0) {
-                        hasStats = true;
-                        const statNames = {
-                            attack: '攻击力',
-                            critRate: '暴击率',
-                            critDamage: '暴击伤害',
-                            health: '生命值',
-                            defense: '防御力',
-                            dodge: '闪避率',
-                            attackSpeed: '攻击速度',
-                            moveSpeed: '移动速度'
-                        };
-                        const suffix = key.includes('Rate') || key.includes('Speed') || key.includes('dodge') ? '%' : '';
-                        statsHTML += `<p>${statNames[key] || key}: +${value}${suffix}</p>`;
-                    }
-                }
-                
-                if (!hasStats) {
-                    statsHTML += `<p style="color: #aaa;">无属性加成</p>`;
-                }
-                
-                statsHTML += `<p style="color: #aaa; font-size: 12px; margin-top: 10px;">提示：只有达到装备要求的等级才能穿戴</p>`;
-                
-                // 显示武器技能（含图标）
-                if (eq.slot === 'weapon' && eq.skill) {
-                    const skillIconUrl = this.getSkillIconUrl(eq.skill.name);
-                    const skillIconHtml = skillIconUrl ? `<img src="${skillIconUrl}" alt="" style="width:24px;height:24px;vertical-align:middle;margin-right:6px;border-radius:4px;">` : '';
+                let statsHTML = '';
+                if ((eq.procedural || eq.baseTypeId) && typeof eq.getTooltipHTML === 'function') {
+                    statsHTML = eq.getTooltipHTML(this.player.equipment);
+                    statsHTML = statsHTML.replace(/<h4[^>]*>[\s\S]*?<\/h4>/, '');
+                } else {
+                    statsHTML = `<p><strong>品质:</strong> <span style="color: ${QUALITY_COLORS[eq.quality]}">${QUALITY_NAMES[eq.quality] || eq.quality}</span></p>`;
+                    statsHTML += `<p style="color: #ffaa00;"><strong>需要等级:</strong> ${eq.level}</p>`;
                     statsHTML += `<p>---</p>`;
-                    statsHTML += `<p style="color: #ffaa00;"><strong>${skillIconHtml}武器技能: ${eq.skill.name}</strong></p>`;
-                    statsHTML += `<p style="color: #aaa; font-size: 11px;">${eq.skill.description}</p>`;
-                    statsHTML += `<p style="color: #aaa; font-size: 11px;">冷却时间: ${eq.skill.cooldown / 1000}秒</p>`;
+                    statsHTML += `<p><strong>属性:</strong></p>`;
                     
-                    // 显示精炼效果（仅武器）
-                    if (eq.refineEffects) {
-                        statsHTML += `<p>---</p>`;
-                        statsHTML += `<p style="color: #ffd700;"><strong>精炼效果:</strong></p>`;
-                        statsHTML += `<p style="color: #aaa; font-size: 10px; margin-bottom: 5px;">精炼需要1把同名且同等精炼等级的武器</p>`;
-                        
-                        for (let i = 0; i < eq.refineEffects.length; i++) {
-                            const refineEffect = eq.refineEffects[i];
-                            const refineLevel = i + 1;
-                            const starText = '★'.repeat(refineLevel);
-                            
-                            statsHTML += `<p style="color: #ffd700; font-size: 10px; margin-left: 10px; margin-top: 3px;">${starText} 精炼${refineLevel}级: ${refineEffect.description}</p>`;
+                    let hasStats = false;
+                    for (const [key, value] of Object.entries(eq.stats)) {
+                        if (value !== 0) {
+                            hasStats = true;
+                            const statNames = {
+                                attack: '攻击力', magicAttack: '魔法攻击', critRate: '暴击率', critDamage: '暴击伤害',
+                                health: '生命值', defense: '防御力', magicDefense: '魔法防御', dodge: '闪避率',
+                                attackSpeed: '攻击速度', moveSpeed: '移动速度'
+                            };
+                            const suffix = key.includes('Rate') || key.includes('Speed') || key.includes('dodge') ? '%' : '';
+                            statsHTML += `<p>${statNames[key] || key}: +${value}${suffix}</p>`;
                         }
                     }
+                    if (!hasStats) statsHTML += `<p style="color: #aaa;">无属性加成</p>`;
+                    statsHTML += `<p style="color: #aaa; font-size: 12px; margin-top: 10px;">提示：只有达到装备要求的等级才能穿戴</p>`;
                 }
                 
-                // 显示装备词条
-                if (eq.equipmentTraits && eq.equipmentTraits.description) {
-                    statsHTML += `<p>---</p>`;
-                    statsHTML += `<p style="color: #88ff88;"><strong>装备词条:</strong></p>`;
-                    statsHTML += `<p style="color: #88ff88; font-size: 11px;">${eq.equipmentTraits.description}</p>`;
-                }
-                
-                // 显示套装信息（已激活为绿色，未激活为黑色）
-                const setId = getSetForEquipment(eq.name);
-                if (setId) {
-                    const setData = SET_DEFINITIONS[setId];
-                    // 使用缓存的套装效果结果
-                    statsHTML += `<p>---</p>`;
-                    statsHTML += `<p style="color: #ffaa00;"><strong>套装: ${setData.name}</strong></p>`;
-                    statsHTML += `<p style="color: #aaa; font-size: 11px;">套装效果:</p>`;
-                    for (const [pieceCount, effect] of Object.entries(setData.effects)) {
-                        const active = cachedActiveSet.has(setId + '-' + pieceCount);
-                        const color = active ? '#33ff33' : '#888888';
-                        statsHTML += `<p style="color: ${color}; font-size: 10px;">${pieceCount}件: ${typeof stripSetDescriptionMarkdown === 'function' ? stripSetDescriptionMarkdown(effect.description) : effect.description}</p>`;
+                if (!(eq.procedural || eq.baseTypeId)) {
+                    if (eq.equipmentTraits && eq.equipmentTraits.description) {
+                        statsHTML += `<p>---</p>`;
+                        statsHTML += `<p style="color: #88ff88;"><strong>装备词条:</strong></p>`;
+                        statsHTML += `<p style="color: #88ff88; font-size: 11px;">${eq.equipmentTraits.description}</p>`;
+                    }
+                    // 显示武器技能（含图标）
+                    if (eq.slot === 'weapon' && eq.skill) {
+                        const skillIconUrl = this.getSkillIconUrl(eq.skill.name);
+                        const skillIconHtml = skillIconUrl ? `<img src="${skillIconUrl}" alt="" style="width:24px;height:24px;vertical-align:middle;margin-right:6px;border-radius:4px;">` : '';
+                        statsHTML += `<p>---</p>`;
+                        statsHTML += `<p style="color: #ffaa00;"><strong>${skillIconHtml}武器技能: ${eq.skill.name}</strong></p>`;
+                        statsHTML += `<p style="color: #aaa; font-size: 11px;">${eq.skill.description}</p>`;
+                        statsHTML += `<p style="color: #aaa; font-size: 11px;">冷却时间: ${eq.skill.cooldown / 1000}秒</p>`;
+                        if (eq.refineEffects) {
+                            statsHTML += `<p>---</p>`;
+                            statsHTML += `<p style="color: #ffd700;"><strong>精炼效果:</strong></p>`;
+                            for (let i = 0; i < eq.refineEffects.length; i++) {
+                                const refineEffect = eq.refineEffects[i];
+                                const refineLevel = i + 1;
+                                statsHTML += `<p style="color: #ffd700; font-size: 10px; margin-left: 10px;">${'★'.repeat(refineLevel)} 精炼${refineLevel}级: ${refineEffect.description}</p>`;
+                            }
+                        }
+                    }
+                    if (eq.setId && typeof SET_DEFINITIONS_V2 !== 'undefined' && SET_DEFINITIONS_V2.sets && SET_DEFINITIONS_V2.sets[eq.setId]) {
+                        const setData = SET_DEFINITIONS_V2.sets[eq.setId];
+                        statsHTML += `<p>---</p>`;
+                        statsHTML += `<p style="color: #ffaa00;"><strong>套装: ${setData.name}</strong></p>`;
+                        let pieceCount = 0;
+                        if (typeof getSetV2PieceCount === 'function') {
+                            pieceCount = getSetV2PieceCount(this.player.equipment, eq.setId);
+                        }
+                        for (const [pieceCountKey, effect] of Object.entries(setData.effects || {})) {
+                            const active = pieceCount >= parseInt(pieceCountKey, 10);
+                            const color = active ? '#33ff33' : '#888888';
+                            statsHTML += `<p style="color: ${color}; font-size: 10px;">${pieceCountKey}件: ${typeof stripSetDescriptionMarkdown === 'function' ? stripSetDescriptionMarkdown(effect.description) : effect.description}</p>`;
+                        }
                     }
                 }
                 
@@ -1838,53 +2030,15 @@ class Game {
         });
     }
 
-    /** 图鉴「套装机制」：列出所有深阶套装（deep_*）各档位描述与 special 标记 */
+    /** 图鉴「套装机制」：Phase 3 套装 V2 */
     updateCodexSetMechanics() {
         const container = document.getElementById('set-mechanics-list');
         if (!container) return;
-        if (typeof SET_DEFINITIONS === 'undefined') {
+        if (!window.EquipmentCodex || typeof SET_DEFINITIONS_V2 === 'undefined' || !SET_DEFINITIONS_V2.sets) {
             container.innerHTML = '<p style="color:#888;text-align:center;padding:24px;">套装数据未加载</p>';
             return;
         }
-        const ids = Object.keys(SET_DEFINITIONS).filter(id => String(id).startsWith('deep_')).sort();
-        if (ids.length === 0) {
-            container.innerHTML = '<p style="color:#888;text-align:center;padding:24px;">暂无深阶套装条目</p>';
-            return;
-        }
-        const frag = document.createDocumentFragment();
-        const tiers = ['2', '4', '6', '8'];
-        ids.forEach(setId => {
-            const def = SET_DEFINITIONS[setId];
-            if (!def) return;
-            const entry = document.createElement('div');
-            entry.style.cssText = 'background:rgba(50,50,60,0.85);border:1px solid #666;border-radius:6px;padding:14px;margin-bottom:12px;';
-            const title = document.createElement('h3');
-            title.style.cssText = 'margin:0 0 8px 0;color:#e0c080;font-size:17px;';
-            title.textContent = def.name || setId;
-            entry.appendChild(title);
-            const sub = document.createElement('p');
-            sub.style.cssText = 'color:#888;font-size:11px;margin:0 0 10px 0;';
-            sub.textContent = '套装 ID: ' + setId;
-            entry.appendChild(sub);
-            tiers.forEach(t => {
-                const eff = def.effects && def.effects[t];
-                if (!eff) return;
-                const p = document.createElement('p');
-                p.style.cssText = 'margin:6px 0;color:#ccc;font-size:12px;line-height:1.45;';
-                const strip = typeof stripSetDescriptionMarkdown === 'function'
-                    ? stripSetDescriptionMarkdown(eff.description || '')
-                    : (eff.description || '');
-                const spec = eff.special
-                    ? ' [' + eff.special + ']'
-                    : '';
-                p.innerHTML = '<strong style="color:#9ad;">' + t + ' 件</strong><span style="color:#9cf;">' + spec + '</span>'
-                    + (strip ? ' — ' + strip : '');
-                entry.appendChild(p);
-            });
-            frag.appendChild(entry);
-        });
-        container.innerHTML = '';
-        container.appendChild(frag);
+        container.innerHTML = window.EquipmentCodex.buildSetV2Html(this.player ? this.player.equipment : null);
     }
 
     /** 图鉴「消耗品」：常规药水已移除，展示神圣十字架等仍存在的条目 */
@@ -1900,6 +2054,35 @@ class Game {
             html += '<p style="color:#888;font-size:12px;margin-top:12px;">神圣十字架会在商店<strong style="color:#ffd700;">装备</strong>分页商品中低概率随机出现（与「传说」品质掉落概率相同：每刷新约 2% 替换其中一格）。</p></div>';
         }
         container.innerHTML = html;
+    }
+
+    updateCodexBaseTypes() {
+        const container = document.getElementById('base-types-list');
+        if (!container || !window.EquipmentCodex) return;
+        const slot = document.getElementById('filter-base-slot')?.value || 'all';
+        const weaponType = document.getElementById('filter-base-weapon')?.value || 'all';
+        container.innerHTML = window.EquipmentCodex.buildBaseTypesHtml({
+            slot: slot === 'all' ? null : slot,
+            weaponType: weaponType === 'all' ? null : weaponType
+        });
+    }
+
+    updateCodexAffixes() {
+        const container = document.getElementById('affixes-list');
+        if (!container || !window.EquipmentCodex) return;
+        container.innerHTML = window.EquipmentCodex.buildAffixReferenceHtml();
+    }
+
+    updateCodexPowers() {
+        const container = document.getElementById('powers-list');
+        if (!container || !window.EquipmentCodex) return;
+        container.innerHTML = window.EquipmentCodex.buildLegendaryPowersHtml();
+    }
+
+    updateCodexSetsV2() {
+        const container = document.getElementById('sets-v2-list');
+        if (!container || !window.EquipmentCodex) return;
+        container.innerHTML = window.EquipmentCodex.buildSetV2Html(this.player.equipment);
     }
 
     /**
@@ -1922,11 +2105,12 @@ class Game {
                 // 更新品质背景色
                 const qualityColor = QUALITY_COLORS[eq.quality] || '#ffffff';
                 const qualityBgOpacity = {
-                    'common': '40',
-                    'rare': '50',
-                    'fine': '60',
-                    'epic': '70',
-                    'legendary': '80'
+                    normal: '40',
+                    magic: '50',
+                    rare: '60',
+                    epic: '70',
+                    legendary: '80',
+                    mythic: '90'
                 };
                 slotElement.style.backgroundColor = qualityColor + (qualityBgOpacity[eq.quality] || '40');
             } else {
@@ -1948,44 +2132,31 @@ class Game {
             });
         }
         
-        // 根据当前页签显示相应的物品
-        const allSlots = document.querySelectorAll('#inventory-items .inventory-slot');
+        // 根据当前页签显示相应数量的格子（仅显示当前容量上限内的格子）
         const tabType = this.currentInventoryTab || 'equipment';
-        
-        // 收集要显示的物品索引
-        let itemsToShow = [];
-        if (tabType === 'equipment') {
-            // 显示装备（0-17区域）
-            const equipmentEndIndex = this.player.maxEquipmentCapacity || 18;
-            for (let i = 0; i < equipmentEndIndex; i++) {
-                const item = this.player.inventory[i];
-                if (item && (item.type === 'equipment' || (!item.type && item.slot))) {
-                    itemsToShow.push({ index: i, item: item });
-                }
-            }
-        } else if (tabType === 'consumable') {
-            // 显示消耗品（48-65区域，独立区域）
-            const consumableStartIndex = 48;
-            const consumableEndIndex = consumableStartIndex + (this.player.maxPotionCapacity || 18);
-            for (let i = consumableStartIndex; i < consumableEndIndex; i++) {
-                const item = this.player.inventory[i];
-                if (item && item.type === 'consumable' && item.consumableType !== 'potion') {
-                    itemsToShow.push({ index: i, item: item });
-                }
-            }
-        }
-        
-        // 更新所有格子
+        const maxSlots = this.getInventoryTabCapacity(tabType);
+        const inventoryStartIndex = this.getInventoryTabStartIndex(tabType);
+        this.ensureInventorySlotElements(maxSlots);
+
+        const allSlots = document.querySelectorAll('#inventory-items .inventory-slot');
         const inventoryImageUpdates = [];
         allSlots.forEach((slot, localIndex) => {
+            if (localIndex >= maxSlots) {
+                slot.style.display = 'none';
+                return;
+            }
+            slot.style.display = '';
+
             // 清除之前的锁图标
             const existingLock = slot.querySelector('.level-lock-icon');
             if (existingLock) {
                 existingLock.remove();
             }
+
+            const index = inventoryStartIndex + localIndex;
+            const item = this.getInventoryItemForTab(tabType, index);
             
-            if (localIndex < itemsToShow.length) {
-                const { index, item } = itemsToShow[localIndex];
+            if (item) {
                 
                 // 检查装备等级要求
                 let isLevelLocked = false;
@@ -2010,11 +2181,12 @@ class Game {
                 slot.style.border = `3px solid ${qualityColor}`;
                 // 添加品质背景色
                 const qualityBgOpacity = {
-                    'common': '40',
-                    'rare': '50',
-                    'fine': '60',
-                    'epic': '70',
-                    'legendary': '80'
+                    normal: '40',
+                    magic: '50',
+                    rare: '60',
+                    epic: '70',
+                    legendary: '80',
+                    mythic: '90'
                 };
                 slot.style.backgroundColor = qualityColor + (qualityBgOpacity[item.quality] || '40');
                 slot.title = item.name;
@@ -2034,14 +2206,14 @@ class Game {
                     
                     // 根据品质设置背景色
                     const qualityColors = {
-                        'common': 'rgba(200, 200, 200, 0.4)',
-                        'uncommon': 'rgba(100, 200, 100, 0.4)',
-                        'rare': 'rgba(100, 150, 255, 0.4)',
-                        'fine': 'rgba(100, 150, 255, 0.4)',
-                        'epic': 'rgba(200, 100, 255, 0.4)',
-                        'legendary': 'rgba(255, 200, 100, 0.4)'
+                        normal: 'rgba(200, 200, 200, 0.4)',
+                        magic: 'rgba(0, 255, 0, 0.35)',
+                        rare: 'rgba(100, 150, 255, 0.4)',
+                        epic: 'rgba(200, 100, 255, 0.4)',
+                        legendary: 'rgba(255, 200, 100, 0.4)',
+                        mythic: 'rgba(255, 34, 68, 0.4)'
                     };
-                    slot.style.backgroundColor = qualityColors[item.quality] || qualityColors['common'];
+                    slot.style.backgroundColor = qualityColors[item.quality] || qualityColors.normal;
                     
                     if (item.consumableType === 'recipe') {
                         // 图纸从 mappings 中读取图片
@@ -2290,34 +2462,37 @@ class Game {
         const tooltip = document.getElementById('item-tooltip');
         if (!tooltip) return;
         
-        if (!setId || typeof SET_DEFINITIONS === 'undefined' || !SET_DEFINITIONS[setId]) {
+        if (!setId || typeof resolveSetDefinition !== 'function') {
             tooltip.classList.remove('show');
             return;
         }
 
-        const setData = SET_DEFINITIONS[setId];
+        const setData = resolveSetDefinition(setId);
+        if (!setData) {
+            tooltip.classList.remove('show');
+            return;
+        }
         let html = `<h4 style="color: #ffaa00;">${setData.name}</h4>`;
         html += `<p style="color: #aaa; font-size: 11px;">套装效果:</p>`;
         
-        // 获取当前激活的所有套装效果
         const activeSet = new Set();
-        if (typeof getActiveSetEffects === 'function') {
-            getActiveSetEffects(this.player.equipment).forEach(e => {
+        if (typeof getAllActiveSetEffects === 'function') {
+            getAllActiveSetEffects(this.player.equipment).forEach(e => {
                 if (e.setId === setId) {
                     activeSet.add(e.pieceCount);
                 }
             });
         }
 
-        // 显示所有套装效果（2件、4件、6件、8件）
-        for (const pieceCount of [2, 4, 6, 8]) {
-            if (setData.effects[pieceCount]) {
-                const effect = setData.effects[pieceCount];
-                const isActive = activeSet.has(pieceCount);
-                const color = isActive ? '#33ff33' : '#888888';
-                const activeText = isActive ? ' (已激活)' : '';
-                html += `<p style="color: ${color}; font-size: 10px;">${pieceCount}件: ${typeof stripSetDescriptionMarkdown === 'function' ? stripSetDescriptionMarkdown(effect.description) : effect.description}${activeText}</p>`;
-            }
+        const pieceTargets = (typeof SET_DEFINITIONS_V2 !== 'undefined' && SET_DEFINITIONS_V2.activationPieces)
+            ? SET_DEFINITIONS_V2.activationPieces : [2, 4];
+        for (const pieceCount of pieceTargets) {
+            const effect = setData.effects[String(pieceCount)] || setData.effects[pieceCount];
+            if (!effect) continue;
+            const isActive = activeSet.has(pieceCount);
+            const color = isActive ? '#33ff33' : '#888888';
+            const activeText = isActive ? ' (已激活)' : '';
+            html += `<p style="color: ${color}; font-size: 10px;">${pieceCount}件: ${typeof stripSetDescriptionMarkdown === 'function' ? stripSetDescriptionMarkdown(effect.description) : effect.description}${activeText}</p>`;
         }
 
         tooltip.innerHTML = html;
@@ -2372,8 +2547,12 @@ class Game {
                     return;
                 }
                 
-                const currentEquipped = this.player.equipment[item.slot];
-                this.player.equipment[item.slot] = item;
+                const equipSlot = (typeof window.normalizeEquipmentSlot === 'function')
+                    ? window.normalizeEquipmentSlot(item.slot)
+                    : item.slot;
+                const currentEquipped = this.player.equipment[equipSlot];
+                this.player.equipment[equipSlot] = item;
+                item.slot = equipSlot;
                 this.player.inventory[index] = null;
                 
                 // 播放穿装备音效
@@ -2387,7 +2566,7 @@ class Game {
                 
                 this.player.updateStats();
                 if (typeof this.player.onEquipmentSlotChanged === 'function') {
-                    this.player.onEquipmentSlotChanged(item.slot);
+                    this.player.onEquipmentSlotChanged(equipSlot);
                 }
                 this.updateInventoryUI();
                 this.updateHUD(); // 更新HUD以刷新套装效果显示
@@ -2568,7 +2747,11 @@ class Game {
         this.lastSceneTransitionTime = Date.now();
         // 重置E键状态，防止场景切换时E键仍按下导致立即触发交互
         this.keys['e'] = false;
-        this.lastEKeyState = false;
+        this.lastInteractKeyState = false;
+        if (window.KeybindSystem) {
+            window.KeybindSystem.setActionPressed(this, 'interact', false);
+            window.KeybindSystem.setActionPressed(this, 'attack', false);
+        }
         
         // 重置攻击状态（防止场景切换时保持攻击状态）
         if (this.player) {
@@ -2578,6 +2761,9 @@ class Game {
         
         // 重置攻击键状态（防止场景切换时攻击键仍按下导致持续攻击）
         this.keys['j'] = false;
+        if (window.KeybindSystem) {
+            window.KeybindSystem.setActionPressed(this, 'attack', false);
+        }
         if (this.mouse) {
             this.mouse.left = false;
         }
@@ -2851,11 +3037,14 @@ class Game {
      * 更新HUD显示
      */
     updateHUD() {
-        this._tryCompleteFusionJob();
         // 更新左下角血条和等级条
         document.getElementById('player-hp').textContent = Math.floor(this.player.hp);
         document.getElementById('player-max-hp').textContent = this.player.maxHp;
         document.getElementById('player-level').textContent = this.player.level;
+        const classNameEl = document.getElementById('player-class-name');
+        if (classNameEl && typeof window.getClassDisplayName === 'function') {
+            classNameEl.textContent = window.getClassDisplayName(this.player.classData);
+        }
         document.getElementById('player-exp').textContent = this.player.exp;
         document.getElementById('player-exp-needed').textContent = this.player.expNeeded;
         const goldDisplay = document.getElementById('player-gold-display');
@@ -2864,9 +3053,13 @@ class Game {
         }
         
         const hpFill = document.getElementById('hp-bar-fill');
+        const hpContainer = document.querySelector('#bottom-left-bars .hp-bar-container');
         if (hpFill) {
             const hpPct = this.player.maxHp > 0 ? Math.min(100, 100 * this.player.hp / this.player.maxHp) : 0;
             hpFill.style.width = hpPct + '%';
+            if (hpContainer) {
+                hpContainer.classList.toggle('low-hp', hpPct > 0 && hpPct < 30);
+            }
         }
         const expFill = document.getElementById('exp-bar-fill');
         if (expFill) {
@@ -2876,6 +3069,7 @@ class Game {
         
         // 更新武器技能按钮
         this.updateWeaponSkillButton();
+        if (this.classUI) this.classUI.updateAll();
         
         // 更新装备栏品质边框
         this.updateEquipmentSlotBorders();
@@ -2909,24 +3103,6 @@ class Game {
                 eliteBoonEl.style.display = 'none';
             }
         }
-        
-        const fusionTowerEl = document.getElementById('fusion-tower-status');
-        if (fusionTowerEl) {
-            if (this.currentScene === SCENE_TYPES.TOWER && this.fusionState) {
-                fusionTowerEl.style.display = 'block';
-                if (this.fusionState.phase === 'processing') {
-                    fusionTowerEl.textContent = '合铸中 ' + this._formatFusionRemainMs(this.fusionState.readyAt - Date.now());
-                    fusionTowerEl.style.color = '#cccccc';
-                } else if (this.fusionState.phase === 'ready') {
-                    fusionTowerEl.textContent = '合铸完成（回城后打开铁匠铺合铸界面领取）';
-                    fusionTowerEl.style.color = '#ffdd44';
-                } else {
-                    fusionTowerEl.style.display = 'none';
-                }
-            } else {
-                fusionTowerEl.style.display = 'none';
-            }
-        }
     }
     
     /**
@@ -2949,12 +3125,27 @@ class Game {
         
         const attackEl = document.getElementById('stats-attack');
         if (attackEl) {
-            attackEl.textContent = this.player.baseAttack;
+            attackEl.textContent = this.player.effectiveAttack != null ? this.player.effectiveAttack : this.player.baseAttack;
+        }
+
+        const magicAttackEl = document.getElementById('stats-magic-attack');
+        if (magicAttackEl) {
+            magicAttackEl.textContent = this.player.baseMagicAttack || 0;
         }
         
         const defenseEl = document.getElementById('stats-defense');
         if (defenseEl) {
             defenseEl.textContent = this.player.baseDefense;
+        }
+
+        const magicDefenseEl = document.getElementById('stats-magic-defense');
+        if (magicDefenseEl) {
+            magicDefenseEl.textContent = this.player.baseMagicDefense || 0;
+        }
+
+        const classNameStatsEl = document.getElementById('stats-class-name');
+        if (classNameStatsEl && typeof window.getClassDisplayName === 'function') {
+            classNameStatsEl.textContent = window.getClassDisplayName(this.player.classData);
         }
         
         const critRateEl = document.getElementById('stats-crit-rate');
@@ -3115,11 +3306,12 @@ class Game {
         iconDiv.style.flexShrink = '0';
         // 根据品质设置背景色，使用更高的不透明度让背景更明显
         const qualityBgOpacity = {
-            'common': '40',
-            'rare': '50',
-            'fine': '60',
-            'epic': '70',
-            'legendary': '80'
+            normal: '40',
+            magic: '50',
+            rare: '60',
+            epic: '70',
+            legendary: '80',
+            mythic: '90'
         };
         iconDiv.style.backgroundColor = qualityColor + (qualityBgOpacity[item.quality] || '40'); // 品质背景色
         
@@ -3168,14 +3360,14 @@ class Game {
             iconDiv.style.backgroundRepeat = 'no-repeat';
             // 根据品质设置背景色
             const qualityColors = {
-                'common': 'rgba(200, 200, 200, 0.4)',
-                'uncommon': 'rgba(100, 200, 100, 0.4)',
-                'rare': 'rgba(100, 150, 255, 0.4)',
-                'fine': 'rgba(100, 150, 255, 0.4)',
-                'epic': 'rgba(200, 100, 255, 0.4)',
-                'legendary': 'rgba(255, 200, 100, 0.4)'
+                normal: 'rgba(200, 200, 200, 0.4)',
+                magic: 'rgba(0, 255, 0, 0.35)',
+                rare: 'rgba(100, 150, 255, 0.4)',
+                epic: 'rgba(200, 100, 255, 0.4)',
+                legendary: 'rgba(255, 200, 100, 0.4)',
+                mythic: 'rgba(255, 34, 68, 0.4)'
             };
-            iconDiv.style.backgroundColor = qualityColors[item.quality] || qualityColors['common'];
+            iconDiv.style.backgroundColor = qualityColors[item.quality] || qualityColors.normal;
         } else if (item.type === 'consumable' && item.consumableType === 'resurrection') {
             iconDiv.style.display = 'flex';
             iconDiv.style.alignItems = 'center';
@@ -3194,7 +3386,9 @@ class Game {
      * 更新装备栏品质边框和背景色（只应用到装备图标，不覆盖文字标签）
      */
     updateEquipmentSlotBorders() {
-        const slots = ['weapon', 'helmet', 'chest', 'legs', 'boots', 'necklace', 'ring', 'belt'];
+        const slots = (typeof window.EQUIPMENT_SLOT_ORDER !== 'undefined')
+            ? window.EQUIPMENT_SLOT_ORDER.slice()
+            : ['weapon', 'offHand', 'helmet', 'body', 'hands', 'legs', 'feet', 'amulet', 'ring', 'belt'];
         slots.forEach(slotName => {
             const slotElement = document.querySelector(`.equipment-item[data-slot="${slotName}"]`);
             if (slotElement) {
@@ -3206,11 +3400,12 @@ class Game {
                     slotElement.style.borderRadius = '5px';
                     // 添加品质背景色
                     const qualityBgOpacity = {
-                        'common': '40',
-                        'rare': '50',
-                        'fine': '60',
-                        'epic': '70',
-                        'legendary': '80'
+                        normal: '40',
+                        magic: '50',
+                        rare: '60',
+                        epic: '70',
+                        legendary: '80',
+                        mythic: '90'
                     };
                     slotElement.style.backgroundColor = qualityColor + (qualityBgOpacity[equipment.quality] || '40');
                 } else {
@@ -3258,7 +3453,7 @@ class Game {
             } else {
                 const ground = typeof this.player.resolveGroundAoeSkillRanges === 'function' && this.player.resolveGroundAoeSkillRanges();
                 const lock = typeof this.player.resolveTargetLockSkillRange === 'function' && this.player.resolveTargetLockSkillRange();
-                let hint = '按Q释放';
+                let hint = `按${window.KeybindSystem ? window.KeybindSystem.formatKeyCode(window.KeybindSystem.getBinding('weaponSkill')) : 'Q'}释放`;
                 if (ground) hint = '长按瞄准落点，松手释放';
                 else if (lock) hint = '长按选择锁定，松手释放';
                 skillCooldown.textContent = hint;
@@ -3269,6 +3464,54 @@ class Game {
         } else {
             if (wrapper) wrapper.style.display = 'none';
         }
+    }
+
+    /** 是否有需要暂停游戏的模态框/面板打开 */
+    isBlockingModalOpen() {
+        const modalIds = [
+            'inventory-modal', 'codex-modal', 'shop-modal', 'blacksmith-modal', 'guide-modal',
+            'training-ground-modal', 'save-code-modal', 'import-save-modal', 'tower-exit-confirm-modal',
+            'esc-menu-modal', 'gap-shop-modal', 'target-slot-select-modal', 'resurrection-modal',
+            'death-penalty-modal', 'first-time-guide-modal', 'level-up-capacity-modal',
+            'dummy-spawn-modal', 'random-box-quantity-modal', 'random-box-rewards-modal',
+            'dungeon-selection-modal', 'elite-boon-choice-modal', 'skill-lab-modal',
+            'class-select-modal', 'character-panel-modal', 'skill-panel-modal',
+            'class-master-modal', 'enchanter-modal', 'jeweler-modal', 'chronicle-modal', 'awakening-modal', 'dungeon-hub-modal',
+            'player-name-modal'
+        ];
+        for (let i = 0; i < modalIds.length; i++) {
+            const el = document.getElementById(modalIds[i]);
+            if (el && el.classList.contains('show')) return true;
+        }
+        if (this.devMode) {
+            const devPanel = document.getElementById('dev-panel');
+            const devCodex = document.getElementById('dev-codex-panel');
+            if ((devPanel && devPanel.classList.contains('show')) ||
+                (devCodex && devCodex.classList.contains('show'))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** 根据当前 UI 状态同步 paused，并刷新交互键边沿检测 */
+    syncGamePausedState() {
+        this.paused = this.isBlockingModalOpen();
+        this.lastInteractKeyState = this._getInteractKeyState();
+    }
+
+    _getInteractKeyState() {
+        const KB = window.KeybindSystem;
+        return KB ? KB.isActionPressed(this, 'interact') : !!this.keys['e'];
+    }
+
+    _isInteractKeyEdge(canInteract) {
+        const current = this._getInteractKeyState();
+        return current && !this.lastInteractKeyState && canInteract;
+    }
+
+    _commitInteractKeyEdge() {
+        this.lastInteractKeyState = this._getInteractKeyState();
     }
 
     handleInput() {
@@ -3282,15 +3525,18 @@ class Game {
             if (this.player.isCastingSkill) {
                 return;
             }
+            if (this.player._skillCastBar && Date.now() < this.player._skillCastBar.endTime) {
+                return;
+            }
             
             let dx = 0;
             let dy = 0;
             
-            // WASD移动
-            if (this.keys['w']) dy -= 1;
-            if (this.keys['s']) dy += 1;
-            if (this.keys['a']) dx -= 1;
-            if (this.keys['d']) dx += 1;
+            const KB = window.KeybindSystem;
+            if (KB && KB.isActionPressed(this, 'moveUp')) dy -= 1;
+            if (KB && KB.isActionPressed(this, 'moveDown')) dy += 1;
+            if (KB && KB.isActionPressed(this, 'moveLeft')) dx -= 1;
+            if (KB && KB.isActionPressed(this, 'moveRight')) dx += 1;
             
             // 方向键移动
             if (this.keys['ArrowUp']) dy -= 1;
@@ -3304,11 +3550,9 @@ class Game {
                 dy *= 0.707;
             }
             
-            // 检查k键（冲刺键）
-            const kPressed = this.keys['k'];
+            const dashPressed = KB && KB.isActionPressed(this, 'dash');
             
-            // 如果按下k键且不在冲刺状态，触发冲刺
-            if (kPressed && !this.player.isDashing && this.player.dashCooldown <= 0) {
+            if (dashPressed && !this.player.isDashing && this.player.dashCooldown <= 0) {
                 this.player.dash(dx, dy);
             }
             
@@ -3316,13 +3560,21 @@ class Game {
             // move函数内部会根据isDashing状态决定使用冲刺速度还是正常速度
             this.player.move(dx, dy);
             
-            // 攻击：J键或鼠标左键
-            const attackPressed = this.keys['j'] || this.mouse.left;
+            const attackPressed = (KB && KB.isActionPressed(this, 'attack')) || this.mouse.left;
             if (attackPressed && !this.player.isDashing) {
                 if (this.currentScene === SCENE_TYPES.TOWER && this.currentRoom && (this.currentRoom.type === ROOM_TYPES.BATTLE || this.currentRoom.type === ROOM_TYPES.ELITE || this.currentRoom.type === ROOM_TYPES.BOSS)) {
                     this.player.attack(this.currentRoom.monsters);
                 } else if (this.currentScene === SCENE_TYPES.TRAINING && this.trainingGroundScene) {
                     this.player.attack(this.trainingGroundScene.dummies);
+                } else if (this.currentScene === SCENE_TYPES.SKILL_LAB && this.skillLabScene) {
+                    this.player.attack(this.skillLabScene.dummies);
+                } else if (this.currentScene === SCENE_TYPES.TRIAL && this.trialScene) {
+                    this.player.attack(this.trialScene.getMonsters());
+                } else if (this.currentScene === SCENE_TYPES.DUNGEON && this.dungeonScene) {
+                    this.player.attack(this.dungeonScene.getMonsters());
+                } else if (this.currentScene === SCENE_TYPES.TOWN) {
+                    // 主城无怪物，仍允许挥击（新手教程攻击步骤、练习操作）
+                    this.player.attack([]);
                 }
             }
         } catch (error) {
@@ -3404,6 +3656,24 @@ class Game {
         };
         goldParts.forEach((amt, i) => place(i, goldParts.length, 'gold', amt, '#ffd700'));
         expParts.forEach((amt, i) => place(i, expParts.length, 'exp', amt, '#00ff66'));
+    }
+
+    /** 结算尚未拾取的经验/金币光点与地面装备（副本通关、离场的兜底） */
+    _flushPendingCombatRewards() {
+        if (this.rewardPickups && this.rewardPickups.length) {
+            this.rewardPickups.forEach(p => {
+                if (!p || p.amount <= 0) return;
+                if (p.kind === 'gold') this.gainGold(p.amount);
+                else if (p.kind === 'exp') this.gainExp(p.amount);
+            });
+            this.rewardPickups = [];
+        }
+        if (this.droppedItems && this.droppedItems.length) {
+            this.droppedItems.forEach(d => {
+                if (d && d.item) this.addItemToInventory(d.item, true);
+            });
+            this.droppedItems = [];
+        }
     }
 
     /**
@@ -3713,6 +3983,9 @@ class Game {
             // 如果游戏暂停，只更新飘浮文字和UI，不更新游戏逻辑
             if (this.paused) {
                 this.cancelWeaponSkillAim();
+                this.lastInteractKeyState = window.KeybindSystem
+            ? window.KeybindSystem.isActionPressed(this, 'interact')
+            : !!this.keys['e'];
                 // 更新飘浮文字（让它们继续显示）
                 this.floatingTexts = this.floatingTexts.filter(text => {
                     if (text.fixedPosition) {
@@ -3735,14 +4008,22 @@ class Game {
             // 更新玩家
             this.handleInput();
             this.updateWeaponSkillAimState();
+            this.updateClassSkillAimState();
+            if (typeof window.tickTutorialProgress === 'function') {
+                window.tickTutorialProgress(this);
+            }
+            if (typeof window.tickPlayerClassResource === 'function') {
+                const inCombat = this.currentScene === SCENE_TYPES.TOWER || this.currentScene === SCENE_TYPES.TRAINING || this.currentScene === SCENE_TYPES.SKILL_LAB || this.currentScene === SCENE_TYPES.TRIAL || this.currentScene === SCENE_TYPES.DUNGEON;
+                window.tickPlayerClassResource(this.player, this.fixedTimeStep / 1000, inCombat);
+            }
+            if (typeof window.tickBuildPassive === 'function') {
+                window.tickBuildPassive(this.player, this.fixedTimeStep / 1000, this);
+            }
             
-            // 保存当前E键状态（用于检测按键按下事件，而不是持续按住）
-            const currentEKeyState = this.keys['e'] || false;
-            // 检查是否在场景切换后的3秒冷却期内
             const now = Date.now();
             const timeSinceTransition = now - this.lastSceneTransitionTime;
             const canInteract = timeSinceTransition >= 3000; // 3秒冷却
-            const eKeyPressed = currentEKeyState && !this.lastEKeyState && canInteract; // 检测按键按下事件，且不在冷却期内
+            const interactPressed = this._isInteractKeyEdge(canInteract);
             
             // 更新相机位置，使玩家永远居中
             // 相机偏移量 = 玩家位置 - 屏幕中心
@@ -3766,9 +4047,7 @@ class Game {
             
             // 更新粒子系统
             const deltaTime = performance.now() - this.lastFrameTime;
-            this.particleManager.update(deltaTime);
-            this._updateFusionWeaponParticles(Date.now());
-            this.lastFrameTime = performance.now();
+            this.particleManager.update(deltaTime);            this.lastFrameTime = performance.now();
             
             // 更新玩家buff（移除过期的buff并更新属性）
             const oldBuffCount = this.player.buffs.length;
@@ -3856,6 +4135,12 @@ class Game {
                 let targets = [];
                 if (this.currentScene === SCENE_TYPES.TRAINING && this.trainingGroundScene) {
                     targets = this.trainingGroundScene.dummies;
+                } else if (this.currentScene === SCENE_TYPES.SKILL_LAB && this.skillLabScene) {
+                    targets = this.skillLabScene.dummies;
+                } else if (this.currentScene === SCENE_TYPES.TRIAL && this.trialScene) {
+                    targets = this.trialScene.getMonsters();
+                } else if (this.currentScene === SCENE_TYPES.DUNGEON && this.dungeonScene) {
+                    targets = this.dungeonScene.getMonsters();
                 } else if (this.currentRoom && this.currentRoom.monsters) {
                     targets = this.currentRoom.monsters;
                 }
@@ -3937,13 +4222,14 @@ class Game {
                 }
             }
             
-            // 星辰套装8件：战斗中每秒恢复1%最大生命值（已移除致命免疫）
+            // 星辰套装等：战斗中每秒恢复（V2 暂无此类 periodic，保留兼容旧 special 名）
             if (this.player.setSpecialEffects) {
                 for (const [setId, setEffect] of Object.entries(this.player.setSpecialEffects)) {
-                const setData = SET_DEFINITIONS[setId];
+                const setData = typeof resolveSetDefinition === 'function'
+                    ? resolveSetDefinition(setId) : null;
                 if (!setData) continue;
                 
-                const effect = setData.effects[setEffect.pieceCount];
+                const effect = setData.effects[String(setEffect.pieceCount)] || setData.effects[setEffect.pieceCount];
                 if (
                     effect &&
                     effect.special === 'starRegen' &&
@@ -4071,6 +4357,7 @@ class Game {
             
             // 更新技能按钮（每帧更新以显示冷却时间）
             this.updateWeaponSkillButton();
+            if (this.classUI) this.classUI.updateStatusBuffs();
             
             // 根据当前场景更新
             if (this.currentScene === SCENE_TYPES.TOWN) {
@@ -4089,6 +4376,33 @@ class Game {
                 this.updateTrainingGround();
                 // 检查训练场交互提示
                 const interactions = this.trainingGroundScene.checkInteraction(this.player);
+                this.currentInteraction = interactions.length > 0 ? {
+                    type: 'portal',
+                    object: interactions[0],
+                    x: interactions[0].x,
+                    y: interactions[0].y - interactions[0].size / 2 - 30
+                } : null;
+            } else if (this.currentScene === SCENE_TYPES.SKILL_LAB) {
+                this.updateSkillLab();
+                const interactions = this.skillLabScene.checkInteraction(this.player);
+                this.currentInteraction = interactions.length > 0 ? {
+                    type: 'portal',
+                    object: interactions[0],
+                    x: interactions[0].x,
+                    y: interactions[0].y - interactions[0].size / 2 - 30
+                } : null;
+            } else if (this.currentScene === SCENE_TYPES.TRIAL) {
+                this.updateTrial();
+                const interactions = this.trialScene.checkInteraction(this.player);
+                this.currentInteraction = interactions.length > 0 ? {
+                    type: 'portal',
+                    object: interactions[0],
+                    x: interactions[0].x,
+                    y: interactions[0].y - interactions[0].size / 2 - 30
+                } : null;
+            } else if (this.currentScene === SCENE_TYPES.DUNGEON) {
+                this.updateDungeon();
+                const interactions = this.dungeonScene.checkInteraction(this.player);
                 this.currentInteraction = interactions.length > 0 ? {
                     type: 'portal',
                     object: interactions[0],
@@ -4116,6 +4430,9 @@ class Game {
                     this.updateGroundHazards();
                     this.updatePendingMonsterAoE();
                     this.updateSoulCircles();
+                    if (typeof window.updateSkillEntities === 'function') {
+                        window.updateSkillEntities(this, this.currentRoom.monsters, deltaTime / 1000);
+                    }
                 // 检查房间交互提示
                 if (this.portals.length > 0) {
                     // 检查传送门交互
@@ -4146,7 +4463,7 @@ class Game {
                 
                 // 更新掉落物（检查拾取）
                 this.droppedItems = this.droppedItems.filter(item => {
-                    return !item.update(this, eKeyPressed); // 靠近后按 E 才会尝试拾取
+                    return !item.update(this, interactPressed); // 靠近后按 E 才会尝试拾取
                 });
 
                 if (this.rewardPickups && this.rewardPickups.length && this.player) {
@@ -4219,7 +4536,7 @@ class Game {
                 }
                 
                 // 检查传送门交互（需要按E键）- 适用于所有房间类型
-                if (this.portals.length > 0 && !this.isTransitioning && eKeyPressed) {
+                if (this.portals.length > 0 && !this.isTransitioning && interactPressed) {
                     this.portals.forEach(portal => {
                         const dx = portal.x - this.player.x;
                         const dy = portal.y - this.player.y;
@@ -4249,47 +4566,50 @@ class Game {
                 const dy = this.currentRoom.treasureChest.y - this.player.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                if (distance < 50 && !this.currentRoom.treasureChest.opened && eKeyPressed) {
+                if (distance < 50 && !this.currentRoom.treasureChest.opened && interactPressed) {
                     this.currentRoom.treasureChest.opened = true;
                     // 播放开宝箱音效
                     if (this.soundManager) {
                         this.soundManager.playSound('treasure');
                     }
-                    // 给予奖励：品质与当前层「怪物等级上限」档位一致，避免跨几十级装备
-                    const allEquipments = generateEquipments();
+                    // 给予奖励：程序化装备，品质与层数档位一致
+                    const chestQuality = this.currentRoom.treasureChest.quality;
                     const tierLevels = typeof getEquipmentDropTierLevelsForTowerFloor === 'function'
                         ? getEquipmentDropTierLevelsForTowerFloor(this.floor)
                         : [1, 5, 10, 15, 20];
-                    let qualityEquipments = allEquipments.filter(eq =>
-                        eq.quality === this.currentRoom.treasureChest.quality &&
-                        !eq.isCrafted &&
-                        tierLevels.includes(eq.level)
-                    );
-                    if (qualityEquipments.length === 0) {
-                        const maxL = tierLevels.length ? Math.max.apply(null, tierLevels) : 60;
-                        qualityEquipments = allEquipments.filter(eq =>
-                            eq.quality === this.currentRoom.treasureChest.quality &&
-                            !eq.isCrafted &&
-                            (eq.level || 0) <= maxL
-                        );
-                    }
-                    let rewardText = '';
-                    let rewardCount = 0;
+                    const dropLevel = tierLevels.length
+                        ? tierLevels[Math.floor(Math.random() * tierLevels.length)]
+                        : Math.max(1, this.floor * 2);
+                    const rawEq = window.EquipmentCodex && window.EquipmentCodex.generateLootEquipment
+                        ? window.EquipmentCodex.generateLootEquipment({
+                            quality: chestQuality,
+                            monsterLevel: dropLevel,
+                            monsterTier: chestQuality === 'legendary' || chestQuality === 'mythic' ? 'boss' : 'elite',
+                            playerClass: typeof window.getPlayerBaseClassId === 'function'
+                                ? window.getPlayerBaseClassId(this.player.classData) : null
+                        })
+                        : null;
                     
-                    if (qualityEquipments.length > 0) {
-                        const randomEq = qualityEquipments[Math.floor(Math.random() * qualityEquipments.length)];
-                        // 宝箱奖励改为地面掉落：须保留 Equipment 实例，JSON 深拷贝会变成普通对象导致悬停无详情
-                        const rewardEq = new Equipment({
-                            id: randomEq.id,
-                            name: randomEq.name,
-                            slot: randomEq.slot,
-                            weaponType: randomEq.weaponType,
-                            quality: randomEq.quality,
-                            level: randomEq.level,
-                            stats: JSON.parse(JSON.stringify(randomEq.stats)),
-                            refineLevel: randomEq.refineLevel || 0,
-                            enhanceLevel: randomEq.enhanceLevel || 0
-                        });
+                    if (rawEq) {
+                        const rewardEq = window.EquipmentCodex && window.EquipmentCodex.cloneEquipmentForGrant
+                            ? window.EquipmentCodex.cloneEquipmentForGrant(rawEq)
+                            : new Equipment({
+                                id: rawEq.id,
+                                name: rawEq.name,
+                                slot: rawEq.slot,
+                                weaponType: rawEq.weaponType,
+                                quality: rawEq.quality,
+                                level: rawEq.level,
+                                stats: JSON.parse(JSON.stringify(rawEq.baseStats || rawEq.stats || {})),
+                                baseTypeId: rawEq.baseTypeId,
+                                prefixes: rawEq.prefixes || [],
+                                suffixes: rawEq.suffixes || [],
+                                legendaryPowers: rawEq.legendaryPowers || [],
+                                setId: rawEq.setId,
+                                procedural: true,
+                                refineLevel: 0,
+                                enhanceLevel: 0
+                            });
                         if (!rewardEq.uniqueId) {
                             rewardEq.uniqueId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
                         }
@@ -4304,8 +4624,8 @@ class Game {
                         }
                     }
                     
-                    const goldAmount = 10 + this.floor * 5;
-                    const expAmount = 20 + this.floor * 5;
+                    const goldAmount = 50 + this.floor * 12;
+                    const expAmount = 40 + this.floor * 10;
                     const cx = this.currentRoom.treasureChest.x;
                     const cy = this.currentRoom.treasureChest.y;
                     this.spawnRewardPickupOrbs(cx, cy, goldAmount, expAmount, 36);
@@ -4323,7 +4643,7 @@ class Game {
                 }
                 
                 // 检查传送门交互（宝箱房间，需要按E键）
-                if (this.portals.length > 0 && !this.isTransitioning && eKeyPressed) {
+                if (this.portals.length > 0 && !this.isTransitioning && interactPressed) {
                     this.portals.forEach(portal => {
                         const dx = portal.x - this.player.x;
                         const dy = portal.y - this.player.y;
@@ -4350,7 +4670,7 @@ class Game {
                 const dy = this.currentRoom.restItem.y - this.player.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                if (distance < 50 && !this.currentRoom.restItem.used && eKeyPressed) {
+                if (distance < 50 && !this.currentRoom.restItem.used && interactPressed) {
                     this.currentRoom.restItem.used = true;
                     const healAmounts = {
                         campfire: 0.15,
@@ -4389,7 +4709,7 @@ class Game {
                 }
                 
                 // 检查传送门交互（休整房间，需要按E键）
-                if (this.portals.length > 0 && !this.isTransitioning && eKeyPressed) {
+                if (this.portals.length > 0 && !this.isTransitioning && interactPressed) {
                     this.portals.forEach(portal => {
                         const dx = portal.x - this.player.x;
                         const dy = portal.y - this.player.y;
@@ -4415,10 +4735,10 @@ class Game {
                 const cy = this.currentRoom.height / 2;
                 const dx = cx - this.player.x;
                 const dy = cy - this.player.y;
-                if (eKeyPressed && Math.sqrt(dx * dx + dy * dy) < 95 && !this.currentRoom.cleared) {
+                if (interactPressed && Math.sqrt(dx * dx + dy * dy) < 95 && !this.currentRoom.cleared) {
                     this.openGapShopModal();
                 }
-                if (this.portals.length > 0 && !this.isTransitioning && eKeyPressed) {
+                if (this.portals.length > 0 && !this.isTransitioning && interactPressed) {
                     this.portals.forEach(portal => {
                         const pdx = portal.x - this.player.x;
                         const pdy = portal.y - this.player.y;
@@ -4445,9 +4765,8 @@ class Game {
             if (this.player.dashCooldown > 0) {
                 this.player.dashCooldown -= 16;
             }
-            
-            // 更新E键状态（在本次update结束时保存，用于下次检测按键按下事件）
-            this.lastEKeyState = currentEKeyState;
+
+            this._commitInteractKeyEdge();
             
             this.updateHUD();
             this.maybeAutoSyncSaveCodeToLocalStorage(false);
@@ -4468,19 +4787,29 @@ class Game {
         const now = Date.now();
         const timeSinceTransition = now - this.lastSceneTransitionTime;
         const canInteract = timeSinceTransition >= 3000; // 3秒冷却
-        const currentEKeyState = this.keys['e'] || false;
-        const eKeyPressed = currentEKeyState && !this.lastEKeyState && canInteract; // 检测按键按下事件，且不在冷却期内
+        const interactPressed = this._isInteractKeyEdge(canInteract); // 检测按键按下事件，且不在冷却期内
         
-        if (interactions.length > 0 && eKeyPressed) {
+        if (interactions.length > 0 && interactPressed) {
             const building = interactions[0];
-            if (building.name === '恶魔塔入口') {
-                this.enterTower();
-            } else if (building.name === '铁匠铺') {
-                this.openBlacksmith();
-            } else if (building.name === '商店') {
-                this.openShop();
-            } else if (building.name === '训练场') {
-                this.enterTrainingGround();
+            const handlers = {
+                tower_entrance: () => this.enterTower(),
+                blacksmith: () => this.openBlacksmith(),
+                shop: () => this.openShop(),
+                training_ground: () => this.enterTrainingGround(),
+                class_master: () => this.npcUI && this.npcUI.openClassMaster(),
+                skill_trainer: () => this.npcUI && this.npcUI.openSkillTrainer(),
+                enchanter: () => this.npcUI && this.npcUI.openEnchanter(),
+                jeweler: () => this.npcUI && this.npcUI.openJeweler(),
+                chronicle_stone: () => this.npcUI && this.npcUI.openChronicle(),
+                awakening_gate: () => this.npcUI && this.npcUI.openAwakeningGate(),
+                material_realm: () => this.npcUI && this.npcUI.openMaterialRealm()
+            };
+            const fn = handlers[building.type];
+            if (fn) {
+                fn();
+                if (typeof window.notifyTutorialEvent === 'function') {
+                    window.notifyTutorialEvent(this, 'building_interact', { building: building.type });
+                }
             }
         }
     }
@@ -4492,6 +4821,15 @@ class Game {
     getCurrentSceneTargets() {
         if (this.currentScene === SCENE_TYPES.TRAINING && this.trainingGroundScene) {
             return this.trainingGroundScene.dummies || [];
+        }
+        if (this.currentScene === SCENE_TYPES.SKILL_LAB && this.skillLabScene) {
+            return this.skillLabScene.dummies || [];
+        }
+        if (this.currentScene === SCENE_TYPES.TRIAL && this.trialScene) {
+            return this.trialScene.getMonsters();
+        }
+        if (this.currentScene === SCENE_TYPES.DUNGEON && this.dungeonScene) {
+            return this.dungeonScene.getMonsters();
         }
         if (this.currentRoom && this.currentRoom.monsters) {
             return this.currentRoom.monsters;
@@ -4526,6 +4864,14 @@ class Game {
             this.closeEscMenu();
             this.showImportSaveModal();
         });
+
+        const escClearSaveBtn = document.getElementById('esc-menu-clear-save-btn');
+        if (escClearSaveBtn) {
+            escClearSaveBtn.addEventListener('click', () => {
+                this.closeEscMenu();
+                this.clearSave();
+            });
+        }
         
         document.getElementById('esc-menu-exit-tower-btn').addEventListener('click', () => {
             this.closeEscMenu();
@@ -4536,6 +4882,8 @@ class Game {
             e.stopPropagation();
             this.closeEscMenu();
         });
+
+        this.initEscMenuTabs();
         
         // 点击ESC菜单背景关闭菜单
         const escMenuModal = document.getElementById('esc-menu-modal');
@@ -4600,18 +4948,54 @@ class Game {
     }
 
     /**
+     * ESC 菜单分页切换
+     */
+    initEscMenuTabs() {
+        const modal = document.getElementById('esc-menu-modal');
+        if (!modal || modal.dataset.tabsInited) return;
+        modal.dataset.tabsInited = '1';
+
+        const tabs = modal.querySelectorAll('.esc-menu-tab');
+        const panels = modal.querySelectorAll('.esc-menu-tab-panel');
+        const switchTab = (tabId) => {
+            tabs.forEach(tab => {
+                const active = tab.dataset.escTab === tabId;
+                tab.classList.toggle('active', active);
+                tab.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            panels.forEach(panel => {
+                panel.classList.toggle('active', panel.dataset.escPanel === tabId);
+            });
+        };
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.stopPropagation();
+                switchTab(tab.dataset.escTab);
+            });
+        });
+
+        this._switchEscMenuTab = switchTab;
+    }
+
+    /**
      * 显示ESC菜单
      */
     showEscMenu() {
         const modal = document.getElementById('esc-menu-modal');
         if (modal) {
             modal.classList.add('show');
-            // 确保菜单显示
-            modal.style.display = 'flex';
+            modal.style.display = '';
             this.paused = true;
 
             if (typeof this._syncVolumeSlidersFromManager === 'function') {
                 this._syncVolumeSlidersFromManager();
+            }
+            if (typeof this._switchEscMenuTab === 'function') {
+                this._switchEscMenuTab('basic');
+            }
+            if (window.KeybindSystem && typeof window.KeybindSystem.renderAllSettingsLists === 'function') {
+                window.KeybindSystem.renderAllSettingsLists();
             }
 
             // 如果在恶魔塔中，显示退出按钮
@@ -4633,8 +5017,7 @@ class Game {
         const modal = document.getElementById('esc-menu-modal');
         if (modal) {
             modal.classList.remove('show');
-            // 强制移除show类，确保菜单关闭
-            modal.style.display = 'none';
+            modal.style.display = '';
         }
         // 检查其他界面是否打开
         const inventoryModal = document.getElementById('inventory-modal');
@@ -4783,6 +5166,301 @@ class Game {
     }
     
     /**
+     * 进入转职试炼
+     * @param {'first'|'second'} kind
+     * @param {string} targetId - 一转 id 或二转 id
+     */
+    enterTrial(kind, targetId) {
+        let check;
+        if (kind === 'first') {
+            check = window.canStartFirstJobTrial(this.player, targetId);
+        } else {
+            check = window.canStartSecondJobTrial(this.player, targetId);
+        }
+        if (!check.ok) {
+            this.addFloatingText(this.player.x, this.player.y, check.message || '无法进入试炼', '#ff6666');
+            return false;
+        }
+        const trial = check.trial;
+        if (!trial || !trial.bossId) {
+            this.addFloatingText(this.player.x, this.player.y, '试炼配置缺失', '#ff6666');
+            return false;
+        }
+        if (this.npcUI) this.npcUI.closeAll();
+        this.activeTrial = {
+            kind,
+            targetId,
+            bossId: trial.bossId,
+            title: trial.title,
+            hint: trial.hint
+        };
+        this.transitionScene(SCENE_TYPES.TRIAL);
+        this.trialScene.spawnBoss(trial.bossId, trial);
+        this.player.x = CONFIG.CANVAS_WIDTH / 2;
+        this.player.y = CONFIG.CANVAS_HEIGHT - 120;
+        this.monsterProjectiles = [];
+        this.groundHazards = [];
+        this.pendingMonsterAoE = [];
+        document.getElementById('room-type').textContent = trial.title || '试炼';
+        document.getElementById('floor-number').textContent = '—';
+        this.addFloatingText(this.player.x, this.player.y, '试炼开始！', '#c8a2ff', 2500, 16, true);
+        return true;
+    }
+
+    /**
+     * 更新试炼场景
+     */
+    updateTrial() {
+        if (!this.trialScene) return;
+        const now = Date.now();
+        const timeSinceTransition = now - this.lastSceneTransitionTime;
+        const canInteract = timeSinceTransition >= 3000;
+        const interactPressed = this._isInteractKeyEdge(canInteract);
+
+        const interactions = this.trialScene.checkInteraction(this.player);
+        if (interactions.length > 0 && interactPressed) {
+            this.abortTrial();
+            return;
+        }
+
+        this.trialScene.update(this.player);
+        const monsters = this.trialScene.getMonsters();
+        let playerDied = false;
+        monsters.forEach(monster => {
+            if (monster.hp > 0 && monster.attack(this.player)) {
+                const md = (monster._pendingMeleeDamageMult != null && monster._pendingMeleeDamageMult > 0)
+                    ? monster._pendingMeleeDamageMult : 1;
+                const mdmg = Math.max(1, Math.floor(monster.damage * md));
+                monster._pendingMeleeDamageMult = 1;
+                const killed = this.player.takeDamage(mdmg, monster, false);
+                if (typeof applyMonsterOnHitPlayerEffects === 'function') {
+                    applyMonsterOnHitPlayerEffects(this.player, monster);
+                }
+                if (killed) playerDied = true;
+            }
+            if (typeof Boss !== 'undefined' && monster instanceof Boss && monster.hp > 0) {
+                const hits = monster.checkSkillHit(this.player);
+                hits.forEach(h => {
+                    const killed = this.player.takeDamage(h.damage, monster, false);
+                    if (killed) playerDied = true;
+                });
+            }
+        });
+        if (typeof window.updateSkillEntities === 'function') {
+            window.updateSkillEntities(this, monsters, this.fixedTimeStep / 1000);
+        }
+        this.updateMonsterProjectiles();
+        if (playerDied || this.isPlayerDead) {
+            this.onTrialDefeat();
+        }
+    }
+
+    onTrialVictory() {
+        if (!this.activeTrial) return;
+        const res = window.applyTrialVictory(this);
+        const name = res.ok ? (res.name || '') : (res.message || '试炼完成');
+        this.addFloatingText(this.player.x, this.player.y, res.ok ? ('试炼成功：' + name) : name, res.ok ? '#88ff88' : '#ff6666', 3500, 16, true);
+        if (res.ok) {
+            if (typeof this.updateHUD === 'function') this.updateHUD();
+            if (this.classUI) this.classUI.updateAll();
+        }
+        setTimeout(() => {
+            this.returnToTown();
+            document.getElementById('room-type').textContent = '主城';
+            document.getElementById('floor-number').textContent = '准备中';
+        }, 1200);
+    }
+
+    onTrialDefeat() {
+        this.addFloatingText(this.player.x, this.player.y, '试炼失败', '#ff4444', 2500, 16, true);
+        this.activeTrial = null;
+        this.isPlayerDead = false;
+        this.player.hp = Math.max(1, Math.floor(this.player.maxHp * 0.3));
+        setTimeout(() => {
+            this.returnToTown();
+            document.getElementById('room-type').textContent = '主城';
+            document.getElementById('floor-number').textContent = '准备中';
+        }, 800);
+    }
+
+    abortTrial() {
+        this.addFloatingText(this.player.x, this.player.y, '已放弃试炼', '#ffaa66');
+        this.activeTrial = null;
+        this.returnToTown();
+        document.getElementById('room-type').textContent = '主城';
+        document.getElementById('floor-number').textContent = '准备中';
+    }
+
+    /**
+     * 进入材料秘境 / 副本
+     */
+    enterDungeon(dungeonId, tierId) {
+        const check = window.canEnterDungeon(this.player, dungeonId, tierId);
+        if (!check.ok) {
+            this.addFloatingText(this.player.x, this.player.y, check.message || '无法进入', '#ff6666');
+            return false;
+        }
+        const def = check.def;
+        const tier = check.tier;
+        window.consumeDungeonAttempt(this.player, def);
+        if (this.dungeonUI) this.dungeonUI.close();
+        if (this.npcUI) this.npcUI.closeAll();
+        this.activeDungeon = { def, tier, dungeonId, tierId };
+        this.transitionScene(SCENE_TYPES.DUNGEON);
+        if (this.dungeonScene) this.dungeonScene.initRun(def, tier);
+        this.player.x = CONFIG.CANVAS_WIDTH / 2;
+        this.player.y = CONFIG.CANVAS_HEIGHT - 120;
+        this.player._dungeonNoHeal = !!def.noHeal;
+        this.monsterProjectiles = [];
+        this.groundHazards = [];
+        this.pendingMonsterAoE = [];
+        this.droppedItems = [];
+        this.rewardPickups = [];
+        const roomTypeEl = document.getElementById('room-type');
+        const floorEl = document.getElementById('floor-number');
+        if (roomTypeEl) roomTypeEl.textContent = def.name;
+        if (floorEl) floorEl.textContent = tier.name || '—';
+        this.addFloatingText(this.player.x, this.player.y, def.name + ' 开始！', '#88ccff', 2500, 16, true);
+        return true;
+    }
+
+    updateDungeon() {
+        if (!this.dungeonScene) return;
+        const now = Date.now();
+        const timeSinceTransition = now - this.lastSceneTransitionTime;
+        const canInteract = timeSinceTransition >= 3000;
+        const interactPressed = this._isInteractKeyEdge(canInteract);
+
+        const interactions = this.dungeonScene.checkInteraction(this.player);
+        if (interactions.length > 0 && interactPressed) {
+            this.abortDungeon();
+            return;
+        }
+
+        this.dungeonScene.update(this.player);
+
+        this.dungeonScene.monsters.forEach(m => {
+            if (m && m.hp <= 0 && !m._dungeonKillNotified) {
+                m._dungeonKillNotified = true;
+                this.dungeonScene.notifyKilled(m);
+            }
+        });
+
+        const monsters = this.dungeonScene.getMonsters();
+        let playerDied = false;
+        monsters.forEach(monster => {
+            if (monster.hp > 0 && monster.attack(this.player)) {
+                const md = (monster._pendingMeleeDamageMult != null && monster._pendingMeleeDamageMult > 0)
+                    ? monster._pendingMeleeDamageMult : 1;
+                const mdmg = Math.max(1, Math.floor(monster.damage * md));
+                monster._pendingMeleeDamageMult = 1;
+                const killed = this.player.takeDamage(mdmg, monster, false);
+                if (typeof applyMonsterOnHitPlayerEffects === 'function') {
+                    applyMonsterOnHitPlayerEffects(this.player, monster);
+                }
+                if (killed) playerDied = true;
+            }
+            if (typeof Boss !== 'undefined' && monster instanceof Boss && monster.hp > 0) {
+                const hits = monster.checkSkillHit(this.player);
+                hits.forEach(h => {
+                    const killed = this.player.takeDamage(h.damage, monster, false);
+                    if (killed) playerDied = true;
+                });
+            }
+        });
+        if (typeof window.updateSkillEntities === 'function') {
+            window.updateSkillEntities(this, monsters, this.fixedTimeStep / 1000);
+        }
+        this.updateMonsterProjectiles();
+
+        // 地面掉落：经验/金币光点自动吸附，装备靠近后按 E 拾取（与恶魔塔一致）
+        this.droppedItems = this.droppedItems.filter(item => {
+            return !item.update(this, interactPressed);
+        });
+        if (this.rewardPickups && this.rewardPickups.length && this.player) {
+            const dt = this.fixedTimeStep;
+            this.rewardPickups = this.rewardPickups.filter(p => !p.update(dt, this.player));
+        }
+
+        if (this.dungeonScene.isComplete()) {
+            this.onDungeonVictory();
+            return;
+        }
+        if (playerDied || this.isPlayerDead) {
+            this.onDungeonDefeat();
+        }
+    }
+
+    onDungeonVictory() {
+        if (!this.activeDungeon || !this.dungeonScene) return;
+        this._flushPendingCombatRewards();
+        const stats = this.dungeonScene.getRunStats();
+        const run = Object.assign({
+            def: this.activeDungeon.def,
+            tier: this.activeDungeon.tier,
+            eliteCleared: this.dungeonScene.eliteCleared,
+            abyssGateCleared: this.dungeonScene.abyssGateCleared,
+            wavesReached: stats.wavesReached,
+            fullClear: stats.fullClear,
+            trialTowerFloor: stats.trialTowerFloor,
+            rewardMult: stats.rewardMult,
+            elapsedMs: stats.elapsedMs
+        }, stats);
+        const granted = window.buildDungeonVictoryRewards(this, run);
+        const summary = window.formatGrantedRewards(granted);
+        let msg = '副本通关！';
+        if (run.speedRank === 'S') msg += ' S级速通！';
+        if (summary && summary !== '无') msg += ' ' + summary;
+        this.addFloatingText(this.player.x, this.player.y, msg, '#88ff88', 4000, 15, true);
+        if (this.activeDungeon.def.id === 'trial_tower' && stats.trialTowerFloor) {
+            window.ensurePlayerDungeonProgress(this.player);
+            const best = this.player.dungeonProgress.trialTowerBestFloor || 0;
+            if (stats.trialTowerFloor > best) {
+                this.player.dungeonProgress.trialTowerBestFloor = stats.trialTowerFloor;
+            }
+        }
+        this.activeDungeon = null;
+        this.player._dungeonNoHeal = false;
+        if (this.dungeonScene) this.dungeonScene.reset();
+        if (typeof this.updateHUD === 'function') this.updateHUD();
+        setTimeout(() => {
+            this.returnToTown();
+            const roomTypeEl = document.getElementById('room-type');
+            const floorEl = document.getElementById('floor-number');
+            if (roomTypeEl) roomTypeEl.textContent = '主城';
+            if (floorEl) floorEl.textContent = '准备中';
+        }, 1400);
+    }
+
+    onDungeonDefeat() {
+        this.addFloatingText(this.player.x, this.player.y, '副本失败', '#ff4444', 2500, 16, true);
+        this.activeDungeon = null;
+        this.player._dungeonNoHeal = false;
+        this.isPlayerDead = false;
+        this.player.hp = Math.max(1, Math.floor(this.player.maxHp * 0.3));
+        if (this.dungeonScene) this.dungeonScene.reset();
+        setTimeout(() => {
+            this.returnToTown();
+            const roomTypeEl = document.getElementById('room-type');
+            const floorEl = document.getElementById('floor-number');
+            if (roomTypeEl) roomTypeEl.textContent = '主城';
+            if (floorEl) floorEl.textContent = '准备中';
+        }, 800);
+    }
+
+    abortDungeon() {
+        this.addFloatingText(this.player.x, this.player.y, '已放弃副本', '#ffaa66');
+        this.activeDungeon = null;
+        this.player._dungeonNoHeal = false;
+        if (this.dungeonScene) this.dungeonScene.reset();
+        this.returnToTown();
+        const roomTypeEl = document.getElementById('room-type');
+        const floorEl = document.getElementById('floor-number');
+        if (roomTypeEl) roomTypeEl.textContent = '主城';
+        if (floorEl) floorEl.textContent = '准备中';
+    }
+
+    /**
      * 进入训练场
      */
     enterTrainingGround() {
@@ -4794,6 +5472,75 @@ class Game {
         this.player.y = CONFIG.CANVAS_HEIGHT / 2;
         // 打开训练场UI（可选，玩家也可以直接按T键生成训练假人）
         this.openTrainingGround();
+    }
+
+    /**
+     * 开发者：进入技能实验场景
+     */
+    enterSkillLab() {
+        const devPanel = document.getElementById('dev-panel');
+        const devCodex = document.getElementById('dev-codex-panel');
+        if (devPanel) devPanel.classList.remove('show');
+        if (devCodex) devCodex.classList.remove('show');
+        this.devMode = false;
+
+        this._saveSkillLabReturnState();
+        this.transitionScene(SCENE_TYPES.SKILL_LAB);
+
+        this.player.x = CONFIG.CANVAS_WIDTH / 2;
+        this.player.y = CONFIG.CANVAS_HEIGHT / 2;
+        this.player.hp = this.player.maxHp;
+
+        if (this.skillLabScene) {
+            this.skillLabScene.clearAllDummies();
+            const cx = this.player.x;
+            const cy = this.player.y;
+            this.skillLabScene.addDummy(cx + 120, cy, { invincible: true, chasePlayer: false });
+            this.skillLabScene.addDummy(cx - 100, cy + 60, { invincible: true, chasePlayer: false });
+            this.skillLabScene.addDummy(cx, cy - 100, { invincible: true, chasePlayer: false });
+        }
+
+        if (this.skillLabUI) {
+            this.skillLabUI.open();
+            this.skillLabUI.applyDefaults();
+        } else {
+            this.syncGamePausedState();
+        }
+
+        this.addFloatingText(this.player.x, this.player.y, '已进入技能实验场', '#88ccff');
+    }
+
+    /** 离开技能实验场（恢复进入前状态） */
+    exitSkillLab() {
+        this.returnToTown();
+    }
+
+    _saveSkillLabReturnState() {
+        if (!this.player) return;
+        const p = this.player;
+        this._skillLabReturnState = {
+            classData: p.classData ? JSON.parse(JSON.stringify(p.classData)) : null,
+            level: p.level,
+            classResource: p.classResource ? { ...p.classResource } : null,
+            skillHotbar: p.skillHotbar ? [...p.skillHotbar] : null,
+            skillCooldowns: p.skillCooldowns ? { ...p.skillCooldowns } : {}
+        };
+    }
+
+    _restoreSkillLabReturnState() {
+        const saved = this._skillLabReturnState;
+        if (!saved || !this.player) return;
+        const p = this.player;
+        p.classData = saved.classData ? window.normalizeClassData(saved.classData) : p.classData;
+        p.level = saved.level != null ? saved.level : p.level;
+        p.classResource = saved.classResource ? { ...saved.classResource } : p.classResource;
+        p.skillHotbar = saved.skillHotbar ? [...saved.skillHotbar] : p.skillHotbar;
+        p.skillCooldowns = saved.skillCooldowns ? { ...saved.skillCooldowns } : {};
+        if (typeof window.migratePlayerSkillHotbar === 'function') window.migratePlayerSkillHotbar(p);
+        if (typeof p.updateStats === 'function') p.updateStats();
+        this._skillLabReturnState = null;
+        this.updateHUD();
+        if (typeof this.updateWeaponSkillButton === 'function') this.updateWeaponSkillButton();
     }
     
     /**
@@ -4990,10 +5737,9 @@ class Game {
         const now = Date.now();
         const timeSinceTransition = now - this.lastSceneTransitionTime;
         const canInteract = timeSinceTransition >= 3000; // 3秒冷却
-        const currentEKeyState = this.keys['e'] || false;
-        const eKeyPressed = currentEKeyState && !this.lastEKeyState && canInteract; // 检测按键按下事件，且不在冷却期内
+        const interactPressed = this._isInteractKeyEdge(canInteract); // 检测按键按下事件，且不在冷却期内
         
-        if (interactions.length > 0 && eKeyPressed) {
+        if (interactions.length > 0 && interactPressed) {
             const interaction = interactions[0];
             if (interaction.name === '返回主城') {
                 this.returnToTown();
@@ -5001,11 +5747,6 @@ class Game {
         }
         
         // T键：打开训练假人生成面板
-        if (this.keys['t']) {
-            this.openDummySpawnPanel();
-            this.keys['t'] = false; // 防止连续触发
-        }
-        
         // 更新训练假人（如果允许追击）
         this.trainingGroundScene.dummies.forEach(dummy => {
             if (dummy instanceof MonsterTrainingDummy && !dummy.invincible && dummy.hp <= 0) return;
@@ -5013,9 +5754,13 @@ class Game {
                 dummy.update(this.player);
             }
         });
+        if (typeof window.updateSkillEntities === 'function') {
+            window.updateSkillEntities(this, this.trainingGroundScene.dummies, 0.016);
+        }
         
         // 玩家攻击训练桩（如果正在冲刺，不能攻击）
-        if (this.keys['j'] && !this.player.isDashing) {
+        const KB = window.KeybindSystem;
+        if ((KB && KB.isActionPressed(this, 'attack')) && !this.player.isDashing) {
             this.player.attack(this.trainingGroundScene.dummies);
         }
         
@@ -5085,6 +5830,55 @@ class Game {
     }
 
     /**
+     * 更新技能实验场场景
+     */
+    updateSkillLab() {
+        const scene = this.skillLabScene;
+        if (!scene) return;
+
+        const now = Date.now();
+        const timeSinceTransition = now - this.lastSceneTransitionTime;
+        const canInteract = timeSinceTransition >= 3000;
+        const interactPressed = this._isInteractKeyEdge(canInteract);
+        const interactions = scene.checkInteraction(this.player);
+
+        if (interactions.length > 0 && interactPressed) {
+            const interaction = interactions[0];
+            if (interaction.name === '返回主城') {
+                this.exitSkillLab();
+            }
+        }
+
+        scene.dummies.forEach(dummy => {
+            if (dummy instanceof MonsterTrainingDummy && !dummy.invincible && dummy.hp <= 0) return;
+            if (dummy instanceof TrainingDummy || dummy instanceof MonsterTrainingDummy) {
+                dummy.update(this.player);
+            }
+        });
+
+        if (typeof window.updateSkillEntities === 'function') {
+            window.updateSkillEntities(this, scene.dummies, 0.016);
+        }
+
+        scene.dummies.forEach(dummy => {
+            if (dummy instanceof TrainingDummy && dummy.statusEffects.burning && dummy.statusEffects.burning.length > 0) {
+                dummy.statusEffects.burning.forEach(burn => {
+                    const elapsed = now - burn.startTime;
+                    if (elapsed >= 1000 && elapsed < burn.duration) {
+                        const lastTick = burn.lastTick || burn.startTime;
+                        if (now - lastTick >= 1000) {
+                            dummy.takeDamage(burn.damage);
+                            burn.lastTick = now;
+                        }
+                    }
+                });
+            }
+        });
+
+        if (this.skillLabUI) this.skillLabUI.updateDummyCount();
+    }
+
+    /**
      * 查找神圣十字架
      * @returns {Object|null} 返回找到的神圣十字架物品和索引，如果没有则返回null
      */
@@ -5121,8 +5915,8 @@ class Game {
                     <p id="resurrection-detail-text" style="color: #aaa; font-size: 14px; margin-bottom: 30px;"></p>
                     <p style="color: #88ff88; font-size: 12px; margin-bottom: 30px;">复活后将恢复满血并获得3秒无敌</p>
                     <div style="display: flex; gap: 15px; justify-content: center;">
-                        <button id="resurrection-confirm-btn" style="padding: 12px 30px; background: #4a9eff; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold;">确认复活</button>
-                        <button id="resurrection-cancel-btn" style="padding: 12px 30px; background: #666; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px;">返回主城</button>
+                        <button id="resurrection-confirm-btn" class="pe-btn pe-btn--lg pe-btn--info">确认复活</button>
+                        <button id="resurrection-cancel-btn" class="pe-btn pe-btn--lg pe-btn--secondary">返回主城</button>
                     </div>
                 </div>
             `;
@@ -5216,6 +6010,22 @@ class Game {
         // 如果是从训练场返回，清空训练桩
         if (this.currentScene === SCENE_TYPES.TRAINING) {
             this.trainingGroundScene.clearAllDummies();
+        }
+        if (this.currentScene === SCENE_TYPES.SKILL_LAB) {
+            if (this.skillLabScene) this.skillLabScene.clearAllDummies();
+            if (this.skillLabUI) this.skillLabUI.close();
+            this._restoreSkillLabReturnState();
+        }
+        if (this.currentScene === SCENE_TYPES.TRIAL) {
+            if (this.trialScene) this.trialScene.reset();
+            this.activeTrial = null;
+        }
+        if (this.currentScene === SCENE_TYPES.DUNGEON) {
+            if (this.dungeonScene) this.dungeonScene.reset();
+            this.activeDungeon = null;
+            if (this.player) this.player._dungeonNoHeal = false;
+            this.droppedItems = [];
+            this.rewardPickups = [];
         }
         
         // 保存死亡时的层数（如果是从恶魔塔返回）
@@ -5413,6 +6223,9 @@ class Game {
         
         // 调用统一的场景切换函数
         this.transitionScene(SCENE_TYPES.TOWER);
+        if (typeof window.notifyTutorialEvent === 'function') {
+            window.notifyTutorialEvent(this, 'enter_tower');
+        }
         
         // 清空物品追踪Set和金币追踪（开始新的恶魔塔之旅）
         this.towerItems.clear();
@@ -5448,15 +6261,6 @@ class Game {
             this.closeBlacksmith();
         });
         
-        const fusionModeBtn = document.getElementById('blacksmith-fusion-mode-btn');
-        if (fusionModeBtn) {
-            fusionModeBtn.addEventListener('click', () => { this.switchToFusionMode(); });
-        }
-        const fusionModeBack = document.getElementById('blacksmith-fusion-mode-back');
-        if (fusionModeBack) {
-            fusionModeBack.addEventListener('click', () => { this.switchToNormalMode(); });
-        }
-        
         document.getElementById('blacksmith-upgrade-btn').addEventListener('click', () => {
             this.upgradeEquipment();
         });
@@ -5464,35 +6268,13 @@ class Game {
         document.getElementById('blacksmith-refine-btn').addEventListener('click', () => {
             this.refineEquipment();
         });
-        
-        // 合铸：状态与 UI
-        this.fusionSelection = { slotA: null, slotB: null };
-        const fusionSlotA = document.getElementById('blacksmith-fusion-slot-a');
-        const fusionSlotB = document.getElementById('blacksmith-fusion-slot-b');
-        const fusionBtn = document.getElementById('blacksmith-fusion-btn');
-        if (fusionSlotA) {
-            fusionSlotA.addEventListener('click', () => { this.openFusionPicker('A'); });
-        }
-        if (fusionSlotB) {
-            fusionSlotB.addEventListener('click', () => { this.openFusionPicker('B'); });
-        }
-        if (fusionBtn) {
-            fusionBtn.addEventListener('click', () => { this.onBlacksmithFusionButtonClick(); });
-        }
-        const fusionClearBtn = document.getElementById('blacksmith-fusion-clear-btn');
-        if (fusionClearBtn) {
-            fusionClearBtn.addEventListener('click', () => { this.clearFusionSlots(); });
-        }
-        const fusionTownClaim = document.getElementById('fusion-town-complete-claim');
-        if (fusionTownClaim) {
-            fusionTownClaim.addEventListener('click', () => {
-                this.hideFusionTownCompleteModal();
-            });
-        }
-        const fusionTownClose = document.getElementById('fusion-town-complete-close');
-        if (fusionTownClose) {
-            fusionTownClose.addEventListener('click', () => { this.hideFusionTownCompleteModal(); });
-        }
+
+        ['all', 'prefix', 'suffix'].forEach(mode => {
+            const btn = document.getElementById('blacksmith-reroll-' + (mode === 'all' ? 'all' : mode) + '-btn');
+            if (btn) {
+                btn.addEventListener('click', () => this.rerollBlacksmithEquipment(mode === 'all' ? 'all' : mode));
+            }
+        });
         
         // 页签切换功能
         const tabs = document.querySelectorAll('.blacksmith-tab');
@@ -5503,33 +6285,6 @@ class Game {
             });
         });
     }
-    
-    /**
-     * 切换到合铸全屏视图（原打造入口）
-     */
-    switchToFusionMode() {
-        const normalMode = document.getElementById('blacksmith-normal-mode');
-        const fusionMode = document.getElementById('blacksmith-fusion-mode');
-        if (!normalMode || !fusionMode) {
-            console.error('switchToFusionMode: missing blacksmith DOM');
-            return;
-        }
-        normalMode.style.display = 'none';
-        fusionMode.style.display = 'block';
-        this.updateFusionUI();
-    }
-    
-    /**
-     * 切换回铁匠铺普通视图（强化/精炼）
-     */
-    switchToNormalMode() {
-        this.closeFusionPickerModalIfOpen();
-        const normalMode = document.getElementById('blacksmith-normal-mode');
-        const fusionMode = document.getElementById('blacksmith-fusion-mode');
-        if (normalMode) normalMode.style.display = 'flex';
-        if (fusionMode) fusionMode.style.display = 'none';
-    }
-    
     /**
      * 切换铁匠铺页签
      * @param {string} tabName - 'upgrade' | 'refine'
@@ -5543,9 +6298,11 @@ class Game {
         
         const upgradeSection = document.getElementById('blacksmith-upgrade-section');
         const refineSection = document.getElementById('blacksmith-refine-section');
+        const rerollSection = document.getElementById('blacksmith-reroll-section');
         
         if (upgradeSection) upgradeSection.classList.remove('active');
         if (refineSection) refineSection.classList.remove('active');
+        if (rerollSection) rerollSection.classList.remove('active');
         
         if (tabName === 'upgrade') {
             if (upgradeSection) upgradeSection.classList.add('active');
@@ -5564,6 +6321,45 @@ class Game {
                 if (refineList) refineList.innerHTML = '';
                 if (refineBtn) refineBtn.style.display = 'none';
             }
+        } else if (tabName === 'reroll') {
+            if (rerollSection) rerollSection.classList.add('active');
+            this.updateBlacksmithRerollPanel();
+        }
+    }
+
+    updateBlacksmithRerollPanel() {
+        const info = document.getElementById('blacksmith-reroll-info');
+        const equipment = this.getSelectedBlacksmithEquipment();
+        const allBtn = document.getElementById('blacksmith-reroll-all-btn');
+        const preBtn = document.getElementById('blacksmith-reroll-prefix-btn');
+        const sufBtn = document.getElementById('blacksmith-reroll-suffix-btn');
+        if (!info) return;
+        if (!equipment || (!equipment.procedural && !equipment.baseTypeId)) {
+            info.innerHTML = '<p style="color:#aaa;">请选择一件程序化装备</p>';
+            [allBtn, preBtn, sufBtn].forEach(b => { if (b) b.style.display = 'none'; });
+            return;
+        }
+        const cost = window.NpcSystem ? window.NpcSystem.rerollAffixCost(equipment) : 200;
+        const pre = (equipment.prefixes || []).length;
+        const suf = (equipment.suffixes || []).length;
+        info.innerHTML = `<p style="color:#ccc;">${equipment.name}</p>
+            <p style="color:#888;font-size:12px;">前缀 ${pre} · 后缀 ${suf} · 洗练约 ${cost} 金/次</p>`;
+        [allBtn, preBtn, sufBtn].forEach(b => { if (b) b.style.display = 'inline-block'; });
+    }
+
+    rerollBlacksmithEquipment(mode) {
+        const equipment = this.getSelectedBlacksmithEquipment();
+        if (!equipment) return;
+        const res = window.rerollEquipmentAffixes(equipment, this.player, mode);
+        const px = this.player.x;
+        const py = this.player.y;
+        this.addFloatingText(px, py, res.ok ? `洗练成功：${res.name}` : (res.message || '失败'), res.ok ? '#88ff88' : '#ff6666');
+        if (res.ok) {
+            if (typeof this.player.updateStats === 'function') this.player.updateStats();
+            this.updateHUD();
+            this.updateBlacksmithRerollPanel();
+            this.showBlacksmithDetails(equipment);
+            if (typeof this.updateInventoryUI === 'function') this.updateInventoryUI();
         }
     }
 
@@ -5702,8 +6498,33 @@ class Game {
      * @param {number} newLevel - 新等级
      */
     onPlayerLevelUp(newLevel) {
-        // 升级时不再增加背包容量（已取消此功能）
-        // 背包扩容改为在商店刷新时随机出现
+        if (this.player && typeof window.isTutorialComplete === 'function' && !window.isTutorialComplete(this.player)) {
+            if (newLevel <= 3) return;
+        }
+        const hints = {
+            3: '你学会了新技能！按 1 键使用',
+            6: '尝试在战斗中组合使用技能',
+            10: '注意装备与技能的搭配',
+            15: '四个技能槽已就绪，搭配装备词缀',
+            19: '即将 Lv20，回主城找转职官进阶！',
+            20: '恭喜达到20级！找转职官完成一转',
+            25: '一转技能持续解锁，记得强化技能',
+            39: '即将 Lv40，前往觉醒之门完成二转试炼',
+            40: '恭喜完成二转！天赋系统已解锁（C键）',
+            55: '你已解锁终极技能！',
+            60: '传说被动已解锁，继续挑战恶魔塔吧'
+        };
+        const text = hints[newLevel];
+        if (text && this.player) {
+            this.addFloatingText(this.player.x, this.player.y, text, '#ffd700', 3500, 16, true);
+        }
+        if (newLevel === 20 && this.player && !window.normalizeClassData(this.player.classData).firstAdvancement) {
+            this.player.tutorialFlags = this.player.tutorialFlags || {};
+            this.player.tutorialFlags.classMasterHint = true;
+        }
+        if (typeof window.syncChronicleFromProgress === 'function') {
+            window.syncChronicleFromProgress(this.player, this);
+        }
     }
     
     /**
@@ -5725,6 +6546,11 @@ class Game {
         this.paused = false;
         
         // 更新UI
+        this.ensureInventorySlotElements(Math.max(
+            this.player.maxEquipmentCapacity,
+            this.player.maxPotionCapacity
+        ));
+        this.updateInventoryUI();
         this.updateInventoryCapacity();
         this.updateHUD();
         
@@ -5734,7 +6560,7 @@ class Game {
             potion: '消耗品栏',
             consumable: '消耗品栏'
         };
-        this.addFloatingText(this.player.x, this.player.y, `${typeNames[type] || '背包'}容量+6`, '#4a9eff');
+        this.addFloatingText(this.player.x, this.player.y, `${typeNames[type] || '背包'}容量+3`, '#4a9eff');
     }
     
     /**
@@ -5782,14 +6608,9 @@ class Game {
             console.error('openBlacksmith: blacksmith-modal not found');
             return;
         }
-        
-        // 默认显示普通模式
-        this.switchToNormalMode();
-        
         modal.classList.add('show');
-        this.paused = true;
+        this.syncGamePausedState();
         this.updateBlacksmithEquipmentList();
-        this.updateFusionUI();
         // 清空之前选中的装备，确保界面正确显示
         const infoDiv = document.getElementById('blacksmith-item-info');
         const upgradeDiv = document.getElementById('blacksmith-upgrade-info');
@@ -5819,18 +6640,8 @@ class Game {
      */
     closeBlacksmith() {
         const modal = document.getElementById('blacksmith-modal');
-        modal.classList.remove('show');
-        // 切换回普通模式
-        this.switchToNormalMode();
-        const codexModal = document.getElementById('codex-modal');
-        const shopModal = document.getElementById('shop-modal');
-        const inventoryModal = document.getElementById('inventory-modal');
-        const guideModal = document.getElementById('guide-modal');
-        if (!this.devMode && !codexModal.classList.contains('show') && 
-            !shopModal.classList.contains('show') && !inventoryModal.classList.contains('show') && 
-            !guideModal.classList.contains('show')) {
-            this.paused = false;
-        }
+        if (modal) modal.classList.remove('show');
+        this.syncGamePausedState();
     }
 
     /**
@@ -5850,783 +6661,6 @@ class Game {
         return null;
     }
 
-    /**
-     * 根据合铸槽位引用获取装备对象
-     * @param {{ source: string, index?: number, slot?: string }} ref
-     * @returns {Equipment|null}
-     */
-    getFusionEquipment(ref) {
-        if (!ref) return null;
-        if (ref.source === 'equipment' && ref.slot) return this.player.equipment[ref.slot] || null;
-        if (ref.source === 'inventory' && ref.index !== undefined) {
-            const eq = this.player.inventory[ref.index];
-            return (eq && eq.type === 'equipment') ? eq : null;
-        }
-        return null;
-    }
-
-    /**
-     * 移除合铸装备选择浮层（若存在）
-     */
-    closeFusionPickerModalIfOpen() {
-        const m = document.getElementById('fusion-picker-modal');
-        if (m && m.parentNode) m.remove();
-    }
-
-    /**
-     * 判断两个合铸槽引用是否指向同一装备实例
-     */
-    _fusionRefsEqual(a, b) {
-        if (!a && !b) return true;
-        if (!a || !b) return false;
-        if (a.source !== b.source) return false;
-        if (a.source === 'equipment') return a.slot === b.slot;
-        return a.index === b.index;
-    }
-
-    /**
-     * 清空合铸两槽已选装备
-     */
-    clearFusionSlots() {
-        this.fusionSelection.slotA = null;
-        this.fusionSelection.slotB = null;
-        this.updateFusionUI();
-    }
-
-    getFusionGoldCost(quality) {
-        const map = { common: 100, rare: 200, fine: 300, epic: 500, legendary: 1000 };
-        return map[quality] != null ? map[quality] : 100;
-    }
-
-    _expectedFusionQualityForPair(eqA, eqB) {
-        const qualityOrder = { common: 0, rare: 1, fine: 2, epic: 3, legendary: 4 };
-        const names = ['common', 'rare', 'fine', 'epic', 'legendary'];
-        const qA = qualityOrder[eqA.quality] != null ? qualityOrder[eqA.quality] : 0;
-        const qB = qualityOrder[eqB.quality] != null ? qualityOrder[eqB.quality] : 0;
-        return names[Math.max(qA, qB)] || 'common';
-    }
-
-    _formatFusionRemainMs(ms) {
-        const s = Math.max(0, Math.ceil(ms / 1000));
-        const m = Math.floor(s / 60);
-        const r = s % 60;
-        return m + ':' + (r < 10 ? '0' : '') + r;
-    }
-
-    getFusionTownStatusText() {
-        this._tryCompleteFusionJob();
-        const s = this.fusionState;
-        if (!s) return '合铸空闲';
-        if (s.phase === 'processing') {
-            return '合铸中 ' + this._formatFusionRemainMs(s.readyAt - Date.now());
-        }
-        if (s.phase === 'ready') return '合铸完成（铁匠铺合铸界面领取）';
-        return '合铸空闲';
-    }
-
-    _restoreFusionStash(stash) {
-        if (!stash || !stash.length) return;
-        const inv = stash.filter(x => x.ref && x.ref.source === 'inventory').sort((a, b) => (b.ref.index || 0) - (a.ref.index || 0));
-        const eqSlots = stash.filter(x => x.ref && x.ref.source === 'equipment');
-        inv.forEach(({ ref, serialized }) => {
-            const item = this.deserializeEquipment(serialized);
-            this.player.inventory.splice(ref.index, 0, item);
-        });
-        eqSlots.forEach(({ ref, serialized }) => {
-            this.player.equipment[ref.slot] = this.deserializeEquipment(serialized);
-            if (typeof this.player.onEquipmentSlotChanged === 'function') this.player.onEquipmentSlotChanged(ref.slot);
-        });
-    }
-
-    _buildFusionReadyPayloadFromResult(result, eqA, eqB, stash, fusionPairKeyEarly) {
-        let fusionDisplayName = result.name;
-        if (fusionPairKeyEarly && this.assetManager && typeof this.assetManager.getFusionDisplayNameForPair === 'function') {
-            const cachedName = this.assetManager.getFusionDisplayNameForPair(fusionPairKeyEarly);
-            if (cachedName) fusionDisplayName = cachedName;
-            else if (typeof this.assetManager.registerFusionDisplayNameForPair === 'function') {
-                this.assetManager.registerFusionDisplayNameForPair(fusionPairKeyEarly, result.name);
-            }
-        }
-        const slot = eqA.slot;
-        const quality = this._expectedFusionQualityForPair(eqA, eqB);
-        const fusedLevel = Math.max(Number(eqA.level) || 1, Number(eqB.level) || 1);
-        const setIdA = (eqA.fusionSetIds && eqA.fusionSetIds[0]) || (typeof getSetForEquipment === 'function' ? getSetForEquipment(eqA.name) : null);
-        const setIdB = (eqB.fusionSetIds && eqB.fusionSetIds[0]) || (typeof getSetForEquipment === 'function' ? getSetForEquipment(eqB.name) : null);
-        const fusionSetIds = [...new Set([setIdA, setIdB].filter(Boolean))];
-        const rangedWeapon = slot === 'weapon' ? this._fusionWeaponIsRanged(eqA) : null;
-        const newEq = new Equipment({
-            id: 'fusion_' + Date.now(),
-            name: fusionDisplayName,
-            slot,
-            ...(slot === 'weapon' ? { weaponType: rangedWeapon ? 'ranged' : 'melee' } : {}),
-            quality,
-            level: fusedLevel,
-            stats: { ...result.baseStats },
-            equipmentTraits: { id: result.traitId, description: result.traitDescription },
-            fusionSetIds: fusionSetIds.length ? fusionSetIds : null,
-            fusionPairKey: fusionPairKeyEarly
-        });
-        const ser0 = stash[0].serialized;
-        const ser1 = stash[1].serialized;
-        return {
-            newEqSerialized: this.serializeEquipment(newEq),
-            eqASerialized: this.serializeEquipment(eqA),
-            eqBSerialized: this.serializeEquipment(eqB),
-            fusionDisplayName,
-            fusionPairKeyEarly,
-            fusionMeta: { slot, quality, traitDescription: result.traitDescription || '' },
-            anim: {
-                nameA: ser0.name || '装备A',
-                nameB: ser1.name || '装备B',
-                qA: ser0.quality || 'common',
-                qB: ser1.quality || 'common',
-                resultName: fusionDisplayName,
-                resultQ: quality,
-                slot
-            }
-        };
-    }
-
-    /**
-     * 合铸 phase=ready 后预生成专属贴图，领取动画开始前尽量已完成。
-     * @param {{ readyPayload: object, fusionIconGenPromise?: Promise }} s fusionState
-     */
-    _ensureFusionIconGenFromReadyPayload(s) {
-        if (!s || !s.readyPayload || s.fusionIconGenPromise) return;
-        const p = s.readyPayload;
-        const eqAIcon = this.deserializeEquipment(p.eqASerialized);
-        const eqBIcon = this.deserializeEquipment(p.eqBSerialized);
-        if (typeof FusionIconAPI === 'undefined' || !FusionIconAPI.requestAndApply) {
-            s.fusionIconGenPromise = Promise.resolve();
-            return;
-        }
-        s.fusionIconGenPromise = FusionIconAPI.requestAndApply(
-            this,
-            p.fusionDisplayName,
-            eqAIcon,
-            eqBIcon,
-            p.fusionMeta
-        ).catch(function (err) {
-            console.warn('合铸预生成贴图失败', err);
-        });
-    }
-
-    async _tryCompleteFusionJob() {
-        const s = this.fusionState;
-        if (!s || s.phase !== 'processing') return;
-        if (!s.pendingFuseResult) return;
-        if (Date.now() < s.readyAt) return;
-        const eqA = this.deserializeEquipment(s.stash[0].serialized);
-        const eqB = this.deserializeEquipment(s.stash[1].serialized);
-        const payload = this._buildFusionReadyPayloadFromResult(s.pendingFuseResult, eqA, eqB, s.stash, s.pairKeyEarly);
-        // 按需求：贴图只尝试一次；若因网络/额度原因没拿到贴图，视为本次合铸失败（只扣金币，材料全返还）。
-        if (typeof FusionIconAPI !== 'undefined' && FusionIconAPI.requestAndApply) {
-            try {
-                const p = payload;
-                const eqAIcon = this.deserializeEquipment(p.eqASerialized);
-                const eqBIcon = this.deserializeEquipment(p.eqBSerialized);
-                await FusionIconAPI.requestAndApply(this, p.fusionDisplayName, eqAIcon, eqBIcon, p.fusionMeta);
-            } catch (iconErr) {
-                this._abortFusionJob(iconErr);
-                return;
-            }
-        }
-
-        s.phase = 'ready';
-        s.readyPayload = payload;
-        delete s.pendingFuseResult;
-        delete s.stash;
-        this.fusionCompletionBannerShown = false;
-        this._onFusionReadyForUI();
-    }
-
-    _onFusionReadyForUI() {
-        this.updateFusionUI();
-        this.updateBlacksmithEquipmentList();
-        this.updateInventoryUI();
-        this.updateInventoryCapacity();
-        this.updateHUD();
-        if (this.currentScene === SCENE_TYPES.TOWN && !this.fusionCompletionBannerShown) {
-            const modal = document.getElementById('fusion-town-complete-modal');
-            if (modal) {
-                modal.classList.add('show');
-                this.fusionCompletionBannerShown = true;
-            }
-        }
-    }
-
-    hideFusionTownCompleteModal() {
-        const modal = document.getElementById('fusion-town-complete-modal');
-        if (modal) modal.classList.remove('show');
-    }
-
-    onBlacksmithFusionButtonClick() {
-        if (this.fusionState && this.fusionState.phase === 'ready') {
-            this.hideFusionTownCompleteModal();
-            this.startFusionClaimReveal();
-            return;
-        }
-        this.doFusion();
-    }
-
-    _abortFusionJob(err) {
-        const s = this.fusionState;
-        if (!s || s.phase !== 'processing') return;
-        const stash = s.stash;
-        const gold = s.goldSpent || 0;
-        this.fusionState = null;
-        // 合铸失败：只消耗金币，材料全返还（不退金币）
-        if (stash) this._restoreFusionStash(stash);
-        this.updateFusionUI();
-        this.updateBlacksmithEquipmentList();
-        this.updateInventoryUI();
-        this.updateInventoryCapacity();
-        this.updateHUD();
-        const previewEl = document.getElementById('blacksmith-fusion-preview');
-        const msg = err && err.message ? err.message : String(err || '未知错误');
-        if (previewEl) previewEl.textContent = '合铸失败（已退回材料，仅扣除金币）：' + msg;
-        console.error('合铸失败', err);
-    }
-
-    _startFusionAsyncJob(stash, eqA, eqB, goldSpent) {
-        const gameContext = this.getFusionGameContext();
-        const readyAt = Date.now() + 30000;
-        const pairKeyEarly = (typeof FusionIconAPI !== 'undefined' && FusionIconAPI.computeFusionPairKey)
-            ? FusionIconAPI.computeFusionPairKey(eqA, eqB)
-            : null;
-        const jobReadyAt = readyAt;
-        this.fusionState = {
-            phase: 'processing',
-            readyAt: jobReadyAt,
-            goldSpent: goldSpent || 0,
-            stash,
-            pairKeyEarly,
-            pendingFuseResult: null
-        };
-        const fusePromise = window.HezhuAPI.fuse(gameContext, eqA, eqB).then(r => {
-            if (this.fusionState && this.fusionState.phase === 'processing' && this.fusionState.readyAt === jobReadyAt) {
-                this.fusionState.pendingFuseResult = r;
-                this.fusionState.pendingFuseResultJson = r;
-            }
-            return r;
-        });
-        const minDelay = new Promise(resolve => setTimeout(resolve, 30000));
-        Promise.all([fusePromise, minDelay]).then(() => {
-            if (this.fusionState && this.fusionState.phase === 'processing' && this.fusionState.readyAt === jobReadyAt) {
-                this._tryCompleteFusionJob();
-            }
-        }).catch(err => {
-            if (this.fusionState && this.fusionState.phase === 'processing' && this.fusionState.readyAt === jobReadyAt) {
-                this._abortFusionJob(err);
-            }
-        });
-    }
-
-    resumeFusionJobAfterImport() {
-        const s = this.fusionState;
-        if (!s || s.phase !== 'processing' || !s.stash || s.stash.length !== 2) return;
-        if (s.pendingFuseResultJson && !s.pendingFuseResult) s.pendingFuseResult = s.pendingFuseResultJson;
-        const eqA = this.deserializeEquipment(s.stash[0].serialized);
-        const eqB = this.deserializeEquipment(s.stash[1].serialized);
-        const gameContext = this.getFusionGameContext();
-        const waitMs = Math.max(0, s.readyAt - Date.now());
-        const minDelay = new Promise(resolve => setTimeout(resolve, waitMs));
-        const jobReadyAt = s.readyAt;
-        let fusePromise;
-        if (s.pendingFuseResultJson) {
-            fusePromise = Promise.resolve(s.pendingFuseResultJson);
-        } else {
-            fusePromise = window.HezhuAPI.fuse(gameContext, eqA, eqB).then(r => {
-                if (this.fusionState && this.fusionState.readyAt === jobReadyAt && this.fusionState.phase === 'processing') {
-                    this.fusionState.pendingFuseResultJson = r;
-                    this.fusionState.pendingFuseResult = r;
-                }
-                return r;
-            });
-        }
-        Promise.all([fusePromise, minDelay]).then(() => {
-            if (this.fusionState && this.fusionState.readyAt === jobReadyAt && this.fusionState.phase === 'processing') {
-                this._tryCompleteFusionJob();
-            }
-        }).catch(err => {
-            if (this.fusionState && this.fusionState.readyAt === jobReadyAt && this.fusionState.phase === 'processing') {
-                this._abortFusionJob(err);
-            }
-        });
-    }
-
-    /**
-     * 合铸领取：两件装备贴图沿曲线平移至中央 → 白光扩散 → 中央显示新装备贴图（仅平移，无旋转）
-     */
-    startFusionClaimReveal() {
-        const s = this.fusionState;
-        if (!s || s.phase !== 'ready' || !s.readyPayload) return;
-        const overlay = document.getElementById('fusion-reveal-overlay');
-        if (!overlay) {
-            this._grantFusionRewardWithoutReveal();
-            return;
-        }
-        const p = s.readyPayload;
-        const anim = p.anim;
-        const flyA = document.getElementById('fusion-reveal-fly-a');
-        const flyB = document.getElementById('fusion-reveal-fly-b');
-        const center = document.getElementById('fusion-reveal-center');
-        const hint = document.getElementById('fusion-reveal-hint');
-        let flash = document.getElementById('fusion-reveal-flash');
-        if (!flyA || !flyB || !center) {
-            this._grantFusionRewardWithoutReveal();
-            return;
-        }
-        if (!flash) {
-            flash = document.createElement('div');
-            flash.id = 'fusion-reveal-flash';
-            overlay.insertBefore(flash, overlay.firstChild);
-        }
-        const eqA = this.deserializeEquipment(p.eqASerialized);
-        const eqB = this.deserializeEquipment(p.eqBSerialized);
-        const newEq = this.deserializeEquipment(p.newEqSerialized);
-        const qc = (q) => (QUALITY_COLORS && QUALITY_COLORS[q]) ? QUALITY_COLORS[q] : '#aaa';
-        flyA.innerHTML = '';
-        flyB.innerHTML = '';
-        center.innerHTML = '';
-        const iconA = document.createElement('div');
-        iconA.className = 'fusion-reveal-icon';
-        iconA.style.borderColor = qc(anim.qA);
-        const iconB = document.createElement('div');
-        iconB.className = 'fusion-reveal-icon';
-        iconB.style.borderColor = qc(anim.qB);
-        const iconR = document.createElement('div');
-        iconR.className = 'fusion-reveal-icon fusion-reveal-icon-result';
-        iconR.style.borderColor = qc(anim.resultQ);
-        flyA.appendChild(iconA);
-        flyB.appendChild(iconB);
-        center.appendChild(iconR);
-        overlay.style.display = 'flex';
-        overlay.setAttribute('data-awaiting-grant', '1');
-        if (hint) {
-            hint.textContent = '';
-            hint.style.opacity = '0';
-        }
-        center.style.opacity = '0';
-        flash.classList.remove('fusion-reveal-flash-active');
-        flash.style.opacity = '';
-        flyA.style.opacity = '1';
-        flyB.style.opacity = '1';
-        flyA.style.transition = 'none';
-        flyB.style.transition = 'none';
-        overlay.setAttribute('data-phase', 'anim');
-        if (this._fusionRevealClickHandler) {
-            overlay.removeEventListener('click', this._fusionRevealClickHandler);
-        }
-        this._fusionRevealClickHandler = (ev) => {
-            if (overlay.getAttribute('data-phase') !== 'awaitClose') return;
-            ev.preventDefault();
-            ev.stopPropagation();
-            this._finishFusionRevealAndGrant();
-        };
-        overlay.addEventListener('click', this._fusionRevealClickHandler);
-        this._ensureFusionIconGenFromReadyPayload(s);
-        const runRevealAfterIcon = () => {
-            const loadPromises = [];
-            if (this.assetManager && typeof this.assetManager.setEquipmentBackgroundImage === 'function') {
-                loadPromises.push(this.assetManager.setEquipmentBackgroundImage(iconA, eqA.name, eqA.quality, eqA));
-                loadPromises.push(this.assetManager.setEquipmentBackgroundImage(iconB, eqB.name, eqB.quality, eqB));
-                loadPromises.push(this.assetManager.setEquipmentBackgroundImage(iconR, newEq.name, newEq.quality, newEq));
-            }
-            Promise.all(loadPromises).then(() => {
-                this._runFusionRevealMotionAndFlash(overlay, flyA, flyB, center, flash, hint);
-            }).catch(() => {
-                this._runFusionRevealMotionAndFlash(overlay, flyA, flyB, center, flash, hint);
-            });
-        };
-        const iw = s.fusionIconGenPromise || Promise.resolve();
-        iw.then(runRevealAfterIcon).catch(runRevealAfterIcon);
-    }
-
-    /**
-     * 二次贝塞尔曲线上的点（用于合铸领取动画轨迹）
-     */
-    _fusionBezierQuadratic(p0, p1, p2, t) {
-        const u = 1 - t;
-        return {
-            x: u * u * p0.x + 2 * u * t * p1.x + t * t * p2.x,
-            y: u * u * p0.y + 2 * u * t * p1.y + t * t * p2.y
-        };
-    }
-
-    _runFusionRevealMotionAndFlash(overlay, flyA, flyB, center, flash, hint) {
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        const cx = vw / 2;
-        const cy = vh / 2;
-        const margin = 52;
-        const p0a = { x: margin, y: margin };
-        const p0b = { x: vw - margin, y: vh - margin };
-        const p2 = { x: cx, y: cy };
-        const dxA = p2.x - p0a.x;
-        const dyA = p2.y - p0a.y;
-        const lenA = Math.hypot(dxA, dyA) || 1;
-        const p1a = {
-            x: (p0a.x + p2.x) / 2 + (-dyA / lenA) * lenA * 0.32,
-            y: (p0a.y + p2.y) / 2 + (dxA / lenA) * lenA * 0.32
-        };
-        const dxB = p2.x - p0b.x;
-        const dyB = p2.y - p0b.y;
-        const lenB = Math.hypot(dxB, dyB) || 1;
-        const p1b = {
-            x: (p0b.x + p2.x) / 2 + (dyB / lenB) * lenB * 0.32,
-            y: (p0b.y + p2.y) / 2 + (-dxB / lenB) * lenB * 0.32
-        };
-        const easeOut = (t) => 1 - Math.pow(1 - t, 3);
-        const dur = 1600;
-        const t0 = performance.now();
-        let flashEnded = false;
-        const finishFlash = () => {
-            if (flashEnded) return;
-            flashEnded = true;
-            flash.classList.remove('fusion-reveal-flash-active');
-            flash.style.opacity = '0';
-            center.style.opacity = '1';
-            if (hint) {
-                hint.textContent = '再次点击屏幕关闭';
-                hint.style.opacity = '1';
-            }
-            overlay.setAttribute('data-phase', 'awaitClose');
-        };
-        const tick = (now) => {
-            const raw = Math.min(1, (now - t0) / dur);
-            const e = easeOut(raw);
-            const pa = this._fusionBezierQuadratic(p0a, p1a, p2, e);
-            const pb = this._fusionBezierQuadratic(p0b, p1b, p2, e);
-            flyA.style.left = pa.x + 'px';
-            flyA.style.top = pa.y + 'px';
-            flyA.style.transform = 'translate(-50%, -50%)';
-            flyB.style.left = pb.x + 'px';
-            flyB.style.top = pb.y + 'px';
-            flyB.style.transform = 'translate(-50%, -50%)';
-            if (raw < 1) {
-                requestAnimationFrame(tick);
-            } else {
-                flyA.style.opacity = '0';
-                flyB.style.opacity = '0';
-                flash.classList.add('fusion-reveal-flash-active');
-                flash.addEventListener('animationend', finishFlash, { once: true });
-                setTimeout(finishFlash, 780);
-            }
-        };
-        requestAnimationFrame(tick);
-    }
-
-    _finishFusionRevealAndGrant() {
-        const overlay = document.getElementById('fusion-reveal-overlay');
-        if (overlay && this._fusionRevealClickHandler) {
-            overlay.removeEventListener('click', this._fusionRevealClickHandler);
-            this._fusionRevealClickHandler = null;
-        }
-        if (overlay) {
-            overlay.style.display = 'none';
-            overlay.setAttribute('data-phase', '');
-        }
-        this._grantFusionRewardWithoutReveal();
-    }
-
-    _grantFusionRewardWithoutReveal() {
-        const s = this.fusionState;
-        if (!s || s.phase !== 'ready' || !s.readyPayload) return;
-        const p = s.readyPayload;
-        const newEq = this.deserializeEquipment(p.newEqSerialized);
-        const fusionDisplayName = p.fusionDisplayName;
-        const fusionMeta = p.fusionMeta;
-        const eqAIcon = p.eqASerialized ? this.deserializeEquipment(p.eqASerialized) : newEq;
-        const eqBIcon = p.eqBSerialized ? this.deserializeEquipment(p.eqBSerialized) : newEq;
-        this.fusionState = null;
-        this.fusionSelection.slotA = null;
-        this.fusionSelection.slotB = null;
-        const added = this.addItemToInventory(newEq);
-        if (!added) this.player.inventory.push(newEq);
-        this.updateFusionUI();
-        this.updateBlacksmithEquipmentList();
-        this.updateInventoryUI();
-        this.updateInventoryCapacity();
-        this.hideFusionTownCompleteModal();
-        const previewEl = document.getElementById('blacksmith-fusion-preview');
-        const pairKeyInv = newEq.fusionPairKey;
-        const hasIconNow = !!(pairKeyInv && this.assetManager && typeof this.assetManager.getFusionIconDataUrlByPairKey === 'function' && this.assetManager.getFusionIconDataUrlByPairKey(pairKeyInv));
-        if (previewEl) {
-            previewEl.textContent = '合铸成功：' + fusionDisplayName + (hasIconNow ? '（贴图已就绪）' : '（贴图生成中…）');
-        }
-        if (typeof showFloatingText === 'function') showFloatingText(this, '合铸成功', this.player.x, this.player.y - 40, '#88ff88');
-        this.updateHUD();
-        if (typeof FusionIconAPI !== 'undefined' && FusionIconAPI.requestAndApply) {
-            if (!hasIconNow) {
-                FusionIconAPI.requestAndApply(this, fusionDisplayName, eqAIcon, eqBIcon, fusionMeta).then(() => {
-                    this.updateInventoryUI();
-                    this.updateBlacksmithEquipmentList();
-                    if (previewEl) previewEl.textContent = '合铸成功：' + fusionDisplayName + '（贴图已生成）';
-                }).catch(function (iconErr) {
-                    console.warn('合铸装备贴图生成失败', iconErr);
-                    if (previewEl) previewEl.textContent = '合铸成功：' + fusionDisplayName + '（贴图生成失败，可稍后在有 Key 时重进游戏再试）';
-                });
-            } else {
-                this.updateInventoryUI();
-                this.updateBlacksmithEquipmentList();
-            }
-        }
-    }
-
-    _updateFusionWeaponParticles(now) {
-        const w = this.player.equipment.weapon;
-        if (!w || w.type !== 'equipment' || !w.fusionPairKey) return;
-        if (!this.particleManager) return;
-        if (now - (this.lastFusionWeaponParticleTime || 0) < 90) return;
-        this.lastFusionWeaponParticleTime = now;
-        const col = (typeof QUALITY_COLORS !== 'undefined' && QUALITY_COLORS[w.quality]) ? QUALITY_COLORS[w.quality] : '#ffffff';
-        const ang = typeof this.player.angle === 'number' ? this.player.angle : 0;
-        const reach = (this.player.size || 20) * 0.55;
-        const ox = this.player.x + Math.cos(ang) * reach;
-        const oy = this.player.y + Math.sin(ang) * reach;
-        this.particleManager.createSystem(ox, oy, {
-            color: col,
-            size: 2,
-            count: 8,
-            lifetime: 450,
-            fadeoutTime: 280,
-            speed: 0.55,
-            angleSpread: Math.PI * 2,
-            pixelStyle: true
-        });
-    }
-
-    /**
-     * 合铸用：武器是否为远程（与战斗判定一致，含 weaponType 与名称兜底）
-     * @param {Equipment} eq
-     * @returns {boolean|null} 非武器返回 null
-     */
-    _fusionWeaponIsRanged(eq) {
-        if (!eq || eq.slot !== 'weapon') return null;
-        if (typeof isPlayerWeaponRanged === 'function') return isPlayerWeaponRanged(eq);
-        return eq.weaponType === 'ranged';
-    }
-
-    /**
-     * 合铸用游戏上下文（词条、套装、部位）
-     */
-    getFusionGameContext() {
-        const traits = [];
-        if (typeof Equipment !== 'undefined' && Equipment.nameTraits) {
-            const seen = new Set();
-            Object.values(Equipment.nameTraits).forEach(t => {
-                if (t && t.id && t.description && !seen.has(t.id)) { seen.add(t.id); traits.push({ id: t.id, description: t.description }); }
-            });
-        }
-        const sets = [];
-        if (typeof SET_DEFINITIONS !== 'undefined') {
-            Object.entries(SET_DEFINITIONS).forEach(([id, data]) => {
-                sets.push({ id, name: data.name, effects: data.effects || {} });
-            });
-        }
-        const slots = typeof SLOT_NAMES !== 'undefined' ? Object.keys(SLOT_NAMES) : ['weapon', 'helmet', 'chest', 'legs', 'boots', 'necklace', 'ring', 'belt'];
-        return { traits, sets, slots };
-    }
-
-    /**
-     * 更新合铸槽位显示与预览、按钮状态
-     */
-    updateFusionUI() {
-        this._tryCompleteFusionJob();
-        const slotADiv = document.getElementById('blacksmith-fusion-slot-a');
-        const slotBDiv = document.getElementById('blacksmith-fusion-slot-b');
-        const previewEl = document.getElementById('blacksmith-fusion-preview');
-        const btn = document.getElementById('blacksmith-fusion-btn');
-        if (!slotADiv || !slotBDiv) return;
-
-        if (this.fusionState && this.fusionState.phase === 'processing') {
-            const ms = this.fusionState.readyAt - Date.now();
-            slotADiv.textContent = '锻炉中…';
-            slotBDiv.textContent = '锻炉中…';
-            if (previewEl) previewEl.textContent = '合铸进行中，锻炉剩余 ' + this._formatFusionRemainMs(ms) + '（材料与金币已投入）。';
-            if (btn) {
-                btn.disabled = true;
-                btn.textContent = '合铸中…';
-            }
-            return;
-        }
-        if (this.fusionState && this.fusionState.phase === 'ready') {
-            const name = this.fusionState.readyPayload && this.fusionState.readyPayload.fusionDisplayName ? this.fusionState.readyPayload.fusionDisplayName : '新装备';
-            slotADiv.textContent = '已完成';
-            slotBDiv.textContent = '已完成';
-            if (previewEl) previewEl.textContent = '合铸完成：「' + name + '」。点击「领取合铸结果」查看合成动画并入背包。';
-            if (btn) {
-                btn.disabled = false;
-                btn.textContent = '领取合铸结果';
-            }
-            return;
-        }
-
-        const eqA = this.getFusionEquipment(this.fusionSelection.slotA);
-        const eqB = this.getFusionEquipment(this.fusionSelection.slotB);
-        slotADiv.textContent = eqA ? `${eqA.name}${eqA.enhanceLevel > 0 ? '+' + eqA.enhanceLevel : ''}` : '点击选择';
-        slotBDiv.textContent = eqB ? `${eqB.name}${eqB.enhanceLevel > 0 ? '+' + eqB.enhanceLevel : ''}` : '点击选择';
-        let canFuse = false;
-        let previewText = '请选择两件相同部位且拥有不同词条的装备；武器须同为近战或同为远程。';
-        if (eqA && eqB) {
-            if (eqA.slot !== eqB.slot) {
-                previewText = '合铸仅允许两件相同部位（如均为武器）的装备，请更换其中一件。';
-            } else if (eqA.slot === 'weapon' && this._fusionWeaponIsRanged(eqA) !== this._fusionWeaponIsRanged(eqB)) {
-                previewText = '近战武器与远程武器不能合铸，请更换其中一件。';
-            } else {
-                const idA = eqA.equipmentTraits && eqA.equipmentTraits.id ? eqA.equipmentTraits.id : '';
-                const idB = eqB.equipmentTraits && eqB.equipmentTraits.id ? eqB.equipmentTraits.id : '';
-                if (idA && idB && idA !== idB) {
-                    canFuse = true;
-                    const q = this._expectedFusionQualityForPair(eqA, eqB);
-                    const cost = this.getFusionGoldCost(q);
-                    const qn = (typeof QUALITY_NAMES !== 'undefined' && QUALITY_NAMES[q]) ? QUALITY_NAMES[q] : q;
-                    previewText = '已选两件同部位、不同词条装备。成装品质按较高者计为「' + qn + '」，合铸消耗 ' + cost + ' 金币（锻炉时间 30 秒）。新装备将同时计入两件原材料所属套装。';
-                    if (this.player.gold < cost) {
-                        canFuse = false;
-                        previewText += ' 当前金币不足。';
-                    }
-                } else {
-                    previewText = '两件装备词条相同或缺少词条，请更换其中一件。';
-                }
-            }
-        }
-        if (previewEl) previewEl.textContent = previewText;
-        if (btn) {
-            btn.textContent = '合铸';
-            btn.disabled = !canFuse;
-        }
-    }
-
-    /**
-     * 打开合铸装备选择器（选一件放入指定槽位）
-     * @param {'A'|'B'} which - 'A' 或 'B'
-     */
-    openFusionPicker(which) {
-        this.closeFusionPickerModalIfOpen();
-        const list = [];
-        Object.entries(this.player.equipment).forEach(([slot, eq]) => {
-            if (eq && eq.type === 'equipment') list.push({ source: 'equipment', slot, eq });
-        });
-        this.player.inventory.forEach((eq, index) => {
-            if (eq && eq.type === 'equipment') list.push({ source: 'inventory', index, eq });
-        });
-        const otherRef = which === 'A' ? this.fusionSelection.slotB : this.fusionSelection.slotA;
-        const otherEq = this.getFusionEquipment(otherRef);
-        const filterSlot = otherEq ? otherEq.slot : null;
-        let pickList = filterSlot ? list.filter(({ eq }) => eq.slot === filterSlot) : list;
-        if (otherEq && otherEq.slot === 'weapon') {
-            const wantRanged = this._fusionWeaponIsRanged(otherEq);
-            pickList = pickList.filter(({ eq }) => eq.slot !== 'weapon' || this._fusionWeaponIsRanged(eq) === wantRanged);
-        }
-        if (list.length === 0) {
-            if (typeof showFloatingText === 'function') showFloatingText(this, '没有可选的装备', this.player.x, this.player.y - 40, '#ffaa00');
-            return;
-        }
-        if (pickList.length === 0 && filterSlot) {
-            const slotLabel = (typeof SLOT_NAMES !== 'undefined' && SLOT_NAMES[filterSlot]) ? SLOT_NAMES[filterSlot] : filterSlot;
-            let msg = '没有可合铸的「' + slotLabel + '」部位装备';
-            if (otherEq && otherEq.slot === 'weapon') {
-                msg = '没有可合铸的' + (this._fusionWeaponIsRanged(otherEq) ? '远程' : '近战') + '武器';
-            }
-            if (typeof showFloatingText === 'function') showFloatingText(this, msg, this.player.x, this.player.y - 40, '#ffaa00');
-            return;
-        }
-        const modal = document.createElement('div');
-        modal.id = 'fusion-picker-modal';
-        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:10000;';
-        const box = document.createElement('div');
-        box.style.cssText = 'background:#2a2a35;border:2px solid #555;border-radius:12px;padding:16px;max-width:400px;max-height:70vh;overflow-y:auto;';
-        let pickerTitleSuffix = '';
-        if (filterSlot === 'weapon' && otherEq) {
-            pickerTitleSuffix = '，且须同为<strong>' + (this._fusionWeaponIsRanged(otherEq) ? '远程' : '近战') + '武器</strong>';
-        }
-        const pickerTitle = filterSlot
-            ? '<p style="color:#fff;margin-bottom:12px;">选择一件装备（需与另一槽<strong>同部位</strong>：' + ((typeof SLOT_NAMES !== 'undefined' && SLOT_NAMES[filterSlot]) ? SLOT_NAMES[filterSlot] : filterSlot) + pickerTitleSuffix + '）</p>'
-            : '<p style="color:#fff;margin-bottom:12px;">选择一件装备（第二件须与第一件<strong>同部位</strong>；武器须同为近战或远程）</p>';
-        box.innerHTML = pickerTitle;
-        pickList.forEach(({ source, slot, index, eq }) => {
-            const ref = source === 'equipment' ? { source: 'equipment', slot } : { source: 'inventory', index };
-            const isSameAsOther = (which === 'A' && this.fusionSelection.slotB && this.fusionSelection.slotB.source === ref.source && (ref.slot ? this.fusionSelection.slotB.slot === ref.slot : this.fusionSelection.slotB.index === ref.index))
-                || (which === 'B' && this.fusionSelection.slotA && this.fusionSelection.slotA.source === ref.source && (ref.slot ? this.fusionSelection.slotA.slot === ref.slot : this.fusionSelection.slotA.index === ref.index));
-            const row = document.createElement('div');
-            row.style.cssText = 'padding:10px;margin:4px 0;background:rgba(60,60,70,0.8);border-radius:8px;cursor:pointer;color:' + (QUALITY_COLORS[eq.quality] || '#fff') + ';';
-            row.textContent = eq.name + (eq.enhanceLevel > 0 ? '+' + eq.enhanceLevel : '') + ' · ' + (SLOT_NAMES[eq.slot] || eq.slot) + (eq.equipmentTraits && eq.equipmentTraits.description ? ' · ' + eq.equipmentTraits.description.slice(0, 20) + '…' : '');
-            if (isSameAsOther) row.style.opacity = '0.5';
-            row.addEventListener('click', () => {
-                if (isSameAsOther) return;
-                const key = which === 'A' ? 'slotA' : 'slotB';
-                const currentRef = this.fusionSelection[key];
-                if (this._fusionRefsEqual(ref, currentRef)) {
-                    this.fusionSelection[key] = null;
-                } else {
-                    this.fusionSelection[key] = ref;
-                }
-                modal.remove();
-                this.updateFusionUI();
-            });
-            box.appendChild(row);
-        });
-        modal.appendChild(box);
-        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
-        document.body.appendChild(modal);
-    }
-
-    /**
-     * 执行合铸：调用 API，创建新装备，移除两件原材料，刷新界面
-     */
-    doFusion() {
-        this._tryCompleteFusionJob();
-        if (this.fusionState) return;
-        const eqA = this.getFusionEquipment(this.fusionSelection.slotA);
-        const eqB = this.getFusionEquipment(this.fusionSelection.slotB);
-        if (!eqA || !eqB) return;
-        if (eqA.slot !== eqB.slot) return;
-        if (eqA.slot === 'weapon' && this._fusionWeaponIsRanged(eqA) !== this._fusionWeaponIsRanged(eqB)) return;
-        const idA = eqA.equipmentTraits && eqA.equipmentTraits.id ? eqA.equipmentTraits.id : '';
-        const idB = eqB.equipmentTraits && eqB.equipmentTraits.id ? eqB.equipmentTraits.id : '';
-        if (!idA || !idB || idA === idB) return;
-        const quality = this._expectedFusionQualityForPair(eqA, eqB);
-        const cost = this.getFusionGoldCost(quality);
-        const previewEl = document.getElementById('blacksmith-fusion-preview');
-        if (this.player.gold < cost) {
-            if (previewEl) previewEl.textContent = '金币不足：合铸需要 ' + cost + ' 金币。';
-            return;
-        }
-        const refA = this.fusionSelection.slotA;
-        const refB = this.fusionSelection.slotB;
-        const stash = [
-            { ref: { source: refA.source, slot: refA.slot, index: refA.index }, serialized: this.serializeEquipment(eqA) },
-            { ref: { source: refB.source, slot: refB.slot, index: refB.index }, serialized: this.serializeEquipment(eqB) }
-        ];
-        this.player.gold -= cost;
-        const refs = [refA, refB].sort((a, b) => {
-            if (a.source !== 'inventory' || b.source !== 'inventory') return 0;
-            return (b.index || 0) - (a.index || 0);
-        });
-        refs.forEach(ref => {
-            if (ref.source === 'equipment') delete this.player.equipment[ref.slot];
-            else this.player.inventory.splice(ref.index, 1);
-        });
-        refs.forEach(ref => {
-            if (ref.source === 'equipment' && ref.slot && typeof this.player.onEquipmentSlotChanged === 'function') {
-                this.player.onEquipmentSlotChanged(ref.slot);
-            }
-        });
-        this.fusionSelection.slotA = null;
-        this.fusionSelection.slotB = null;
-        this._startFusionAsyncJob(stash, eqA, eqB, cost);
-        this.updateFusionUI();
-        this.updateBlacksmithEquipmentList();
-        this.updateInventoryUI();
-        this.updateInventoryCapacity();
-        this.updateHUD();
-    }
-
-    /**
-     * 更新铁匠铺装备列表
-     */
     updateBlacksmithEquipmentList() {
         const container = document.getElementById('blacksmith-items');
         container.innerHTML = '';
@@ -6861,6 +6895,9 @@ class Game {
                     if (refineList) refineList.innerHTML = '';
                     if (refineBtn) refineBtn.style.display = 'none';
                 }
+            }
+            if (typeof this.updateBlacksmithRerollPanel === 'function') {
+                this.updateBlacksmithRerollPanel();
             }
         } catch (error) {
             console.error('showBlacksmithDetails: Error occurred', error);
@@ -7193,7 +7230,7 @@ class Game {
     openShop() {
         const modal = document.getElementById('shop-modal');
         modal.classList.add('show');
-        this.paused = true;
+        this.syncGamePausedState();
         this.updateShopEquipments();
         this.updateShopRefreshButton();
     }
@@ -7249,16 +7286,8 @@ class Game {
      */
     closeShop() {
         const modal = document.getElementById('shop-modal');
-        modal.classList.remove('show');
-        const codexModal = document.getElementById('codex-modal');
-        const blacksmithModal = document.getElementById('blacksmith-modal');
-        const inventoryModal = document.getElementById('inventory-modal');
-        const guideModal = document.getElementById('guide-modal');
-        if (!this.devMode && !codexModal.classList.contains('show') && 
-            !blacksmithModal.classList.contains('show') && !inventoryModal.classList.contains('show') && 
-            !guideModal.classList.contains('show')) {
-            this.paused = false;
-        }
+        if (modal) modal.classList.remove('show');
+        this.syncGamePausedState();
     }
 
     /**
@@ -7273,15 +7302,9 @@ class Game {
         if (!forceRefresh && this.shopEquipments && this.shopEquipments.length > 0) {
             // 使用保存的列表，但保留锁定的商品
         } else {
-            // 使用缓存的装备列表
-            if (!this.cachedAllEquipments) {
-                this.cachedAllEquipments = generateEquipments();
-            }
-            const allEquipments = this.cachedAllEquipments;
             const newEquipments = [];
             const lockedEquipments = [];
             
-            // 保留锁定的商品
             if (this.shopEquipments) {
                 this.shopEquipments.forEach(eq => {
                     if (this.shopLockedItems.has(eq.id)) {
@@ -7290,48 +7313,44 @@ class Game {
                 });
             }
             
-            // 处理定向位（如果已设置目标，必定刷新出该装备）
             const targetEquipments = [];
+            const shopQualityMap = { fine: 'magic', common: 'normal' };
             Object.keys(this.shopTargetSlots).forEach(quality => {
                 const slot = this.shopTargetSlots[quality];
-                // 移除 available > 0 的限制，只要有target就刷新
-                if (slot.target) {
-                    // 查找同品质的装备（排除打造的装备）
-                    const qualityEquipments = allEquipments.filter(e => e.quality === quality && !e.isCrafted);
-                    if (qualityEquipments.length > 0) {
-                        const targetEq = qualityEquipments.find(e => e.id === slot.target);
-                        if (targetEq) {
-                            targetEquipments.push(targetEq);
-                        } else {
-                            // 如果找不到指定的装备，随机选择一个同品质的
-                            const randomEq = qualityEquipments[Math.floor(Math.random() * qualityEquipments.length)];
-                            targetEquipments.push(randomEq);
-                        }
+                if (!slot.target) return;
+                if (slot.targetSnapshot) {
+                    const clone = window.EquipmentCodex?.cloneEquipmentForGrant(slot.targetSnapshot);
+                    if (clone) {
+                        slot.target = clone.id;
+                        targetEquipments.push(clone);
+                    }
+                } else if (window.EquipmentCodex) {
+                    const normQ = shopQualityMap[quality] || quality;
+                    const eq = window.EquipmentCodex.generateProceduralSample({
+                        quality: normQ,
+                        monsterLevel: this.player.level || 20,
+                        monsterTier: normQ === 'legendary' ? 'boss' : 'elite',
+                        playerClass: typeof window.getPlayerBaseClassId === 'function'
+                            ? window.getPlayerBaseClassId(this.player.classData) : null
+                    });
+                    const clone = eq && window.EquipmentCodex.cloneEquipmentForGrant(eq);
+                    if (clone) {
+                        slot.targetSnapshot = clone;
+                        slot.target = clone.id;
+                        targetEquipments.push(clone);
                     }
                 }
             });
             
-            // 生成其他商品（排除定向和锁定的，以及打造的装备）
             const usedIds = new Set([...lockedEquipments.map(e => e.id), ...targetEquipments.map(e => e.id)]);
-            const availableEquipments = allEquipments.filter(e => !usedIds.has(e.id) && !e.isCrafted);
             const remainingCount = Math.max(0, 12 - lockedEquipments.length - targetEquipments.length);
-            const playerLv = Math.max(1, Math.floor(Number(this.player.level)) || 1);
-            const shopLevelBand = 5;
-            const shopNearLevelPickChance = 0.82;
-            for (let i = 0; i < remainingCount; i++) {
-                const candidates = availableEquipments.filter(e => !usedIds.has(e.id));
-                if (candidates.length === 0) break;
-                const nearLevel = candidates.filter(e => {
-                    const L = Number(e.level);
-                    return !isNaN(L) && L >= playerLv - shopLevelBand && L <= playerLv + shopLevelBand;
-                });
-                const pool = (nearLevel.length > 0 && Math.random() < shopNearLevelPickChance)
-                    ? nearLevel
-                    : candidates;
-                const randomEq = pool[Math.floor(Math.random() * pool.length)];
-                newEquipments.push(randomEq);
-                usedIds.add(randomEq.id);
-            }
+            const stock = window.EquipmentCodex?.generateShopStock(this.player, remainingCount) || [];
+            stock.forEach(eq => {
+                if (!usedIds.has(eq.id)) {
+                    newEquipments.push(eq);
+                    usedIds.add(eq.id);
+                }
+            });
 
             // 神圣十字架：随机出现在装备栏某一格；概率与宝箱/掉落品质中「传说」一档相同（2%）
             const SHOP_HOLY_CROSS_CHANCE = 0.02;
@@ -7383,7 +7402,7 @@ class Game {
 
             const price = isHoly
                 ? (listing.price || 500)
-                : (listing.level * 20 + Object.values(listing.stats).reduce((a, b) => a + b, 0) * 2) * (['common', 'rare', 'fine', 'epic', 'legendary'].indexOf(listing.quality) + 1);
+                : (listing.level * 20 + Object.values(listing.stats).reduce((a, b) => a + b, 0) * 2) * (['normal', 'magic', 'rare', 'epic', 'legendary', 'mythic'].indexOf(listing.quality) + 1);
 
             const itemIcon = this.createItemIcon(listing, {
                 size: 50,
@@ -7415,7 +7434,7 @@ class Game {
                 <div class="shop-item-price">${price} 金币</div>
                 <div style="display: flex; gap: 5px;">
                     <button class="shop-buy-btn" data-item-id="${listing.id}" data-price="${price}">购买</button>
-                    <button class="shop-lock-btn" data-item-id="${listing.id}" style="padding: 5px 10px; background: ${isLocked ? '#ff6666' : '#666'}; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 11px;">${isLocked ? '解锁' : '锁定'}</button>
+                    <button class="shop-lock-btn${isLocked ? ' is-locked' : ''}" data-item-id="${listing.id}">${isLocked ? '解锁' : '锁定'}</button>
                 </div>
             `;
 
@@ -7474,7 +7493,7 @@ class Game {
                     <div style="font-size: 12px; color: #aaa;">购买后可以选择为任意一个背包页签增加一排格子（6格）</div>
                 </div>
                 <div class="shop-item-price">${expansionCost} 金币</div>
-                <button class="shop-buy-capacity-expansion-btn" data-cost="${expansionCost}" style="padding: 8px 15px; background: #4a9eff; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">购买扩容</button>
+                <button class="shop-buy-capacity-expansion-btn pe-btn pe-btn--info pe-btn--sm" data-cost="${expansionCost}">购买扩容</button>
             `;
             
             const buyBtn = expansionDiv.querySelector('.shop-buy-capacity-expansion-btn');
@@ -7517,8 +7536,8 @@ class Game {
         }
         const quality = equipment.quality;
         if (this.shopTargetSlots[quality]) {
-            // 设置定向位目标（不需要检查available，因为购买时会增加available）
             this.shopTargetSlots[quality].target = equipment.id;
+            this.shopTargetSlots[quality].targetSnapshot = equipment;
             // 如果之前没有目标，消耗一个可用次数
             if (this.shopTargetSlots[quality].available > 0) {
                 this.shopTargetSlots[quality].available--;
@@ -7571,7 +7590,7 @@ class Game {
                 <div class="modal-content" style="max-width: 800px; max-height: 600px; overflow-y: auto;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h2 id="target-slot-select-title" style="color: #fff;">选择装备</h2>
-                        <button id="close-target-slot-select" style="padding: 8px 15px; background: #666; color: #fff; border: 2px solid #fff; border-radius: 5px; cursor: pointer; font-family: 'Courier New', monospace;">关闭</button>
+                        <button id="close-target-slot-select" class="pe-btn pe-btn--header-close">关闭</button>
                     </div>
                     <div id="target-slot-equipment-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;"></div>
                 </div>
@@ -7596,11 +7615,16 @@ class Game {
         modal.classList.add('show');
         this.paused = true;
         
-        // 获取该品质的所有装备
-        if (!this.cachedAllEquipments) {
-            this.cachedAllEquipments = generateEquipments();
-        }
-        const qualityEquipments = this.cachedAllEquipments.filter(eq => eq.quality === quality);
+        const shopQualityMap = { fine: 'magic', common: 'normal' };
+        const normQ = shopQualityMap[quality] || quality;
+        const qualityEquipments = window.EquipmentCodex
+            ? window.EquipmentCodex.generateProceduralSamples({
+                count: 24,
+                quality: normQ,
+                classId: typeof window.getPlayerBaseClassId === 'function'
+                    ? window.getPlayerBaseClassId(this.player.classData) : null
+            })
+            : [];
         
         // 显示装备列表
         const container = document.getElementById('target-slot-equipment-list');
@@ -7659,8 +7683,8 @@ class Game {
             
             // 点击选择装备
             itemDiv.addEventListener('click', () => {
-                // 设置定向位目标
                 this.shopTargetSlots[quality].target = eq.id;
+                this.shopTargetSlots[quality].targetSnapshot = eq;
                 // 关闭窗口
                 modal.classList.remove('show');
                 this.paused = false;
@@ -7814,7 +7838,7 @@ class Game {
             let sellPrice = 0;
             if (item.type === 'equipment') {
                 // 新的装备回收价格计算公式：(等级 * 15 + 词条值总和 * 1.5) * 品质系数 * 0.4
-                const qualityMultiplier = ['common', 'rare', 'fine', 'epic', 'legendary'].indexOf(item.quality) + 1;
+                const qualityMultiplier = ['normal', 'magic', 'rare', 'epic', 'legendary', 'mythic'].indexOf(item.quality) + 1;
                 const statSum = Object.values(item.stats).reduce((a, b) => a + Math.abs(b), 0);
                 const baseValue = item.level * 15 + statSum * 1.5;
                 sellPrice = Math.floor(baseValue * qualityMultiplier * 0.4);
@@ -8031,6 +8055,12 @@ class Game {
         } else if (this.currentScene === SCENE_TYPES.TRAINING) {
             // 绘制训练场
             this.trainingGroundScene.draw(this.ctx);
+        } else if (this.currentScene === SCENE_TYPES.SKILL_LAB) {
+            this.skillLabScene.draw(this.ctx);
+        } else if (this.currentScene === SCENE_TYPES.TRIAL) {
+            this.trialScene.draw(this.ctx);
+        } else if (this.currentScene === SCENE_TYPES.DUNGEON && this.dungeonScene) {
+            this.dungeonScene.draw(this.ctx);
         }
         this.drawMonsterHitFlashOverlay(this.ctx);
         
@@ -8092,9 +8122,13 @@ class Game {
         // 绘制打造装备特效 - 需要应用相机偏移
         this.ctx.translate(-this.cameraX, -this.cameraY);
         this.drawWeaponSkillAimPreview(this.ctx);
+        this.drawClassSkillAimPreview(this.ctx);
         this.drawEquipmentEffects(this.ctx);
         this.drawMonsterProjectiles(this.ctx);
         this.drawGroundHazardsAndPendingAoE(this.ctx);
+        if (typeof window.drawSkillEntities === 'function') {
+            window.drawSkillEntities(this.ctx, this);
+        }
         this.ctx.translate(this.cameraX, this.cameraY);
         
         // 恢复缩放状态
@@ -8223,6 +8257,17 @@ class Game {
                     ctx.fill();
                 });
             }
+        } else if (this.currentScene === SCENE_TYPES.SKILL_LAB && this.skillLabScene) {
+            if (this.skillLabScene.dummies) {
+                this.skillLabScene.dummies.forEach(dummy => {
+                    const dummyX = offsetX + dummy.x * scale;
+                    const dummyY = offsetY + dummy.y * scale;
+                    ctx.fillStyle = dummy.color || '#666666';
+                    ctx.beginPath();
+                    ctx.arc(dummyX, dummyY, Math.max(1, dummy.size * scale / 2), 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
         }
         
         // 绘制传送门（原本颜色）
@@ -8257,13 +8302,18 @@ class Game {
             type: type,
             x: x,
             y: y,
-            startTime: Date.now(),
+            startTime: Date.now() + (options.delayMs || 0),
             duration: options.duration || 500,
             radius: options.radius || 50,
             angle: options.angle || 0,
             color: options.color || '#ffffff',
+            color2: options.color2 || null,
             targetX: options.targetX,
             targetY: options.targetY,
+            ox: options.ox,
+            oy: options.oy,
+            variant: options.variant || null,
+            family: options.family || null,
             followTarget: options.followTarget || null,
             projectileSpriteId: options.projectileSpriteId || null
         };
@@ -8354,12 +8404,250 @@ class Game {
         return { x: wx, y: wy };
     }
 
+    /**
+     * 释放职业技能栏槽位（0-3 对应键 1-4）
+     * @param {number} slotIndex
+     * @param {object|null} [castOptions] - 瞄准释放参数（落点/方向/锁定目标）
+     */
+    useClassSkillHotbar(slotIndex, castOptions) {
+        this._castClassSkillHotbar(slotIndex, castOptions || null);
+    }
+
+    _getClassSkillDefForHotbarSlot(slotIndex) {
+        if (!window.hasPlayerClass(this.player.classData)) return null;
+        const labMode = this.currentScene === SCENE_TYPES.SKILL_LAB;
+        if (typeof window.getHotbarSkillAtSlot === 'function') {
+            return window.getHotbarSkillAtSlot(this.player, slotIndex, { labMode });
+        }
+        const hotbar = window.getPlayerHotbarSkills(this.player);
+        return hotbar[slotIndex] || null;
+    }
+
+    _canPrepareClassSkillCast(skillDef) {
+        if (this.paused || !skillDef) return false;
+        if (!window.hasPlayerClass(this.player.classData)) return false;
+        if (!this._canUseWeaponSkillForBattle()) return false;
+        if (this.player.isDashing || this.player.isCastingSkill) return false;
+        if (this.player._skillCastBar && Date.now() < this.player._skillCastBar.endTime) return false;
+        const now = Date.now();
+        if (this.player.dashEndTime && now - this.player.dashEndTime < 500) return false;
+        const resolved = window.getResolvedSkillForPlayer(this.player, skillDef) || skillDef;
+        const cooldownKey = resolved.evolutionPath && resolved.evolutionPath.baseSkillId
+            ? resolved.evolutionPath.baseSkillId : resolved.id;
+        if (window.getSkillCooldownRemaining(this.player, cooldownKey) > 0) return false;
+        if (!window.canAffordSkillCost(this.player, resolved)) return false;
+        return true;
+    }
+
+    _castClassSkillHotbar(slotIndex, castOptions) {
+        if (!this._canPrepareClassSkillCast(this._getClassSkillDefForHotbarSlot(slotIndex))) return;
+        const skillDef = this._getClassSkillDefForHotbarSlot(slotIndex);
+        if (!skillDef) return;
+        const monsters = this._getSkillMonsters();
+        if (!monsters) return;
+        if (castOptions && castOptions.angle != null) {
+            this.player.angle = castOptions.angle;
+        }
+        window.executeClassSkill(this.player, monsters, skillDef, this, castOptions);
+    }
+
+    cancelClassSkillAim() {
+        this.classSkillAim = null;
+    }
+
+    _onClassSkillInputDown(slotIndex, source) {
+        if (this.paused || !this._canUseWeaponSkillForBattle()) return;
+        const skillDef = this._getClassSkillDefForHotbarSlot(slotIndex);
+        if (!skillDef || !this._canPrepareClassSkillCast(skillDef)) return;
+
+        const profile = typeof window.resolveClassSkillAimProfile === 'function'
+            ? window.resolveClassSkillAimProfile(this.player, skillDef)
+            : null;
+        if (!profile) {
+            this._castClassSkillHotbar(slotIndex, null);
+            return;
+        }
+
+        this.cancelWeaponSkillAim();
+        if (!this.classSkillAim || this.classSkillAim.slotIndex !== slotIndex) {
+            this.classSkillAim = {
+                slotIndex,
+                skillDef,
+                profile: Object.assign({}, profile),
+                hold: new Set(),
+                startTime: Date.now(),
+                active: false,
+                aimX: this.player.x,
+                aimY: this.player.y,
+                aimAngle: this.player.angle
+            };
+        }
+        this.classSkillAim.hold.add(source);
+    }
+
+    _onClassSkillInputUp(source) {
+        if (!this.classSkillAim || !this.classSkillAim.hold.has(source)) return;
+        const g = this.classSkillAim;
+        g.hold.delete(source);
+        if (g.hold.size > 0) return;
+
+        const slotIndex = g.slotIndex;
+        const wasActive = g.active;
+        const profile = g.profile;
+        let castOptions = null;
+        if (wasActive && profile) {
+            castOptions = {};
+            if (profile.mode === 'ground_aoe') {
+                castOptions.groundPoint = { x: g.aimX, y: g.aimY };
+            } else if (profile.mode === 'target_lock' && g.lockTarget) {
+                castOptions.lockTarget = g.lockTarget;
+            } else if (profile.mode === 'direction_line' || profile.mode === 'cone') {
+                castOptions.angle = g.aimAngle;
+            }
+        }
+        this.classSkillAim = null;
+        this._castClassSkillHotbar(slotIndex, castOptions);
+    }
+
+    updateClassSkillAimState() {
+        const g = this.classSkillAim;
+        if (!g) return;
+        if (this.player.isDashing || !this._canUseWeaponSkillForBattle()) {
+            this.cancelClassSkillAim();
+            return;
+        }
+        if (!this._canPrepareClassSkillCast(g.skillDef)) {
+            this.cancelClassSkillAim();
+            return;
+        }
+        const profile = typeof window.resolveClassSkillAimProfile === 'function'
+            ? window.resolveClassSkillAimProfile(this.player, g.skillDef)
+            : null;
+        if (!profile) {
+            this.cancelClassSkillAim();
+            return;
+        }
+        g.profile = Object.assign({}, profile);
+
+        const holdMs = 160;
+        const now = Date.now();
+        if (!g.active && now - g.startTime >= holdMs) {
+            g.active = true;
+        }
+        if (!g.active) return;
+
+        const w = this.screenToWorldForAim(this.mouse.x, this.mouse.y);
+        const px = this.player.x;
+        const py = this.player.y;
+        g.aimAngle = Math.atan2(w.y - py, w.x - px);
+
+        if (g.profile.mode === 'ground_aoe') {
+            const c = this.clampGroundSkillAimWorldPoint(w.x, w.y, this.player, g.profile.castRange);
+            g.aimX = c.x;
+            g.aimY = c.y;
+        } else if (g.profile.mode === 'target_lock') {
+            const mon = this._getSkillMonsters();
+            g.lockTarget = mon && typeof pickWeaponSkillLockTargetNearestToMouse === 'function'
+                ? pickWeaponSkillLockTargetNearestToMouse(mon, this.player, g.profile.lockRange, this)
+                : null;
+        }
+    }
+
+    drawClassSkillAimPreview(ctx) {
+        const g = this.classSkillAim;
+        if (!g || !g.active || this.paused) return;
+        const profile = g.profile;
+        if (!profile) return;
+
+        const px = this.player.x;
+        const py = this.player.y;
+        const now = Date.now();
+        ctx.save();
+
+        if (profile.mode === 'ground_aoe') {
+            ctx.strokeStyle = 'rgba(120, 220, 255, 0.7)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 5]);
+            ctx.beginPath();
+            ctx.arc(px, py, profile.castRange, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.strokeStyle = 'rgba(255, 210, 100, 0.92)';
+            ctx.fillStyle = 'rgba(255, 210, 100, 0.15)';
+            ctx.beginPath();
+            ctx.arc(g.aimX, g.aimY, profile.aoeRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        } else if (profile.mode === 'target_lock') {
+            ctx.strokeStyle = 'rgba(180, 140, 255, 0.7)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 5]);
+            ctx.beginPath();
+            ctx.arc(px, py, profile.lockRange, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            if (g.lockTarget && g.lockTarget.x != null && g.lockTarget.y != null) {
+                this.drawSkillLockPreviewMarker(ctx, g.lockTarget.x, g.lockTarget.y, now);
+            }
+        } else if (profile.mode === 'self_aoe') {
+            ctx.strokeStyle = 'rgba(255, 200, 90, 0.9)';
+            ctx.fillStyle = 'rgba(255, 200, 90, 0.14)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(px, py, profile.aoeRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        } else if (profile.mode === 'cone') {
+            const half = (profile.halfAngleDeg || 45) * Math.PI / 180;
+            const ang = g.aimAngle;
+            const range = profile.range || 80;
+            ctx.fillStyle = 'rgba(255, 200, 90, 0.14)';
+            ctx.strokeStyle = 'rgba(255, 200, 90, 0.88)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.arc(px, py, range, ang - half, ang + half);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        } else if (profile.mode === 'direction_line') {
+            const dist = profile.distance || 120;
+            const width = profile.width || 30;
+            const ang = g.aimAngle;
+            const ex = px + Math.cos(ang) * dist;
+            const ey = py + Math.sin(ang) * dist;
+            ctx.strokeStyle = 'rgba(255, 180, 80, 0.85)';
+            ctx.fillStyle = 'rgba(255, 180, 80, 0.12)';
+            ctx.lineWidth = width;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(ex, ey);
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(255, 180, 80, 0.22)';
+            ctx.beginPath();
+            ctx.arc(ex, ey, width * 0.45, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(120, 200, 255, 0.55)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 4]);
+            ctx.beginPath();
+            ctx.arc(px, py, dist, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        ctx.restore();
+    }
+
     _canUseWeaponSkillForBattle() {
         if (this.currentScene === SCENE_TYPES.TOWER && this.currentRoom &&
             (this.currentRoom.type === ROOM_TYPES.BATTLE || this.currentRoom.type === ROOM_TYPES.ELITE || this.currentRoom.type === ROOM_TYPES.BOSS)) {
             return true;
         }
         if (this.currentScene === SCENE_TYPES.TRAINING && this.trainingGroundScene) return true;
+        if (this.currentScene === SCENE_TYPES.SKILL_LAB && this.skillLabScene) return true;
+        if (this.currentScene === SCENE_TYPES.TRIAL && this.trialScene) return true;
+        if (this.currentScene === SCENE_TYPES.DUNGEON && this.dungeonScene) return true;
         return false;
     }
 
@@ -8370,6 +8658,15 @@ class Game {
         }
         if (this.currentScene === SCENE_TYPES.TRAINING && this.trainingGroundScene) {
             return this.trainingGroundScene.dummies;
+        }
+        if (this.currentScene === SCENE_TYPES.SKILL_LAB && this.skillLabScene) {
+            return this.skillLabScene.dummies;
+        }
+        if (this.currentScene === SCENE_TYPES.TRIAL && this.trialScene) {
+            return this.trialScene.getMonsters();
+        }
+        if (this.currentScene === SCENE_TYPES.DUNGEON && this.dungeonScene) {
+            return this.dungeonScene.getMonsters();
         }
         return null;
     }
@@ -8395,6 +8692,7 @@ class Game {
             return;
         }
         if (!this.weaponSkillAim) {
+            this.cancelClassSkillAim();
             if (gr) {
                 this.weaponSkillAim = {
                     mode: 'ground_aoe',
@@ -8833,6 +9131,9 @@ class Game {
         const now = Date.now();
         this.equipmentEffects = this.equipmentEffects.filter(effect => {
             const elapsed = now - effect.startTime;
+            if (elapsed < 0) {
+                return true;
+            }
             if (elapsed >= effect.duration) {
                 return false; // 移除过期特效
             }
@@ -9330,6 +9631,12 @@ class Game {
                             ctx.lineTo(effect.x + Math.cos(ang) * cr, effect.y + Math.sin(ang) * cr);
                             ctx.stroke();
                         }
+                    }
+                    break;
+
+                case 'class_skill_vfx':
+                    if (typeof window.drawClassSkillVfxEffect === 'function') {
+                        window.drawClassSkillVfxEffect(ctx, effect, progress, alpha, elapsed);
                     }
                     break;
             }
@@ -9831,6 +10138,23 @@ class Game {
      */
     onBossDefeated(monster) {
         if (!monster) return;
+        if (this.currentScene === SCENE_TYPES.TRIAL && monster._isTrialBoss) {
+            if (monster._bossRewardGranted) return;
+            monster._bossRewardGranted = true;
+            this.onTrialVictory();
+            return;
+        }
+        if (this.currentScene === SCENE_TYPES.DUNGEON && monster._isDungeonBoss) {
+            if (monster._bossRewardGranted) return;
+            monster._bossRewardGranted = true;
+            if (this.dungeonScene) {
+                this.dungeonScene.notifyKilled(monster);
+                if (this.dungeonScene.isComplete()) {
+                    this.onDungeonVictory();
+                }
+            }
+            return;
+        }
         if (monster._bossRewardGranted) return;
         monster._bossRewardGranted = true;
         this.spawnRewardPickupOrbs(monster.x, monster.y, monster.goldReward, monster.expReward, 34);
@@ -9838,26 +10162,34 @@ class Game {
         if (this.floor >= maxF) {
             this.addFloatingText(this.player.x, this.player.y, '恭喜通关恶魔塔！', '#ffdd00');
         }
-        const allEquipments = generateEquipments();
-        const tierLevels = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
         const M = monster.level || 20;
-        let availableLevels = tierLevels.filter(L => L <= M && L >= M - 18);
-        if (!availableLevels.length) availableLevels = tierLevels.filter(L => L <= M);
-        if (!availableLevels.length) availableLevels = [60];
-        const levelEquipments = allEquipments.filter(eq => availableLevels.includes(eq.level) && !eq.isCrafted && (eq.quality === 'epic' || eq.quality === 'legendary'));
-        const pool = levelEquipments.length ? levelEquipments : allEquipments.filter(eq => availableLevels.includes(eq.level) && !eq.isCrafted);
-        if (pool.length > 0) {
-            const randomEq = pool[Math.floor(Math.random() * pool.length)];
-            const newEq = new Equipment({
-                id: randomEq.id,
-                name: randomEq.name,
-                slot: randomEq.slot,
-                weaponType: randomEq.weaponType,
-                quality: randomEq.quality,
-                level: randomEq.level,
-                stats: JSON.parse(JSON.stringify(randomEq.stats)),
-                refineLevel: 0
-            });
+        const rawEq = window.EquipmentCodex && window.EquipmentCodex.generateLootEquipment
+            ? window.EquipmentCodex.generateLootEquipment({
+                monsterLevel: M,
+                monsterTier: 'boss',
+                quality: Math.random() < 0.35 ? 'legendary' : 'epic',
+                playerClass: typeof window.getPlayerBaseClassId === 'function'
+                    ? window.getPlayerBaseClassId(this.player.classData) : null
+            })
+            : null;
+        if (rawEq) {
+            const newEq = window.EquipmentCodex?.cloneEquipmentForGrant(rawEq)
+                || new Equipment({
+                    id: rawEq.id,
+                    name: rawEq.name,
+                    slot: rawEq.slot,
+                    weaponType: rawEq.weaponType,
+                    quality: rawEq.quality,
+                    level: rawEq.level,
+                    stats: JSON.parse(JSON.stringify(rawEq.baseStats || rawEq.stats || {})),
+                    baseTypeId: rawEq.baseTypeId,
+                    prefixes: rawEq.prefixes || [],
+                    suffixes: rawEq.suffixes || [],
+                    legendaryPowers: rawEq.legendaryPowers || [],
+                    setId: rawEq.setId,
+                    procedural: true,
+                    refineLevel: 0
+                });
             const dropAngle = Math.random() * Math.PI * 2;
             const dropDistance = 30 + Math.random() * 50;
             this.droppedItems.push(new DroppedItem(
@@ -9921,7 +10253,7 @@ class Game {
     }
     
     gapShopPriceMult() {
-        return Math.max(1, this.floor | 0);
+        return Math.max(1, Math.floor((this.floor | 0) / 4));
     }
     
     tryGapShopBuy(kind) {
@@ -9992,7 +10324,7 @@ class Game {
             if (item.type === 'equipment' && item.slot) {
                 const statSum = item.stats ? Object.values(item.stats).reduce((a, b) => a + b, 0) : 0;
                 const baseValue = (item.level || 1) * 20 + statSum * 2;
-                const qm = (['common', 'rare', 'fine', 'epic', 'legendary'].indexOf(item.quality) + 1) || 1;
+                const qm = (['normal', 'magic', 'rare', 'epic', 'legendary', 'mythic'].indexOf(item.quality) + 1) || 1;
                 sellPrice = Math.floor(baseValue * qm * 0.4);
             } else if (item.type === 'consumable' || item.type === 'potion') {
                 const buyPrice = item.buyPrice || item.price || 50;
@@ -10003,7 +10335,7 @@ class Game {
             }
             const row = document.createElement('div');
             row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #444;font-size:12px;color:#ddd;';
-            row.innerHTML = `<span>${item.name}</span><span>${sellPrice} 金 <button type="button" class="gap-sell-one" data-i="${index}" data-p="${sellPrice}">出售</button></span>`;
+            row.innerHTML = `<span>${item.name}</span><span>${sellPrice} 金 <button type="button" class="pe-btn pe-btn--xs gap-sell-one" data-i="${index}" data-p="${sellPrice}">出售</button></span>`;
             frag.appendChild(row);
         });
         list.innerHTML = '';
@@ -10134,22 +10466,27 @@ class Game {
         const label = isGapShop ? '按 E 打开商店面板' : '按E交互';
         const half = w / 2;
         const h = isGapShop ? 28 : 30;
-        
-        // 绘制提示背景
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(x - half, y - h / 2, w, h);
-        
-        // 绘制边框
-        ctx.strokeStyle = '#fff';
+        const rx = 6;
+
+        ctx.save();
+        ctx.fillStyle = 'rgba(18, 18, 28, 0.88)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
         ctx.lineWidth = 2;
-        ctx.strokeRect(x - half, y - h / 2, w, h);
-        
-        // 绘制文字
+        ctx.beginPath();
+        if (ctx.roundRect) {
+            ctx.roundRect(x - half, y - h / 2, w, h, rx);
+        } else {
+            ctx.rect(x - half, y - h / 2, w, h);
+        }
+        ctx.fill();
+        ctx.stroke();
+
         ctx.fillStyle = '#fff';
         ctx.font = isGapShop ? '14px "Courier New", monospace' : '16px "Courier New", monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(label, x, y);
+        ctx.restore();
     }
     
     /**
@@ -10169,6 +10506,19 @@ class Game {
                 exp: this.player.exp,
                 expNeeded: this.player.expNeeded,
                 gold: this.player.gold,
+                classData: this.player.classData,
+                classResource: this.player.classResource,
+                skillEnhanceLevels: this.player.skillEnhanceLevels || {},
+                skillHotbar: this.player.skillHotbar,
+                skillCooldowns: this.player.skillCooldowns || {},
+                chronicleUnlocked: this.player.chronicleUnlocked || [],
+                chronicleRelics: this.player.chronicleRelics || [],
+                storedPowers: this.player.storedPowers || [],
+                talentAllocations: this.player.talentAllocations || {},
+                displayName: this.player.displayName || '冒险者',
+                tutorialFlags: this.player.tutorialFlags || {},
+                materials: this.player.materials || {},
+                dungeonProgress: this.player.dungeonProgress || {},
                 equipment: {},
                 inventory: [],
                 maxEquipmentCapacity: this.player.maxEquipmentCapacity,
@@ -10182,8 +10532,6 @@ class Game {
                 shopLockedItems: Array.from(this.shopLockedItems),
                 shopTargetSlots: JSON.parse(JSON.stringify(this.shopTargetSlots)),
                 shopCapacityExpansionCount: this.shopCapacityExpansionCount,
-                fusionState: this.fusionState ? JSON.parse(JSON.stringify(this.fusionState)) : null,
-                fusionCompletionBannerShown: !!this.fusionCompletionBannerShown
             }
         };
         Object.keys(this.player.equipment).forEach(slot => {
@@ -10312,6 +10660,104 @@ class Game {
                 alert('保存到浏览器失败：' + (e && e.message ? e.message : String(e)));
             }
             console.error('saveGameToBrowserStorage', e);
+        }
+    }
+
+    /**
+     * 删除本浏览器 localStorage 中的存档码
+     */
+    clearBrowserSaveData() {
+        try {
+            localStorage.removeItem(Game.BROWSER_SAVE_CODE_KEY);
+        } catch (e) {
+            console.warn('清除浏览器存档失败', e);
+        }
+        this._lastSyncedSaveFingerprint = null;
+        this._lastSaveCodeSyncTimeMs = 0;
+    }
+
+    /**
+     * 重置为全新游戏状态（不写入 localStorage）
+     */
+    applyNewGameState() {
+        this.monsterProjectiles = [];
+        this.groundHazards = [];
+        this.pendingMonsterAoE = [];
+        this.soulCircles = [];
+        this.droppedItems = [];
+        this.rewardPickups = [];
+        this.portals = [];
+        this.floatingTexts = [];
+        this.towerItems.clear();
+        this.towerGoldGained = 0;
+        this.isPlayerDead = false;
+        this.activeTrial = null;
+        this.activeDungeon = null;
+        this.tutorialHighlightBuilding = null;
+        if (this.trialScene) this.trialScene.reset();
+        if (this.dungeonScene) this.dungeonScene.reset();
+        if (this.trainingGroundScene) this.trainingGroundScene.clearAllDummies();
+        this.currentRoom = null;
+        this.floor = 1;
+        this.lastDeathFloor = 1;
+        this.towerStartFloor = 1;
+        this.hasClearedFloor = false;
+        this.needFloorRollback = false;
+        this.shopRefreshCount = 0;
+        this.shopEquipments = null;
+        this.shopLockedItems = new Set();
+        this.shopCapacityExpansionCount = 0;
+        this.shopHasCapacityExpansion = false;
+        this.shopTargetSlots = {
+            legendary: { available: 1, target: null },
+            epic: { available: 1, target: null },
+            fine: { available: 1, target: null }
+        };
+        this.demonInterferenceActive = false;
+        this.demonEffectStatusText = '';
+        this.demonInterferenceFlags = {};
+        this.transitionScene(SCENE_TYPES.TOWN);
+        this.player = new Player(CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2, this);
+        if (typeof window.ensurePlayerMaterials === 'function') window.ensurePlayerMaterials(this.player);
+        if (typeof window.ensurePlayerDungeonProgress === 'function') window.ensurePlayerDungeonProgress(this.player);
+        this.player.updateStats();
+        const roomTypeEl = document.getElementById('room-type');
+        const floorEl = document.getElementById('floor-number');
+        if (roomTypeEl) roomTypeEl.textContent = '主城';
+        if (floorEl) floorEl.textContent = '准备中';
+        this.ensureInventorySlotElements(Math.max(
+            this.player.maxEquipmentCapacity,
+            this.player.maxPotionCapacity
+        ));
+        this.updateHUD();
+        this.updateInventoryUI();
+        this.updateInventoryCapacity();
+        this.updateWeaponSkillButton();
+        this.syncGamePausedState();
+    }
+
+    /**
+     * 清除存档：删除浏览器缓存并重置为全新角色
+     */
+    clearSave() {
+        if (!confirm('确定清除本浏览器存档？\n\n当前角色的等级、装备、金币与进度将全部丢失，且无法恢复。')) {
+            return;
+        }
+        this.clearBrowserSaveData();
+        if (this.npcUI) this.npcUI.closeAll();
+        if (this.classUI) {
+            this.classUI.hideCharacterPanel();
+            this.classUI.hideSkillPanel();
+            this.classUI.hideClassSelect();
+            this.classUI.hidePlayerNameModal();
+        }
+        if (this.tutorialUI) this.tutorialUI.hide();
+        this.applyNewGameState();
+        this.addFloatingText(this.player.x, this.player.y, '存档已清除', '#ff8866', 2500, 16, true);
+        if (this.tutorialUI) {
+            this.tutorialUI.beginOnboarding();
+        } else if (this.classUI) {
+            this.classUI.showClassSelectForced();
         }
     }
 
@@ -10520,6 +10966,30 @@ class Game {
                 ? window.computePlayerExpToNextLevel(this.player.level)
                 : (saveData.player.expNeeded || 20);
             this.player.gold = saveData.player.gold || 0;
+            this.player.classData = window.normalizeClassData(saveData.player.classData || null);
+            if (saveData.player.classResource && window.hasPlayerClass(this.player.classData)) {
+                this.player.classResource = saveData.player.classResource;
+            } else if (typeof window.initPlayerClassResource === 'function') {
+                window.initPlayerClassResource(this.player);
+            }
+            this.player.skillEnhanceLevels = saveData.player.skillEnhanceLevels || {};
+            this.player.skillHotbar = saveData.player.skillHotbar || null;
+            if (typeof window.initPlayerSkillHotbar === 'function') {
+                window.initPlayerSkillHotbar(this.player);
+            }
+            this.player.skillCooldowns = saveData.player.skillCooldowns || {};
+            this.player.chronicleUnlocked = saveData.player.chronicleUnlocked || [];
+            this.player.chronicleRelics = saveData.player.chronicleRelics || [];
+            this.player.storedPowers = saveData.player.storedPowers || [];
+            this.player.talentAllocations = saveData.player.talentAllocations || {};
+            this.player.displayName = saveData.player.displayName || '冒险者';
+            this.player.tutorialFlags = saveData.player.tutorialFlags || {};
+            if (typeof window.ensurePlayerMaterials === 'function') window.ensurePlayerMaterials(this.player);
+            if (saveData.player.materials) this.player.materials = saveData.player.materials;
+            if (typeof window.ensurePlayerDungeonProgress === 'function') window.ensurePlayerDungeonProgress(this.player);
+            if (saveData.player.dungeonProgress) {
+                Object.assign(this.player.dungeonProgress, saveData.player.dungeonProgress);
+            }
             
             // 恢复背包容量
             this.player.maxEquipmentCapacity = saveData.player.maxEquipmentCapacity || 18;
@@ -10573,8 +11043,10 @@ class Game {
             
             // 恢复游戏状态
             this.currentScene = saveData.game.currentScene || SCENE_TYPES.TOWN;
-            if (this.currentScene === 'dungeon') {
+            if (this.currentScene === 'dungeon' || this.currentScene === SCENE_TYPES.DUNGEON) {
                 this.currentScene = SCENE_TYPES.TOWN;
+                this.activeDungeon = null;
+                if (this.dungeonScene) this.dungeonScene.reset();
             }
             const maxF = typeof window.getTowerMaxFloor === 'function' ? window.getTowerMaxFloor() : 240;
             this.floor = Math.min(saveData.game.floor || 1, maxF);
@@ -10589,9 +11061,6 @@ class Game {
                 this.shopTargetSlots = JSON.parse(JSON.stringify(saveData.game.shopTargetSlots));
             }
             this.shopCapacityExpansionCount = saveData.game.shopCapacityExpansionCount || 0;
-            
-            this.fusionState = saveData.game.fusionState || null;
-            this.fusionCompletionBannerShown = !!saveData.game.fusionCompletionBannerShown;
             
             // 清空掉落物和传送门
             this.droppedItems = [];
@@ -10616,15 +11085,11 @@ class Game {
             
             // 更新UI
             this.updateHUD();
+            if (typeof window.syncChronicleFromProgress === 'function') {
+                window.syncChronicleFromProgress(this.player, this);
+            }
             this.updateInventoryUI();
             this.updateInventoryCapacity();
-            this.updateFusionUI();
-            
-            if (this.fusionState && this.fusionState.phase === 'processing') {
-                this.resumeFusionJobAfterImport();
-            } else if (this.fusionState && this.fusionState.phase === 'ready') {
-                this._onFusionReadyForUI();
-            }
             
             // 更新房间信息显示
             if (this.currentScene === SCENE_TYPES.TOWN) {
@@ -10634,6 +11099,12 @@ class Game {
             
             if (!quiet) {
                 this.addFloatingText(this.player.x, this.player.y, '存档已导入', '#00ff00');
+            }
+            if (typeof window.migrateLegacyTutorialFlags === 'function') {
+                window.migrateLegacyTutorialFlags(this.player);
+            }
+            if (this.tutorialUI && !window.isTutorialComplete(this.player)) {
+                setTimeout(() => this.tutorialUI.beginOnboarding(), 600);
             }
             this.maybeAutoSyncSaveCodeToLocalStorage(true);
         } catch (error) {
@@ -10665,8 +11136,15 @@ class Game {
             stats: equipment.stats,
             equipmentTraits: equipment.equipmentTraits,
             isCrafted: equipment.isCrafted || false,
-            fusionSetIds: equipment.fusionSetIds || null,
-            fusionPairKey: equipment.fusionPairKey || null
+            baseTypeId: equipment.baseTypeId || null,
+            implicit: equipment.implicit || null,
+            prefixes: equipment.prefixes || [],
+            suffixes: equipment.suffixes || [],
+            legendaryPowers: equipment.legendaryPowers || [],
+            setId: equipment.setId || null,
+            classAffinity: equipment.classAffinity || null,
+            procedural: equipment.procedural || false,
+            gearScore: equipment.gearScore || 0
         };
     }
     
@@ -10676,10 +11154,13 @@ class Game {
      * @returns {Equipment} 装备对象
      */
     deserializeEquipment(data) {
+        const slot = (typeof window.normalizeEquipmentSlot === 'function')
+            ? window.normalizeEquipmentSlot(data.slot)
+            : data.slot;
         const eq = new Equipment({
             id: data.id,
             name: data.name,
-            slot: data.slot,
+            slot: slot,
             weaponType: data.weaponType,
             quality: data.quality,
             level: data.level,
@@ -10687,17 +11168,19 @@ class Game {
             refineLevel: data.refineLevel || 0,
             stats: data.baseStats || data.stats || {},
             isCrafted: data.isCrafted || false,
-            fusionSetIds: data.fusionSetIds || null,
-            fusionPairKey: data.fusionPairKey || null
+            baseTypeId: data.baseTypeId || null,
+            implicit: data.implicit || null,
+            prefixes: data.prefixes || [],
+            suffixes: data.suffixes || [],
+            legendaryPowers: data.legendaryPowers || [],
+            setId: data.setId || null,
+            classAffinity: data.classAffinity || null,
+            procedural: data.procedural || false
         });
         
         // 如果存档中有装备词条，恢复它；若缺少 id（旧存档），则按名称重新生成 id，确保恢复生命值等词条能生效
         if (data.equipmentTraits) {
             eq.equipmentTraits = data.equipmentTraits;
-            if (!eq.equipmentTraits.id && typeof eq.generateEquipmentTraits === 'function') {
-                const generated = eq.generateEquipmentTraits();
-                if (generated && generated.id) eq.equipmentTraits.id = generated.id;
-            }
         }
         
         // 恢复isCrafted属性
@@ -10753,7 +11236,7 @@ class Game {
             id: data.id,
             name: data.name,
             consumableType: data.consumableType || 'misc',
-            quality: data.quality || 'common',
+            quality: data.quality || 'normal',
             description: data.description || '',
             price: data.price || 50
         };
@@ -10942,6 +11425,7 @@ class Game {
                 normalPanel.classList.add('show');
                 codexPanel.classList.remove('show');
                 this.populateDevSetGrantSelect();
+                this.populateDevSetV2Select();
             }
         } else {
             normalPanel.classList.remove('show');
@@ -10981,6 +11465,10 @@ class Game {
         
         if (activeTab === 'equipments') {
             this.updateDevCodexEquipments(content);
+        } else if (activeTab === 'procedural') {
+            this.updateDevCodexProcedural(content);
+        } else if (activeTab === 'base_types') {
+            this.updateDevCodexBaseTypes(content);
         } else if (activeTab === 'consumables') {
             this.updateDevCodexConsumables(content);
         } else if (activeTab === 'recipes') {
@@ -10993,90 +11481,84 @@ class Game {
      * @param {HTMLElement} container - 容器元素
      */
     updateDevCodexEquipments(container) {
-        const allEquipments = generateEquipments();
-        
-        // 按品质分组
-        const qualityGroups = {
-            common: [],
-            rare: [],
-            fine: [],
-            epic: [],
-            legendary: []
-        };
-        
-        allEquipments.forEach(eq => {
-            qualityGroups[eq.quality].push(eq);
+        this.updateDevCodexProcedural(container);
+    }
+
+    updateDevCodexProcedural(container) {
+        if (!window.EquipmentCodex) {
+            container.innerHTML = '<p style="color:#888;padding:12px;">程序化配置未加载</p>';
+            return;
+        }
+        const toolbar = document.createElement('div');
+        toolbar.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center;';
+        toolbar.innerHTML = '<span style="color:#8cf;font-size:12px;">点击条目加入背包 · 每次刷新重新随机</span>';
+        const refreshBtn = document.createElement('button');
+        refreshBtn.className = 'pe-btn pe-btn--sm pe-btn--info';
+        refreshBtn.textContent = '刷新样例';
+        refreshBtn.onclick = () => this.updateDevCodexProcedural(container);
+        toolbar.appendChild(refreshBtn);
+        container.appendChild(toolbar);
+
+        const samples = window.EquipmentCodex.generateProceduralSamples({
+            count: 24,
+            classId: typeof window.getPlayerBaseClassId === 'function'
+                ? window.getPlayerBaseClassId(this.player.classData) : null
         });
-        
-        const qualityNames = {
-            common: '普通',
-            rare: '稀有',
-            fine: '精良',
-            epic: '史诗',
-            legendary: '传说'
-        };
-        
-        const qualityColors = {
-            common: '#ffffff',
-            rare: '#1eff00',
-            fine: '#0070dd',
-            epic: '#a335ee',
-            legendary: '#ff8000'
-        };
-        
-        Object.keys(qualityGroups).forEach(quality => {
-            if (qualityGroups[quality].length === 0) return;
-            
-            const qualitySection = document.createElement('div');
-            qualitySection.style.marginBottom = '20px';
-            qualitySection.innerHTML = `<h4 style="color: ${qualityColors[quality]}; margin-bottom: 10px; font-size: 14px;">${qualityNames[quality]} (${qualityGroups[quality].length}件)</h4>`;
-            
-            const grid = document.createElement('div');
-            grid.style.display = 'grid';
-            grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(200px, 1fr))';
-            grid.style.gap = '10px';
-            
-            qualityGroups[quality].forEach(eq => {
-                const itemDiv = document.createElement('div');
-                itemDiv.style.padding = '8px';
-                itemDiv.style.background = 'rgba(40, 40, 50, 0.8)';
-                itemDiv.style.border = `1px solid ${qualityColors[quality]}`;
-                itemDiv.style.borderRadius = '5px';
-                itemDiv.style.cursor = 'pointer';
-                itemDiv.style.transition = 'background 0.2s';
-                
-                itemDiv.onmouseover = () => {
-                    itemDiv.style.background = 'rgba(60, 60, 70, 0.9)';
-                };
-                itemDiv.onmouseout = () => {
-                    itemDiv.style.background = 'rgba(40, 40, 50, 0.8)';
-                };
-                
-                itemDiv.onclick = () => {
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;';
+        samples.forEach(eq => {
+            const card = document.createElement('div');
+            const qc = QUALITY_COLORS[eq.quality] || '#fff';
+            card.style.cssText = `padding:10px;background:rgba(40,40,50,0.9);border:1px solid ${qc};border-radius:6px;cursor:pointer;`;
+            card.onmouseenter = () => { card.style.background = 'rgba(55,55,70,0.95)'; };
+            card.onmouseleave = () => { card.style.background = 'rgba(40,40,50,0.9)'; };
+            card.onclick = () => this.devAddSpecificEquipment(eq);
+            const title = document.createElement('div');
+            title.style.cssText = `color:${qc};font-weight:bold;font-size:13px;margin-bottom:6px;`;
+            title.textContent = eq.name;
+            const meta = document.createElement('div');
+            meta.style.cssText = 'color:#aaa;font-size:11px;line-height:1.45;';
+            const affCount = (eq.prefixes || []).length + (eq.suffixes || []).length;
+            const powCount = (eq.legendaryPowers || []).length;
+            meta.innerHTML = `${SLOT_NAMES[eq.slot] || eq.slot} · Lv.${eq.level} · ${QUALITY_NAMES[eq.quality] || eq.quality}<br>基型: ${eq.baseTypeId || '-'} · 词缀: ${affCount} · 威能: ${powCount}${eq.setId ? '<br>套装: ' + eq.setId : ''}`;
+            card.appendChild(title);
+            card.appendChild(meta);
+            grid.appendChild(card);
+        });
+        container.appendChild(grid);
+    }
+
+    updateDevCodexBaseTypes(container) {
+        if (!window.EquipmentCodex) {
+            container.innerHTML = '<p style="color:#888;padding:12px;">基型配置未加载</p>';
+            return;
+        }
+        const wrap = document.createElement('div');
+        wrap.innerHTML = window.EquipmentCodex.buildBaseTypesHtml({});
+        container.appendChild(wrap);
+        wrap.querySelectorAll('.codex-base-type-entry').forEach(el => {
+            el.onclick = () => {
+                const baseTypeId = el.dataset.baseTypeId;
+                if (!baseTypeId) return;
+                const bt = window.BASE_TYPES;
+                const def = (bt.weapons && bt.weapons[baseTypeId])
+                    || (bt.offHand && bt.offHand[baseTypeId])
+                    || (bt.armor && bt.armor[baseTypeId])
+                    || (bt.accessories && bt.accessories[baseTypeId]);
+                if (!def) return;
+                const eq = window.EquipmentCodex.generateProceduralSample({
+                    slot: def.slot,
+                    quality: 'epic',
+                    monsterLevel: this.player.level || 20,
+                    monsterTier: 'boss',
+                    playerClass: def.classAffinity || (typeof window.getPlayerBaseClassId === 'function'
+                        ? window.getPlayerBaseClassId(this.player.classData) : 'warrior')
+                });
+                if (eq) {
+                    eq.baseTypeId = baseTypeId;
                     this.devAddSpecificEquipment(eq);
-                };
-                
-                const nameDiv = document.createElement('div');
-                nameDiv.style.color = qualityColors[quality];
-                nameDiv.style.fontWeight = 'bold';
-                nameDiv.style.marginBottom = '5px';
-                nameDiv.textContent = eq.name;
-                
-                const infoDiv = document.createElement('div');
-                infoDiv.style.color = '#aaa';
-                infoDiv.style.fontSize = '11px';
-                infoDiv.innerHTML = `
-                    <div>部位: ${SLOT_NAMES[eq.slot]}</div>
-                    <div>等级: ${eq.level}</div>
-                `;
-                
-                itemDiv.appendChild(nameDiv);
-                itemDiv.appendChild(infoDiv);
-                grid.appendChild(itemDiv);
-            });
-            
-            qualitySection.appendChild(grid);
-            container.appendChild(qualitySection);
+                }
+            };
         });
     }
     
@@ -11092,8 +11574,8 @@ class Game {
         const row = document.createElement('div');
         row.style.cssText = 'display:flex;flex-wrap:wrap;gap:10px;';
         const btn = document.createElement('button');
+        btn.className = 'pe-btn pe-btn--sm pe-btn--info';
         btn.textContent = '神圣十字架';
-        btn.style.cssText = 'padding:10px 16px;cursor:pointer;font-family:inherit;';
         btn.onclick = () => this.devAddHolyCrossConsumable();
         row.appendChild(btn);
         wrap.appendChild(row);
@@ -11105,16 +11587,19 @@ class Game {
      * @param {Equipment} equipment - 装备对象
      */
     devAddSpecificEquipment(equipment) {
-        const newEq = new Equipment({
-            id: equipment.id,
-            name: equipment.name,
-            slot: equipment.slot,
-            weaponType: equipment.weaponType,
-            quality: equipment.quality,
-            level: equipment.level,
-            stats: JSON.parse(JSON.stringify(equipment.stats)),
-            refineLevel: 0
-        });
+        const newEq = window.EquipmentCodex && equipment.procedural
+            ? window.EquipmentCodex.cloneEquipmentForGrant(equipment)
+            : new Equipment({
+                id: equipment.id,
+                name: equipment.name,
+                slot: equipment.slot,
+                weaponType: equipment.weaponType,
+                quality: equipment.quality,
+                level: equipment.level,
+                stats: JSON.parse(JSON.stringify(equipment.stats)),
+                refineLevel: 0
+            });
+        if (!newEq) return;
         this.addItemToInventory(newEq);
         this.addFloatingText(this.player.x, this.player.y, `获得: ${equipment.name} (DEV)`, QUALITY_COLORS[equipment.quality] || '#ffffff');
     }
@@ -11130,16 +11615,16 @@ class Game {
             stats.attack = recipe.resultEquipment.attack || 0;
             stats.critRate = recipe.resultEquipment.critRate || 0;
             stats.critDamage = recipe.resultEquipment.critDamage || 0;
-        } else if (['helmet', 'chest', 'legs', 'boots'].includes(recipe.resultEquipment.slot)) {
+        } else if (['helmet', 'body', 'hands', 'legs', 'feet'].includes(recipe.resultEquipment.slot)) {
             stats.health = recipe.resultEquipment.health || 0;
             stats.defense = recipe.resultEquipment.defense || 0;
-        } else if (['necklace', 'ring', 'belt'].includes(recipe.resultEquipment.slot)) {
+        } else if (['amulet', 'ring', 'belt'].includes(recipe.resultEquipment.slot)) {
             stats.dodge = recipe.resultEquipment.dodge || 0;
             stats.attackSpeed = recipe.resultEquipment.attackSpeed || 0;
             stats.moveSpeed = recipe.resultEquipment.moveSpeed || 0;
         }
         
-        const weaponType = recipe.resultEquipment.weaponType || ((window.EQUIPMENT_DEFINITIONS || []).find(d => d.name === recipe.resultEquipment.name) || {}).weaponType;
+        const weaponType = recipe.resultEquipment.weaponType || null;
         const newEquipment = new Equipment({
             id: Date.now(),
             slot: recipe.resultEquipment.slot,
@@ -11282,24 +11767,47 @@ class Game {
         this.addFloatingText(this.player.x, this.player.y, `已添加所有打造装备 (${CRAFTING_RECIPE_DEFINITIONS.length}件)`, '#ffaa00');
     }
 
-    /**
-     * 填充开发者面板「整套套装」下拉框（SET_DEFINITIONS）
-     */
     populateDevSetGrantSelect() {
-        const sel = document.getElementById('dev-set-grant-select');
-        if (!sel || typeof SET_DEFINITIONS === 'undefined') return;
+        this.populateDevSetV2Select();
+    }
+
+    populateCodexSetFilter() {
+        const sel = document.getElementById('filter-set');
+        if (!sel || typeof SET_DEFINITIONS_V2 === 'undefined' || !SET_DEFINITIONS_V2.sets) return;
+        const prev = sel.value;
+        sel.innerHTML = '';
+        [
+            ['all', '全部'],
+            ['none', '无套装']
+        ].forEach(([val, label]) => {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.textContent = label;
+            sel.appendChild(opt);
+        });
+        Object.entries(SET_DEFINITIONS_V2.sets).sort((a, b) => {
+            return (a[1].name || a[0]).localeCompare(b[1].name || b[0], 'zh-CN');
+        }).forEach(([setId, setData]) => {
+            const opt = document.createElement('option');
+            opt.value = 'v2_' + setId;
+            opt.textContent = setData.name || setId;
+            sel.appendChild(opt);
+        });
+        if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+    }
+
+    populateDevSetV2Select() {
+        const sel = document.getElementById('dev-set-v2-select');
+        if (!sel || typeof SET_DEFINITIONS_V2 === 'undefined' || !SET_DEFINITIONS_V2.sets) return;
         const prev = sel.value;
         sel.innerHTML = '';
         const ph = document.createElement('option');
         ph.value = '';
-        ph.textContent = '-- 选择套装系列 --';
+        ph.textContent = '-- 选择新套装 --';
         sel.appendChild(ph);
-        const entries = Object.entries(SET_DEFINITIONS).sort((a, b) => {
-            const na = (a[1] && a[1].name) || a[0];
-            const nb = (b[1] && b[1].name) || b[0];
-            return na.localeCompare(nb, 'zh-CN');
-        });
-        entries.forEach(([setId, setData]) => {
+        Object.entries(SET_DEFINITIONS_V2.sets).sort((a, b) => {
+            return (a[1].name || a[0]).localeCompare(b[1].name || b[0], 'zh-CN');
+        }).forEach(([setId, setData]) => {
             const opt = document.createElement('option');
             opt.value = setId;
             opt.textContent = `${setData.name || setId} (${setId})`;
@@ -11308,90 +11816,91 @@ class Game {
         if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
     }
 
-    /**
-     * 从装备定义生成实例（与 generateEquipments 统计字段一致）
-     * @param {Object} def - EQUIPMENT_DEFINITIONS 中的一项
-     * @param {number} id - 装备 id
-     */
-    devCreateEquipmentFromDefinition(def, id) {
-        const stats = {};
-        if (def.slot === 'weapon') {
-            stats.attack = def.attack || 0;
-            stats.critRate = def.critRate || 0;
-            stats.critDamage = def.critDamage || 0;
-        } else if (['helmet', 'chest', 'legs', 'boots'].includes(def.slot)) {
-            stats.health = def.health || 0;
-            stats.defense = def.defense || 0;
-        } else if (['necklace', 'ring', 'belt'].includes(def.slot)) {
-            stats.dodge = def.dodge || 0;
-            stats.attackSpeed = def.attackSpeed || 0;
-            stats.moveSpeed = def.moveSpeed || 0;
-        }
-        ['lifeSteal', 'thorn', 'skillHaste', 'damageReduction', 'towerGoldBonus'].forEach(k => {
-            if (def[k] != null && def[k] !== '') stats[k] = def[k];
-        });
-        return new Equipment({
-            id: id,
-            name: def.name,
-            slot: def.slot,
-            weaponType: def.weaponType,
-            quality: def.quality,
-            level: def.level,
-            stats: stats,
-            refineLevel: 0
-        });
+    devReadProceduralDevOptions() {
+        const slot = document.getElementById('dev-proc-slot')?.value || '';
+        const quality = document.getElementById('dev-proc-quality')?.value || '';
+        const level = parseInt(document.getElementById('dev-proc-level')?.value || '20', 10);
+        const cls = document.getElementById('dev-proc-class')?.value || '';
+        const playerClass = cls || (typeof window.getPlayerBaseClassId === 'function'
+            ? window.getPlayerBaseClassId(this.player.classData) : null);
+        return {
+            slot: slot || undefined,
+            quality: quality || undefined,
+            monsterLevel: Number.isFinite(level) ? level : 20,
+            monsterTier: quality === 'legendary' || quality === 'mythic' ? 'boss' : 'elite',
+            playerClass,
+            classId: playerClass
+        };
     }
 
-    /**
-     * 开发者：发放当前选中套装的全部部位到背包（需装备栏有足够空位，共 8 件）
-     */
-    devGrantFullEquipmentSet() {
-        const sel = document.getElementById('dev-set-grant-select');
-        const setId = sel && sel.value;
-        const px = this.player.x;
-        const py = this.player.y;
-        if (!setId || typeof SET_DEFINITIONS === 'undefined' || !SET_DEFINITIONS[setId]) {
-            this.addFloatingText(px, py, '请先在下拉框中选择一套套装 (DEV)', '#ff6666');
+    devGenerateProceduralEquipment() {
+        if (!window.EquipmentCodex) {
+            this.addFloatingText(this.player.x, this.player.y, '程序化模块未加载', '#ff6666');
             return;
         }
-        if (typeof EQUIPMENT_DEFINITIONS === 'undefined' || !EQUIPMENT_DEFINITIONS.length) {
-            this.addFloatingText(px, py, '装备配置未加载 (DEV)', '#ff6666');
+        const eq = window.EquipmentCodex.generateProceduralSample(this.devReadProceduralDevOptions());
+        if (!eq) {
+            this.addFloatingText(this.player.x, this.player.y, '生成失败', '#ff6666');
             return;
         }
-        const setData = SET_DEFINITIONS[setId];
-        const pieces = setData.pieces || [];
-        const missing = [];
+        this.devAddSpecificEquipment(eq);
+    }
+
+    devGenerateProceduralBatch(n) {
+        if (!window.EquipmentCodex) return;
         let added = 0;
-        let failedFull = 0;
-        const baseId = Date.now();
-        pieces.forEach((pieceName, idx) => {
-            const def = EQUIPMENT_DEFINITIONS.find(d => d.name === pieceName);
-            if (!def) {
-                missing.push(pieceName);
-                return;
-            }
-            const eq = this.devCreateEquipmentFromDefinition(def, baseId + idx);
-            if (this.addItemToInventory(eq, true)) added++;
-            else failedFull++;
+        for (let i = 0; i < n; i++) {
+            const eq = window.EquipmentCodex.generateProceduralSample(this.devReadProceduralDevOptions());
+            if (eq && this.addItemToInventory(window.EquipmentCodex.cloneEquipmentForGrant(eq), true)) added++;
+        }
+        this.addFloatingText(this.player.x, this.player.y, `已生成 ${added} 件程序化装备 (DEV)`, '#8cf');
+        this.updateInventoryUI();
+    }
+
+    devGenerateProceduralAllSlots() {
+        if (!window.EquipmentCodex || !window.EQUIPMENT_SLOT_ORDER) return;
+        const opts = this.devReadProceduralDevOptions();
+        let added = 0;
+        window.EQUIPMENT_SLOT_ORDER.forEach(slot => {
+            const eq = window.EquipmentCodex.generateProceduralSample(Object.assign({}, opts, { slot, quality: opts.quality || 'rare' }));
+            if (eq && this.addItemToInventory(window.EquipmentCodex.cloneEquipmentForGrant(eq), true)) added++;
         });
-        const modal = document.getElementById('inventory-modal');
-        if (modal && modal.classList.contains('show')) {
-            this.updateInventoryUI();
-            this.updateInventoryCapacity();
+        this.addFloatingText(this.player.x, this.player.y, `十槽各1件 (${added}/10) (DEV)`, '#8cf');
+        this.updateInventoryUI();
+    }
+
+    devGenerateProceduralDropSim() {
+        if (typeof rollEquipmentDropAtMonster !== 'function') return;
+        const monsters = (this.currentRoom && this.currentRoom.monsters) || [];
+        const m = monsters.find(x => x && x.hp > 0) || { x: this.player.x, y: this.player.y, level: this.player.level || 1, isElite: false };
+        rollEquipmentDropAtMonster(m, this, 1);
+        this.addFloatingText(this.player.x, this.player.y, '已模拟 100% 怪物掉落 (DEV)', '#8cf');
+    }
+
+    devGrantFullSetV2() {
+        const sel = document.getElementById('dev-set-v2-select');
+        const setId = sel && sel.value;
+        if (!setId || !window.EquipmentCodex) {
+            this.addFloatingText(this.player.x, this.player.y, '请选择新套装 (DEV)', '#ff6666');
+            return;
         }
-        const setLabel = setData.name || setId;
-        if (missing.length) {
-            this.addFloatingText(px, py, `套装「${setLabel}」有 ${missing.length} 件在配置中未找到 (DEV)`, '#ff8800');
+        const res = window.EquipmentCodex.grantFullSetV2(setId, this);
+        if (!res.ok) {
+            this.addFloatingText(this.player.x, this.player.y, res.message || '发放失败', '#ff6666');
+            return;
         }
-        if (failedFull) {
-            this.addFloatingText(px, py, `装备栏空位不足，少放入 ${failedFull} 件 (DEV)`, '#ff4444');
+        this.updateInventoryUI();
+        this.addFloatingText(this.player.x, this.player.y,
+            `套装「${res.name}」${res.added}/${res.total} 件 (DEV)`, res.failed ? '#ffcc66' : '#88ff88');
+    }
+
+    devGrantFullEquipmentSet() {
+        const sel = document.getElementById('dev-set-grant-select') || document.getElementById('dev-set-v2-select');
+        if (sel && sel.id === 'dev-set-grant-select') {
+            const v2Sel = document.getElementById('dev-set-v2-select');
+            if (v2Sel) v2Sel.value = sel.value;
         }
-        this.addFloatingText(
-            px,
-            py,
-            `已发放套装: ${setLabel} (${added}/${pieces.length} 件) (DEV)`,
-            added === pieces.length && !missing.length ? '#88ff88' : '#ffcc66'
-        );
+        this.devGrantFullSetV2();
     }
     
 
@@ -11514,23 +12023,22 @@ class Game {
 
     // 开发者功能：添加随机装备
     devAddRandomEquipment(quality) {
-        const allEquipments = generateEquipments();
-        const qualityEquipments = allEquipments.filter(eq => eq.quality === quality);
-        if (qualityEquipments.length > 0) {
-            const randomEq = qualityEquipments[Math.floor(Math.random() * qualityEquipments.length)];
-            // 创建新装备实例（避免引用问题），确保等级属性正确传递
-            const newEq = new Equipment({
-                id: randomEq.id,
-                name: randomEq.name,
-                slot: randomEq.slot,
-                weaponType: randomEq.weaponType,
-                quality: randomEq.quality,
-                level: randomEq.level,
-                stats: JSON.parse(JSON.stringify(randomEq.stats)),
-                refineLevel: 0
+        const legacyMap = { common: 'normal', fine: 'magic' };
+        const q = legacyMap[quality] || quality;
+        if (window.EquipmentCodex && window.generateProceduralEquipment && ['normal', 'magic', 'rare', 'epic', 'legendary', 'mythic'].includes(q)) {
+            const eq = window.EquipmentCodex.generateProceduralSample({
+                quality: q,
+                monsterLevel: this.player.level || 20,
+                monsterTier: q === 'legendary' || q === 'mythic' ? 'boss' : 'elite',
+                playerClass: typeof window.getPlayerBaseClassId === 'function'
+                    ? window.getPlayerBaseClassId(this.player.classData) : null
             });
-            this.addItemToInventory(newEq);
+            if (eq) {
+                this.devAddSpecificEquipment(eq);
+                return;
+            }
         }
+        this.addFloatingText(this.player.x, this.player.y, '程序化装备生成失败 (DEV)', '#ff6666');
     }
 
     // 开发者功能：清空当前房间
@@ -11605,20 +12113,23 @@ class Game {
             return;
         }
         
-        // 添加一些传说装备来快速提升战力
-        const legendaryEquipments = generateEquipments().filter(eq => eq.quality === 'legendary');
-        if (legendaryEquipments.length > 0) {
-            // 添加8个不同部位的传说装备
-            const slots = ['weapon', 'helmet', 'chest', 'legs', 'boots', 'necklace', 'ring', 'belt'];
-            slots.forEach(slot => {
-                const slotEquipments = legendaryEquipments.filter(eq => eq.slot === slot);
-                if (slotEquipments.length > 0) {
-                    const randomEq = slotEquipments[Math.floor(Math.random() * slotEquipments.length)];
-                    this.devAddRandomEquipment('legendary');
-                }
-            });
-            this.addFloatingText(this.player.x, this.player.y, `已添加传说装备提升战力 (DEV)`, '#ff8000');
-        }
+        const slots = (typeof window.EQUIPMENT_SLOT_ORDER !== 'undefined')
+            ? window.EQUIPMENT_SLOT_ORDER.slice()
+            : ['weapon', 'offHand', 'helmet', 'body', 'hands', 'legs', 'feet', 'amulet', 'ring', 'belt'];
+        slots.forEach(slot => {
+            if (window.EquipmentCodex) {
+                const eq = window.EquipmentCodex.generateProceduralSample({
+                    slot,
+                    quality: 'legendary',
+                    monsterLevel: this.player.level || 40,
+                    monsterTier: 'boss',
+                    playerClass: typeof window.getPlayerBaseClassId === 'function'
+                        ? window.getPlayerBaseClassId(this.player.classData) : null
+                });
+                if (eq) this.devAddSpecificEquipment(eq);
+            }
+        });
+        this.addFloatingText(this.player.x, this.player.y, `已添加传说装备提升战力 (DEV)`, '#ff8000');
     }
     
     // ====================================================================

@@ -59,28 +59,6 @@ function peLoadImageWithRetry(url, maxAttempts) {
  */
 class AssetManager {
     constructor() {
-        // 合铸贴图：按「原材料装备对」复用；names 为展示名别名
-        this.fusionCustomIcons = {};
-        this.fusionIconsByPairKey = {};
-        this.fusionNamesByPairKey = {};
-        try {
-            const raw2 = localStorage.getItem('pe_fusion_equipment_icons_v2');
-            if (raw2) {
-                const o = JSON.parse(raw2);
-                if (o && typeof o === 'object') {
-                    if (o.names && typeof o.names === 'object') this.fusionCustomIcons = o.names;
-                    if (o.pairs && typeof o.pairs === 'object') this.fusionIconsByPairKey = o.pairs;
-                    if (o.pairNames && typeof o.pairNames === 'object') this.fusionNamesByPairKey = o.pairNames;
-                }
-            } else {
-                const raw1 = localStorage.getItem('pe_fusion_equipment_icons_v1');
-                if (raw1) {
-                    const o = JSON.parse(raw1);
-                    if (o && typeof o === 'object') this.fusionCustomIcons = o;
-                }
-            }
-        } catch (e) { /* ignore */ }
-
         // 装备图片缓存
         this.equipmentImageCache = new Map();
         
@@ -102,58 +80,36 @@ class AssetManager {
     /**
      * 获取装备对应的图片文件名
      * @param {string} equipmentName - 装备名称
-     * @param {Object|null} eqInstance - 可选，装备实例（有 fusionPairKey 时优先按原材料对取合铸贴图）
+     * @param {Object|null} eqInstance - 可选装备实例
      * @returns {string|null} 图片文件名，如果没有对应图片则返回null
      */
     getEquipmentImageName(equipmentName, eqInstance) {
-        if (eqInstance && eqInstance.fusionPairKey && this.fusionIconsByPairKey && this.fusionIconsByPairKey[eqInstance.fusionPairKey]) {
-            return '__fusion_pair__/' + encodeURIComponent(eqInstance.fusionPairKey);
+        if (eqInstance && eqInstance.baseTypeId) {
+            return 'equipment/base/' + eqInstance.baseTypeId + '.png';
         }
-        if (this.fusionCustomIcons && this.fusionCustomIcons[equipmentName]) {
-            return '__fusion__/' + encodeURIComponent(equipmentName);
+        if (eqInstance && eqInstance.slot === 'weapon' && eqInstance.weaponType) {
+            const wt = typeof window.resolveWeaponTypeFromLegacy === 'function'
+                ? window.resolveWeaponTypeFromLegacy(eqInstance.weaponType) : eqInstance.weaponType;
+            return 'equipment/types/' + wt + '.png';
         }
-        // 从 mappings.json 中读取映射
+        if (eqInstance && eqInstance.slot) {
+            return 'equipment/slots/' + eqInstance.slot + '.png';
+        }
         if (typeof MAPPINGS !== 'undefined' && MAPPINGS.equipment && MAPPINGS.equipment[equipmentName]) {
             return MAPPINGS.equipment[equipmentName];
         }
-        
-        // 回退：如果映射中不存在，尝试使用装备名.png
-        if (typeof EQUIPMENT_DEFINITIONS !== 'undefined' && EQUIPMENT_DEFINITIONS.some(e => e.name === equipmentName)) {
-            return equipmentName + '.png';
-        }
-        
         return null;
     }
 
     /**
      * 加载并处理装备图片
      * @param {string} imageName - 图片文件名
-     * @returns {Promise<string>} 用于 background-image 的 URL（同源 asset 路径或合铸 data URL）
+     * @returns {Promise<string>} 用于 background-image 的 URL（同源 asset 路径）
      */
     async loadAndProcessEquipmentImage(imageName) {
         // 检查缓存
         if (this.equipmentImageCache.has(imageName)) {
             return this.equipmentImageCache.get(imageName);
-        }
-
-        if (typeof imageName === 'string' && imageName.indexOf('__fusion__/') === 0) {
-            const rawName = decodeURIComponent(imageName.replace('__fusion__/', ''));
-            const dataUrl = this.fusionCustomIcons && this.fusionCustomIcons[rawName];
-            if (!dataUrl) {
-                return Promise.reject(new Error('合铸图标缺失: ' + rawName));
-            }
-            this.equipmentImageCache.set(imageName, dataUrl);
-            return Promise.resolve(dataUrl);
-        }
-
-        if (typeof imageName === 'string' && imageName.indexOf('__fusion_pair__/') === 0) {
-            const pairKey = decodeURIComponent(imageName.replace('__fusion_pair__/', ''));
-            const dataUrl = this.fusionIconsByPairKey && this.fusionIconsByPairKey[pairKey];
-            if (!dataUrl) {
-                return Promise.reject(new Error('合铸图标缺失(pair): ' + pairKey));
-            }
-            this.equipmentImageCache.set(imageName, dataUrl);
-            return Promise.resolve(dataUrl);
         }
 
         // imageName已经包含完整路径（如equipment/xxx.png），直接使用
@@ -176,72 +132,12 @@ class AssetManager {
         });
     }
 
-    _persistFusionIconStore() {
-        try {
-            localStorage.setItem('pe_fusion_equipment_icons_v2', JSON.stringify({
-                names: this.fusionCustomIcons || {},
-                pairs: this.fusionIconsByPairKey || {},
-                pairNames: this.fusionNamesByPairKey || {}
-            }));
-        } catch (e) {
-            console.warn('合铸图标持久化失败', e);
-        }
-    }
-
-    /**
-     * 注册合铸贴图：按原材料对存一份，并按当前展示名存别名（同一对永远共用 dataUrl）
-     * @param {string|null} pairKey - computeFusionPairKey 结果；无则仅写 names
-     * @param {string} displayName - 装备中文名
-     * @param {string} dataUrl - image/png data URL
-     */
-    registerFusionEquipmentPairAndName(pairKey, displayName, dataUrl) {
-        if (!dataUrl) return;
-        this.fusionCustomIcons = this.fusionCustomIcons || {};
-        this.fusionIconsByPairKey = this.fusionIconsByPairKey || {};
-        if (pairKey) {
-            this.fusionIconsByPairKey[pairKey] = dataUrl;
-            this.equipmentImageCache.delete('__fusion_pair__/' + encodeURIComponent(pairKey));
-        }
-        if (displayName) {
-            this.fusionCustomIcons[displayName] = dataUrl;
-            this.equipmentImageCache.delete('__fusion__/' + encodeURIComponent(displayName));
-        }
-        this._persistFusionIconStore();
-    }
-
-    /** @deprecated 请使用 registerFusionEquipmentPairAndName；仅按名称注册（无 pair 复用） */
-    registerFusionEquipmentIcon(equipmentName, dataUrl) {
-        this.registerFusionEquipmentPairAndName(null, equipmentName, dataUrl);
-    }
-
-    getFusionIconDataUrlByPairKey(pairKey) {
-        if (!pairKey || !this.fusionIconsByPairKey) return null;
-        return this.fusionIconsByPairKey[pairKey] || null;
-    }
-
-    /** @returns {string|null} 同一原材料对已缓存的合铸展示名 */
-    getFusionDisplayNameForPair(pairKey) {
-        if (!pairKey || !this.fusionNamesByPairKey) return null;
-        const n = this.fusionNamesByPairKey[pairKey];
-        return (typeof n === 'string' && n.trim()) ? n.trim() : null;
-    }
-
-    /** 首次合铸某一对时写入展示名，之后同对始终复用 */
-    registerFusionDisplayNameForPair(pairKey, displayName) {
-        if (!pairKey || !displayName) return;
-        const s = String(displayName).trim();
-        if (!s) return;
-        this.fusionNamesByPairKey = this.fusionNamesByPairKey || {};
-        this.fusionNamesByPairKey[pairKey] = s;
-        this._persistFusionIconStore();
-    }
-
     /**
      * 为装备元素设置背景图片
      * @param {HTMLElement} element - 要设置背景的元素
      * @param {string} equipmentName - 装备名称
      * @param {string|null} quality - 装备品质（无 eqInstance 时用于铺格子半透明品质底色）
-     * @param {Object|null} eqInstance - 可选装备实例（合铸贴图按 fusionPairKey 解析）
+     * @param {Object|null} eqInstance - 可选装备实例
      */
     async setEquipmentBackgroundImage(element, equipmentName, quality = null, eqInstance = null) {
         if (!element) {
@@ -307,11 +203,12 @@ class AssetManager {
         if (!q || typeof window.QUALITY_COLORS === 'undefined' || !window.QUALITY_COLORS) return;
         const qc = window.QUALITY_COLORS[q] || '#ffffff';
         const alphaHex = {
-            common: '40',
-            rare: '50',
-            fine: '60',
+            normal: '40',
+            magic: '50',
+            rare: '60',
             epic: '70',
-            legendary: '80'
+            legendary: '80',
+            mythic: '90'
         };
         element.style.backgroundColor = qc + (alphaHex[q] || '40');
     }

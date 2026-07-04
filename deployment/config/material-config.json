@@ -1,0 +1,25 @@
+{
+  "MATERIAL_DEFINITIONS": {
+    "enhance_stone_basic": { "name": "初级强化石", "category": "enhance", "color": "#aaaaaa" },
+    "enhance_stone_mid": { "name": "中级强化石", "category": "enhance", "color": "#44aa44" },
+    "enhance_stone_high": { "name": "高级强化石", "category": "enhance", "color": "#4488ff" },
+    "enhance_stone_top": { "name": "顶级强化石", "category": "enhance", "color": "#aa44ff" },
+    "protect_charm_small": { "name": "小保护符", "category": "enhance", "color": "#88ccff" },
+    "protect_charm_large": { "name": "大保护符", "category": "enhance", "color": "#6699ff" },
+    "protect_charm_full": { "name": "完整保护符", "category": "enhance", "color": "#3366ff" },
+    "break_stone": { "name": "突破石", "category": "enhance", "color": "#ff8844" },
+    "dragon_scale": { "name": "龙鳞", "category": "enhance", "color": "#ff6644" },
+    "mythic_shard": { "name": "神话碎片", "category": "enhance", "color": "#ff44aa" },
+    "sigil_shard_attack": { "name": "攻击徽记碎片", "category": "sigil", "color": "#ff4444" },
+    "sigil_shard_defense": { "name": "防御徽记碎片", "category": "sigil", "color": "#4444ff" },
+    "sigil_shard_special": { "name": "特殊徽记碎片", "category": "sigil", "color": "#ffcc44" },
+    "sigil_synth_stone": { "name": "徽记合成石", "category": "sigil", "color": "#cc88ff" },
+    "class_essence_warrior": { "name": "战士精华", "category": "class", "color": "#cc6644" },
+    "class_essence_archer": { "name": "弓箭精华", "category": "class", "color": "#66aa44" },
+    "class_essence_mage": { "name": "法师精华", "category": "class", "color": "#4488ff" },
+    "class_essence_assassin": { "name": "刺客精华", "category": "class", "color": "#8844aa" },
+    "awakening_stone": { "name": "觉醒石", "category": "class", "color": "#ffd700" },
+    "rift_stone": { "name": "裂隙石", "category": "misc", "color": "#aa44ff" },
+    "skill_enhance_stone": { "name": "技能强化石", "category": "misc", "color": "#44ffaa" }
+  }
+}

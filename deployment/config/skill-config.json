@@ -1,0 +1,3545 @@
+{
+  "version": "2.0",
+  "slotUnlockLevels": [
+    1,
+    3,
+    6,
+    10,
+    15,
+    30,
+    55,
+    60
+  ],
+  "slotTypes": [
+    "basic",
+    "core1",
+    "core2",
+    "team",
+    "survival",
+    "adv_feature",
+    "ultimate",
+    "legendary"
+  ],
+  "evolutionLevels": {
+    "first": 20,
+    "second": 40
+  },
+  "hotbarSlotCount": 4,
+  "defaultHotbar": [
+    "core1",
+    "core2",
+    "team",
+    "survival"
+  ],
+  "resourceFamilies": {
+    "rage": {
+      "name": "怒气",
+      "max": 100,
+      "regenPerSec": 5,
+      "onBasicAttack": 8,
+      "onHitTaken": 5,
+      "outOfCombatDecay": 3
+    },
+    "focus": {
+      "name": "集中",
+      "max": 100,
+      "regenPerSec": 4,
+      "onCrit": 10
+    },
+    "mana": {
+      "name": "法力",
+      "max": 200,
+      "regenPerSec": 6
+    },
+    "energy": {
+      "name": "能量",
+      "max": 120,
+      "regenPerSec": 12
+    }
+  },
+  "resourceToFamily": {
+    "rage": "rage",
+    "guard": "rage",
+    "focus": "focus",
+    "pet_energy": "focus",
+    "ammo": "focus",
+    "wind_mark": "focus",
+    "mana": "mana",
+    "soul_shard": "mana",
+    "energy": "energy",
+    "combo_point": "energy",
+    "illusion": "energy",
+    "poison_stack": "energy"
+  },
+  "enhanceConfig": {
+    "maxLevel": 5,
+    "damagePerLevel": 0.1,
+    "goldByLevel": [
+      500,
+      1000,
+      2000,
+      4000,
+      8000
+    ]
+  },
+  "skills": {
+    "holy_shield_bash": {
+      "id": "holy_shield_bash",
+      "name": "神圣盾击",
+      "classId": "knight",
+      "unlockLevel": 20,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 39,
+      "cooldownMs": 7600,
+      "damageMultiplier": 1.8,
+      "range": 90,
+      "aoeRadius": 100,
+      "effectTags": [
+        "burst"
+      ],
+      "statusEffects": [
+        {
+          "type": "dark_erosion",
+          "durationMs": 4000
+        }
+      ],
+      "breakDamageMultiplier": 2,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "神圣盾击 — knight Lv20",
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "cone",
+        "range": 100,
+        "halfAngleDeg": 60,
+        "windupMs": 200,
+        "damageMultiplier": 1.8,
+        "stunMs": 1500,
+        "breakDamageMultiplier": 2,
+        "statusOnHit": [
+          {
+            "type": "dark_erosion",
+            "durationMs": 4000
+          }
+        ],
+        "knockback": 40
+      }
+    },
+    "judgment_shield": {
+      "id": "judgment_shield",
+      "name": "审判之盾",
+      "classId": "paladin",
+      "unlockLevel": 40,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 63,
+      "cooldownMs": 11200,
+      "damageMultiplier": 2,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "burst"
+      ],
+      "statusEffects": [
+        {
+          "type": "dark_erosion",
+          "durationMs": 4000
+        }
+      ],
+      "breakDamageMultiplier": 2,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "审判之盾 — paladin Lv40",
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 350,
+        "maxRange": 400,
+        "trajectory": "boomerang",
+        "pierceCount": 99,
+        "collisionRadius": 40,
+        "damageMultiplier": 2,
+        "stunMs": 2000,
+        "healOnHitPercent": 5,
+        "breakDamageMultiplier": 2,
+        "statusOnHit": [
+          {
+            "type": "dark_erosion",
+            "durationMs": 4000
+          }
+        ],
+        "color": "#ffdd88"
+      }
+    },
+    "furious_charge": {
+      "id": "furious_charge",
+      "name": "狂暴冲锋",
+      "classId": "berserker",
+      "unlockLevel": 20,
+      "slotType": "core2",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 39,
+      "cooldownMs": 7600,
+      "damageMultiplier": 1.2,
+      "range": 90,
+      "aoeRadius": null,
+      "effectTags": [
+        "burst"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "每穿过一名敌人加速并回复生命，结束时前方扇形重劈，并获得攻速加成",
+      "entityType": "charge",
+      "entityConfig": {
+        "speed": 500,
+        "maxDistance": 200,
+        "collisionRadius": 40,
+        "damageMultiplier": 1.2,
+        "knockback": 30,
+        "pathStunMs": 0,
+        "stopOnFirstHit": false,
+        "superArmor": false,
+        "healOnHitMaxHpPercent": 0.01,
+        "speedPerHitPercent": 12,
+        "speedPerHitMaxStacks": 5,
+        "endFinish": "cone",
+        "endConeRange": 95,
+        "endConeHalfAngleDeg": 75,
+        "endDamageMultiplier": 1.35,
+        "endStunMs": 700,
+        "endKnockback": 40,
+        "buffOnEnd": {
+          "attackSpeedPercent": 20,
+          "durationMs": 3000
+        }
+      }
+    },
+    "devastation_charge": {
+      "id": "devastation_charge",
+      "name": "毁灭冲锋",
+      "classId": "destroyer",
+      "unlockLevel": 40,
+      "slotType": "core2",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 63,
+      "cooldownMs": 11200,
+      "damageMultiplier": 2.5,
+      "range": 90,
+      "aoeRadius": null,
+      "effectTags": [
+        "burst"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "蓄力后霸体冲锋，击飞路径敌人；撞击或到达终点时前方毁灭重击，对破防目标额外伤害",
+      "entityType": "charge",
+      "entityConfig": {
+        "speed": 550,
+        "maxDistance": 250,
+        "collisionRadius": 45,
+        "windupMs": 1000,
+        "chargeRequired": true,
+        "superArmorWindup": true,
+        "damageMultiplier": 1.4,
+        "knockup": true,
+        "knockback": 65,
+        "stunMs": 1500,
+        "stopOnFirstHit": true,
+        "superArmor": true,
+        "endFinish": "devastation_cone",
+        "endConeRange": 120,
+        "endConeHalfAngleDeg": 55,
+        "endDamageMultiplier": 2.2,
+        "endBreakDamageMultiplier": 2,
+        "endKnockup": true,
+        "endKnockback": 80,
+        "endStunMs": 1400
+      }
+    },
+    "guardian_stance": {
+      "id": "guardian_stance",
+      "name": "守护姿态",
+      "classId": "guardian",
+      "unlockLevel": 20,
+      "slotType": "survival",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 39,
+      "cooldownMs": 7600,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": null,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "守护姿态 — guardian Lv20",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "damage_reduction",
+        "damageReduction": 25,
+        "durationMs": 15000,
+        "auraRadius": 100,
+        "auraTeamDr": 15
+      },
+      "effectTags": [
+        "defense",
+        "aura"
+      ]
+    },
+    "holy_domain": {
+      "id": "holy_domain",
+      "name": "神圣领域",
+      "classId": "temple_knight",
+      "unlockLevel": 40,
+      "slotType": "survival",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 63,
+      "cooldownMs": 11200,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": null,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "神圣领域 — temple_knight Lv40",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "damage_reduction",
+        "damageReduction": 20,
+        "durationMs": 20000,
+        "auraRadius": 100,
+        "auraHealPercent": 1
+      },
+      "effectTags": [
+        "defense",
+        "aura",
+        "heal"
+      ]
+    },
+    "flame_bolt": {
+      "id": "flame_bolt",
+      "name": "烈焰弹",
+      "classId": "wizard",
+      "unlockLevel": 20,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "mana",
+      "resourceCost": 39,
+      "cooldownMs": 7600,
+      "damageMultiplier": 2.88,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "burst"
+      ],
+      "statusEffects": [
+        {
+          "type": "burn",
+          "durationMs": 4000
+        }
+      ],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "烈焰弹 — wizard Lv20",
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 350,
+        "maxRange": 650,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 0,
+        "collisionRadius": 70,
+        "hitEffect": "explode",
+        "explodeRadius": 90,
+        "windupMs": 1500,
+        "chargeRequired": true,
+        "damageMultiplier": 2.88,
+        "color": "#ff4400",
+        "statusOnHit": [
+          {
+            "type": "burn",
+            "durationMs": 6000
+          }
+        ]
+      }
+    },
+    "lava_storm": {
+      "id": "lava_storm",
+      "name": "熔岩风暴",
+      "classId": "archmage",
+      "unlockLevel": 40,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 63,
+      "cooldownMs": 11200,
+      "damageMultiplier": 2.4,
+      "range": 90,
+      "aoeRadius": 110,
+      "effectTags": [
+        "burst"
+      ],
+      "statusEffects": [
+        {
+          "type": "burn",
+          "durationMs": 4000
+        }
+      ],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "熔岩风暴 — archmage Lv40",
+      "entityType": "field",
+      "entityConfig": {
+        "fieldRadius": 110,
+        "tickIntervalMs": 1000,
+        "fieldDurationMs": 3000,
+        "followCaster": false,
+        "targeted": true,
+        "projectilesPerTick": 3,
+        "projectileConfig": {
+          "speed": 500,
+          "collisionRadius": 40,
+          "damageMultiplier": 0.8
+        },
+        "leaveBurnGroundMs": 4000,
+        "color": "#ff2200"
+      }
+    },
+    "shadow_strike": {
+      "id": "shadow_strike",
+      "name": "背刺",
+      "classId": "shadowdancer",
+      "unlockLevel": 20,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "energy",
+      "resourceCost": 39,
+      "cooldownMs": 7600,
+      "damageMultiplier": 2.5,
+      "range": 90,
+      "aoeRadius": null,
+      "effectTags": [
+        "burst"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 2,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "背刺 — shadowdancer Lv20",
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "single",
+        "range": 60,
+        "requiresBehind": true,
+        "damageMultiplier": 2.5,
+        "breakDamageMultiplier": 2,
+        "windupMs": 100
+      }
+    },
+    "shadow_assault": {
+      "id": "shadow_assault",
+      "name": "暗影突袭",
+      "classId": "nightblade",
+      "unlockLevel": 40,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 63,
+      "cooldownMs": 11200,
+      "damageMultiplier": 3.2,
+      "range": 90,
+      "aoeRadius": null,
+      "effectTags": [
+        "burst"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "暗影突袭 — nightblade Lv40",
+      "entityType": "blink",
+      "entityConfig": {
+        "distance": 120,
+        "behindTarget": true,
+        "windupMs": 150,
+        "bonusDamageMultiplier": 3.2,
+        "range": 150,
+        "markTarget": true
+      }
+    },
+    "warrior_basic": {
+      "id": "warrior_basic",
+      "name": "横斩",
+      "classId": "warrior",
+      "unlockLevel": 1,
+      "slotType": "basic",
+      "type": "basic",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 0,
+      "cooldownMs": 800,
+      "damageMultiplier": 1,
+      "range": 55,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "横斩 — warrior Lv1",
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "cone",
+        "range": 55,
+        "halfAngleDeg": 50,
+        "damageMultiplier": 1,
+        "windupMs": 0
+      }
+    },
+    "shield_bash": {
+      "id": "shield_bash",
+      "name": "盾击",
+      "classId": "warrior",
+      "unlockLevel": 3,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 18,
+      "cooldownMs": 4540,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1.5,
+      "evolutionPath": {
+        "baseSkillId": "shield_bash",
+        "slotType": "core1",
+        "firstAdvancement": {
+          "knight": {
+            "newSkillId": "holy_shield_bash",
+            "unlockLevel": 20
+          },
+          "berserker": {
+            "newSkillId": "whirlwind_slash",
+            "unlockLevel": 20
+          }
+        },
+        "secondAdvancement": {
+          "paladin": {
+            "newSkillId": "judgment_shield",
+            "unlockLevel": 40
+          }
+        }
+      },
+      "buildId": null,
+      "description": "盾击 — warrior Lv3",
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "cone",
+        "range": 80,
+        "halfAngleDeg": 45,
+        "windupMs": 150,
+        "damageMultiplier": 1.5,
+        "stunMs": 1500,
+        "breakDamageMultiplier": 1.5,
+        "knockback": 40
+      }
+    },
+    "whirlwind_slash": {
+      "id": "whirlwind_slash",
+      "name": "旋风斩",
+      "classId": "berserker",
+      "unlockLevel": 20,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 39,
+      "cooldownMs": 7600,
+      "damageMultiplier": 2,
+      "range": 100,
+      "aoeRadius": 0,
+      "effectTags": [
+        "burst"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1.2,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "旋风斩 — berserker Lv20：环绕自身一圈横扫",
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "radial",
+        "range": 100,
+        "windupMs": 200,
+        "damageMultiplier": 2,
+        "knockback": 25,
+        "breakDamageMultiplier": 1.2,
+        "color": "#ff4444"
+      }
+    },
+    "charge": {
+      "id": "charge",
+      "name": "冲锋",
+      "classId": "warrior",
+      "unlockLevel": 6,
+      "slotType": "core2",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 22,
+      "cooldownMs": 5080,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": {
+        "baseSkillId": "charge",
+        "slotType": "core2",
+        "firstAdvancement": {
+          "berserker": {
+            "newSkillId": "furious_charge",
+            "unlockLevel": 20
+          }
+        },
+        "secondAdvancement": {
+          "destroyer": {
+            "newSkillId": "devastation_charge",
+            "unlockLevel": 40
+          }
+        }
+      },
+      "buildId": null,
+      "description": "向目标突进，路径上敌人受到伤害并被眩晕击退，落地释放环形冲击波",
+      "entityType": "charge",
+      "entityConfig": {
+        "speed": 450,
+        "maxDistance": 150,
+        "collisionRadius": 35,
+        "damageMultiplier": 0.8,
+        "stunMs": 1200,
+        "knockback": 48,
+        "slowMult": 0.6,
+        "slowMs": 2000,
+        "stopOnFirstHit": false,
+        "superArmor": false,
+        "endFinish": "radial",
+        "endExplodeRadius": 55,
+        "endDamageMultiplier": 1.0,
+        "endStunMs": 800
+      }
+    },
+    "war_cry": {
+      "id": "war_cry",
+      "name": "战吼",
+      "classId": "warrior",
+      "unlockLevel": 10,
+      "slotType": "team",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 27,
+      "cooldownMs": 5800,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "战吼 — warrior Lv10",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "attack_buff",
+        "attackPercent": 15,
+        "durationMs": 8000
+      },
+      "effectTags": [
+        "buff"
+      ]
+    },
+    "defensive_stance": {
+      "id": "defensive_stance",
+      "name": "防御姿态",
+      "classId": "warrior",
+      "unlockLevel": 15,
+      "slotType": "survival",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 33,
+      "cooldownMs": 6700,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": {
+        "baseSkillId": "defensive_stance",
+        "slotType": "survival",
+        "firstAdvancement": {
+          "guardian": {
+            "newSkillId": "guardian_stance",
+            "unlockLevel": 20
+          }
+        },
+        "secondAdvancement": {
+          "temple_knight": {
+            "newSkillId": "holy_domain",
+            "unlockLevel": 40
+          }
+        }
+      },
+      "buildId": null,
+      "description": "防御姿态 — warrior Lv15",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "damage_reduction",
+        "damageReduction": 30,
+        "durationMs": 5000
+      },
+      "effectTags": [
+        "defense"
+      ]
+    },
+    "taunt": {
+      "id": "taunt",
+      "name": "嘲讽",
+      "classId": "knight",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "嘲讽 — knight Lv30",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "taunt",
+        "damageReduction": 30,
+        "durationMs": 4000,
+        "range": 120
+      },
+      "effectTags": [
+        "defense"
+      ]
+    },
+    "resurrection": {
+      "id": "resurrection",
+      "name": "复活",
+      "classId": "paladin",
+      "unlockLevel": 55,
+      "slotType": "ultimate",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 100,
+      "cooldownMs": 90000,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "复活 — paladin Lv55",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "heal",
+        "healPercent": 50
+      },
+      "effectTags": [
+        "heal"
+      ]
+    },
+    "build_retribution": {
+      "id": "build_retribution",
+      "name": "流派·惩戒",
+      "classId": "paladin",
+      "unlockLevel": 60,
+      "slotType": "legendary",
+      "type": "passive",
+      "category": "class",
+      "resourceType": null,
+      "resourceCost": 0,
+      "cooldownMs": 0,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "passive",
+        "build"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": "retribution",
+      "description": "流派·惩戒 — paladin Lv60"
+    },
+    "berserk": {
+      "id": "berserk",
+      "name": "狂暴",
+      "classId": "berserker",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "狂暴 — berserker Lv30",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "berserk",
+        "attackPercent": 25,
+        "defensePenalty": 15,
+        "durationMs": 8000
+      },
+      "effectTags": [
+        "buff"
+      ]
+    },
+    "fury": {
+      "id": "fury",
+      "name": "狂怒",
+      "classId": "destroyer",
+      "unlockLevel": 55,
+      "slotType": "ultimate",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 100,
+      "cooldownMs": 90000,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "狂怒 — destroyer Lv55",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "berserk",
+        "attackPercent": 50,
+        "attackSpeedPercent": 50,
+        "durationMs": 10000
+      },
+      "effectTags": [
+        "buff"
+      ]
+    },
+    "build_blood_demon": {
+      "id": "build_blood_demon",
+      "name": "流派·血魔",
+      "classId": "destroyer",
+      "unlockLevel": 60,
+      "slotType": "legendary",
+      "type": "passive",
+      "category": "class",
+      "resourceType": null,
+      "resourceCost": 0,
+      "cooldownMs": 0,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "passive",
+        "build"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": "blood_demon",
+      "description": "流派·血魔 — destroyer Lv60"
+    },
+    "guardian_shield": {
+      "id": "guardian_shield",
+      "name": "守护之盾",
+      "classId": "guardian",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "守护之盾 — guardian Lv30",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "shield",
+        "absorbPercent": 20,
+        "durationMs": 6000
+      },
+      "effectTags": [
+        "defense"
+      ]
+    },
+    "final_guard": {
+      "id": "final_guard",
+      "name": "最终守护",
+      "classId": "temple_knight",
+      "unlockLevel": 55,
+      "slotType": "ultimate",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 100,
+      "cooldownMs": 90000,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "最终守护 — temple_knight Lv55",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "guard",
+        "damageReduction": 100,
+        "durationMs": 3000
+      },
+      "effectTags": [
+        "defense"
+      ]
+    },
+    "build_thorns": {
+      "id": "build_thorns",
+      "name": "流派·荆棘",
+      "classId": "temple_knight",
+      "unlockLevel": 60,
+      "slotType": "legendary",
+      "type": "passive",
+      "category": "class",
+      "resourceType": null,
+      "resourceCost": 0,
+      "cooldownMs": 0,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "passive",
+        "build"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": "thorns",
+      "description": "流派·荆棘 — temple_knight Lv60"
+    },
+    "archer_basic": {
+      "id": "archer_basic",
+      "name": "精准射击",
+      "classId": "archer",
+      "unlockLevel": 1,
+      "slotType": "basic",
+      "type": "basic",
+      "category": "class",
+      "resourceType": "focus",
+      "resourceCost": 0,
+      "cooldownMs": 800,
+      "damageMultiplier": 1,
+      "range": 55,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "精准射击 — archer Lv1",
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 700,
+        "maxRange": 450,
+        "trajectory": "straight",
+        "pierceCount": 0,
+        "collisionRadius": 12,
+        "damageMultiplier": 1,
+        "color": "#88cc44"
+      }
+    },
+    "backstep_shot": {
+      "id": "backstep_shot",
+      "name": "后跳射击",
+      "classId": "archer",
+      "unlockLevel": 3,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "focus",
+      "resourceCost": 18,
+      "cooldownMs": 4540,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": {
+        "baseSkillId": "backstep_shot",
+        "slotType": "core1",
+        "firstAdvancement": {
+          "ranger": {
+            "newSkillId": "summon_wolf",
+            "unlockLevel": 20
+          }
+        },
+        "secondAdvancement": {
+          "beastmaster": {
+            "newSkillId": "beast_pack",
+            "unlockLevel": 40
+          }
+        }
+      },
+      "buildId": null,
+      "description": "后跳射击 — archer Lv3",
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 650,
+        "maxRange": 400,
+        "trajectory": "straight",
+        "projectileCount": 3,
+        "spreadAngleDeg": 30,
+        "pierceCount": 0,
+        "collisionRadius": 14,
+        "damageMultiplier": 0.6,
+        "preCast": "backstep",
+        "backstepDistance": 100,
+        "color": "#66aa33"
+      }
+    },
+    "poison_arrow": {
+      "id": "poison_arrow",
+      "name": "毒箭",
+      "classId": "archer",
+      "unlockLevel": 6,
+      "slotType": "core2",
+      "type": "active",
+      "category": "class",
+      "resourceType": "focus",
+      "resourceCost": 22,
+      "cooldownMs": 5080,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [
+        {
+          "type": "poison",
+          "durationMs": 4000
+        }
+      ],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": {
+        "baseSkillId": "poison_arrow",
+        "slotType": "core2",
+        "firstAdvancement": {
+          "marksman": {
+            "newSkillId": "aimed_shot",
+            "unlockLevel": 20
+          }
+        },
+        "secondAdvancement": {
+          "deadeye": {
+            "newSkillId": "perfect_shot",
+            "unlockLevel": 40
+          }
+        }
+      },
+      "buildId": null,
+      "description": "毒箭 — archer Lv6",
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 600,
+        "maxRange": 500,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 0,
+        "collisionRadius": 14,
+        "damageMultiplier": 0.8,
+        "dotMultiplier": 0.4,
+        "dotDurationMs": 4000,
+        "statusOnHit": [
+          {
+            "type": "poison",
+            "durationMs": 4000,
+            "stacks": 1
+          }
+        ],
+        "color": "#55dd44"
+      }
+    },
+    "hunters_mark": {
+      "id": "hunters_mark",
+      "name": "猎人印记",
+      "classId": "archer",
+      "unlockLevel": 10,
+      "slotType": "team",
+      "type": "active",
+      "category": "class",
+      "resourceType": "focus",
+      "resourceCost": 27,
+      "cooldownMs": 5800,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "猎人印记 — archer Lv10",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "mark",
+        "range": 120,
+        "damageBonus": 15,
+        "critBonus": 10,
+        "durationMs": 8000
+      },
+      "effectTags": [
+        "debuff"
+      ]
+    },
+    "rapid_shot": {
+      "id": "rapid_shot",
+      "name": "快速射击",
+      "classId": "archer",
+      "unlockLevel": 15,
+      "slotType": "survival",
+      "type": "active",
+      "category": "class",
+      "resourceType": "focus",
+      "resourceCost": 33,
+      "cooldownMs": 6700,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": {
+        "baseSkillId": "rapid_shot",
+        "slotType": "survival",
+        "firstAdvancement": {
+          "windrunner": {
+            "newSkillId": "wind_step",
+            "unlockLevel": 20
+          }
+        },
+        "secondAdvancement": {
+          "phantom": {
+            "newSkillId": "phantom_clone",
+            "unlockLevel": 40
+          }
+        }
+      },
+      "buildId": null,
+      "description": "快速射击 — archer Lv15",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "attack_speed_buff",
+        "attackSpeedPercent": 40,
+        "durationMs": 4000
+      },
+      "effectTags": [
+        "buff"
+      ]
+    },
+    "frozen_trap": {
+      "id": "frozen_trap",
+      "name": "冰冻陷阱",
+      "classId": "ranger",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "focus",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "feature"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "冰冻陷阱 — ranger Lv30",
+      "entityType": "field",
+      "entityConfig": {
+        "fieldRadius": 60,
+        "fieldDurationMs": 30000,
+        "triggerType": "proximity_mine",
+        "armDelayMs": 300,
+        "invisible": true,
+        "onTrigger": {
+          "damageMultiplier": 1,
+          "explodeRadius": 60,
+          "freezeMs": 2000,
+          "statusOnHit": [
+            {
+              "type": "frostbite",
+              "durationMs": 4000
+            }
+          ]
+        },
+        "color": "#88ddff"
+      }
+    },
+    "natures_wrath": {
+      "id": "natures_wrath",
+      "name": "自然之怒",
+      "classId": "beastmaster",
+      "unlockLevel": 55,
+      "slotType": "ultimate",
+      "type": "active",
+      "category": "class",
+      "resourceType": "focus",
+      "resourceCost": 100,
+      "cooldownMs": 90000,
+      "damageMultiplier": 3,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "ultimate",
+        "burst"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "自然之怒 — beastmaster Lv55",
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "radial",
+        "range": 140,
+        "damageMultiplier": 3,
+        "knockback": 40,
+        "statusOnHit": [
+          {
+            "type": "poison",
+            "durationMs": 4000,
+            "stacks": 2
+          }
+        ]
+      }
+    },
+    "piercing_arrow": {
+      "id": "piercing_arrow",
+      "name": "穿透箭",
+      "classId": "marksman",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "focus",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "feature"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "穿透箭 — marksman Lv30",
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 850,
+        "maxRange": 750,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 5,
+        "collisionRadius": 10,
+        "damageMultiplier": 1.55,
+        "color": "#ccff88"
+      }
+    },
+    "death_gaze": {
+      "id": "death_gaze",
+      "name": "死神之眼",
+      "classId": "deadeye",
+      "unlockLevel": 55,
+      "slotType": "ultimate",
+      "type": "active",
+      "category": "class",
+      "resourceType": "focus",
+      "resourceCost": 100,
+      "cooldownMs": 90000,
+      "damageMultiplier": 3,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "ultimate",
+        "burst"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "死神之眼 — deadeye Lv55",
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 1500,
+        "maxRange": 800,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 0,
+        "collisionRadius": 8,
+        "windupMs": 1200,
+        "damageMultiplier": 4,
+        "guaranteedCrit": true,
+        "color": "#ff0044"
+      }
+    },
+    "build_executioner": {
+      "id": "build_executioner",
+      "name": "流派·处刑人",
+      "classId": "deadeye",
+      "unlockLevel": 60,
+      "slotType": "legendary",
+      "type": "passive",
+      "category": "class",
+      "resourceType": null,
+      "resourceCost": 0,
+      "cooldownMs": 0,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "passive",
+        "build"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": "executioner",
+      "description": "流派·处刑人 — deadeye Lv60"
+    },
+    "wind_blade": {
+      "id": "wind_blade",
+      "name": "风刃",
+      "classId": "windrunner",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "focus",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "feature"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "风刃 — windrunner Lv30",
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 750,
+        "maxRange": 500,
+        "trajectory": "straight_toward_target",
+        "projectileCount": 3,
+        "spreadAngleDeg": 20,
+        "pierceCount": 2,
+        "collisionRadius": 12,
+        "damageMultiplier": 0.7,
+        "color": "#88eeff"
+      }
+    },
+    "phantom_storm": {
+      "id": "phantom_storm",
+      "name": "幻影风暴",
+      "classId": "phantom",
+      "unlockLevel": 55,
+      "slotType": "ultimate",
+      "type": "active",
+      "category": "class",
+      "resourceType": "focus",
+      "resourceCost": 100,
+      "cooldownMs": 90000,
+      "damageMultiplier": 3,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "ultimate",
+        "burst"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "幻影风暴 — phantom Lv55",
+      "entityType": "field",
+      "entityConfig": {
+        "fieldRadius": 130,
+        "tickIntervalMs": 600,
+        "fieldDurationMs": 5000,
+        "targeted": true,
+        "followCaster": false,
+        "projectilesPerTick": 2,
+        "projectileConfig": {
+          "speed": 600,
+          "collisionRadius": 14,
+          "damageMultiplier": 0.6,
+          "trajectory": "homing"
+        },
+        "color": "#6688aa"
+      }
+    },
+    "arcane_missile": {
+      "id": "arcane_missile",
+      "name": "奥术飞弹",
+      "classId": "mage",
+      "unlockLevel": 1,
+      "slotType": "basic",
+      "type": "basic",
+      "category": "class",
+      "resourceType": "mana",
+      "resourceCost": 0,
+      "cooldownMs": 800,
+      "damageMultiplier": 1,
+      "range": 55,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "奥术飞弹 — mage Lv1",
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 420,
+        "maxRange": 500,
+        "trajectory": "homing",
+        "pierceCount": 0,
+        "collisionRadius": 18,
+        "hitEffect": "spark",
+        "windupMs": 100,
+        "color": "#aa88ff"
+      }
+    },
+    "fireball": {
+      "id": "fireball",
+      "name": "火球术",
+      "classId": "mage",
+      "unlockLevel": 3,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "mana",
+      "resourceCost": 18,
+      "cooldownMs": 4540,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [
+        {
+          "type": "burn",
+          "durationMs": 4000
+        }
+      ],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": {
+        "baseSkillId": "fireball",
+        "slotType": "core1",
+        "firstAdvancement": {
+          "wizard": {
+            "newSkillId": "flame_bolt",
+            "unlockLevel": 20
+          }
+        },
+        "secondAdvancement": {
+          "archmage": {
+            "newSkillId": "lava_storm",
+            "unlockLevel": 40
+          }
+        }
+      },
+      "buildId": null,
+      "description": "火球术 — mage Lv3",
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 400,
+        "maxRange": 600,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 0,
+        "collisionRadius": 60,
+        "hitEffect": "explode",
+        "explodeRadius": 70,
+        "windupMs": 200,
+        "damageMultiplier": 2,
+        "color": "#ff6600",
+        "statusOnHit": [
+          {
+            "type": "burn",
+            "durationMs": 4000
+          }
+        ]
+      }
+    },
+    "ice_armor": {
+      "id": "ice_armor",
+      "name": "冰甲术",
+      "classId": "mage",
+      "unlockLevel": 6,
+      "slotType": "core2",
+      "type": "active",
+      "category": "class",
+      "resourceType": "mana",
+      "resourceCost": 22,
+      "cooldownMs": 5080,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": {
+        "baseSkillId": "ice_armor",
+        "slotType": "core2",
+        "firstAdvancement": {
+          "sage": {
+            "newSkillId": "healing_wave",
+            "unlockLevel": 20
+          }
+        },
+        "secondAdvancement": {
+          "oracle": {
+            "newSkillId": "foresight",
+            "unlockLevel": 40
+          }
+        }
+      },
+      "buildId": null,
+      "description": "冰甲术 — mage Lv6",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "ice_armor",
+        "durationMs": 8000,
+        "damageReduction": 15,
+        "attackerSlowMultiplier": 0.7,
+        "attackerSlowDurationMs": 2000
+      },
+      "effectTags": [
+        "defense",
+        "ice_armor"
+      ]
+    },
+    "arcane_amplify": {
+      "id": "arcane_amplify",
+      "name": "魔力增幅",
+      "classId": "mage",
+      "unlockLevel": 10,
+      "slotType": "team",
+      "type": "active",
+      "category": "class",
+      "resourceType": "mana",
+      "resourceCost": 27,
+      "cooldownMs": 5800,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "魔力增幅 — mage Lv10",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "attack_buff",
+        "attackPercent": 20,
+        "durationMs": 10000
+      },
+      "effectTags": [
+        "buff"
+      ]
+    },
+    "blink": {
+      "id": "blink",
+      "name": "闪现",
+      "classId": "mage",
+      "unlockLevel": 15,
+      "slotType": "survival",
+      "type": "active",
+      "category": "class",
+      "resourceType": "mana",
+      "resourceCost": 33,
+      "cooldownMs": 6700,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": {
+        "baseSkillId": "blink",
+        "slotType": "survival",
+        "firstAdvancement": {
+          "warlock": {
+            "newSkillId": "summon_skeleton",
+            "unlockLevel": 20
+          }
+        },
+        "secondAdvancement": {
+          "necromancer": {
+            "newSkillId": "skeleton_legion",
+            "unlockLevel": 40
+          }
+        }
+      },
+      "buildId": null,
+      "description": "闪现 — mage Lv15",
+      "entityType": "blink",
+      "entityConfig": {
+        "distance": 120,
+        "direction": "facing",
+        "windupMs": 50,
+        "vanishMs": 80,
+        "invincibleMs": 200,
+        "maxCharges": 2
+      }
+    },
+    "chain_lightning": {
+      "id": "chain_lightning",
+      "name": "闪电链",
+      "classId": "wizard",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "mana",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "feature"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "闪电链 — wizard Lv30",
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "chain",
+        "range": 200,
+        "chainCount": 3,
+        "chainDecay": 0.2,
+        "damageMultiplier": 2,
+        "statusOnHit": [
+          {
+            "type": "shock",
+            "durationMs": 4000
+          }
+        ]
+      }
+    },
+    "meteor": {
+      "id": "meteor",
+      "name": "陨石术",
+      "classId": "archmage",
+      "unlockLevel": 55,
+      "slotType": "ultimate",
+      "type": "active",
+      "category": "class",
+      "resourceType": "mana",
+      "resourceCost": 100,
+      "cooldownMs": 90000,
+      "damageMultiplier": 3,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "ultimate",
+        "burst"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "陨石术 — archmage Lv55",
+      "entityType": "field",
+      "entityConfig": {
+        "triggerType": "delayed_strike",
+        "fieldRadius": 120,
+        "delayMs": 3000,
+        "targeted": true,
+        "damageMultiplier": 8,
+        "stunMs": 2000,
+        "statusOnHit": [
+          {
+            "type": "burn",
+            "durationMs": 5000
+          }
+        ],
+        "color": "#ff4400"
+      }
+    },
+    "build_arcane": {
+      "id": "build_arcane",
+      "name": "流派·奥术",
+      "classId": "archmage",
+      "unlockLevel": 60,
+      "slotType": "legendary",
+      "type": "passive",
+      "category": "class",
+      "resourceType": null,
+      "resourceCost": 0,
+      "cooldownMs": 0,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "passive",
+        "build"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": "arcane",
+      "description": "流派·奥术 — archmage Lv60"
+    },
+    "healing_wave": {
+      "id": "healing_wave",
+      "name": "治疗波",
+      "classId": "sage",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "mana",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "治疗波 — sage Lv30",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "heal",
+        "healPercent": 25
+      },
+      "effectTags": [
+        "heal"
+      ]
+    },
+    "fate_reverse": {
+      "id": "fate_reverse",
+      "name": "命运逆转",
+      "classId": "oracle",
+      "unlockLevel": 55,
+      "slotType": "ultimate",
+      "type": "active",
+      "category": "class",
+      "resourceType": "mana",
+      "resourceCost": 100,
+      "cooldownMs": 90000,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "命运逆转 — oracle Lv55",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "heal",
+        "healPercent": 40
+      },
+      "effectTags": [
+        "heal"
+      ]
+    },
+    "build_chrono": {
+      "id": "build_chrono",
+      "name": "流派·时空",
+      "classId": "oracle",
+      "unlockLevel": 60,
+      "slotType": "legendary",
+      "type": "passive",
+      "category": "class",
+      "resourceType": null,
+      "resourceCost": 0,
+      "cooldownMs": 0,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "passive",
+        "build"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": "chrono",
+      "description": "流派·时空 — oracle Lv60"
+    },
+    "shadow_bolt": {
+      "id": "shadow_bolt",
+      "name": "暗影箭",
+      "classId": "warlock",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "mana",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "feature"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "暗影箭 — warlock Lv30",
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 500,
+        "maxRange": 550,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 0,
+        "collisionRadius": 22,
+        "damageMultiplier": 1.6,
+        "statusOnHit": [
+          {
+            "type": "dark_erosion",
+            "durationMs": 4000
+          }
+        ],
+        "color": "#8844cc"
+      }
+    },
+    "nether_gate": {
+      "id": "nether_gate",
+      "name": "冥界之门",
+      "classId": "necromancer",
+      "unlockLevel": 55,
+      "slotType": "ultimate",
+      "type": "active",
+      "category": "class",
+      "resourceType": "mana",
+      "resourceCost": 100,
+      "cooldownMs": 90000,
+      "damageMultiplier": 3,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "ultimate",
+        "burst"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "冥界之门 — necromancer Lv55",
+      "entityType": "field",
+      "entityConfig": {
+        "triggerType": "delayed_strike",
+        "fieldRadius": 100,
+        "delayMs": 1500,
+        "targeted": true,
+        "spawnAtCaster": false,
+        "damageMultiplier": 2.5,
+        "statusOnHit": [
+          {
+            "type": "dark_erosion",
+            "durationMs": 6000
+          }
+        ],
+        "summonOnImpact": {
+          "unitId": "skeleton_minion",
+          "count": 3,
+          "durationMs": 20000
+        },
+        "color": "#442266"
+      }
+    },
+    "build_corpse_explosion": {
+      "id": "build_corpse_explosion",
+      "name": "流派·尸爆",
+      "classId": "necromancer",
+      "unlockLevel": 60,
+      "slotType": "legendary",
+      "type": "passive",
+      "category": "class",
+      "resourceType": null,
+      "resourceCost": 0,
+      "cooldownMs": 0,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "passive",
+        "build"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": "corpse_explosion",
+      "description": "流派·尸爆 — necromancer Lv60"
+    },
+    "assassin_basic": {
+      "id": "assassin_basic",
+      "name": "刺击",
+      "classId": "assassin",
+      "unlockLevel": 1,
+      "slotType": "basic",
+      "type": "basic",
+      "category": "class",
+      "resourceType": "energy",
+      "resourceCost": 0,
+      "cooldownMs": 800,
+      "damageMultiplier": 1,
+      "range": 55,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "刺击 — assassin Lv1",
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "cone",
+        "range": 50,
+        "halfAngleDeg": 35,
+        "damageMultiplier": 1,
+        "windupMs": 0
+      }
+    },
+    "shadow_step": {
+      "id": "shadow_step",
+      "name": "暗影步",
+      "classId": "assassin",
+      "unlockLevel": 3,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "energy",
+      "resourceCost": 18,
+      "cooldownMs": 4540,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": {
+        "baseSkillId": "shadow_step",
+        "slotType": "core1",
+        "firstAdvancement": {
+          "shadowdancer": {
+            "newSkillId": "shadow_strike",
+            "unlockLevel": 20
+          }
+        },
+        "secondAdvancement": {
+          "nightblade": {
+            "newSkillId": "shadow_assault",
+            "unlockLevel": 40
+          }
+        }
+      },
+      "buildId": null,
+      "description": "暗影步 — assassin Lv3",
+      "entityType": "blink",
+      "entityConfig": {
+        "distance": 80,
+        "behindTarget": true,
+        "windupMs": 100,
+        "vanishMs": 100,
+        "bonusDamageMultiplier": 1.8,
+        "range": 100
+      }
+    },
+    "smoke_bomb": {
+      "id": "smoke_bomb",
+      "name": "烟雾弹",
+      "classId": "assassin",
+      "unlockLevel": 6,
+      "slotType": "core2",
+      "type": "active",
+      "category": "class",
+      "resourceType": "energy",
+      "resourceCost": 22,
+      "cooldownMs": 5080,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": {
+        "baseSkillId": "smoke_bomb",
+        "slotType": "core2",
+        "firstAdvancement": {
+          "trickster": {
+            "newSkillId": "illusion",
+            "unlockLevel": 20
+          }
+        },
+        "secondAdvancement": {
+          "illusionist": {
+            "newSkillId": "quintuple_illusion",
+            "unlockLevel": 40
+          }
+        }
+      },
+      "buildId": null,
+      "description": "烟雾弹 — assassin Lv6",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "dodge_buff",
+        "dodge": 30,
+        "durationMs": 4000
+      },
+      "effectTags": [
+        "utility"
+      ]
+    },
+    "poison_blade": {
+      "id": "poison_blade",
+      "name": "毒刃",
+      "classId": "assassin",
+      "unlockLevel": 10,
+      "slotType": "team",
+      "type": "active",
+      "category": "class",
+      "resourceType": "energy",
+      "resourceCost": 27,
+      "cooldownMs": 5800,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [
+        {
+          "type": "poison",
+          "durationMs": 4000
+        }
+      ],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "毒刃 — assassin Lv10",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "attack_buff",
+        "attackPercent": 10,
+        "durationMs": 8000,
+        "onHitStatus": "poison"
+      },
+      "effectTags": [
+        "buff",
+        "dot"
+      ]
+    },
+    "vanish": {
+      "id": "vanish",
+      "name": "消失",
+      "classId": "assassin",
+      "unlockLevel": 15,
+      "slotType": "survival",
+      "type": "active",
+      "category": "class",
+      "resourceType": "energy",
+      "resourceCost": 33,
+      "cooldownMs": 6700,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": {
+        "baseSkillId": "vanish",
+        "slotType": "survival",
+        "firstAdvancement": {
+          "venomancer": {
+            "newSkillId": "venom_blade",
+            "unlockLevel": 20
+          }
+        },
+        "secondAdvancement": {
+          "plaguebringer": {
+            "newSkillId": "plague",
+            "unlockLevel": 40
+          }
+        }
+      },
+      "buildId": null,
+      "description": "消失 — assassin Lv15",
+      "entityType": "blink",
+      "entityConfig": {
+        "stealthMs": 4000,
+        "moveSpeedBonus": 30,
+        "dodgeBonus": 25,
+        "windupMs": 0
+      }
+    },
+    "shadow_strike_feat": {
+      "id": "shadow_strike_feat",
+      "name": "影袭",
+      "classId": "shadowdancer",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "energy",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "feature"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "影袭 — shadowdancer Lv30",
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "single",
+        "range": 65,
+        "damageMultiplier": 1.8,
+        "breakDamageMultiplier": 1.5,
+        "windupMs": 80
+      }
+    },
+    "nightfall": {
+      "id": "nightfall",
+      "name": "暗夜降临",
+      "classId": "nightblade",
+      "unlockLevel": 55,
+      "slotType": "ultimate",
+      "type": "active",
+      "category": "class",
+      "resourceType": "energy",
+      "resourceCost": 100,
+      "cooldownMs": 90000,
+      "damageMultiplier": 3,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "ultimate",
+        "burst"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "暗夜降临 — nightblade Lv55",
+      "entityType": "field",
+      "entityConfig": {
+        "fieldRadius": 110,
+        "tickIntervalMs": 1000,
+        "fieldDurationMs": 10000,
+        "followCaster": true,
+        "spawnAtCaster": true,
+        "damageMultiplier": 0.8,
+        "statusOnTick": [
+          {
+            "type": "dark_erosion",
+            "durationMs": 3000
+          }
+        ],
+        "color": "#221133"
+      }
+    },
+    "build_night_lord": {
+      "id": "build_night_lord",
+      "name": "流派·暗夜",
+      "classId": "nightblade",
+      "unlockLevel": 60,
+      "slotType": "legendary",
+      "type": "passive",
+      "category": "class",
+      "resourceType": null,
+      "resourceCost": 0,
+      "cooldownMs": 0,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "passive",
+        "build"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": "night_lord",
+      "description": "流派·暗夜 — nightblade Lv60"
+    },
+    "decoy": {
+      "id": "decoy",
+      "name": "替身",
+      "classId": "trickster",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "energy",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "feature"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "替身 — trickster Lv30",
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "decoy",
+        "spawnOffset": 40,
+        "durationMs": 8000,
+        "maxCount": 1,
+        "inheritStats": {
+          "hp": 0.15,
+          "attack": 0,
+          "defense": 0.05
+        },
+        "aiType": "taunt_static",
+        "size": 18,
+        "color": "#aaaaff",
+        "tauntRadius": 120
+      }
+    },
+    "reality_shift": {
+      "id": "reality_shift",
+      "name": "虚实转换",
+      "classId": "illusionist",
+      "unlockLevel": 55,
+      "slotType": "ultimate",
+      "type": "active",
+      "category": "class",
+      "resourceType": "energy",
+      "resourceCost": 100,
+      "cooldownMs": 90000,
+      "damageMultiplier": 3,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "ultimate",
+        "burst"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "虚实转换 — illusionist Lv55",
+      "entityType": "blink",
+      "entityConfig": {
+        "distance": 100,
+        "direction": "facing",
+        "windupMs": 100,
+        "invincibleMs": 400,
+        "spawnSummonsOnCast": {
+          "unitId": "illusion",
+          "count": 2,
+          "durationMs": 8000
+        }
+      }
+    },
+    "poison_mist": {
+      "id": "poison_mist",
+      "name": "毒雾",
+      "classId": "venomancer",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "energy",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "feature"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "毒雾 — venomancer Lv30",
+      "entityType": "field",
+      "entityConfig": {
+        "fieldRadius": 80,
+        "tickIntervalMs": 500,
+        "fieldDurationMs": 6000,
+        "followCaster": false,
+        "targeted": false,
+        "spawnAtCaster": true,
+        "damageMultiplier": 0.3,
+        "statusOnTick": [
+          {
+            "type": "poison",
+            "durationMs": 4000,
+            "stacks": 1
+          }
+        ],
+        "color": "#55aa44"
+      }
+    },
+    "plague_outbreak": {
+      "id": "plague_outbreak",
+      "name": "瘟疫爆发",
+      "classId": "plaguebringer",
+      "unlockLevel": 55,
+      "slotType": "ultimate",
+      "type": "active",
+      "category": "class",
+      "resourceType": "energy",
+      "resourceCost": 100,
+      "cooldownMs": 90000,
+      "damageMultiplier": 3,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "ultimate",
+        "burst"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "瘟疫爆发 — plaguebringer Lv55",
+      "entityType": "field",
+      "entityConfig": {
+        "triggerType": "instant_burst",
+        "fieldRadius": 100,
+        "targeted": true,
+        "damageMultiplier": 2,
+        "spreadPoisonStacks": 3,
+        "spreadRadius": 150,
+        "statusOnHit": [
+          {
+            "type": "poison",
+            "durationMs": 6000,
+            "stacks": 3
+          }
+        ],
+        "color": "#55dd44"
+      }
+    },
+    "build_infection": {
+      "id": "build_infection",
+      "name": "流派·传染",
+      "classId": "plaguebringer",
+      "unlockLevel": 60,
+      "slotType": "legendary",
+      "type": "passive",
+      "category": "class",
+      "resourceType": null,
+      "resourceCost": 0,
+      "cooldownMs": 0,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "passive",
+        "build"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": "infection",
+      "description": "流派·传染 — plaguebringer Lv60"
+    },
+    "summon_wolf": {
+      "id": "summon_wolf",
+      "name": "召唤战狼",
+      "classId": "ranger",
+      "unlockLevel": 20,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "focus",
+      "resourceCost": 39,
+      "cooldownMs": 7600,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "summon"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "召唤战狼 — ranger 进化技能",
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "wolf_pet",
+        "spawnOffset": 50,
+        "durationMs": 20000,
+        "maxCount": 1,
+        "inheritStats": {
+          "hp": 0.4,
+          "attack": 0.3,
+          "defense": 0.2
+        },
+        "aiType": "melee_chase",
+        "attackIntervalMs": 1000,
+        "size": 22,
+        "color": "#888888",
+        "statusOnHit": [
+          {
+            "type": "poison",
+            "durationMs": 3000,
+            "stacks": 1
+          }
+        ],
+        "ownerDamageBonusPercent": 10
+      }
+    },
+    "beast_pack": {
+      "id": "beast_pack",
+      "name": "兽群召唤",
+      "classId": "beastmaster",
+      "unlockLevel": 40,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 63,
+      "cooldownMs": 11200,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "summon"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "兽群召唤 — beastmaster 进化技能",
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "wolf_pet",
+        "spawnOffset": 60,
+        "durationMs": 20000,
+        "maxCount": 3,
+        "inheritStats": {
+          "hp": 0.35,
+          "attack": 0.25,
+          "defense": 0.15
+        },
+        "aiType": "melee_chase",
+        "attackIntervalMs": 900,
+        "size": 22,
+        "color": "#666666"
+      }
+    },
+    "aimed_shot": {
+      "id": "aimed_shot",
+      "name": "瞄准射击",
+      "classId": "marksman",
+      "unlockLevel": 20,
+      "slotType": "core2",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 39,
+      "cooldownMs": 7600,
+      "damageMultiplier": 2.2,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "瞄准射击 — marksman 进化技能",
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 900,
+        "maxRange": 600,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 0,
+        "collisionRadius": 12,
+        "windupMs": 1000,
+        "damageMultiplier": 2.2,
+        "guaranteedCrit": true,
+        "color": "#ffff88"
+      }
+    },
+    "perfect_shot": {
+      "id": "perfect_shot",
+      "name": "完美射击",
+      "classId": "deadeye",
+      "unlockLevel": 40,
+      "slotType": "core2",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 63,
+      "cooldownMs": 11200,
+      "damageMultiplier": 3.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "完美射击 — deadeye 进化技能",
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 1200,
+        "maxRange": 700,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 0,
+        "collisionRadius": 14,
+        "windupMs": 800,
+        "damageMultiplier": 3.5,
+        "ignoreDefensePercent": 30,
+        "color": "#ffffff"
+      }
+    },
+    "wind_step": {
+      "id": "wind_step",
+      "name": "风之步",
+      "classId": "windrunner",
+      "unlockLevel": 20,
+      "slotType": "survival",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 39,
+      "cooldownMs": 7600,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "风之步 — windrunner 进化技能",
+      "entityType": "blink",
+      "entityConfig": {
+        "distance": 80,
+        "direction": "facing",
+        "windupMs": 50,
+        "grantMoveSpeed": 8,
+        "grantMoveSpeedMs": 4000,
+        "invincibleMs": 150
+      }
+    },
+    "phantom_clone": {
+      "id": "phantom_clone",
+      "name": "幻影分身",
+      "classId": "phantom",
+      "unlockLevel": 40,
+      "slotType": "survival",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 63,
+      "cooldownMs": 11200,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "幻影分身 — phantom 进化技能",
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "phantom_clone",
+        "spawnOffset": 30,
+        "durationMs": 15000,
+        "maxCount": 1,
+        "inheritStats": {
+          "hp": 0.25,
+          "attack": 0.5,
+          "defense": 0.1
+        },
+        "aiType": "mirror_player",
+        "attackIntervalMs": 800,
+        "size": 18,
+        "color": "#88aacc",
+        "damageMirrorRatio": 0.5
+      }
+    },
+    "foresight": {
+      "id": "foresight",
+      "name": "预知",
+      "classId": "oracle",
+      "unlockLevel": 40,
+      "slotType": "core2",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 63,
+      "cooldownMs": 11200,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "预知 — oracle 进化技能",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "shield",
+        "absorbPercent": 30,
+        "durationMs": 10000
+      },
+      "effectTags": [
+        "defense"
+      ]
+    },
+    "summon_skeleton": {
+      "id": "summon_skeleton",
+      "name": "召唤骷髅",
+      "classId": "warlock",
+      "unlockLevel": 20,
+      "slotType": "survival",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 39,
+      "cooldownMs": 7600,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "summon"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "召唤骷髅 — warlock 进化技能",
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "skeleton_minion",
+        "spawnOffset": 45,
+        "durationMs": 15000,
+        "maxCount": 1,
+        "inheritStats": {
+          "hp": 0.3,
+          "attack": 0.35,
+          "defense": 0.1
+        },
+        "aiType": "melee_chase",
+        "attackIntervalMs": 1200,
+        "size": 20,
+        "color": "#ccccaa",
+        "statusOnHit": [
+          {
+            "type": "dark_erosion",
+            "durationMs": 3000
+          }
+        ]
+      }
+    },
+    "skeleton_legion": {
+      "id": "skeleton_legion",
+      "name": "骷髅军团",
+      "classId": "necromancer",
+      "unlockLevel": 40,
+      "slotType": "survival",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 63,
+      "cooldownMs": 11200,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [
+        "summon"
+      ],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "骷髅军团 — necromancer 进化技能",
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "skeleton_minion",
+        "spawnOffset": 50,
+        "durationMs": 30000,
+        "maxCount": 5,
+        "inheritStats": {
+          "hp": 0.25,
+          "attack": 0.3,
+          "defense": 0.1
+        },
+        "aiType": "melee_chase",
+        "attackIntervalMs": 1000,
+        "size": 18,
+        "color": "#bbbbaa"
+      }
+    },
+    "illusion": {
+      "id": "illusion",
+      "name": "幻象",
+      "classId": "trickster",
+      "unlockLevel": 20,
+      "slotType": "core2",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 39,
+      "cooldownMs": 7600,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "幻象 — trickster 进化技能",
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "illusion",
+        "spawnOffset": 35,
+        "durationMs": 10000,
+        "maxCount": 1,
+        "inheritStats": {
+          "hp": 0.2,
+          "attack": 0.15,
+          "defense": 0.05
+        },
+        "aiType": "melee_chase",
+        "attackIntervalMs": 1500,
+        "size": 16,
+        "color": "#ccccff"
+      }
+    },
+    "quintuple_illusion": {
+      "id": "quintuple_illusion",
+      "name": "五重幻象",
+      "classId": "illusionist",
+      "unlockLevel": 40,
+      "slotType": "core2",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 63,
+      "cooldownMs": 11200,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "五重幻象 — illusionist 进化技能",
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "illusion",
+        "spawnOffset": 45,
+        "durationMs": 12000,
+        "maxCount": 5,
+        "inheritStats": {
+          "hp": 0.12,
+          "attack": 0.12,
+          "defense": 0.03
+        },
+        "aiType": "melee_chase",
+        "attackIntervalMs": 1200,
+        "size": 14,
+        "color": "#bbbfff"
+      }
+    },
+    "venom_blade": {
+      "id": "venom_blade",
+      "name": "剧毒之刃",
+      "classId": "venomancer",
+      "unlockLevel": 20,
+      "slotType": "survival",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 39,
+      "cooldownMs": 7600,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [
+        {
+          "type": "poison",
+          "durationMs": 4000
+        }
+      ],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "剧毒之刃 — venomancer 进化技能",
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "cone",
+        "range": 60,
+        "halfAngleDeg": 40,
+        "damageMultiplier": 1.2,
+        "statusOnHit": [
+          {
+            "type": "poison",
+            "durationMs": 5000,
+            "stacks": 2
+          }
+        ],
+        "windupMs": 100
+      }
+    },
+    "plague": {
+      "id": "plague",
+      "name": "瘟疫",
+      "classId": "plaguebringer",
+      "unlockLevel": 40,
+      "slotType": "survival",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 63,
+      "cooldownMs": 11200,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [
+        {
+          "type": "poison",
+          "durationMs": 4000
+        }
+      ],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "瘟疫 — plaguebringer 进化技能",
+      "entityType": "field",
+      "entityConfig": {
+        "fieldRadius": 90,
+        "tickIntervalMs": 800,
+        "fieldDurationMs": 12000,
+        "followCaster": true,
+        "spawnAtCaster": true,
+        "damageMultiplier": 0.25,
+        "statusOnTick": [
+          {
+            "type": "poison",
+            "durationMs": 4000,
+            "stacks": 1
+          }
+        ],
+        "spreadOnKill": true,
+        "color": "#44aa22"
+      }
+    },
+    "execute": {
+      "id": "execute",
+      "name": "处决",
+      "classId": "destroyer",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 8,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "处决 — destroyer",
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "single",
+        "range": 80,
+        "damageMultiplier": 8,
+        "executeThreshold": 0.25,
+        "executeBossThreshold": 0.35,
+        "windupMs": 400
+      }
+    },
+    "beast_fusion": {
+      "id": "beast_fusion",
+      "name": "野兽融合",
+      "classId": "beastmaster",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "野兽融合 — beastmaster",
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "bear_pet",
+        "spawnOffset": 0,
+        "durationMs": 15000,
+        "maxCount": 1,
+        "mergeWithExistingPet": true,
+        "inheritStats": {
+          "hp": 0.8,
+          "attack": 0.6,
+          "defense": 0.4
+        },
+        "aiType": "melee_chase",
+        "attackIntervalMs": 700,
+        "size": 32,
+        "color": "#886644"
+      }
+    },
+    "headshot": {
+      "id": "headshot",
+      "name": "爆头",
+      "classId": "deadeye",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "爆头 — deadeye",
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 1100,
+        "maxRange": 650,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 0,
+        "collisionRadius": 10,
+        "windupMs": 600,
+        "damageMultiplier": 2.8,
+        "guaranteedCrit": true,
+        "color": "#ffcc00"
+      }
+    },
+    "void_arrow": {
+      "id": "void_arrow",
+      "name": "虚空箭",
+      "classId": "phantom",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "虚空箭 — phantom",
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 900,
+        "maxRange": 600,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 3,
+        "collisionRadius": 12,
+        "damageMultiplier": 1.8,
+        "statusOnHit": [
+          {
+            "type": "dark_erosion",
+            "durationMs": 3000
+          }
+        ],
+        "color": "#8866cc"
+      }
+    },
+    "mind_control": {
+      "id": "mind_control",
+      "name": "精神控制",
+      "classId": "illusionist",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "精神控制 — illusionist",
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "single",
+        "range": 100,
+        "damageMultiplier": 0.5,
+        "stunMs": 2500,
+        "confuseMs": 3000
+      }
+    },
+    "night_slash": {
+      "id": "night_slash",
+      "name": "夜刃斩",
+      "classId": "nightblade",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "夜刃斩 — nightblade",
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "cone",
+        "range": 70,
+        "halfAngleDeg": 50,
+        "damageMultiplier": 2.2,
+        "statusOnHit": [
+          {
+            "type": "dark_erosion",
+            "durationMs": 4000
+          }
+        ],
+        "windupMs": 120
+      }
+    },
+    "death_coil": {
+      "id": "death_coil",
+      "name": "死亡缠绕",
+      "classId": "necromancer",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "死亡缠绕 — necromancer",
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 480,
+        "maxRange": 500,
+        "trajectory": "homing",
+        "pierceCount": 0,
+        "collisionRadius": 25,
+        "damageMultiplier": 1.4,
+        "stunMs": 2000,
+        "lifeStealPercent": 30,
+        "color": "#aa88ff"
+      }
+    },
+    "contagion": {
+      "id": "contagion",
+      "name": "传染",
+      "classId": "plaguebringer",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 1.5,
+      "range": 90,
+      "aoeRadius": 0,
+      "effectTags": [],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "传染 — plaguebringer",
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "radial",
+        "range": 120,
+        "damageMultiplier": 1,
+        "requiresPoisonedTarget": true,
+        "spreadPoisonStacks": 2,
+        "spreadRadius": 150
+      }
+    },
+    "prophecy": {
+      "id": "prophecy",
+      "name": "预言",
+      "classId": "oracle",
+      "unlockLevel": 30,
+      "slotType": "adv_feature",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 51,
+      "cooldownMs": 9400,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "预言 — oracle",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "shield",
+        "absorbPercent": 25,
+        "durationMs": 10000
+      },
+      "effectTags": [
+        "defense"
+      ]
+    },
+    "holy_shield_team": {
+      "id": "holy_shield_team",
+      "name": "神圣之盾",
+      "classId": "paladin",
+      "unlockLevel": 10,
+      "slotType": "team",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 27,
+      "cooldownMs": 5800,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "神圣之盾 — paladin",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "shield",
+        "absorbPercent": 15,
+        "durationMs": 8000
+      },
+      "effectTags": [
+        "defense"
+      ]
+    },
+    "aegis": {
+      "id": "aegis",
+      "name": "神盾",
+      "classId": "temple_knight",
+      "unlockLevel": 10,
+      "slotType": "team",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 27,
+      "cooldownMs": 5800,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "神盾 — temple_knight",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "shield",
+        "absorbPercent": 25,
+        "durationMs": 8000
+      },
+      "effectTags": [
+        "defense"
+      ]
+    },
+    "element_domain": {
+      "id": "element_domain",
+      "name": "元素领域",
+      "classId": "archmage",
+      "unlockLevel": 10,
+      "slotType": "team",
+      "type": "active",
+      "category": "class",
+      "resourceType": "rage",
+      "resourceCost": 27,
+      "cooldownMs": 5800,
+      "damageMultiplier": 0,
+      "range": 90,
+      "aoeRadius": 0,
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "元素领域 — archmage",
+      "skillEffect": {
+        "mode": "primary",
+        "type": "attack_buff",
+        "attackPercent": 20,
+        "durationMs": 8000
+      },
+      "effectTags": [
+        "buff"
+      ]
+    }
+  },
+  "progressions": {
+    "warrior": [
+      "warrior_basic",
+      "shield_bash",
+      "charge",
+      "war_cry",
+      "defensive_stance"
+    ],
+    "knight": [
+      "warrior_basic",
+      "shield_bash",
+      "charge",
+      "war_cry",
+      "defensive_stance",
+      "taunt"
+    ],
+    "paladin": [
+      "warrior_basic",
+      "shield_bash",
+      "charge",
+      "holy_shield_team",
+      "defensive_stance",
+      "taunt",
+      "resurrection",
+      "build_retribution"
+    ],
+    "berserker": [
+      "warrior_basic",
+      "shield_bash",
+      "charge",
+      "war_cry",
+      "defensive_stance",
+      "berserk"
+    ],
+    "destroyer": [
+      "warrior_basic",
+      "shield_bash",
+      "charge",
+      "war_cry",
+      "defensive_stance",
+      "berserk",
+      "fury",
+      "build_blood_demon",
+      "execute"
+    ],
+    "guardian": [
+      "warrior_basic",
+      "shield_bash",
+      "charge",
+      "war_cry",
+      "defensive_stance",
+      "guardian_shield"
+    ],
+    "temple_knight": [
+      "warrior_basic",
+      "shield_bash",
+      "charge",
+      "aegis",
+      "defensive_stance",
+      "guardian_shield",
+      "final_guard",
+      "build_thorns"
+    ],
+    "archer": [
+      "archer_basic",
+      "backstep_shot",
+      "poison_arrow",
+      "hunters_mark",
+      "rapid_shot"
+    ],
+    "ranger": [
+      "archer_basic",
+      "backstep_shot",
+      "poison_arrow",
+      "hunters_mark",
+      "rapid_shot",
+      "frozen_trap"
+    ],
+    "beastmaster": [
+      "archer_basic",
+      "backstep_shot",
+      "poison_arrow",
+      "hunters_mark",
+      "rapid_shot",
+      "frozen_trap",
+      "natures_wrath",
+      "beast_fusion"
+    ],
+    "marksman": [
+      "archer_basic",
+      "backstep_shot",
+      "poison_arrow",
+      "hunters_mark",
+      "rapid_shot",
+      "piercing_arrow"
+    ],
+    "deadeye": [
+      "archer_basic",
+      "backstep_shot",
+      "poison_arrow",
+      "hunters_mark",
+      "rapid_shot",
+      "piercing_arrow",
+      "death_gaze",
+      "build_executioner",
+      "headshot"
+    ],
+    "windrunner": [
+      "archer_basic",
+      "backstep_shot",
+      "poison_arrow",
+      "hunters_mark",
+      "rapid_shot",
+      "wind_blade"
+    ],
+    "phantom": [
+      "archer_basic",
+      "backstep_shot",
+      "poison_arrow",
+      "hunters_mark",
+      "rapid_shot",
+      "wind_blade",
+      "phantom_storm",
+      "void_arrow"
+    ],
+    "mage": [
+      "arcane_missile",
+      "fireball",
+      "ice_armor",
+      "arcane_amplify",
+      "blink"
+    ],
+    "wizard": [
+      "arcane_missile",
+      "fireball",
+      "ice_armor",
+      "arcane_amplify",
+      "blink",
+      "chain_lightning"
+    ],
+    "archmage": [
+      "arcane_missile",
+      "fireball",
+      "ice_armor",
+      "element_domain",
+      "blink",
+      "chain_lightning",
+      "meteor",
+      "build_arcane"
+    ],
+    "sage": [
+      "arcane_missile",
+      "fireball",
+      "ice_armor",
+      "arcane_amplify",
+      "blink",
+      "healing_wave"
+    ],
+    "oracle": [
+      "arcane_missile",
+      "fireball",
+      "ice_armor",
+      "arcane_amplify",
+      "blink",
+      "healing_wave",
+      "fate_reverse",
+      "build_chrono",
+      "prophecy"
+    ],
+    "warlock": [
+      "arcane_missile",
+      "fireball",
+      "ice_armor",
+      "arcane_amplify",
+      "blink",
+      "shadow_bolt"
+    ],
+    "necromancer": [
+      "arcane_missile",
+      "fireball",
+      "ice_armor",
+      "arcane_amplify",
+      "blink",
+      "shadow_bolt",
+      "nether_gate",
+      "build_corpse_explosion",
+      "death_coil"
+    ],
+    "assassin": [
+      "assassin_basic",
+      "shadow_step",
+      "smoke_bomb",
+      "poison_blade",
+      "vanish"
+    ],
+    "shadowdancer": [
+      "assassin_basic",
+      "shadow_step",
+      "smoke_bomb",
+      "poison_blade",
+      "vanish",
+      "shadow_strike_feat"
+    ],
+    "nightblade": [
+      "assassin_basic",
+      "shadow_step",
+      "smoke_bomb",
+      "poison_blade",
+      "vanish",
+      "shadow_strike_feat",
+      "nightfall",
+      "build_night_lord",
+      "night_slash"
+    ],
+    "trickster": [
+      "assassin_basic",
+      "shadow_step",
+      "smoke_bomb",
+      "poison_blade",
+      "vanish",
+      "decoy"
+    ],
+    "illusionist": [
+      "assassin_basic",
+      "shadow_step",
+      "smoke_bomb",
+      "poison_blade",
+      "vanish",
+      "decoy",
+      "reality_shift",
+      "mind_control"
+    ],
+    "venomancer": [
+      "assassin_basic",
+      "shadow_step",
+      "smoke_bomb",
+      "poison_blade",
+      "vanish",
+      "poison_mist"
+    ],
+    "plaguebringer": [
+      "assassin_basic",
+      "shadow_step",
+      "smoke_bomb",
+      "poison_blade",
+      "vanish",
+      "poison_mist",
+      "plague_outbreak",
+      "build_infection",
+      "contagion"
+    ]
+  }
+}

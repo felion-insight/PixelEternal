@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "acts": [
+    {
+      "id": "act1",
+      "name": "第一幕 · 踏入高塔",
+      "nodes": [
+        { "id": "intro_town", "title": "辉光城", "summary": "冒险者抵达主城，恶魔塔在前方等待。", "unlockFloor": 0 },
+        { "id": "first_floor", "title": "塔的第一层", "summary": "你踏入了恶魔塔，空气变得沉重。", "unlockFloor": 1 },
+        { "id": "boss_ash", "title": "炎刃阿什", "summary": "第十层的火焰守塔人倒下了。铁匠巴尔德在等你。", "unlockFloor": 10 }
+      ]
+    },
+    {
+      "id": "act2",
+      "name": "第二幕 · 力量觉醒",
+      "nodes": [
+        { "id": "first_job", "title": "一转", "summary": "在转职官处完成第一次进阶，力量更加稳定。", "unlockFloor": 20 },
+        { "id": "boss_vera", "title": "静默薇拉", "summary": "森林的哀伤……但你的力量已经觉醒。", "unlockFloor": 20 },
+        { "id": "sigil_unlock", "title": "徽记之力", "summary": "击败格鲁格后，徽记系统向你敞开。", "unlockFloor": 30 }
+      ]
+    },
+    {
+      "id": "act3",
+      "name": "第三幕 · 虚空与终焉",
+      "nodes": [
+        { "id": "second_job", "title": "二转觉醒", "summary": "穿越觉醒之门，完成第二次进阶。", "unlockFloor": 40 },
+        { "id": "boss_zen", "title": "虚空泽恩", "summary": "虚空……我在书中读到过。觉醒之门已经为你打开。", "unlockFloor": 40 },
+        { "id": "final_boss", "title": "原初意志", "summary": "第六十层，一切真相的尽头。", "unlockFloor": 60 }
+      ]
+    }
+  ],
+  "relics": [
+    { "id": "ash_ember", "name": "余烬碎片", "description": "阿什陨落后留下的火星。", "linkedNode": "boss_ash" },
+    { "id": "vera_leaf", "name": "静默之叶", "description": "薇拉消散时飘落的一片叶子。", "linkedNode": "boss_vera" },
+    { "id": "zen_page", "name": "禁书残页", "description": "泽恩书页上的一行咒文。", "linkedNode": "boss_zen" }
+  ]
+}

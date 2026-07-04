@@ -21,30 +21,33 @@
     "TICKS_PER_SECOND": 60,
     "TOWER_MAX_FLOOR": 240,
     "TOWER_BOSS_INTERVAL": 20,
-    "MONSTER_MAX_LEVEL": 60,
-    "PLAYER_EXP_LEVEL_MULT": 1.18
+    "MONSTER_MAX_LEVEL": 60
   },
   "QUALITY_COLORS": {
-    "common": "#ffffff",
-    "rare": "#00ff00",
-    "fine": "#0088ff",
+    "normal": "#aaaaaa",
+    "magic": "#00ff00",
+    "rare": "#0088ff",
     "epic": "#aa00ff",
-    "legendary": "#ff8800"
+    "legendary": "#ff8800",
+    "mythic": "#ff2244"
   },
   "QUALITY_NAMES": {
-    "common": "普通",
+    "normal": "普通",
+    "magic": "魔法",
     "rare": "稀有",
-    "fine": "精良",
     "epic": "史诗",
-    "legendary": "传说"
+    "legendary": "传说",
+    "mythic": "神话"
   },
   "SLOT_NAMES": {
     "weapon": "武器",
+    "offHand": "副手",
     "helmet": "头盔",
-    "chest": "胸甲",
+    "body": "胸甲",
+    "hands": "手套",
     "legs": "腿甲",
-    "boots": "足具",
-    "necklace": "项链",
+    "feet": "足具",
+    "amulet": "护符",
     "ring": "指环",
     "belt": "腰带"
   },
@@ -59,7 +62,21 @@
   "SCENE_TYPES": {
     "TOWN": "town",
     "TOWER": "tower",
-    "TRAINING": "training"
+    "TRAINING": "training",
+    "TRIAL": "trial"
+  },
+  "DROP_BIAS_CONFIG": {
+    "weaponAffinityChance": 0.7,
+    "armorAffinityChance": 0.5,
+    "classWeaponWeight": 0.5,
+    "sameFamilyWeight": 0.15,
+    "otherFamilyWeight": 0.05,
+    "setChance": 0.12,
+    "setChanceBoss": 0.35
+  },
+  "DROP_RARITY_TABLES": {
+    "normal": { "normal": 35, "magic": 40, "rare": 20, "epic": 5, "legendary": 0, "mythic": 0 },
+    "elite": { "normal": 0, "magic": 40, "rare": 40, "epic": 20, "legendary": 0, "mythic": 0 },
+    "boss": { "normal": 0, "magic": 0, "rare": 30, "epic": 40, "legendary": 25, "mythic": 5 }
   }
 }
-

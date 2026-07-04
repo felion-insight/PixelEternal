@@ -1,0 +1,202 @@
+{
+  "version": "1.0",
+  "universal": [
+    {
+      "id": "dragon_breath",
+      "name": "龙息",
+      "description": "暴击时释放火焰吐息，对前方造成80%攻击力火焰伤害（冷却8s）",
+      "slots": [
+        "weapon"
+      ],
+      "rarity": "legendary"
+    },
+    {
+      "id": "chain_lightning",
+      "name": "连锁闪电",
+      "description": "击杀敌人时释放闪电链，弹跳3次，每次50%攻击力伤害",
+      "slots": [
+        "weapon"
+      ],
+      "rarity": "legendary"
+    },
+    {
+      "id": "thorn_aura",
+      "name": "荆棘光环",
+      "description": "常驻荆棘光环，每秒对周围敌人造成20%防御力伤害",
+      "slots": [
+        "body"
+      ],
+      "rarity": "legendary"
+    },
+    {
+      "id": "phoenix",
+      "name": "不死鸟",
+      "description": "受到致命伤害时恢复40%最大HP并获得3秒无敌（冷却300s）",
+      "slots": [
+        "body"
+      ],
+      "rarity": "legendary"
+    },
+    {
+      "id": "phantom_step",
+      "name": "幻影步",
+      "description": "闪避成功后移速+50%，持续2秒（冷却10s）",
+      "slots": [
+        "feet"
+      ],
+      "rarity": "legendary"
+    },
+    {
+      "id": "frost_nova",
+      "name": "霜冻新星",
+      "description": "被击中时有20%概率释放冰霜新星，冰冻周围敌人2s",
+      "slots": [
+        "helmet"
+      ],
+      "rarity": "legendary"
+    },
+    {
+      "id": "greed_power",
+      "name": "贪婪",
+      "description": "怪物掉落金币+50%，金币拾取范围+100%",
+      "slots": [
+        "belt"
+      ],
+      "rarity": "legendary"
+    },
+    {
+      "id": "blood_rage",
+      "name": "血怒",
+      "description": "HP每降低10%，伤害+5%",
+      "slots": [
+        "amulet"
+      ],
+      "rarity": "legendary"
+    }
+  ],
+  "classPowers": {
+    "warrior": [
+      {
+        "id": "war_god_fury",
+        "name": "战神之怒",
+        "description": "使用职业技能后，4秒内普攻伤害+60%",
+        "slots": [
+          "weapon",
+          "body"
+        ],
+        "rarity": "legendary"
+      },
+      {
+        "id": "immortal_shield",
+        "name": "不灭之盾",
+        "description": "格挡成功时回复8%最大HP（冷却6s）",
+        "slots": [
+          "offHand",
+          "body"
+        ],
+        "rarity": "legendary"
+      },
+      {
+        "id": "titan_body",
+        "name": "泰坦之躯",
+        "description": "免疫击退，HP>80%时伤害+40%，HP<30%时减伤+40%",
+        "slots": [
+          "body"
+        ],
+        "rarity": "mythic"
+      }
+    ],
+    "archer": [
+      {
+        "id": "eagle_eye",
+        "name": "鹰眼",
+        "description": "与敌人距离>150时，伤害+35%，暴率+15%",
+        "slots": [
+          "weapon"
+        ],
+        "rarity": "legendary"
+      },
+      {
+        "id": "arrow_rain",
+        "name": "箭雨",
+        "description": "使用职业技能后，3秒内对周围敌人造成300%总伤",
+        "slots": [
+          "weapon"
+        ],
+        "rarity": "legendary"
+      },
+      {
+        "id": "wind_soul",
+        "name": "风行者之魂",
+        "description": "移动时积累风能，满层时下次攻击必暴击且+150%暴伤",
+        "slots": [
+          "feet"
+        ],
+        "rarity": "mythic"
+      }
+    ],
+    "mage": [
+      {
+        "id": "arcane_surge",
+        "name": "奥术洪流",
+        "description": "连续释放3个不同技能后，下一个技能伤害+80%且无消耗",
+        "slots": [
+          "weapon",
+          "offHand"
+        ],
+        "rarity": "legendary"
+      },
+      {
+        "id": "mana_shield",
+        "name": "法力护盾",
+        "description": "消耗法力时30%转化为临时护盾（上限25%最大HP）",
+        "slots": [
+          "amulet"
+        ],
+        "rarity": "legendary"
+      },
+      {
+        "id": "element_avatar",
+        "name": "元素化身",
+        "description": "法力>90%时所有伤害+50%，每秒对周围造成30%法强元素伤害",
+        "slots": [
+          "body"
+        ],
+        "rarity": "mythic"
+      }
+    ],
+    "assassin": [
+      {
+        "id": "assassinate",
+        "name": "暗杀",
+        "description": "对满血敌人首次伤害+150%，必定暴击",
+        "slots": [
+          "weapon"
+        ],
+        "rarity": "legendary"
+      },
+      {
+        "id": "shadow_dance",
+        "name": "影之舞",
+        "description": "连续暴击3次后进入影舞状态4s：闪避+40%，暴伤+60%",
+        "slots": [
+          "hands"
+        ],
+        "rarity": "legendary"
+      },
+      {
+        "id": "death_arrival",
+        "name": "死神降临",
+        "description": "击杀敌人时重置暗影步冷却，2s内下一个技能伤害+100%",
+        "slots": [
+          "weapon"
+        ],
+        "rarity": "mythic"
+      }
+    ]
+  },
+  "rollWeights": {
+    "universal": 0.6,
+    "class": 0.4
+  }
+}

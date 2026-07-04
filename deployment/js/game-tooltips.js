@@ -165,34 +165,37 @@ class TooltipManager {
         const tooltip = document.getElementById('item-tooltip');
         if (!tooltip) return;
         
-        if (!setId || typeof SET_DEFINITIONS === 'undefined' || !SET_DEFINITIONS[setId]) {
+        if (!setId || typeof resolveSetDefinition !== 'function') {
             tooltip.classList.remove('show');
             return;
         }
 
-        const setData = SET_DEFINITIONS[setId];
+        const setData = resolveSetDefinition(setId);
+        if (!setData) {
+            tooltip.classList.remove('show');
+            return;
+        }
         let html = `<h4 style="color: #ffaa00;">${setData.name}</h4>`;
         html += `<p style="color: #aaa; font-size: 11px;">套装效果:</p>`;
         
-        // 获取当前激活的所有套装效果
         const activeSet = new Set();
-        if (typeof getActiveSetEffects === 'function') {
-            getActiveSetEffects(this.game.player.equipment).forEach(e => {
+        if (typeof getAllActiveSetEffects === 'function') {
+            getAllActiveSetEffects(this.game.player.equipment).forEach(e => {
                 if (e.setId === setId) {
                     activeSet.add(e.pieceCount);
                 }
             });
         }
 
-        // 显示所有套装效果（2件、4件、6件、8件）
-        for (const pieceCount of [2, 4, 6, 8]) {
-            if (setData.effects[pieceCount]) {
-                const effect = setData.effects[pieceCount];
-                const isActive = activeSet.has(pieceCount);
-                const color = isActive ? '#33ff33' : '#888888';
-                const activeText = isActive ? ' (已激活)' : '';
-                html += `<p style="color: ${color}; font-size: 10px;">${pieceCount}件: ${typeof stripSetDescriptionMarkdown === 'function' ? stripSetDescriptionMarkdown(effect.description) : effect.description}${activeText}</p>`;
-            }
+        const pieceTargets = (typeof SET_DEFINITIONS_V2 !== 'undefined' && SET_DEFINITIONS_V2.activationPieces)
+            ? SET_DEFINITIONS_V2.activationPieces : [2, 4];
+        for (const pieceCount of pieceTargets) {
+            const effect = setData.effects[String(pieceCount)] || setData.effects[pieceCount];
+            if (!effect) continue;
+            const isActive = activeSet.has(pieceCount);
+            const color = isActive ? '#33ff33' : '#888888';
+            const activeText = isActive ? ' (已激活)' : '';
+            html += `<p style="color: ${color}; font-size: 10px;">${pieceCount}件: ${typeof stripSetDescriptionMarkdown === 'function' ? stripSetDescriptionMarkdown(effect.description) : effect.description}${activeText}</p>`;
         }
 
         tooltip.innerHTML = html;

@@ -1,0 +1,101 @@
+{
+  "version": "1.0",
+  "description": "无实体伤害的技能 — 走 primary skillEffect",
+  "skills": {
+    "defensive_stance": {
+      "skillEffect": { "mode": "primary", "type": "damage_reduction", "damageReduction": 30, "durationMs": 5000 },
+      "effectTags": ["defense"]
+    },
+    "war_cry": {
+      "skillEffect": { "mode": "primary", "type": "attack_buff", "attackPercent": 15, "durationMs": 8000 },
+      "effectTags": ["buff"]
+    },
+    "ice_armor": {
+      "skillEffect": {
+        "mode": "primary", "type": "ice_armor", "durationMs": 8000, "damageReduction": 15,
+        "attackerSlowMultiplier": 0.7, "attackerSlowDurationMs": 2000
+      },
+      "effectTags": ["defense", "ice_armor"]
+    },
+    "berserk": {
+      "skillEffect": { "mode": "primary", "type": "berserk", "attackPercent": 25, "defensePenalty": 15, "durationMs": 8000 },
+      "effectTags": ["buff"]
+    },
+    "taunt": {
+      "skillEffect": { "mode": "primary", "type": "taunt", "damageReduction": 30, "durationMs": 4000, "range": 120 },
+      "effectTags": ["defense"]
+    },
+    "guardian_shield": {
+      "skillEffect": { "mode": "primary", "type": "shield", "absorbPercent": 20, "durationMs": 6000 },
+      "effectTags": ["defense"]
+    },
+    "guardian_stance": {
+      "skillEffect": { "mode": "primary", "type": "damage_reduction", "damageReduction": 25, "durationMs": 15000, "auraRadius": 100, "auraTeamDr": 15 },
+      "effectTags": ["defense", "aura"]
+    },
+    "holy_domain": {
+      "skillEffect": { "mode": "primary", "type": "damage_reduction", "damageReduction": 20, "durationMs": 20000, "auraRadius": 100, "auraHealPercent": 1 },
+      "effectTags": ["defense", "aura", "heal"]
+    },
+    "healing_wave": {
+      "skillEffect": { "mode": "primary", "type": "heal", "healPercent": 25 },
+      "effectTags": ["heal"]
+    },
+    "hunters_mark": {
+      "skillEffect": { "mode": "primary", "type": "mark", "range": 120, "damageBonus": 15, "critBonus": 10, "durationMs": 8000 },
+      "effectTags": ["debuff"]
+    },
+    "rapid_shot": {
+      "skillEffect": { "mode": "primary", "type": "attack_speed_buff", "attackSpeedPercent": 40, "durationMs": 4000 },
+      "effectTags": ["buff"]
+    },
+    "arcane_amplify": {
+      "skillEffect": { "mode": "primary", "type": "attack_buff", "attackPercent": 20, "durationMs": 10000 },
+      "effectTags": ["buff"]
+    },
+    "resurrection": {
+      "skillEffect": { "mode": "primary", "type": "heal", "healPercent": 50 },
+      "effectTags": ["heal"]
+    },
+    "foresight": {
+      "skillEffect": { "mode": "primary", "type": "shield", "absorbPercent": 30, "durationMs": 10000 },
+      "effectTags": ["defense"]
+    },
+    "fury": {
+      "skillEffect": { "mode": "primary", "type": "berserk", "attackPercent": 50, "attackSpeedPercent": 50, "durationMs": 10000 },
+      "effectTags": ["buff"]
+    },
+    "poison_blade": {
+      "skillEffect": { "mode": "primary", "type": "attack_buff", "attackPercent": 10, "durationMs": 8000, "onHitStatus": "poison" },
+      "effectTags": ["buff", "dot"]
+    },
+    "final_guard": {
+      "skillEffect": { "mode": "primary", "type": "guard", "damageReduction": 100, "durationMs": 3000 },
+      "effectTags": ["defense"]
+    },
+    "fate_reverse": {
+      "skillEffect": { "mode": "primary", "type": "heal", "healPercent": 40 },
+      "effectTags": ["heal"]
+    },
+    "smoke_bomb": {
+      "skillEffect": { "mode": "primary", "type": "dodge_buff", "dodge": 30, "durationMs": 4000 },
+      "effectTags": ["utility"]
+    },
+    "prophecy": {
+      "skillEffect": { "mode": "primary", "type": "shield", "absorbPercent": 25, "durationMs": 10000 },
+      "effectTags": ["defense"]
+    },
+    "holy_shield_team": {
+      "skillEffect": { "mode": "primary", "type": "shield", "absorbPercent": 15, "durationMs": 8000 },
+      "effectTags": ["defense"]
+    },
+    "aegis": {
+      "skillEffect": { "mode": "primary", "type": "shield", "absorbPercent": 25, "durationMs": 8000 },
+      "effectTags": ["defense"]
+    },
+    "element_domain": {
+      "skillEffect": { "mode": "primary", "type": "attack_buff", "attackPercent": 20, "durationMs": 8000 },
+      "effectTags": ["buff"]
+    }
+  }
+}

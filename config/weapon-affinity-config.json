@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "weaponTypes": {
+    "sword": { "name": "剑", "category": "melee", "baseClass": "warrior", "legacyTypes": ["melee"] },
+    "axe": { "name": "斧", "category": "melee", "baseClass": "warrior" },
+    "hammer": { "name": "锤", "category": "melee", "baseClass": "warrior" },
+    "spear": { "name": "枪", "category": "melee", "baseClass": "warrior" },
+    "bow": { "name": "弓", "category": "ranged", "baseClass": "archer", "legacyTypes": ["ranged"] },
+    "crossbow": { "name": "弩", "category": "ranged", "baseClass": "archer" },
+    "longbow": { "name": "长弓", "category": "ranged", "baseClass": "archer" },
+    "shortbow": { "name": "短弓", "category": "ranged", "baseClass": "archer" },
+    "staff": { "name": "法杖", "category": "ranged", "baseClass": "mage" },
+    "book": { "name": "魔典", "category": "ranged", "baseClass": "mage" },
+    "orb": { "name": "法球", "category": "ranged", "baseClass": "mage" },
+    "rune": { "name": "符文", "category": "ranged", "baseClass": "mage" },
+    "dagger": { "name": "匕首", "category": "melee", "baseClass": "assassin" },
+    "claw": { "name": "爪刃", "category": "melee", "baseClass": "assassin" },
+    "shortblade": { "name": "短刀", "category": "melee", "baseClass": "assassin" },
+    "chainblade": { "name": "链刃", "category": "melee", "baseClass": "assassin" }
+  },
+  "affinityGrades": {
+    "A": { "label": "专精", "statMultiplier": 1.2 },
+    "B": { "label": "熟练", "statMultiplier": 1.0 },
+    "C": { "label": "可用", "statMultiplier": 0.8 },
+    "D": { "label": "生疏", "statMultiplier": 0.5 }
+  },
+  "classWeaponAffinity": {
+    "warrior": { "A": ["sword", "axe", "hammer", "spear"], "B": ["dagger", "shortblade"], "C": ["bow", "crossbow"], "D": ["staff", "book", "orb", "rune", "claw", "chainblade", "longbow", "shortbow"] },
+    "archer": { "A": ["bow", "crossbow", "longbow", "shortbow"], "B": ["dagger"], "C": ["sword", "spear"], "D": ["staff", "book", "orb", "rune", "axe", "hammer", "claw", "chainblade", "shortblade"] },
+    "mage": { "A": ["staff", "book", "orb", "rune"], "B": ["dagger"], "C": ["bow", "shortbow"], "D": ["sword", "axe", "hammer", "spear", "crossbow", "longbow", "claw", "chainblade", "shortblade"] },
+    "assassin": { "A": ["dagger", "claw", "shortblade", "chainblade"], "B": ["sword"], "C": ["bow", "shortbow"], "D": ["staff", "book", "orb", "rune", "axe", "hammer", "spear", "crossbow", "longbow"] },
+    "knight": { "A": ["sword", "axe", "hammer", "spear"], "B": ["dagger"], "C": ["bow"], "D": ["staff", "book", "orb", "rune", "claw", "chainblade"] },
+    "berserker": { "A": ["axe", "hammer", "sword"], "B": ["spear"], "C": ["dagger"], "D": ["bow", "staff", "book", "orb", "rune"] },
+    "guardian": { "A": ["sword", "spear", "hammer"], "B": ["axe"], "C": ["dagger"], "D": ["bow", "staff", "book", "orb", "rune"] },
+    "ranger": { "A": ["bow", "longbow", "shortbow"], "B": ["crossbow", "dagger"], "C": ["sword"], "D": ["staff", "book", "orb", "rune", "axe", "hammer"] },
+    "marksman": { "A": ["bow", "crossbow", "longbow"], "B": ["shortbow"], "C": ["dagger"], "D": ["sword", "staff", "book", "orb", "rune"] },
+    "windrunner": { "A": ["bow", "shortbow", "dagger"], "B": ["longbow"], "C": ["sword"], "D": ["staff", "book", "orb", "rune", "axe", "hammer"] },
+    "wizard": { "A": ["staff", "orb", "rune"], "B": ["book"], "C": ["dagger"], "D": ["sword", "bow", "axe", "hammer", "spear"] },
+    "sage": { "A": ["staff", "book"], "B": ["orb", "rune"], "C": ["dagger"], "D": ["sword", "bow", "axe", "hammer", "spear"] },
+    "warlock": { "A": ["staff", "book", "orb"], "B": ["rune"], "C": ["dagger"], "D": ["sword", "bow", "axe", "hammer", "spear"] },
+    "shadowdancer": { "A": ["dagger", "claw", "chainblade"], "B": ["shortblade"], "C": ["sword"], "D": ["bow", "staff", "book", "orb", "rune"] },
+    "trickster": { "A": ["dagger", "shortblade"], "B": ["claw", "chainblade"], "C": ["bow"], "D": ["sword", "staff", "book", "orb", "rune"] },
+    "venomancer": { "A": ["dagger", "claw"], "B": ["shortblade", "chainblade"], "C": ["bow"], "D": ["sword", "staff", "book", "orb", "rune"] }
+  },
+  "secondAdvancementInherits": {
+    "paladin": "knight",
+    "destroyer": "berserker",
+    "temple_knight": "guardian",
+    "beastmaster": "ranger",
+    "deadeye": "marksman",
+    "phantom": "windrunner",
+    "archmage": "wizard",
+    "oracle": "sage",
+    "necromancer": "warlock",
+    "nightblade": "shadowdancer",
+    "illusionist": "trickster",
+    "plaguebringer": "venomancer"
+  }
+}

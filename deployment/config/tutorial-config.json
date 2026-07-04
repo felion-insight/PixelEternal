@@ -1,0 +1,89 @@
+{
+  "TUTORIAL_CONFIG": {
+    "version": 1,
+    "steps": [
+      {
+        "id": "need_class",
+        "phase": "setup",
+        "title": "选择职业",
+        "text": "四大基础职业各有特色。战士适合新手，弓箭手远程灵活，法师高伤低防，刺客爆发进阶。",
+        "hint": "请选择一种基础职业",
+        "completeOn": "class_selected"
+      },
+      {
+        "id": "need_name",
+        "phase": "setup",
+        "title": "命名",
+        "text": "为你的角色取一个名字，或直接使用默认「冒险者」。",
+        "hint": "点击「开始冒险」继续",
+        "completeOn": "named"
+      },
+      {
+        "id": "welcome",
+        "phase": "intro",
+        "title": "欢迎来到 Pixel Eternal",
+        "text": "你将在主城开始冒险。先熟悉基础操作，再前往转职官了解进阶，最后进入恶魔塔挑战。",
+        "hint": "点击下方按钮继续",
+        "completeOn": "button"
+      },
+      {
+        "id": "move",
+        "phase": "intro",
+        "title": "移动",
+        "text": "使用 WASD 或方向键移动角色。",
+        "hint": "在城镇中移动一段距离",
+        "completeOn": "move_distance",
+        "moveDistance": 120
+      },
+      {
+        "id": "attack",
+        "phase": "intro",
+        "title": "攻击",
+        "text": "按 J 键或鼠标左键进行普通攻击；Shift 冲刺；Q 键释放武器技能。",
+        "hint": "按 J 键攻击一次",
+        "completeOn": "attack_once"
+      },
+      {
+        "id": "skills_bar",
+        "phase": "intro",
+        "title": "职业技能",
+        "text": "底部 1/2/3/4 为职业技能快捷键；K 键打开技能面板查看详情与强化。",
+        "hint": "按 K 键打开技能面板",
+        "completeOn": "open_skill_panel"
+      },
+      {
+        "id": "meet_class_master",
+        "phase": "town",
+        "title": "拜访转职官",
+        "text": "转职官位于恶魔塔入口旁。与他对话可了解职业进阶：20级一转、40级二转。",
+        "hint": "走到转职官旁按 E 对话",
+        "completeOn": "building_interact",
+        "building": "class_master"
+      },
+      {
+        "id": "enter_tower",
+        "phase": "town",
+        "title": "进入恶魔塔",
+        "text": "恶魔塔是主要练级与刷装备的地方。层数越高，怪物越强，掉落越好。",
+        "hint": "走到中央恶魔塔入口按 E 进入",
+        "completeOn": "enter_tower"
+      },
+      {
+        "id": "tower_clear",
+        "phase": "tower",
+        "title": "通关第一个房间",
+        "text": "击败房间内所有怪物。拾取掉落按 E；清房后会出现传送门，再按 E 前进。",
+        "hint": "清空当前房间怪物",
+        "completeOn": "room_cleared"
+      },
+      {
+        "id": "done",
+        "phase": "done",
+        "title": "教程完成",
+        "text": "你已掌握核心玩法！B 背包 · H 图鉴 · C 角色 · G 完整手册。祝冒险顺利！",
+        "hint": "",
+        "completeOn": "button"
+      }
+    ]
+  }
+}

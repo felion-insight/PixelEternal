@@ -1,0 +1,840 @@
+{
+  "version": "1.0",
+  "description": "技能物理实体定义 — projectile | summon | field | instant | blink | charge",
+  "skills": {
+    "arcane_missile": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 420,
+        "maxRange": 500,
+        "trajectory": "homing",
+        "pierceCount": 0,
+        "collisionRadius": 18,
+        "hitEffect": "spark",
+        "windupMs": 100,
+        "color": "#aa88ff"
+      }
+    },
+    "fireball": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 400,
+        "maxRange": 600,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 0,
+        "collisionRadius": 60,
+        "hitEffect": "explode",
+        "explodeRadius": 70,
+        "windupMs": 200,
+        "damageMultiplier": 2.0,
+        "color": "#ff6600",
+        "statusOnHit": [{ "type": "burn", "durationMs": 4000 }]
+      }
+    },
+    "flame_bolt": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 350,
+        "maxRange": 650,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 0,
+        "collisionRadius": 70,
+        "hitEffect": "explode",
+        "explodeRadius": 90,
+        "windupMs": 1500,
+        "chargeRequired": true,
+        "damageMultiplier": 2.88,
+        "color": "#ff4400",
+        "statusOnHit": [{ "type": "burn", "durationMs": 6000 }]
+      }
+    },
+    "lava_storm": {
+      "entityType": "field",
+      "entityConfig": {
+        "fieldRadius": 110,
+        "tickIntervalMs": 1000,
+        "fieldDurationMs": 3000,
+        "followCaster": false,
+        "targeted": true,
+        "projectilesPerTick": 3,
+        "projectileConfig": {
+          "speed": 500,
+          "collisionRadius": 40,
+          "damageMultiplier": 0.8
+        },
+        "leaveBurnGroundMs": 4000,
+        "color": "#ff2200"
+      }
+    },
+    "archer_basic": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 700,
+        "maxRange": 450,
+        "trajectory": "straight",
+        "pierceCount": 0,
+        "collisionRadius": 12,
+        "damageMultiplier": 1.0,
+        "color": "#88cc44"
+      }
+    },
+    "backstep_shot": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 650,
+        "maxRange": 400,
+        "trajectory": "straight",
+        "projectileCount": 3,
+        "spreadAngleDeg": 30,
+        "pierceCount": 0,
+        "collisionRadius": 14,
+        "damageMultiplier": 0.6,
+        "preCast": "backstep",
+        "backstepDistance": 100,
+        "color": "#66aa33"
+      }
+    },
+    "poison_arrow": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 600,
+        "maxRange": 500,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 0,
+        "collisionRadius": 14,
+        "damageMultiplier": 0.8,
+        "dotMultiplier": 0.4,
+        "dotDurationMs": 4000,
+        "statusOnHit": [{ "type": "poison", "durationMs": 4000, "stacks": 1 }],
+        "color": "#55dd44"
+      }
+    },
+    "piercing_arrow": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 800,
+        "maxRange": 700,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 5,
+        "collisionRadius": 10,
+        "damageMultiplier": 1.5,
+        "color": "#aaff66"
+      }
+    },
+    "aimed_shot": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 900,
+        "maxRange": 600,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 0,
+        "collisionRadius": 12,
+        "windupMs": 1000,
+        "damageMultiplier": 2.2,
+        "guaranteedCrit": true,
+        "color": "#ffff88"
+      }
+    },
+    "perfect_shot": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 1200,
+        "maxRange": 700,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 0,
+        "collisionRadius": 14,
+        "windupMs": 800,
+        "damageMultiplier": 3.5,
+        "ignoreDefensePercent": 30,
+        "color": "#ffffff"
+      }
+    },
+    "shield_bash": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "cone",
+        "range": 80,
+        "halfAngleDeg": 45,
+        "windupMs": 150,
+        "damageMultiplier": 1.5,
+        "stunMs": 1500,
+        "breakDamageMultiplier": 1.5,
+        "knockback": 30
+      }
+    },
+    "holy_shield_bash": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "cone",
+        "range": 100,
+        "halfAngleDeg": 60,
+        "windupMs": 200,
+        "damageMultiplier": 1.8,
+        "stunMs": 1500,
+        "breakDamageMultiplier": 2,
+        "statusOnHit": [{ "type": "dark_erosion", "durationMs": 4000 }],
+        "knockback": 40
+      }
+    },
+    "judgment_shield": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 350,
+        "maxRange": 400,
+        "trajectory": "boomerang",
+        "pierceCount": 99,
+        "collisionRadius": 40,
+        "damageMultiplier": 2.0,
+        "stunMs": 2000,
+        "healOnHitPercent": 5,
+        "breakDamageMultiplier": 2,
+        "statusOnHit": [{ "type": "dark_erosion", "durationMs": 4000 }],
+        "color": "#ffdd88"
+      }
+    },
+    "charge": {
+      "entityType": "charge",
+      "entityConfig": {
+        "speed": 450,
+        "maxDistance": 150,
+        "collisionRadius": 35,
+        "damageMultiplier": 0.8,
+        "stunMs": 1200,
+        "knockback": 48,
+        "slowMult": 0.6,
+        "slowMs": 2000,
+        "stopOnFirstHit": false,
+        "superArmor": false,
+        "endFinish": "radial",
+        "endExplodeRadius": 55,
+        "endDamageMultiplier": 1.0,
+        "endStunMs": 800
+      }
+    },
+    "furious_charge": {
+      "entityType": "charge",
+      "entityConfig": {
+        "speed": 500,
+        "maxDistance": 200,
+        "collisionRadius": 40,
+        "damageMultiplier": 1.2,
+        "knockback": 30,
+        "pathStunMs": 0,
+        "stopOnFirstHit": false,
+        "superArmor": false,
+        "healOnHitMaxHpPercent": 0.01,
+        "speedPerHitPercent": 12,
+        "speedPerHitMaxStacks": 5,
+        "endFinish": "cone",
+        "endConeRange": 95,
+        "endConeHalfAngleDeg": 75,
+        "endDamageMultiplier": 1.35,
+        "endStunMs": 700,
+        "endKnockback": 40,
+        "buffOnEnd": { "attackSpeedPercent": 20, "durationMs": 3000 }
+      }
+    },
+    "devastation_charge": {
+      "entityType": "charge",
+      "entityConfig": {
+        "speed": 550,
+        "maxDistance": 250,
+        "collisionRadius": 45,
+        "windupMs": 1000,
+        "chargeRequired": true,
+        "superArmorWindup": true,
+        "damageMultiplier": 1.4,
+        "knockup": true,
+        "knockback": 65,
+        "stunMs": 1500,
+        "stopOnFirstHit": true,
+        "superArmor": true,
+        "endFinish": "devastation_cone",
+        "endConeRange": 120,
+        "endConeHalfAngleDeg": 55,
+        "endDamageMultiplier": 2.2,
+        "endBreakDamageMultiplier": 2,
+        "endKnockup": true,
+        "endKnockback": 80,
+        "endStunMs": 1400
+      }
+    },
+    "shadow_step": {
+      "entityType": "blink",
+      "entityConfig": {
+        "distance": 80,
+        "behindTarget": true,
+        "windupMs": 100,
+        "vanishMs": 100,
+        "bonusDamageMultiplier": 1.8,
+        "range": 100
+      }
+    },
+    "blink": {
+      "entityType": "blink",
+      "entityConfig": {
+        "distance": 120,
+        "direction": "facing",
+        "windupMs": 50,
+        "vanishMs": 80,
+        "invincibleMs": 200,
+        "maxCharges": 2
+      }
+    },
+    "vanish": {
+      "entityType": "blink",
+      "entityConfig": {
+        "stealthMs": 4000,
+        "moveSpeedBonus": 30,
+        "dodgeBonus": 25,
+        "windupMs": 0
+      }
+    },
+    "summon_wolf": {
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "wolf_pet",
+        "spawnOffset": 50,
+        "durationMs": 20000,
+        "maxCount": 1,
+        "inheritStats": { "hp": 0.4, "attack": 0.3, "defense": 0.2 },
+        "aiType": "melee_chase",
+        "attackIntervalMs": 1000,
+        "size": 22,
+        "color": "#888888",
+        "statusOnHit": [{ "type": "poison", "durationMs": 3000, "stacks": 1 }],
+        "ownerDamageBonusPercent": 10
+      }
+    },
+    "beast_pack": {
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "wolf_pet",
+        "spawnOffset": 60,
+        "durationMs": 20000,
+        "maxCount": 3,
+        "inheritStats": { "hp": 0.35, "attack": 0.25, "defense": 0.15 },
+        "aiType": "melee_chase",
+        "attackIntervalMs": 900,
+        "size": 22,
+        "color": "#666666"
+      }
+    },
+    "summon_skeleton": {
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "skeleton_minion",
+        "spawnOffset": 45,
+        "durationMs": 15000,
+        "maxCount": 1,
+        "inheritStats": { "hp": 0.3, "attack": 0.35, "defense": 0.1 },
+        "aiType": "melee_chase",
+        "attackIntervalMs": 1200,
+        "size": 20,
+        "color": "#ccccaa",
+        "statusOnHit": [{ "type": "dark_erosion", "durationMs": 3000 }]
+      }
+    },
+    "skeleton_legion": {
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "skeleton_minion",
+        "spawnOffset": 50,
+        "durationMs": 30000,
+        "maxCount": 5,
+        "inheritStats": { "hp": 0.25, "attack": 0.3, "defense": 0.1 },
+        "aiType": "melee_chase",
+        "attackIntervalMs": 1000,
+        "size": 18,
+        "color": "#bbbbaa"
+      }
+    },
+    "frozen_trap": {
+      "entityType": "field",
+      "entityConfig": {
+        "fieldRadius": 60,
+        "fieldDurationMs": 30000,
+        "triggerType": "proximity_mine",
+        "armDelayMs": 300,
+        "invisible": true,
+        "onTrigger": {
+          "damageMultiplier": 1.0,
+          "explodeRadius": 60,
+          "freezeMs": 2000,
+          "statusOnHit": [{ "type": "frostbite", "durationMs": 4000 }]
+        },
+        "color": "#88ddff"
+      }
+    },
+    "poison_mist": {
+      "entityType": "field",
+      "entityConfig": {
+        "fieldRadius": 80,
+        "tickIntervalMs": 500,
+        "fieldDurationMs": 6000,
+        "followCaster": false,
+        "targeted": false,
+        "spawnAtCaster": true,
+        "damageMultiplier": 0.3,
+        "statusOnTick": [{ "type": "poison", "durationMs": 4000, "stacks": 1 }],
+        "color": "#55aa44"
+      }
+    },
+    "chain_lightning": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "chain",
+        "range": 200,
+        "chainCount": 3,
+        "chainDecay": 0.2,
+        "damageMultiplier": 2.0,
+        "statusOnHit": [{ "type": "shock", "durationMs": 4000 }]
+      }
+    },
+    "shadow_strike": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "single",
+        "range": 60,
+        "requiresBehind": true,
+        "damageMultiplier": 2.5,
+        "breakDamageMultiplier": 2,
+        "windupMs": 100
+      }
+    },
+    "shadow_assault": {
+      "entityType": "blink",
+      "entityConfig": {
+        "distance": 120,
+        "behindTarget": true,
+        "windupMs": 150,
+        "bonusDamageMultiplier": 3.2,
+        "range": 150,
+        "markTarget": true
+      }
+    },
+    "warrior_basic": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "cone",
+        "range": 55,
+        "halfAngleDeg": 50,
+        "damageMultiplier": 1.0,
+        "windupMs": 0
+      }
+    },
+    "assassin_basic": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "cone",
+        "range": 50,
+        "halfAngleDeg": 35,
+        "damageMultiplier": 1.0,
+        "windupMs": 0
+      }
+    },
+    "shadow_bolt": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 500,
+        "maxRange": 550,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 0,
+        "collisionRadius": 22,
+        "damageMultiplier": 1.6,
+        "statusOnHit": [{ "type": "dark_erosion", "durationMs": 4000 }],
+        "color": "#8844cc"
+      }
+    },
+    "wind_blade": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 750,
+        "maxRange": 500,
+        "trajectory": "straight_toward_target",
+        "projectileCount": 3,
+        "spreadAngleDeg": 20,
+        "pierceCount": 2,
+        "collisionRadius": 12,
+        "damageMultiplier": 0.7,
+        "color": "#88eeff"
+      }
+    },
+    "piercing_arrow": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 850,
+        "maxRange": 750,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 5,
+        "collisionRadius": 10,
+        "damageMultiplier": 1.55,
+        "color": "#ccff88"
+      }
+    },
+    "shadow_strike_feat": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "single",
+        "range": 65,
+        "damageMultiplier": 1.8,
+        "breakDamageMultiplier": 1.5,
+        "windupMs": 80
+      }
+    },
+    "venom_blade": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "cone",
+        "range": 60,
+        "halfAngleDeg": 40,
+        "damageMultiplier": 1.2,
+        "statusOnHit": [{ "type": "poison", "durationMs": 5000, "stacks": 2 }],
+        "windupMs": 100
+      }
+    },
+    "plague": {
+      "entityType": "field",
+      "entityConfig": {
+        "fieldRadius": 90,
+        "tickIntervalMs": 800,
+        "fieldDurationMs": 12000,
+        "followCaster": true,
+        "spawnAtCaster": true,
+        "damageMultiplier": 0.25,
+        "statusOnTick": [{ "type": "poison", "durationMs": 4000, "stacks": 1 }],
+        "spreadOnKill": true,
+        "color": "#44aa22"
+      }
+    },
+    "decoy": {
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "decoy",
+        "spawnOffset": 40,
+        "durationMs": 8000,
+        "maxCount": 1,
+        "inheritStats": { "hp": 0.15, "attack": 0, "defense": 0.05 },
+        "aiType": "taunt_static",
+        "size": 18,
+        "color": "#aaaaff",
+        "tauntRadius": 120
+      }
+    },
+    "illusion": {
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "illusion",
+        "spawnOffset": 35,
+        "durationMs": 10000,
+        "maxCount": 1,
+        "inheritStats": { "hp": 0.2, "attack": 0.15, "defense": 0.05 },
+        "aiType": "melee_chase",
+        "attackIntervalMs": 1500,
+        "size": 16,
+        "color": "#ccccff"
+      }
+    },
+    "quintuple_illusion": {
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "illusion",
+        "spawnOffset": 45,
+        "durationMs": 12000,
+        "maxCount": 5,
+        "inheritStats": { "hp": 0.12, "attack": 0.12, "defense": 0.03 },
+        "aiType": "melee_chase",
+        "attackIntervalMs": 1200,
+        "size": 14,
+        "color": "#bbbfff"
+      }
+    },
+    "phantom_clone": {
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "phantom_clone",
+        "spawnOffset": 30,
+        "durationMs": 15000,
+        "maxCount": 1,
+        "inheritStats": { "hp": 0.25, "attack": 0.5, "defense": 0.1 },
+        "aiType": "mirror_player",
+        "attackIntervalMs": 800,
+        "size": 18,
+        "color": "#88aacc",
+        "damageMirrorRatio": 0.5
+      }
+    },
+    "wind_step": {
+      "entityType": "blink",
+      "entityConfig": {
+        "distance": 80,
+        "direction": "facing",
+        "windupMs": 50,
+        "grantMoveSpeed": 8,
+        "grantMoveSpeedMs": 4000,
+        "invincibleMs": 150
+      }
+    },
+    "meteor": {
+      "entityType": "field",
+      "entityConfig": {
+        "triggerType": "delayed_strike",
+        "fieldRadius": 120,
+        "delayMs": 3000,
+        "targeted": true,
+        "damageMultiplier": 8.0,
+        "stunMs": 2000,
+        "statusOnHit": [{ "type": "burn", "durationMs": 5000 }],
+        "color": "#ff4400"
+      }
+    },
+    "natures_wrath": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "radial",
+        "range": 140,
+        "damageMultiplier": 3.0,
+        "knockback": 40,
+        "statusOnHit": [{ "type": "poison", "durationMs": 4000, "stacks": 2 }]
+      }
+    },
+    "death_gaze": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 1500,
+        "maxRange": 800,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 0,
+        "collisionRadius": 8,
+        "windupMs": 1200,
+        "damageMultiplier": 4.0,
+        "guaranteedCrit": true,
+        "color": "#ff0044"
+      }
+    },
+    "nether_gate": {
+      "entityType": "field",
+      "entityConfig": {
+        "triggerType": "delayed_strike",
+        "fieldRadius": 100,
+        "delayMs": 1500,
+        "targeted": true,
+        "spawnAtCaster": false,
+        "damageMultiplier": 2.5,
+        "statusOnHit": [{ "type": "dark_erosion", "durationMs": 6000 }],
+        "summonOnImpact": { "unitId": "skeleton_minion", "count": 3, "durationMs": 20000 },
+        "color": "#442266"
+      }
+    },
+    "nightfall": {
+      "entityType": "field",
+      "entityConfig": {
+        "fieldRadius": 110,
+        "tickIntervalMs": 1000,
+        "fieldDurationMs": 10000,
+        "followCaster": true,
+        "spawnAtCaster": true,
+        "damageMultiplier": 0.8,
+        "statusOnTick": [{ "type": "dark_erosion", "durationMs": 3000 }],
+        "color": "#221133"
+      }
+    },
+    "phantom_storm": {
+      "entityType": "field",
+      "entityConfig": {
+        "fieldRadius": 130,
+        "tickIntervalMs": 600,
+        "fieldDurationMs": 5000,
+        "targeted": true,
+        "followCaster": false,
+        "projectilesPerTick": 2,
+        "projectileConfig": {
+          "speed": 600,
+          "collisionRadius": 14,
+          "damageMultiplier": 0.6,
+          "trajectory": "homing"
+        },
+        "color": "#6688aa"
+      }
+    },
+    "plague_outbreak": {
+      "entityType": "field",
+      "entityConfig": {
+        "triggerType": "instant_burst",
+        "fieldRadius": 100,
+        "targeted": true,
+        "damageMultiplier": 2.0,
+        "spreadPoisonStacks": 3,
+        "spreadRadius": 150,
+        "statusOnHit": [{ "type": "poison", "durationMs": 6000, "stacks": 3 }],
+        "color": "#55dd44"
+      }
+    },
+    "reality_shift": {
+      "entityType": "blink",
+      "entityConfig": {
+        "distance": 100,
+        "direction": "facing",
+        "windupMs": 100,
+        "invincibleMs": 400,
+        "spawnSummonsOnCast": { "unitId": "illusion", "count": 2, "durationMs": 8000 }
+      }
+    },
+    "contagion": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "radial",
+        "range": 120,
+        "damageMultiplier": 1.0,
+        "requiresPoisonedTarget": true,
+        "spreadPoisonStacks": 2,
+        "spreadRadius": 150
+      }
+    },
+    "night_slash": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "cone",
+        "range": 70,
+        "halfAngleDeg": 50,
+        "damageMultiplier": 2.2,
+        "statusOnHit": [{ "type": "dark_erosion", "durationMs": 4000 }],
+        "windupMs": 120
+      }
+    },
+    "death_coil": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 480,
+        "maxRange": 500,
+        "trajectory": "homing",
+        "pierceCount": 0,
+        "collisionRadius": 25,
+        "damageMultiplier": 1.4,
+        "stunMs": 2000,
+        "lifeStealPercent": 30,
+        "color": "#aa88ff"
+      }
+    },
+    "headshot": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 1100,
+        "maxRange": 650,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 0,
+        "collisionRadius": 10,
+        "windupMs": 600,
+        "damageMultiplier": 2.8,
+        "guaranteedCrit": true,
+        "color": "#ffcc00"
+      }
+    },
+    "void_arrow": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 900,
+        "maxRange": 600,
+        "trajectory": "straight_toward_target",
+        "pierceCount": 3,
+        "collisionRadius": 12,
+        "damageMultiplier": 1.8,
+        "statusOnHit": [{ "type": "dark_erosion", "durationMs": 3000 }],
+        "color": "#8866cc"
+      }
+    },
+    "mind_control": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "single",
+        "range": 100,
+        "damageMultiplier": 0.5,
+        "stunMs": 2500,
+        "confuseMs": 3000
+      }
+    },
+    "element_domain": {
+      "entityType": "field",
+      "entityConfig": {
+        "fieldRadius": 100,
+        "tickIntervalMs": 1500,
+        "fieldDurationMs": 8000,
+        "followCaster": true,
+        "spawnAtCaster": true,
+        "damageMultiplier": 0,
+        "randomStatusOnTick": ["burn", "frostbite", "shock"],
+        "color": "#ffaa88"
+      }
+    },
+    "holy_shield_team": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "radial",
+        "range": 0,
+        "selfShieldPercent": 30,
+        "teamShieldPercent": 15,
+        "shieldDurationMs": 8000,
+        "damageMultiplier": 0
+      }
+    },
+    "aegis": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "radial",
+        "range": 0,
+        "selfShieldPercent": 40,
+        "teamShieldPercent": 25,
+        "shieldDurationMs": 8000,
+        "damageMultiplier": 0
+      }
+    },
+    "execute": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "single",
+        "range": 80,
+        "damageMultiplier": 8.0,
+        "executeThreshold": 0.25,
+        "executeBossThreshold": 0.35,
+        "windupMs": 400
+      }
+    },
+    "beast_fusion": {
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "bear_pet",
+        "spawnOffset": 0,
+        "durationMs": 15000,
+        "maxCount": 1,
+        "mergeWithExistingPet": true,
+        "inheritStats": { "hp": 0.8, "attack": 0.6, "defense": 0.4 },
+        "aiType": "melee_chase",
+        "attackIntervalMs": 700,
+        "size": 32,
+        "color": "#886644"
+      }
+    },
+    "prophecy": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "radial",
+        "range": 0,
+        "teamShieldPercent": 20,
+        "shieldDurationMs": 10000,
+        "damageMultiplier": 0
+      }
+    },
+    "whirlwind_slash": {
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "radial",
+        "range": 100,
+        "windupMs": 200,
+        "damageMultiplier": 2.0,
+        "knockback": 25,
+        "breakDamageMultiplier": 1.2,
+        "color": "#ff4444"
+      }
+    }
+  }
+}

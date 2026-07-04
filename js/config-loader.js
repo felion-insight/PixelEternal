@@ -27,12 +27,27 @@ class ConfigLoader {
             // 加载其他配置文件
             const configFiles = [
                 { key: 'MONSTER_TYPES', file: 'config/monster-config.json' },
-                { key: 'EQUIPMENT_DEFINITIONS', file: 'config/equipment-config.json' },
-                { key: 'SET_DEFINITIONS', file: 'config/set-config.json' },
                 { key: 'BOSS_DEFINITIONS', file: 'config/boss-config.json' },
                 { key: 'BUFF_ICON_MAP', file: 'config/buff-icon-config.json' },
                 { key: 'SKILL_ICON_MAP', file: 'config/skill-icon-config.json' },
-                { key: 'MAPPINGS', file: 'config/mappings.json' }
+                { key: 'MAPPINGS', file: 'config/mappings.json' },
+                { key: 'CLASS_CONFIG', file: 'config/class-config.json' },
+                { key: 'WEAPON_AFFINITY_CONFIG', file: 'config/weapon-affinity-config.json' },
+                { key: 'SKILL_CONFIG', file: 'config/skill-config.json' },
+                { key: 'STATUS_SYNERGY_CONFIG', file: 'config/status-synergy-config.json' },
+                { key: 'SKILL_COMBO_CONFIG', file: 'config/skill-combo-config.json' },
+                { key: 'CLASS_BUILD_EQUIPMENT', file: 'config/class-build-equipment.json' },
+                { key: 'CLASS_BUILD_PASSIVES', file: 'config/class-build-passives.json' },
+                { key: 'SKILL_ENTITY_CONFIG', file: 'config/skill-entity-config.json' },
+                { key: 'BASE_TYPES', file: 'config/base-types.json' },
+                { key: 'AFFIX_POOL', file: 'config/affix-pool.json' },
+                { key: 'LEGENDARY_POWERS', file: 'config/legendary-powers.json' },
+                { key: 'SET_DEFINITIONS_V2', file: 'config/set-config-v2.json' },
+                { key: 'CHRONICLE_CONFIG', file: 'config/chronicle-config.json' },
+                { key: 'TRIAL_CONFIG', file: 'config/trial-config.json' },
+                { key: 'TALENT_CONFIG', file: 'config/talent-config.json' },
+                { key: 'TUTORIAL_CONFIG', file: 'config/tutorial-config.json' },
+                { key: 'MATERIAL_DEFINITIONS', file: 'config/material-config.json' }
             ];
 
             for (const { key, file } of configFiles) {
@@ -61,36 +76,6 @@ class ConfigLoader {
                 console.warn('deep-monsters-add.json 未加载或合并失败（深阶追加怪将缺失）:', e);
             }
 
-            // 高阶装备（独立命名与机制属性），合并进 EQUIPMENT_DEFINITIONS
-            try {
-                const deepData = await this.loadJSON('config/equipment-deep-config.json');
-                const extra = (deepData && deepData.EQUIPMENT_DEEP_DEFINITIONS) || [];
-                if (Array.isArray(extra) && extra.length && Array.isArray(this.configs.EQUIPMENT_DEFINITIONS)) {
-                    this.configs.EQUIPMENT_DEFINITIONS = this.configs.EQUIPMENT_DEFINITIONS.concat(extra);
-                }
-            } catch (e) {
-                console.warn('equipment-deep-config.json 未加载或合并失败（可忽略）:', e);
-            }
-
-            try {
-                const deepSetData = await this.loadJSON('config/set-deep-config.json');
-                const extraSets = (deepSetData && deepSetData.SET_DEEP_DEFINITIONS) || {};
-                if (this.configs.SET_DEFINITIONS && typeof this.configs.SET_DEFINITIONS === 'object' && Object.keys(extraSets).length) {
-                    this.configs.SET_DEFINITIONS = Object.assign({}, this.configs.SET_DEFINITIONS, extraSets);
-                }
-            } catch (e) {
-                console.warn('set-deep-config.json 未加载或合并失败（可忽略）:', e);
-            }
-
-            try {
-                const deepSuffix = await this.loadJSON('config/deep-suffix-table.json');
-                if (deepSuffix && typeof deepSuffix === 'object') {
-                    this.configs.DEEP_SUFFIX_TABLE = deepSuffix;
-                }
-            } catch (e) {
-                console.warn('deep-suffix-table.json 未加载（深阶装备词条名将无法解析）:', e);
-            }
-
             try {
                 const projSprites = await this.loadJSON('config/projectile-sprites.json');
                 if (projSprites && typeof projSprites === 'object') {
@@ -98,6 +83,17 @@ class ConfigLoader {
                 }
             } catch (e) {
                 console.warn('projectile-sprites.json 未加载（飞射体将回退为几何绘制）:', e);
+            }
+
+            try {
+                const dungeonCfg = await this.loadJSON('config/dungeon-config.json');
+                if (dungeonCfg && typeof dungeonCfg === 'object') {
+                    if (dungeonCfg.DUNGEON_DEFINITIONS) this.configs.DUNGEON_DEFINITIONS = dungeonCfg.DUNGEON_DEFINITIONS;
+                    if (dungeonCfg.RIFT_AFFIXES) this.configs.RIFT_AFFIXES = dungeonCfg.RIFT_AFFIXES;
+                    if (dungeonCfg.TEAM_RAIDS) this.configs.TEAM_RAIDS = dungeonCfg.TEAM_RAIDS;
+                }
+            } catch (e) {
+                console.warn('dungeon-config.json 未加载:', e);
             }
 
             // 将配置赋值给全局变量
@@ -195,15 +191,10 @@ class ConfigLoader {
             }
             window.MONSTER_TYPES = mt;
         }
-        if (this.configs.EQUIPMENT_DEFINITIONS) {
-            window.EQUIPMENT_DEFINITIONS = this.configs.EQUIPMENT_DEFINITIONS;
-        }
-        if (this.configs.SET_DEFINITIONS) {
-            window.SET_DEFINITIONS = this.configs.SET_DEFINITIONS;
-        }
         if (this.configs.BOSS_DEFINITIONS) {
             window.BOSS_DEFINITIONS = this.configs.BOSS_DEFINITIONS;
         }
+        window.EQUIPMENT_DEFINITIONS = [];
         window.CRAFTING_MATERIAL_DEFINITIONS = [];
         window.CRAFTING_RECIPE_DEFINITIONS = [];
         if (this.configs.BUFF_ICON_MAP) {
@@ -217,11 +208,74 @@ class ConfigLoader {
         if (this.configs.MAPPINGS) {
             window.MAPPINGS = this.configs.MAPPINGS;
         }
-        if (this.configs.DEEP_SUFFIX_TABLE) {
-            window.DEEP_SUFFIX_TABLE = this.configs.DEEP_SUFFIX_TABLE;
-        }
         if (this.configs.PROJECTILE_SPRITE_MAP) {
             window.PROJECTILE_SPRITE_MAP = this.configs.PROJECTILE_SPRITE_MAP;
+        }
+        if (this.configs.CLASS_CONFIG) {
+            window.CLASS_CONFIG = this.configs.CLASS_CONFIG;
+        }
+        if (this.configs.WEAPON_AFFINITY_CONFIG) {
+            window.WEAPON_AFFINITY_CONFIG = this.configs.WEAPON_AFFINITY_CONFIG;
+        }
+        if (this.configs.SKILL_CONFIG) {
+            window.SKILL_CONFIG = this.configs.SKILL_CONFIG;
+        }
+        if (this.configs.STATUS_SYNERGY_CONFIG) {
+            window.STATUS_SYNERGY_CONFIG = this.configs.STATUS_SYNERGY_CONFIG;
+        }
+        if (this.configs.SKILL_COMBO_CONFIG) {
+            window.SKILL_COMBO_CONFIG = this.configs.SKILL_COMBO_CONFIG;
+        }
+        if (this.configs.CLASS_BUILD_EQUIPMENT) {
+            window.CLASS_BUILD_EQUIPMENT = this.configs.CLASS_BUILD_EQUIPMENT;
+        }
+        if (this.configs.CLASS_BUILD_PASSIVES) {
+            window.CLASS_BUILD_PASSIVES = this.configs.CLASS_BUILD_PASSIVES;
+        }
+        if (this.configs.SKILL_ENTITY_CONFIG) {
+            window.SKILL_ENTITY_CONFIG = this.configs.SKILL_ENTITY_CONFIG;
+        }
+        if (this.configs.BASE_TYPES) {
+            window.BASE_TYPES = this.configs.BASE_TYPES;
+        }
+        if (this.configs.AFFIX_POOL) {
+            window.AFFIX_POOL = this.configs.AFFIX_POOL;
+        }
+        if (this.configs.LEGENDARY_POWERS) {
+            window.LEGENDARY_POWERS = this.configs.LEGENDARY_POWERS;
+        }
+        if (this.configs.SET_DEFINITIONS_V2) {
+            window.SET_DEFINITIONS_V2 = this.configs.SET_DEFINITIONS_V2;
+        }
+        if (this.configs.CHRONICLE_CONFIG) {
+            window.CHRONICLE_CONFIG = this.configs.CHRONICLE_CONFIG;
+        }
+        if (this.configs.TRIAL_CONFIG) {
+            window.TRIAL_CONFIG = this.configs.TRIAL_CONFIG;
+        }
+        if (this.configs.TALENT_CONFIG) {
+            window.TALENT_CONFIG = this.configs.TALENT_CONFIG;
+        }
+        if (this.configs.TUTORIAL_CONFIG) {
+            window.TUTORIAL_CONFIG = this.configs.TUTORIAL_CONFIG;
+        }
+        if (this.configs.MATERIAL_DEFINITIONS) {
+            window.MATERIAL_DEFINITIONS = this.configs.MATERIAL_DEFINITIONS;
+        }
+        if (this.configs.DUNGEON_DEFINITIONS) {
+            window.DUNGEON_DEFINITIONS = this.configs.DUNGEON_DEFINITIONS;
+        }
+        if (this.configs.RIFT_AFFIXES) {
+            window.RIFT_AFFIXES = this.configs.RIFT_AFFIXES;
+        }
+        if (this.configs.TEAM_RAIDS) {
+            window.TEAM_RAIDS = this.configs.TEAM_RAIDS;
+        }
+        if (this.configs.DROP_BIAS_CONFIG) {
+            window.DROP_BIAS_CONFIG = this.configs.DROP_BIAS_CONFIG;
+        }
+        if (this.configs.DROP_RARITY_TABLES) {
+            window.DROP_RARITY_TABLES = this.configs.DROP_RARITY_TABLES;
         }
 
         if (typeof window.applyPeSecretsToConfig === 'function') {

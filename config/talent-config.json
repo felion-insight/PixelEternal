@@ -1,0 +1,164 @@
+{
+  "TALENT_CONFIG": {
+    "warrior": {
+      "branches": [
+        {
+          "id": "defense",
+          "name": "防御",
+          "nodes": [
+            { "id": "w_def_1", "tier": 1, "name": "坚韧", "stats": { "hpPercent": 5 } },
+            { "id": "w_def_2", "tier": 2, "name": "铁壁", "stats": { "defensePercent": 8 } },
+            { "id": "w_def_3", "tier": 3, "name": "格挡", "stats": { "damageReduction": 3 } },
+            { "id": "w_def_4", "tier": 4, "name": "复苏", "stats": { "hpPercent": 8 } },
+            { "id": "w_def_5", "tier": 5, "name": "荆棘", "stats": { "thorn": 5 } },
+            { "id": "w_def_6", "tier": 6, "name": "圣盾壁垒", "ultimate": true, "stats": { "damageReduction": 8, "hpPercent": 10 } }
+          ]
+        },
+        {
+          "id": "offense",
+          "name": "进攻",
+          "nodes": [
+            { "id": "w_atk_1", "tier": 1, "name": "蛮力", "stats": { "attackPercent": 5 } },
+            { "id": "w_atk_2", "tier": 2, "name": "精准", "stats": { "critRate": 3 } },
+            { "id": "w_atk_3", "tier": 3, "name": "破甲", "stats": { "attackPercent": 8 } },
+            { "id": "w_atk_4", "tier": 4, "name": "嗜血", "stats": { "lifeSteal": 3 } },
+            { "id": "w_atk_5", "tier": 5, "name": "致命", "stats": { "critDamage": 15 } },
+            { "id": "w_atk_6", "tier": 6, "name": "毁灭打击", "ultimate": true, "stats": { "attackPercent": 15, "critRate": 5 } }
+          ]
+        },
+        {
+          "id": "utility",
+          "name": "战术",
+          "nodes": [
+            { "id": "w_util_1", "tier": 1, "name": "迅捷", "stats": { "moveSpeed": 3 } },
+            { "id": "w_util_2", "tier": 2, "name": "闪避", "stats": { "dodge": 3 } },
+            { "id": "w_util_3", "tier": 3, "name": "战意", "stats": { "skillHaste": 5 } },
+            { "id": "w_util_4", "tier": 4, "name": "疾行", "stats": { "moveSpeed": 5 } },
+            { "id": "w_util_5", "tier": 5, "name": "灵动", "stats": { "dodge": 5 } },
+            { "id": "w_util_6", "tier": 6, "name": "不动如山", "ultimate": true, "stats": { "defensePercent": 12, "moveSpeed": 8 } }
+          ]
+        }
+      ]
+    },
+    "archer": {
+      "branches": [
+        {
+          "id": "defense",
+          "name": "生存",
+          "nodes": [
+            { "id": "a_def_1", "tier": 1, "name": "轻甲", "stats": { "defensePercent": 5 } },
+            { "id": "a_def_2", "tier": 2, "name": "闪身", "stats": { "dodge": 4 } },
+            { "id": "a_def_3", "tier": 3, "name": "撤离", "stats": { "moveSpeed": 5 } },
+            { "id": "a_def_4", "tier": 4, "name": "坚韧", "stats": { "hpPercent": 6 } },
+            { "id": "a_def_5", "tier": 5, "name": "规避", "stats": { "dodge": 6 } },
+            { "id": "a_def_6", "tier": 6, "name": "风之庇护", "ultimate": true, "stats": { "dodge": 10, "moveSpeed": 10 } }
+          ]
+        },
+        {
+          "id": "offense",
+          "name": "射击",
+          "nodes": [
+            { "id": "a_atk_1", "tier": 1, "name": "瞄准", "stats": { "attackPercent": 5 } },
+            { "id": "a_atk_2", "tier": 2, "name": "穿透", "stats": { "critRate": 4 } },
+            { "id": "a_atk_3", "tier": 3, "name": "连射", "stats": { "attackSpeed": 5 } },
+            { "id": "a_atk_4", "tier": 4, "name": "爆头", "stats": { "critDamage": 12 } },
+            { "id": "a_atk_5", "tier": 5, "name": "猎杀", "stats": { "attackPercent": 10 } },
+            { "id": "a_atk_6", "tier": 6, "name": "百步穿杨", "ultimate": true, "stats": { "critRate": 8, "critDamage": 20 } }
+          ]
+        },
+        {
+          "id": "utility",
+          "name": "战术",
+          "nodes": [
+            { "id": "a_util_1", "tier": 1, "name": "追踪", "stats": { "vision": 20 } },
+            { "id": "a_util_2", "tier": 2, "name": "陷阱", "stats": { "skillHaste": 4 } },
+            { "id": "a_util_3", "tier": 3, "name": "疾跑", "stats": { "moveSpeed": 4 } },
+            { "id": "a_util_4", "tier": 4, "name": "标记", "stats": { "attackPercent": 6 } },
+            { "id": "a_util_5", "tier": 5, "name": "专注", "stats": { "critRate": 3 } },
+            { "id": "a_util_6", "tier": 6, "name": "猎人之眼", "ultimate": true, "stats": { "vision": 50, "attackPercent": 12 } }
+          ]
+        }
+      ]
+    },
+    "mage": {
+      "branches": [
+        {
+          "id": "defense",
+          "name": "奥盾",
+          "nodes": [
+            { "id": "m_def_1", "tier": 1, "name": "魔盾", "stats": { "magicDefensePercent": 8 } },
+            { "id": "m_def_2", "tier": 2, "name": "屏障", "stats": { "hpPercent": 5 } },
+            { "id": "m_def_3", "tier": 3, "name": "抗性", "stats": { "damageReduction": 3 } },
+            { "id": "m_def_4", "tier": 4, "name": "冥想", "stats": { "magicDefensePercent": 10 } },
+            { "id": "m_def_5", "tier": 5, "name": "护盾", "stats": { "hpPercent": 8 } },
+            { "id": "m_def_6", "tier": 6, "name": "虚空壁垒", "ultimate": true, "stats": { "magicDefensePercent": 15, "damageReduction": 6 } }
+          ]
+        },
+        {
+          "id": "offense",
+          "name": "元素",
+          "nodes": [
+            { "id": "m_atk_1", "tier": 1, "name": "魔力", "stats": { "magicAttackPercent": 6 } },
+            { "id": "m_atk_2", "tier": 2, "name": "灼烧", "stats": { "magicAttackPercent": 8 } },
+            { "id": "m_atk_3", "tier": 3, "name": "穿透", "stats": { "critRate": 3 } },
+            { "id": "m_atk_4", "tier": 4, "name": "增幅", "stats": { "magicAttackPercent": 10 } },
+            { "id": "m_atk_5", "tier": 5, "name": "过载", "stats": { "critDamage": 15 } },
+            { "id": "m_atk_6", "tier": 6, "name": "元素风暴", "ultimate": true, "stats": { "magicAttackPercent": 18, "skillHaste": 8 } }
+          ]
+        },
+        {
+          "id": "utility",
+          "name": "奥术",
+          "nodes": [
+            { "id": "m_util_1", "tier": 1, "name": "专注", "stats": { "skillHaste": 4 } },
+            { "id": "m_util_2", "tier": 2, "name": "回魔", "stats": { "moveSpeed": 3 } },
+            { "id": "m_util_3", "tier": 3, "name": "传导", "stats": { "magicAttackPercent": 5 } },
+            { "id": "m_util_4", "tier": 4, "name": "急速", "stats": { "skillHaste": 6 } },
+            { "id": "m_util_5", "tier": 5, "name": "洞察", "stats": { "critRate": 4 } },
+            { "id": "m_util_6", "tier": 6, "name": "时光扭曲", "ultimate": true, "stats": { "skillHaste": 12, "moveSpeed": 8 } }
+          ]
+        }
+      ]
+    },
+    "assassin": {
+      "branches": [
+        {
+          "id": "defense",
+          "name": "暗影",
+          "nodes": [
+            { "id": "s_def_1", "tier": 1, "name": "隐匿", "stats": { "dodge": 4 } },
+            { "id": "s_def_2", "tier": 2, "name": "闪避", "stats": { "moveSpeed": 4 } },
+            { "id": "s_def_3", "tier": 3, "name": "脱身", "stats": { "dodge": 5 } },
+            { "id": "s_def_4", "tier": 4, "name": "烟雾", "stats": { "hpPercent": 5 } },
+            { "id": "s_def_5", "tier": 5, "name": "幻影", "stats": { "dodge": 6 } },
+            { "id": "s_def_6", "tier": 6, "name": "虚无之影", "ultimate": true, "stats": { "dodge": 12, "moveSpeed": 10 } }
+          ]
+        },
+        {
+          "id": "offense",
+          "name": "刺杀",
+          "nodes": [
+            { "id": "s_atk_1", "tier": 1, "name": "背刺", "stats": { "attackPercent": 6 } },
+            { "id": "s_atk_2", "tier": 2, "name": "要害", "stats": { "critRate": 5 } },
+            { "id": "s_atk_3", "tier": 3, "name": "毒刃", "stats": { "attackPercent": 8 } },
+            { "id": "s_atk_4", "tier": 4, "name": "致命", "stats": { "critDamage": 15 } },
+            { "id": "s_atk_5", "tier": 5, "name": "处决", "stats": { "attackPercent": 10 } },
+            { "id": "s_atk_6", "tier": 6, "name": "死亡标记", "ultimate": true, "stats": { "critRate": 10, "attackPercent": 15 } }
+          ]
+        },
+        {
+          "id": "utility",
+          "name": "诡术",
+          "nodes": [
+            { "id": "s_util_1", "tier": 1, "name": "敏捷", "stats": { "moveSpeed": 4 } },
+            { "id": "s_util_2", "tier": 2, "name": "迅捷", "stats": { "attackSpeed": 5 } },
+            { "id": "s_util_3", "tier": 3, "name": "迷踪", "stats": { "skillHaste": 5 } },
+            { "id": "s_util_4", "tier": 4, "name": "疾影", "stats": { "moveSpeed": 6 } },
+            { "id": "s_util_5", "tier": 5, "name": "连击", "stats": { "attackSpeed": 8 } },
+            { "id": "s_util_6", "tier": 6, "name": "无影步", "ultimate": true, "stats": { "moveSpeed": 12, "attackSpeed": 10 } }
+          ]
+        }
+      ]
+    }
+  }
+}

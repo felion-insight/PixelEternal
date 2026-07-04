@@ -1,0 +1,1025 @@
+{
+  "version": "2.0",
+  "baseClasses": {
+    "warrior": {
+      "id": "warrior",
+      "name": "战士",
+      "description": "战士 — 基础职业",
+      "icon": "assets/icons/classes/warrior.png",
+      "role": "mdps",
+      "baseStats": {
+        "hp": 150,
+        "attack": 10,
+        "defense": 8,
+        "magicAttack": 5,
+        "magicDefense": 6,
+        "speed": 5,
+        "critical": 5,
+        "dodge": 3
+      },
+      "growthPerLevel": {
+        "hp": 22,
+        "attack": 2.5,
+        "defense": 1.8,
+        "magicAttack": 0.5,
+        "magicDefense": 1,
+        "speed": 0.2,
+        "critical": 0.3,
+        "dodge": 0.15
+      },
+      "resource": {
+        "type": "rage",
+        "max": 100,
+        "regen": 5
+      },
+      "skills": [
+        "basic_attack",
+        "shield_bash",
+        "charge",
+        "defensive_stance"
+      ],
+      "advancements": [
+        "knight",
+        "berserker",
+        "guardian"
+      ],
+      "battleRole": "striker",
+      "battleRoleName": "强攻手·基础"
+    },
+    "archer": {
+      "id": "archer",
+      "name": "弓箭手",
+      "description": "弓箭手 — 基础职业",
+      "icon": "assets/icons/classes/archer.png",
+      "role": "rdps",
+      "baseStats": {
+        "hp": 100,
+        "attack": 9,
+        "defense": 5,
+        "magicAttack": 4,
+        "magicDefense": 5,
+        "speed": 7,
+        "critical": 8,
+        "dodge": 8
+      },
+      "growthPerLevel": {
+        "hp": 15,
+        "attack": 2.2,
+        "defense": 1,
+        "magicAttack": 0.4,
+        "magicDefense": 0.8,
+        "speed": 0.35,
+        "critical": 0.5,
+        "dodge": 0.25
+      },
+      "resource": {
+        "type": "focus",
+        "max": 100,
+        "regen": 8
+      },
+      "skills": [
+        "basic_shot",
+        "backstep",
+        "poison_arrow",
+        "rapid_shot"
+      ],
+      "advancements": [
+        "ranger",
+        "marksman",
+        "windrunner"
+      ],
+      "battleRole": "striker",
+      "battleRoleName": "强攻手·远程"
+    },
+    "mage": {
+      "id": "mage",
+      "name": "法师",
+      "description": "法师 — 基础职业",
+      "icon": "assets/icons/classes/mage.png",
+      "role": "rdps",
+      "baseStats": {
+        "hp": 95,
+        "attack": 5,
+        "defense": 4,
+        "magicAttack": 12,
+        "magicDefense": 8,
+        "speed": 4,
+        "critical": 6,
+        "dodge": 3
+      },
+      "growthPerLevel": {
+        "hp": 12,
+        "attack": 0.8,
+        "defense": 0.8,
+        "magicAttack": 3,
+        "magicDefense": 1.5,
+        "speed": 0.15,
+        "critical": 0.35,
+        "dodge": 0.1
+      },
+      "resource": {
+        "type": "mana",
+        "max": 200,
+        "regen": 10
+      },
+      "skills": [
+        "magic_missile",
+        "fireball",
+        "ice_armor",
+        "blink"
+      ],
+      "advancements": [
+        "wizard",
+        "sage",
+        "warlock"
+      ],
+      "battleRole": "anomaly",
+      "battleRoleName": "异常手·元素"
+    },
+    "assassin": {
+      "id": "assassin",
+      "name": "刺客",
+      "description": "刺客 — 基础职业",
+      "icon": "assets/icons/classes/assassin.png",
+      "role": "mdps",
+      "baseStats": {
+        "hp": 90,
+        "attack": 11,
+        "defense": 4,
+        "magicAttack": 6,
+        "magicDefense": 5,
+        "speed": 8,
+        "critical": 10,
+        "dodge": 12
+      },
+      "growthPerLevel": {
+        "hp": 14,
+        "attack": 2.8,
+        "defense": 0.9,
+        "magicAttack": 0.6,
+        "magicDefense": 0.7,
+        "speed": 0.4,
+        "critical": 0.55,
+        "dodge": 0.35
+      },
+      "resource": {
+        "type": "energy",
+        "max": 120,
+        "regen": 12
+      },
+      "skills": [
+        "basic_stab",
+        "backstab",
+        "stealth",
+        "poison_blade"
+      ],
+      "advancements": [
+        "shadowdancer",
+        "trickster",
+        "venomancer"
+      ],
+      "battleRole": "switch",
+      "battleRoleName": "速切手·敏捷"
+    }
+  },
+  "firstAdvancements": {
+    "knight": {
+      "id": "knight",
+      "name": "骑士",
+      "baseClass": "warrior",
+      "requiredLevel": 20,
+      "description": "骑士",
+      "icon": "assets/icons/classes/knight.png",
+      "role": "tank",
+      "statsModifier": {
+        "hp": 1.2,
+        "attack": 0.9,
+        "defense": 1.3,
+        "magicAttack": 0.8,
+        "magicDefense": 1.1,
+        "speed": 0.9,
+        "critical": 0.8,
+        "dodge": 0.7
+      },
+      "resource": {
+        "type": "rage",
+        "max": 100,
+        "regen": 6
+      },
+      "advancements": [
+        "paladin"
+      ],
+      "battleRole": "breaker",
+      "battleRoleName": "击破手·坦克",
+      "skillEvolution": {
+        "slot": "core1",
+        "first": "holy_shield_bash",
+        "second": "judgment_shield"
+      }
+    },
+    "berserker": {
+      "id": "berserker",
+      "name": "狂战士",
+      "baseClass": "warrior",
+      "requiredLevel": 20,
+      "description": "狂战士",
+      "icon": "assets/icons/classes/berserker.png",
+      "role": "mdps",
+      "statsModifier": {
+        "hp": 1.1,
+        "attack": 1.25,
+        "defense": 0.85,
+        "magicAttack": 0.7,
+        "magicDefense": 0.9,
+        "speed": 1.05,
+        "critical": 1.2,
+        "dodge": 0.6
+      },
+      "resource": {
+        "type": "rage",
+        "max": 120,
+        "regen": 8
+      },
+      "advancements": [
+        "destroyer"
+      ],
+      "battleRole": "striker",
+      "battleRoleName": "强攻手·近战",
+      "skillEvolution": {
+        "slot": "core2",
+        "first": "furious_charge",
+        "second": "devastation_charge"
+      }
+    },
+    "guardian": {
+      "id": "guardian",
+      "name": "守护者",
+      "baseClass": "warrior",
+      "requiredLevel": 20,
+      "description": "守护者",
+      "icon": "assets/icons/classes/guardian.png",
+      "role": "tank",
+      "statsModifier": {
+        "hp": 1.35,
+        "attack": 0.85,
+        "defense": 1.4,
+        "magicAttack": 0.75,
+        "magicDefense": 1.2,
+        "speed": 0.85,
+        "critical": 0.75,
+        "dodge": 0.65
+      },
+      "resource": {
+        "type": "guard",
+        "max": 100,
+        "regen": 4
+      },
+      "advancements": [
+        "temple_knight"
+      ],
+      "battleRole": "support",
+      "battleRoleName": "支援手·坦辅",
+      "skillEvolution": {
+        "slot": "survival",
+        "first": "guardian_stance",
+        "second": "holy_domain"
+      }
+    },
+    "ranger": {
+      "id": "ranger",
+      "name": "游侠",
+      "baseClass": "archer",
+      "requiredLevel": 20,
+      "description": "游侠",
+      "icon": "assets/icons/classes/ranger.png",
+      "role": "rdps",
+      "statsModifier": {
+        "hp": 1.05,
+        "attack": 1.1,
+        "defense": 1,
+        "magicAttack": 0.9,
+        "magicDefense": 1,
+        "speed": 1.1,
+        "critical": 1.05,
+        "dodge": 1.1
+      },
+      "resource": {
+        "type": "pet_energy",
+        "max": 100,
+        "regen": 5
+      },
+      "advancements": [
+        "beastmaster"
+      ],
+      "battleRole": "anomaly",
+      "battleRoleName": "异常手·宠物",
+      "skillEvolution": {
+        "slot": "core1",
+        "first": "summon_wolf",
+        "second": "beast_pack"
+      }
+    },
+    "marksman": {
+      "id": "marksman",
+      "name": "神射手",
+      "baseClass": "archer",
+      "requiredLevel": 20,
+      "description": "神射手",
+      "icon": "assets/icons/classes/marksman.png",
+      "role": "rdps",
+      "statsModifier": {
+        "hp": 0.95,
+        "attack": 1.25,
+        "defense": 0.9,
+        "magicAttack": 0.85,
+        "magicDefense": 0.95,
+        "speed": 0.95,
+        "critical": 1.3,
+        "dodge": 0.9
+      },
+      "resource": {
+        "type": "ammo",
+        "max": 30,
+        "regen": 3
+      },
+      "advancements": [
+        "deadeye"
+      ],
+      "battleRole": "striker",
+      "battleRoleName": "强攻手·远程",
+      "skillEvolution": {
+        "slot": "core2",
+        "first": "aimed_shot",
+        "second": "perfect_shot"
+      }
+    },
+    "windrunner": {
+      "id": "windrunner",
+      "name": "风行者",
+      "baseClass": "archer",
+      "requiredLevel": 20,
+      "description": "风行者",
+      "icon": "assets/icons/classes/windrunner.png",
+      "role": "mdps",
+      "statsModifier": {
+        "hp": 1,
+        "attack": 1.05,
+        "defense": 0.95,
+        "magicAttack": 0.9,
+        "magicDefense": 1,
+        "speed": 1.25,
+        "critical": 1.1,
+        "dodge": 1.25
+      },
+      "resource": {
+        "type": "wind_mark",
+        "max": 100,
+        "regen": 10
+      },
+      "advancements": [
+        "phantom"
+      ],
+      "battleRole": "switch",
+      "battleRoleName": "速切手·机动",
+      "skillEvolution": {
+        "slot": "survival",
+        "first": "wind_step",
+        "second": "phantom_clone"
+      }
+    },
+    "wizard": {
+      "id": "wizard",
+      "name": "巫师",
+      "baseClass": "mage",
+      "requiredLevel": 20,
+      "description": "巫师",
+      "icon": "assets/icons/classes/wizard.png",
+      "role": "rdps",
+      "statsModifier": {
+        "hp": 0.9,
+        "attack": 0.85,
+        "defense": 0.85,
+        "magicAttack": 1.35,
+        "magicDefense": 1.05,
+        "speed": 0.95,
+        "critical": 1.1,
+        "dodge": 0.9
+      },
+      "resource": {
+        "type": "mana",
+        "max": 220,
+        "regen": 12
+      },
+      "advancements": [
+        "archmage"
+      ],
+      "battleRole": "striker",
+      "battleRoleName": "强攻手·AOE",
+      "skillEvolution": {
+        "slot": "core1",
+        "first": "flame_bolt",
+        "second": "lava_storm"
+      }
+    },
+    "sage": {
+      "id": "sage",
+      "name": "贤者",
+      "baseClass": "mage",
+      "requiredLevel": 20,
+      "description": "贤者",
+      "icon": "assets/icons/classes/sage.png",
+      "role": "healer",
+      "statsModifier": {
+        "hp": 1.15,
+        "attack": 0.8,
+        "defense": 1.1,
+        "magicAttack": 1.05,
+        "magicDefense": 1.25,
+        "speed": 0.9,
+        "critical": 0.85,
+        "dodge": 0.95
+      },
+      "resource": {
+        "type": "mana",
+        "max": 250,
+        "regen": 15
+      },
+      "advancements": [
+        "oracle"
+      ],
+      "battleRole": "support",
+      "battleRoleName": "支援手·治疗",
+      "skillEvolution": {
+        "slot": "core2",
+        "first": "healing_wave",
+        "second": "foresight"
+      }
+    },
+    "warlock": {
+      "id": "warlock",
+      "name": "术士",
+      "baseClass": "mage",
+      "requiredLevel": 20,
+      "description": "术士",
+      "icon": "assets/icons/classes/warlock.png",
+      "role": "rdps",
+      "statsModifier": {
+        "hp": 0.95,
+        "attack": 0.9,
+        "defense": 0.9,
+        "magicAttack": 1.25,
+        "magicDefense": 1,
+        "speed": 0.95,
+        "critical": 1.05,
+        "dodge": 0.85
+      },
+      "resource": {
+        "type": "soul_shard",
+        "max": 100,
+        "regen": 6
+      },
+      "advancements": [
+        "necromancer"
+      ],
+      "battleRole": "anomaly",
+      "battleRoleName": "异常手·召唤",
+      "skillEvolution": {
+        "slot": "survival",
+        "first": "summon_skeleton",
+        "second": "skeleton_legion"
+      }
+    },
+    "shadowdancer": {
+      "id": "shadowdancer",
+      "name": "影舞者",
+      "baseClass": "assassin",
+      "requiredLevel": 20,
+      "description": "影舞者",
+      "icon": "assets/icons/classes/shadowdancer.png",
+      "role": "mdps",
+      "statsModifier": {
+        "hp": 0.95,
+        "attack": 1.2,
+        "defense": 0.9,
+        "magicAttack": 0.95,
+        "magicDefense": 0.95,
+        "speed": 1.15,
+        "critical": 1.25,
+        "dodge": 1.2
+      },
+      "resource": {
+        "type": "combo_point",
+        "max": 5,
+        "regen": 0
+      },
+      "advancements": [
+        "nightblade"
+      ],
+      "battleRole": "breaker",
+      "battleRoleName": "击破手·爆发",
+      "skillEvolution": {
+        "slot": "core1",
+        "first": "shadow_strike",
+        "second": "shadow_assault"
+      }
+    },
+    "trickster": {
+      "id": "trickster",
+      "name": "骗术师",
+      "baseClass": "assassin",
+      "requiredLevel": 20,
+      "description": "骗术师",
+      "icon": "assets/icons/classes/trickster.png",
+      "role": "support",
+      "statsModifier": {
+        "hp": 1,
+        "attack": 1,
+        "defense": 1,
+        "magicAttack": 1.1,
+        "magicDefense": 1.05,
+        "speed": 1.1,
+        "critical": 1,
+        "dodge": 1.15
+      },
+      "resource": {
+        "type": "illusion",
+        "max": 100,
+        "regen": 8
+      },
+      "advancements": [
+        "illusionist"
+      ],
+      "battleRole": "switch",
+      "battleRoleName": "速切手·控制",
+      "skillEvolution": {
+        "slot": "core2",
+        "first": "illusion",
+        "second": "quintuple_illusion"
+      }
+    },
+    "venomancer": {
+      "id": "venomancer",
+      "name": "毒师",
+      "baseClass": "assassin",
+      "requiredLevel": 20,
+      "description": "毒师",
+      "icon": "assets/icons/classes/venomancer.png",
+      "role": "mdps",
+      "statsModifier": {
+        "hp": 1.05,
+        "attack": 1.05,
+        "defense": 1,
+        "magicAttack": 1.15,
+        "magicDefense": 1,
+        "speed": 1,
+        "critical": 1,
+        "dodge": 1
+      },
+      "resource": {
+        "type": "poison_stack",
+        "max": 10,
+        "regen": 0
+      },
+      "advancements": [
+        "plaguebringer"
+      ],
+      "battleRole": "anomaly",
+      "battleRoleName": "异常手·DOT",
+      "skillEvolution": {
+        "slot": "survival",
+        "first": "venom_blade",
+        "second": "plague"
+      }
+    }
+  },
+  "secondAdvancements": {
+    "paladin": {
+      "id": "paladin",
+      "name": "圣骑士",
+      "firstAdvancement": "knight",
+      "requiredLevel": 40,
+      "description": "圣骑士",
+      "icon": "assets/icons/classes/paladin.png",
+      "role": "tank",
+      "statsModifier": {
+        "hp": 1.15,
+        "attack": 0.95,
+        "defense": 1.2,
+        "magicAttack": 1.1,
+        "magicDefense": 1.3,
+        "speed": 0.9,
+        "critical": 0.85,
+        "dodge": 0.7
+      },
+      "battleRole": "breaker",
+      "battleRoleName": "击破手·支援坦"
+    },
+    "destroyer": {
+      "id": "destroyer",
+      "name": "毁灭者",
+      "firstAdvancement": "berserker",
+      "requiredLevel": 40,
+      "description": "毁灭者",
+      "icon": "assets/icons/classes/destroyer.png",
+      "role": "mdps",
+      "statsModifier": {
+        "hp": 1.05,
+        "attack": 1.2,
+        "defense": 0.8,
+        "magicAttack": 0.75,
+        "magicDefense": 0.85,
+        "speed": 1,
+        "critical": 1.25,
+        "dodge": 0.55
+      },
+      "battleRole": "striker",
+      "battleRoleName": "强攻手·斩杀"
+    },
+    "temple_knight": {
+      "id": "temple_knight",
+      "name": "神殿骑士",
+      "firstAdvancement": "guardian",
+      "requiredLevel": 40,
+      "description": "神殿骑士",
+      "icon": "assets/icons/classes/temple_knight.png",
+      "role": "tank",
+      "statsModifier": {
+        "hp": 1.2,
+        "attack": 0.9,
+        "defense": 1.25,
+        "magicAttack": 1,
+        "magicDefense": 1.35,
+        "speed": 0.85,
+        "critical": 0.8,
+        "dodge": 0.65
+      },
+      "battleRole": "support",
+      "battleRoleName": "支援手·守护坦"
+    },
+    "beastmaster": {
+      "id": "beastmaster",
+      "name": "兽王",
+      "firstAdvancement": "ranger",
+      "requiredLevel": 40,
+      "description": "兽王",
+      "icon": "assets/icons/classes/beastmaster.png",
+      "role": "rdps",
+      "statsModifier": {
+        "hp": 1.1,
+        "attack": 1.15,
+        "defense": 1.05,
+        "magicAttack": 0.95,
+        "magicDefense": 1,
+        "speed": 1.05,
+        "critical": 1.1,
+        "dodge": 1
+      },
+      "battleRole": "anomaly",
+      "battleRoleName": "异常手·宠物领主"
+    },
+    "deadeye": {
+      "id": "deadeye",
+      "name": "死眼",
+      "firstAdvancement": "marksman",
+      "requiredLevel": 40,
+      "description": "死眼",
+      "icon": "assets/icons/classes/deadeye.png",
+      "role": "rdps",
+      "statsModifier": {
+        "hp": 0.9,
+        "attack": 1.3,
+        "defense": 0.85,
+        "magicAttack": 0.8,
+        "magicDefense": 0.9,
+        "speed": 0.9,
+        "critical": 1.4,
+        "dodge": 0.85
+      },
+      "battleRole": "striker",
+      "battleRoleName": "强攻手·狙击"
+    },
+    "phantom": {
+      "id": "phantom",
+      "name": "幻影",
+      "firstAdvancement": "windrunner",
+      "requiredLevel": 40,
+      "description": "幻影",
+      "icon": "assets/icons/classes/phantom.png",
+      "role": "mdps",
+      "statsModifier": {
+        "hp": 0.95,
+        "attack": 1.1,
+        "defense": 0.9,
+        "magicAttack": 0.95,
+        "magicDefense": 0.95,
+        "speed": 1.35,
+        "critical": 1.15,
+        "dodge": 1.35
+      },
+      "battleRole": "switch",
+      "battleRoleName": "速切手·分身"
+    },
+    "archmage": {
+      "id": "archmage",
+      "name": "大魔导师",
+      "firstAdvancement": "wizard",
+      "requiredLevel": 40,
+      "description": "大魔导师",
+      "icon": "assets/icons/classes/archmage.png",
+      "role": "rdps",
+      "statsModifier": {
+        "hp": 0.85,
+        "attack": 0.8,
+        "defense": 0.8,
+        "magicAttack": 1.45,
+        "magicDefense": 1.1,
+        "speed": 0.9,
+        "critical": 1.15,
+        "dodge": 0.85
+      },
+      "battleRole": "striker",
+      "battleRoleName": "强攻手·元素"
+    },
+    "oracle": {
+      "id": "oracle",
+      "name": "先知",
+      "firstAdvancement": "sage",
+      "requiredLevel": 40,
+      "description": "先知",
+      "icon": "assets/icons/classes/oracle.png",
+      "role": "healer",
+      "statsModifier": {
+        "hp": 1.1,
+        "attack": 0.85,
+        "defense": 1.15,
+        "magicAttack": 1.15,
+        "magicDefense": 1.35,
+        "speed": 0.85,
+        "critical": 0.8,
+        "dodge": 0.9
+      },
+      "battleRole": "support",
+      "battleRoleName": "支援手·时空"
+    },
+    "necromancer": {
+      "id": "necromancer",
+      "name": "死灵法师",
+      "firstAdvancement": "warlock",
+      "requiredLevel": 40,
+      "description": "死灵法师",
+      "icon": "assets/icons/classes/necromancer.png",
+      "role": "rdps",
+      "statsModifier": {
+        "hp": 1,
+        "attack": 0.85,
+        "defense": 0.95,
+        "magicAttack": 1.35,
+        "magicDefense": 1.05,
+        "speed": 0.9,
+        "critical": 1,
+        "dodge": 0.8
+      },
+      "battleRole": "anomaly",
+      "battleRoleName": "异常手·亡灵"
+    },
+    "nightblade": {
+      "id": "nightblade",
+      "name": "夜刃",
+      "firstAdvancement": "shadowdancer",
+      "requiredLevel": 40,
+      "description": "夜刃",
+      "icon": "assets/icons/classes/nightblade.png",
+      "role": "mdps",
+      "statsModifier": {
+        "hp": 0.9,
+        "attack": 1.3,
+        "defense": 0.85,
+        "magicAttack": 1,
+        "magicDefense": 0.9,
+        "speed": 1.2,
+        "critical": 1.35,
+        "dodge": 1.25
+      },
+      "battleRole": "breaker",
+      "battleRoleName": "击破手·暗杀"
+    },
+    "illusionist": {
+      "id": "illusionist",
+      "name": "幻术师",
+      "firstAdvancement": "trickster",
+      "requiredLevel": 40,
+      "description": "幻术师",
+      "icon": "assets/icons/classes/illusionist.png",
+      "role": "support",
+      "statsModifier": {
+        "hp": 0.95,
+        "attack": 1.05,
+        "defense": 0.95,
+        "magicAttack": 1.25,
+        "magicDefense": 1.1,
+        "speed": 1.15,
+        "critical": 1.05,
+        "dodge": 1.2
+      },
+      "battleRole": "switch",
+      "battleRoleName": "速切手·幻象"
+    },
+    "plaguebringer": {
+      "id": "plaguebringer",
+      "name": "瘟疫使者",
+      "firstAdvancement": "venomancer",
+      "requiredLevel": 40,
+      "description": "瘟疫使者",
+      "icon": "assets/icons/classes/plaguebringer.png",
+      "role": "mdps",
+      "statsModifier": {
+        "hp": 1.1,
+        "attack": 1.1,
+        "defense": 1.05,
+        "magicAttack": 1.25,
+        "magicDefense": 1.05,
+        "speed": 0.95,
+        "critical": 1.05,
+        "dodge": 0.95
+      },
+      "battleRole": "anomaly",
+      "battleRoleName": "异常手·瘟疫"
+    }
+  },
+  "battleRoles": {
+    "warrior": {
+      "battleRole": "striker",
+      "battleRoleName": "强攻手·基础"
+    },
+    "archer": {
+      "battleRole": "striker",
+      "battleRoleName": "强攻手·远程"
+    },
+    "mage": {
+      "battleRole": "anomaly",
+      "battleRoleName": "异常手·元素"
+    },
+    "assassin": {
+      "battleRole": "switch",
+      "battleRoleName": "速切手·敏捷"
+    },
+    "knight": {
+      "battleRole": "breaker",
+      "battleRoleName": "击破手·坦克"
+    },
+    "berserker": {
+      "battleRole": "striker",
+      "battleRoleName": "强攻手·近战"
+    },
+    "guardian": {
+      "battleRole": "support",
+      "battleRoleName": "支援手·坦辅"
+    },
+    "ranger": {
+      "battleRole": "anomaly",
+      "battleRoleName": "异常手·宠物"
+    },
+    "marksman": {
+      "battleRole": "striker",
+      "battleRoleName": "强攻手·远程"
+    },
+    "windrunner": {
+      "battleRole": "switch",
+      "battleRoleName": "速切手·机动"
+    },
+    "wizard": {
+      "battleRole": "striker",
+      "battleRoleName": "强攻手·AOE"
+    },
+    "sage": {
+      "battleRole": "support",
+      "battleRoleName": "支援手·治疗"
+    },
+    "warlock": {
+      "battleRole": "anomaly",
+      "battleRoleName": "异常手·召唤"
+    },
+    "shadowdancer": {
+      "battleRole": "breaker",
+      "battleRoleName": "击破手·爆发"
+    },
+    "trickster": {
+      "battleRole": "switch",
+      "battleRoleName": "速切手·控制"
+    },
+    "venomancer": {
+      "battleRole": "anomaly",
+      "battleRoleName": "异常手·DOT"
+    },
+    "paladin": {
+      "battleRole": "breaker",
+      "battleRoleName": "击破手·支援坦"
+    },
+    "destroyer": {
+      "battleRole": "striker",
+      "battleRoleName": "强攻手·斩杀"
+    },
+    "temple_knight": {
+      "battleRole": "support",
+      "battleRoleName": "支援手·守护坦"
+    },
+    "beastmaster": {
+      "battleRole": "anomaly",
+      "battleRoleName": "异常手·宠物领主"
+    },
+    "deadeye": {
+      "battleRole": "striker",
+      "battleRoleName": "强攻手·狙击"
+    },
+    "phantom": {
+      "battleRole": "switch",
+      "battleRoleName": "速切手·分身"
+    },
+    "archmage": {
+      "battleRole": "striker",
+      "battleRoleName": "强攻手·元素"
+    },
+    "oracle": {
+      "battleRole": "support",
+      "battleRoleName": "支援手·时空"
+    },
+    "necromancer": {
+      "battleRole": "anomaly",
+      "battleRoleName": "异常手·亡灵"
+    },
+    "nightblade": {
+      "battleRole": "breaker",
+      "battleRoleName": "击破手·暗杀"
+    },
+    "illusionist": {
+      "battleRole": "switch",
+      "battleRoleName": "速切手·幻象"
+    },
+    "plaguebringer": {
+      "battleRole": "anomaly",
+      "battleRoleName": "异常手·瘟疫"
+    }
+  },
+  "evolutionSlots": {
+    "knight": {
+      "slot": "core1",
+      "first": "holy_shield_bash",
+      "second": "judgment_shield"
+    },
+    "berserker": {
+      "slot": "core2",
+      "first": "furious_charge",
+      "second": "devastation_charge"
+    },
+    "guardian": {
+      "slot": "survival",
+      "first": "guardian_stance",
+      "second": "holy_domain"
+    },
+    "ranger": {
+      "slot": "core1",
+      "first": "summon_wolf",
+      "second": "beast_pack"
+    },
+    "marksman": {
+      "slot": "core2",
+      "first": "aimed_shot",
+      "second": "perfect_shot"
+    },
+    "windrunner": {
+      "slot": "survival",
+      "first": "wind_step",
+      "second": "phantom_clone"
+    },
+    "wizard": {
+      "slot": "core1",
+      "first": "flame_bolt",
+      "second": "lava_storm"
+    },
+    "sage": {
+      "slot": "core2",
+      "first": "healing_wave",
+      "second": "foresight"
+    },
+    "warlock": {
+      "slot": "survival",
+      "first": "summon_skeleton",
+      "second": "skeleton_legion"
+    },
+    "shadowdancer": {
+      "slot": "core1",
+      "first": "shadow_strike",
+      "second": "shadow_assault"
+    },
+    "trickster": {
+      "slot": "core2",
+      "first": "illusion",
+      "second": "quintuple_illusion"
+    },
+    "venomancer": {
+      "slot": "survival",
+      "first": "venom_blade",
+      "second": "plague"
+    }
+  }
+}

@@ -484,7 +484,14 @@
     "tower_entrance": "tile_tower_entrance.png",
     "blacksmith": "tile_blacksmith.png",
     "shop": "tile_shop.png",
-    "training_ground": "tile_training_ground.png"
+    "training_ground": "tile_training_ground.png",
+    "class_master": "tile_tower_entrance.png",
+    "skill_trainer": "tile_training_ground.png",
+    "enchanter": "tile_shop.png",
+    "jeweler": "tile_blacksmith.png",
+    "chronicle_stone": "tile_tower_entrance.png",
+    "awakening_gate": "tile_tower_entrance.png",
+    "material_realm": "tile_training_ground.png"
   },
   "room_entity": {
     "treasure_chest": "tile_treasure_chest.png",

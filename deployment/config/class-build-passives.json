@@ -1,0 +1,73 @@
+{
+  "version": "2.0",
+  "description": "Lv60 流派核心被动 — 战斗运行时定义",
+  "passives": {
+    "retribution": {
+      "name": "惩戒",
+      "holyEnergyMax": 100,
+      "holyEnergyOnSkillHit": 8,
+      "holyEnergyOnBreak": 25,
+      "holyEnergyRegenPerSec": 2,
+      "damageBonusPerEnergy": 0.004,
+      "description": "神圣能量：技能命中积累，破防额外获得；能量越高光系伤害越高"
+    },
+    "blood_demon": {
+      "name": "血魔",
+      "maxHpBonusPercent": 30,
+      "healingReceivedMult": 0.5,
+      "lifeStealPercent": 15,
+      "maxHpOnKillPercent": 2,
+      "maxHpStackCapPercent": 50,
+      "description": "生命上限+30%，吸血+15%，治疗减半；击杀永久提升上限（最多+50%）"
+    },
+    "thorns": {
+      "name": "荆棘",
+      "thornPercent": 25,
+      "reflectPoisonOnHit": true,
+      "description": "反弹25%所受伤害，受击时对攻击者施加中毒"
+    },
+    "executioner": {
+      "name": "处刑人",
+      "executeThresholdPercent": 30,
+      "executeDamageMult": 1.8,
+      "description": "对低于30%生命的敌人伤害+80%"
+    },
+    "arcane": {
+      "name": "奥术",
+      "masteryMaxStacks": 5,
+      "masteryDamagePerStack": 0.08,
+      "masteryResetMs": 8000,
+      "skillCostReductionPercent": 20,
+      "description": "不同元素命中叠层（最多5层，每层+8%伤害）；技能消耗-20%"
+    },
+    "chrono": {
+      "name": "时空",
+      "skillCountForCooldownReset": 3,
+      "cooldownReductionPercent": 15,
+      "slowOnHitPercent": 10,
+      "slowOnHitMs": 2000,
+      "description": "每3次技能释放刷新全技能冷却15%；命中减速敌人"
+    },
+    "corpse_explosion": {
+      "name": "尸爆",
+      "explosionRadius": 90,
+      "explosionDamageMult": 0.8,
+      "statusOnExplosion": "dark_erosion",
+      "description": "击杀敌人时引发尸爆，造成暗属性范围伤害"
+    },
+    "night_lord": {
+      "name": "暗夜",
+      "stealthDamageMult": 1.4,
+      "postVanishDamageMult": 2.0,
+      "postVanishWindowMs": 3000,
+      "description": "隐身/消失期间伤害+40%；现身后3秒内下一击+100%"
+    },
+    "infection": {
+      "name": "传染",
+      "poisonSpreadRadius": 120,
+      "poisonSpreadChance": 0.35,
+      "poisonDurationBonusPercent": 50,
+      "description": "中毒可传播至附近敌人；中毒持续时间+50%"
+    }
+  }
+}

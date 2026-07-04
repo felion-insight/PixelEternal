@@ -1,0 +1,1387 @@
+{
+  "version": "1.0",
+  "qualityPrefixes": {
+    "normal": [
+      "",
+      ""
+    ],
+    "magic": [
+      "微",
+      "淬",
+      "灵"
+    ],
+    "rare": [
+      "辉",
+      "湛",
+      "锐"
+    ],
+    "epic": [
+      "炽",
+      "逆",
+      "耀"
+    ],
+    "legendary": [
+      "圣",
+      "龙",
+      "天"
+    ],
+    "mythic": [
+      "神",
+      "终",
+      "无"
+    ]
+  },
+  "classStyleWords": {
+    "warrior": [
+      "铁",
+      "钢",
+      "龙",
+      "圣",
+      "盾"
+    ],
+    "archer": [
+      "猎",
+      "风",
+      "羽",
+      "迅",
+      "踪"
+    ],
+    "mage": [
+      "秘",
+      "星",
+      "咒",
+      "织",
+      "咏"
+    ],
+    "assassin": [
+      "暗",
+      "影",
+      "夜",
+      "潜",
+      "隐"
+    ]
+  },
+  "weapons": {
+    "sword_balanced": {
+      "slot": "weapon",
+      "weaponType": "sword",
+      "name": "均衡武器",
+      "style": "balanced",
+      "baseStatsPerLevel": {
+        "attack": 2.2,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "sword_heavy": {
+      "slot": "weapon",
+      "weaponType": "sword",
+      "name": "重击武器",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "attack": 2.9700000000000006,
+        "critRate": 0.15,
+        "critDamage": 0.8
+      },
+      "implicit": {
+        "critDamage": 15
+      }
+    },
+    "sword_swift": {
+      "slot": "weapon",
+      "weaponType": "sword",
+      "name": "迅捷武器",
+      "style": "swift",
+      "baseStatsPerLevel": {
+        "attack": 1.87,
+        "critRate": 0.3,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critRate": 8
+      }
+    },
+    "sword_arcane": {
+      "slot": "weapon",
+      "weaponType": "sword",
+      "name": "秘法武器",
+      "style": "arcane",
+      "baseStatsPerLevel": {
+        "attack": 2.4200000000000004,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    },
+    "axe_balanced": {
+      "slot": "weapon",
+      "weaponType": "axe",
+      "name": "均衡武器",
+      "style": "balanced",
+      "baseStatsPerLevel": {
+        "attack": 2.2,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "axe_heavy": {
+      "slot": "weapon",
+      "weaponType": "axe",
+      "name": "重击武器",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "attack": 2.9700000000000006,
+        "critRate": 0.15,
+        "critDamage": 0.8
+      },
+      "implicit": {
+        "critDamage": 15
+      }
+    },
+    "axe_swift": {
+      "slot": "weapon",
+      "weaponType": "axe",
+      "name": "迅捷武器",
+      "style": "swift",
+      "baseStatsPerLevel": {
+        "attack": 1.87,
+        "critRate": 0.3,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critRate": 8
+      }
+    },
+    "axe_arcane": {
+      "slot": "weapon",
+      "weaponType": "axe",
+      "name": "秘法武器",
+      "style": "arcane",
+      "baseStatsPerLevel": {
+        "attack": 2.4200000000000004,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    },
+    "hammer_balanced": {
+      "slot": "weapon",
+      "weaponType": "hammer",
+      "name": "均衡武器",
+      "style": "balanced",
+      "baseStatsPerLevel": {
+        "attack": 2.2,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "hammer_heavy": {
+      "slot": "weapon",
+      "weaponType": "hammer",
+      "name": "重击武器",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "attack": 2.9700000000000006,
+        "critRate": 0.15,
+        "critDamage": 0.8
+      },
+      "implicit": {
+        "critDamage": 15
+      }
+    },
+    "hammer_swift": {
+      "slot": "weapon",
+      "weaponType": "hammer",
+      "name": "迅捷武器",
+      "style": "swift",
+      "baseStatsPerLevel": {
+        "attack": 1.87,
+        "critRate": 0.3,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critRate": 8
+      }
+    },
+    "hammer_arcane": {
+      "slot": "weapon",
+      "weaponType": "hammer",
+      "name": "秘法武器",
+      "style": "arcane",
+      "baseStatsPerLevel": {
+        "attack": 2.4200000000000004,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    },
+    "spear_balanced": {
+      "slot": "weapon",
+      "weaponType": "spear",
+      "name": "均衡武器",
+      "style": "balanced",
+      "baseStatsPerLevel": {
+        "attack": 2.2,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "spear_heavy": {
+      "slot": "weapon",
+      "weaponType": "spear",
+      "name": "重击武器",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "attack": 2.9700000000000006,
+        "critRate": 0.15,
+        "critDamage": 0.8
+      },
+      "implicit": {
+        "critDamage": 15
+      }
+    },
+    "spear_swift": {
+      "slot": "weapon",
+      "weaponType": "spear",
+      "name": "迅捷武器",
+      "style": "swift",
+      "baseStatsPerLevel": {
+        "attack": 1.87,
+        "critRate": 0.3,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critRate": 8
+      }
+    },
+    "spear_arcane": {
+      "slot": "weapon",
+      "weaponType": "spear",
+      "name": "秘法武器",
+      "style": "arcane",
+      "baseStatsPerLevel": {
+        "attack": 2.4200000000000004,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    },
+    "bow_balanced": {
+      "slot": "weapon",
+      "weaponType": "bow",
+      "name": "均衡武器",
+      "style": "balanced",
+      "baseStatsPerLevel": {
+        "attack": 2.2,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "bow_heavy": {
+      "slot": "weapon",
+      "weaponType": "bow",
+      "name": "重击武器",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "attack": 2.9700000000000006,
+        "critRate": 0.15,
+        "critDamage": 0.8
+      },
+      "implicit": {
+        "critDamage": 15
+      }
+    },
+    "bow_swift": {
+      "slot": "weapon",
+      "weaponType": "bow",
+      "name": "迅捷武器",
+      "style": "swift",
+      "baseStatsPerLevel": {
+        "attack": 1.87,
+        "critRate": 0.3,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critRate": 8
+      }
+    },
+    "bow_arcane": {
+      "slot": "weapon",
+      "weaponType": "bow",
+      "name": "秘法武器",
+      "style": "arcane",
+      "baseStatsPerLevel": {
+        "attack": 2.4200000000000004,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    },
+    "crossbow_balanced": {
+      "slot": "weapon",
+      "weaponType": "crossbow",
+      "name": "均衡武器",
+      "style": "balanced",
+      "baseStatsPerLevel": {
+        "attack": 2.2,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "crossbow_heavy": {
+      "slot": "weapon",
+      "weaponType": "crossbow",
+      "name": "重击武器",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "attack": 2.9700000000000006,
+        "critRate": 0.15,
+        "critDamage": 0.8
+      },
+      "implicit": {
+        "critDamage": 15
+      }
+    },
+    "crossbow_swift": {
+      "slot": "weapon",
+      "weaponType": "crossbow",
+      "name": "迅捷武器",
+      "style": "swift",
+      "baseStatsPerLevel": {
+        "attack": 1.87,
+        "critRate": 0.3,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critRate": 8
+      }
+    },
+    "crossbow_arcane": {
+      "slot": "weapon",
+      "weaponType": "crossbow",
+      "name": "秘法武器",
+      "style": "arcane",
+      "baseStatsPerLevel": {
+        "attack": 2.4200000000000004,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    },
+    "longbow_balanced": {
+      "slot": "weapon",
+      "weaponType": "longbow",
+      "name": "均衡武器",
+      "style": "balanced",
+      "baseStatsPerLevel": {
+        "attack": 2.2,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "longbow_heavy": {
+      "slot": "weapon",
+      "weaponType": "longbow",
+      "name": "重击武器",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "attack": 2.9700000000000006,
+        "critRate": 0.15,
+        "critDamage": 0.8
+      },
+      "implicit": {
+        "critDamage": 15
+      }
+    },
+    "longbow_swift": {
+      "slot": "weapon",
+      "weaponType": "longbow",
+      "name": "迅捷武器",
+      "style": "swift",
+      "baseStatsPerLevel": {
+        "attack": 1.87,
+        "critRate": 0.3,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critRate": 8
+      }
+    },
+    "longbow_arcane": {
+      "slot": "weapon",
+      "weaponType": "longbow",
+      "name": "秘法武器",
+      "style": "arcane",
+      "baseStatsPerLevel": {
+        "attack": 2.4200000000000004,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    },
+    "shortbow_balanced": {
+      "slot": "weapon",
+      "weaponType": "shortbow",
+      "name": "均衡武器",
+      "style": "balanced",
+      "baseStatsPerLevel": {
+        "attack": 2.2,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "shortbow_heavy": {
+      "slot": "weapon",
+      "weaponType": "shortbow",
+      "name": "重击武器",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "attack": 2.9700000000000006,
+        "critRate": 0.15,
+        "critDamage": 0.8
+      },
+      "implicit": {
+        "critDamage": 15
+      }
+    },
+    "shortbow_swift": {
+      "slot": "weapon",
+      "weaponType": "shortbow",
+      "name": "迅捷武器",
+      "style": "swift",
+      "baseStatsPerLevel": {
+        "attack": 1.87,
+        "critRate": 0.3,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critRate": 8
+      }
+    },
+    "shortbow_arcane": {
+      "slot": "weapon",
+      "weaponType": "shortbow",
+      "name": "秘法武器",
+      "style": "arcane",
+      "baseStatsPerLevel": {
+        "attack": 2.4200000000000004,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    },
+    "staff_balanced": {
+      "slot": "weapon",
+      "weaponType": "staff",
+      "name": "均衡法器",
+      "style": "balanced",
+      "baseStatsPerLevel": {
+        "magicAttack": 1.8,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "staff_heavy": {
+      "slot": "weapon",
+      "weaponType": "staff",
+      "name": "重击法器",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "magicAttack": 2.43,
+        "critRate": 0.15,
+        "critDamage": 0.8
+      },
+      "implicit": {
+        "critDamage": 15
+      }
+    },
+    "staff_swift": {
+      "slot": "weapon",
+      "weaponType": "staff",
+      "name": "迅捷法器",
+      "style": "swift",
+      "baseStatsPerLevel": {
+        "magicAttack": 1.53,
+        "critRate": 0.3,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critRate": 8
+      }
+    },
+    "staff_arcane": {
+      "slot": "weapon",
+      "weaponType": "staff",
+      "name": "秘法法器",
+      "style": "arcane",
+      "baseStatsPerLevel": {
+        "magicAttack": 1.9800000000000002,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    },
+    "book_balanced": {
+      "slot": "weapon",
+      "weaponType": "book",
+      "name": "均衡法器",
+      "style": "balanced",
+      "baseStatsPerLevel": {
+        "magicAttack": 1.8,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "book_heavy": {
+      "slot": "weapon",
+      "weaponType": "book",
+      "name": "重击法器",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "magicAttack": 2.43,
+        "critRate": 0.15,
+        "critDamage": 0.8
+      },
+      "implicit": {
+        "critDamage": 15
+      }
+    },
+    "book_swift": {
+      "slot": "weapon",
+      "weaponType": "book",
+      "name": "迅捷法器",
+      "style": "swift",
+      "baseStatsPerLevel": {
+        "magicAttack": 1.53,
+        "critRate": 0.3,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critRate": 8
+      }
+    },
+    "book_arcane": {
+      "slot": "weapon",
+      "weaponType": "book",
+      "name": "秘法法器",
+      "style": "arcane",
+      "baseStatsPerLevel": {
+        "magicAttack": 1.9800000000000002,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    },
+    "orb_balanced": {
+      "slot": "weapon",
+      "weaponType": "orb",
+      "name": "均衡法器",
+      "style": "balanced",
+      "baseStatsPerLevel": {
+        "magicAttack": 1.8,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "orb_heavy": {
+      "slot": "weapon",
+      "weaponType": "orb",
+      "name": "重击法器",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "magicAttack": 2.43,
+        "critRate": 0.15,
+        "critDamage": 0.8
+      },
+      "implicit": {
+        "critDamage": 15
+      }
+    },
+    "orb_swift": {
+      "slot": "weapon",
+      "weaponType": "orb",
+      "name": "迅捷法器",
+      "style": "swift",
+      "baseStatsPerLevel": {
+        "magicAttack": 1.53,
+        "critRate": 0.3,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critRate": 8
+      }
+    },
+    "orb_arcane": {
+      "slot": "weapon",
+      "weaponType": "orb",
+      "name": "秘法法器",
+      "style": "arcane",
+      "baseStatsPerLevel": {
+        "magicAttack": 1.9800000000000002,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    },
+    "rune_balanced": {
+      "slot": "weapon",
+      "weaponType": "rune",
+      "name": "均衡法器",
+      "style": "balanced",
+      "baseStatsPerLevel": {
+        "magicAttack": 1.8,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "rune_heavy": {
+      "slot": "weapon",
+      "weaponType": "rune",
+      "name": "重击法器",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "magicAttack": 2.43,
+        "critRate": 0.15,
+        "critDamage": 0.8
+      },
+      "implicit": {
+        "critDamage": 15
+      }
+    },
+    "rune_swift": {
+      "slot": "weapon",
+      "weaponType": "rune",
+      "name": "迅捷法器",
+      "style": "swift",
+      "baseStatsPerLevel": {
+        "magicAttack": 1.53,
+        "critRate": 0.3,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critRate": 8
+      }
+    },
+    "rune_arcane": {
+      "slot": "weapon",
+      "weaponType": "rune",
+      "name": "秘法法器",
+      "style": "arcane",
+      "baseStatsPerLevel": {
+        "magicAttack": 1.9800000000000002,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    },
+    "dagger_balanced": {
+      "slot": "weapon",
+      "weaponType": "dagger",
+      "name": "均衡武器",
+      "style": "balanced",
+      "baseStatsPerLevel": {
+        "attack": 2.2,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "dagger_heavy": {
+      "slot": "weapon",
+      "weaponType": "dagger",
+      "name": "重击武器",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "attack": 2.9700000000000006,
+        "critRate": 0.15,
+        "critDamage": 0.8
+      },
+      "implicit": {
+        "critDamage": 15
+      }
+    },
+    "dagger_swift": {
+      "slot": "weapon",
+      "weaponType": "dagger",
+      "name": "迅捷武器",
+      "style": "swift",
+      "baseStatsPerLevel": {
+        "attack": 1.87,
+        "critRate": 0.3,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critRate": 8
+      }
+    },
+    "dagger_arcane": {
+      "slot": "weapon",
+      "weaponType": "dagger",
+      "name": "秘法武器",
+      "style": "arcane",
+      "baseStatsPerLevel": {
+        "attack": 2.4200000000000004,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    },
+    "claw_balanced": {
+      "slot": "weapon",
+      "weaponType": "claw",
+      "name": "均衡武器",
+      "style": "balanced",
+      "baseStatsPerLevel": {
+        "attack": 2.2,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "claw_heavy": {
+      "slot": "weapon",
+      "weaponType": "claw",
+      "name": "重击武器",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "attack": 2.9700000000000006,
+        "critRate": 0.15,
+        "critDamage": 0.8
+      },
+      "implicit": {
+        "critDamage": 15
+      }
+    },
+    "claw_swift": {
+      "slot": "weapon",
+      "weaponType": "claw",
+      "name": "迅捷武器",
+      "style": "swift",
+      "baseStatsPerLevel": {
+        "attack": 1.87,
+        "critRate": 0.3,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critRate": 8
+      }
+    },
+    "claw_arcane": {
+      "slot": "weapon",
+      "weaponType": "claw",
+      "name": "秘法武器",
+      "style": "arcane",
+      "baseStatsPerLevel": {
+        "attack": 2.4200000000000004,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    },
+    "shortblade_balanced": {
+      "slot": "weapon",
+      "weaponType": "shortblade",
+      "name": "均衡武器",
+      "style": "balanced",
+      "baseStatsPerLevel": {
+        "attack": 2.2,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "shortblade_heavy": {
+      "slot": "weapon",
+      "weaponType": "shortblade",
+      "name": "重击武器",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "attack": 2.9700000000000006,
+        "critRate": 0.15,
+        "critDamage": 0.8
+      },
+      "implicit": {
+        "critDamage": 15
+      }
+    },
+    "shortblade_swift": {
+      "slot": "weapon",
+      "weaponType": "shortblade",
+      "name": "迅捷武器",
+      "style": "swift",
+      "baseStatsPerLevel": {
+        "attack": 1.87,
+        "critRate": 0.3,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critRate": 8
+      }
+    },
+    "shortblade_arcane": {
+      "slot": "weapon",
+      "weaponType": "shortblade",
+      "name": "秘法武器",
+      "style": "arcane",
+      "baseStatsPerLevel": {
+        "attack": 2.4200000000000004,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    },
+    "chainblade_balanced": {
+      "slot": "weapon",
+      "weaponType": "chainblade",
+      "name": "均衡武器",
+      "style": "balanced",
+      "baseStatsPerLevel": {
+        "attack": 2.2,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "chainblade_heavy": {
+      "slot": "weapon",
+      "weaponType": "chainblade",
+      "name": "重击武器",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "attack": 2.9700000000000006,
+        "critRate": 0.15,
+        "critDamage": 0.8
+      },
+      "implicit": {
+        "critDamage": 15
+      }
+    },
+    "chainblade_swift": {
+      "slot": "weapon",
+      "weaponType": "chainblade",
+      "name": "迅捷武器",
+      "style": "swift",
+      "baseStatsPerLevel": {
+        "attack": 1.87,
+        "critRate": 0.3,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "critRate": 8
+      }
+    },
+    "chainblade_arcane": {
+      "slot": "weapon",
+      "weaponType": "chainblade",
+      "name": "秘法武器",
+      "style": "arcane",
+      "baseStatsPerLevel": {
+        "attack": 2.4200000000000004,
+        "critRate": 0.15,
+        "critDamage": 0.4
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    }
+  },
+  "offHand": {
+    "light_shield": {
+      "slot": "offHand",
+      "name": "轻盾",
+      "classAffinity": "warrior",
+      "baseStats": {
+        "defense": 8,
+        "health": 20
+      },
+      "implicit": {
+        "damageReduction": 1
+      }
+    },
+    "heavy_shield": {
+      "slot": "offHand",
+      "name": "重盾",
+      "classAffinity": "warrior",
+      "baseStats": {
+        "defense": 14,
+        "health": 40
+      },
+      "implicit": {
+        "damageReduction": 3
+      }
+    },
+    "holy_shield": {
+      "slot": "offHand",
+      "name": "圣盾",
+      "classAffinity": "warrior",
+      "baseStats": {
+        "defense": 10,
+        "health": 30
+      },
+      "implicit": {
+        "lifeSteal": 2
+      }
+    },
+    "light_quiver": {
+      "slot": "offHand",
+      "name": "轻箭袋",
+      "classAffinity": "archer",
+      "baseStats": {
+        "attackSpeed": 8,
+        "critRate": 3
+      },
+      "implicit": {
+        "attackSpeed": 5
+      }
+    },
+    "heavy_quiver": {
+      "slot": "offHand",
+      "name": "重箭袋",
+      "classAffinity": "archer",
+      "baseStats": {
+        "attack": 6,
+        "critDamage": 12
+      },
+      "implicit": {
+        "critDamage": 10
+      }
+    },
+    "element_quiver": {
+      "slot": "offHand",
+      "name": "元素箭袋",
+      "classAffinity": "archer",
+      "baseStats": {
+        "attack": 4,
+        "critRate": 5
+      },
+      "implicit": {
+        "skillHaste": 4
+      }
+    },
+    "spellbook": {
+      "slot": "offHand",
+      "name": "魔典",
+      "classAffinity": "mage",
+      "baseStats": {
+        "magicAttack": 8,
+        "skillHaste": 5
+      },
+      "implicit": {
+        "skillHaste": 5
+      }
+    },
+    "focus_orb": {
+      "slot": "offHand",
+      "name": "法球",
+      "classAffinity": "mage",
+      "baseStats": {
+        "magicAttack": 6,
+        "magicDefense": 4
+      },
+      "implicit": {
+        "skillHaste": 3
+      }
+    },
+    "element_orb": {
+      "slot": "offHand",
+      "name": "元素球",
+      "classAffinity": "mage",
+      "baseStats": {
+        "magicAttack": 10
+      },
+      "implicit": {
+        "critRate": 4
+      }
+    },
+    "off_dagger": {
+      "slot": "offHand",
+      "name": "副手匕首",
+      "classAffinity": "assassin",
+      "baseStats": {
+        "critRate": 6,
+        "attackSpeed": 6
+      },
+      "implicit": {
+        "critRate": 5
+      }
+    },
+    "poison_dagger": {
+      "slot": "offHand",
+      "name": "毒匕",
+      "classAffinity": "assassin",
+      "baseStats": {
+        "attack": 5,
+        "critRate": 4
+      },
+      "implicit": {
+        "lifeSteal": 3
+      }
+    },
+    "shadow_dagger": {
+      "slot": "offHand",
+      "name": "暗匕",
+      "classAffinity": "assassin",
+      "baseStats": {
+        "critDamage": 15,
+        "dodge": 4
+      },
+      "implicit": {
+        "dodge": 3
+      }
+    }
+  },
+  "armor": {
+    "helmet_heavy": {
+      "slot": "helmet",
+      "name": "重型盔",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "health": 4.199999999999999,
+        "defense": 1.7999999999999998,
+        "magicDefense": 0.8999999999999999
+      },
+      "implicit": {
+        "damageReduction": 2
+      }
+    },
+    "helmet_medium": {
+      "slot": "helmet",
+      "name": "中型盔",
+      "style": "medium",
+      "baseStatsPerLevel": {
+        "health": 3,
+        "defense": 1.2,
+        "magicDefense": 0.6
+      },
+      "implicit": {
+        "dodge": 3
+      }
+    },
+    "helmet_light": {
+      "slot": "helmet",
+      "name": "轻型盔",
+      "style": "light",
+      "baseStatsPerLevel": {
+        "health": 2.0999999999999996,
+        "defense": 0.84,
+        "magicDefense": 0.42
+      },
+      "implicit": {
+        "skillHaste": 5
+      }
+    },
+    "body_heavy": {
+      "slot": "body",
+      "name": "重型铠",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "health": 4.199999999999999,
+        "defense": 1.7999999999999998,
+        "magicDefense": 0.8999999999999999
+      },
+      "implicit": {
+        "damageReduction": 2
+      }
+    },
+    "body_medium": {
+      "slot": "body",
+      "name": "中型铠",
+      "style": "medium",
+      "baseStatsPerLevel": {
+        "health": 3,
+        "defense": 1.2,
+        "magicDefense": 0.6
+      },
+      "implicit": {
+        "dodge": 3
+      }
+    },
+    "body_light": {
+      "slot": "body",
+      "name": "轻型铠",
+      "style": "light",
+      "baseStatsPerLevel": {
+        "health": 2.0999999999999996,
+        "defense": 0.84,
+        "magicDefense": 0.42
+      },
+      "implicit": {
+        "skillHaste": 5
+      }
+    },
+    "hands_heavy": {
+      "slot": "hands",
+      "name": "重型手",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "health": 4.199999999999999,
+        "defense": 1.7999999999999998,
+        "magicDefense": 0.8999999999999999
+      },
+      "implicit": {
+        "damageReduction": 2
+      }
+    },
+    "hands_medium": {
+      "slot": "hands",
+      "name": "中型手",
+      "style": "medium",
+      "baseStatsPerLevel": {
+        "health": 3,
+        "defense": 1.2,
+        "magicDefense": 0.6
+      },
+      "implicit": {
+        "dodge": 3
+      }
+    },
+    "hands_light": {
+      "slot": "hands",
+      "name": "轻型手",
+      "style": "light",
+      "baseStatsPerLevel": {
+        "health": 2.0999999999999996,
+        "defense": 0.84,
+        "magicDefense": 0.42
+      },
+      "implicit": {
+        "skillHaste": 5
+      }
+    },
+    "legs_heavy": {
+      "slot": "legs",
+      "name": "重型腿",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "health": 4.199999999999999,
+        "defense": 1.7999999999999998,
+        "magicDefense": 0.8999999999999999
+      },
+      "implicit": {
+        "damageReduction": 2
+      }
+    },
+    "legs_medium": {
+      "slot": "legs",
+      "name": "中型腿",
+      "style": "medium",
+      "baseStatsPerLevel": {
+        "health": 3,
+        "defense": 1.2,
+        "magicDefense": 0.6
+      },
+      "implicit": {
+        "dodge": 3
+      }
+    },
+    "legs_light": {
+      "slot": "legs",
+      "name": "轻型腿",
+      "style": "light",
+      "baseStatsPerLevel": {
+        "health": 2.0999999999999996,
+        "defense": 0.84,
+        "magicDefense": 0.42
+      },
+      "implicit": {
+        "skillHaste": 5
+      }
+    },
+    "feet_heavy": {
+      "slot": "feet",
+      "name": "重型靴",
+      "style": "heavy",
+      "baseStatsPerLevel": {
+        "health": 4.199999999999999,
+        "defense": 1.7999999999999998,
+        "magicDefense": 0.8999999999999999
+      },
+      "implicit": {
+        "damageReduction": 2
+      }
+    },
+    "feet_medium": {
+      "slot": "feet",
+      "name": "中型靴",
+      "style": "medium",
+      "baseStatsPerLevel": {
+        "health": 3,
+        "defense": 1.2,
+        "magicDefense": 0.6
+      },
+      "implicit": {
+        "dodge": 3
+      }
+    },
+    "feet_light": {
+      "slot": "feet",
+      "name": "轻型靴",
+      "style": "light",
+      "baseStatsPerLevel": {
+        "health": 2.0999999999999996,
+        "defense": 0.84,
+        "magicDefense": 0.42
+      },
+      "implicit": {
+        "skillHaste": 5
+      }
+    }
+  },
+  "accessories": {
+    "guard_amulet": {
+      "slot": "amulet",
+      "name": "守护护符",
+      "baseStatsPerLevel": {
+        "damageReduction": 0.7,
+        "health": 5.25
+      },
+      "implicit": {}
+    },
+    "power_amulet": {
+      "slot": "amulet",
+      "name": "力量护符",
+      "baseStatsPerLevel": {
+        "attack": 1.75,
+        "magicAttack": 1.75
+      },
+      "implicit": {}
+    },
+    "wisdom_amulet": {
+      "slot": "amulet",
+      "name": "智慧护符",
+      "baseStatsPerLevel": {
+        "magicAttack": 2.8,
+        "skillHaste": 1.4
+      },
+      "implicit": {}
+    },
+    "attack_ring": {
+      "slot": "ring",
+      "name": "攻击戒指",
+      "baseStatsPerLevel": {
+        "critRate": 1.4,
+        "critDamage": 2.8
+      },
+      "implicit": {}
+    },
+    "defense_ring": {
+      "slot": "ring",
+      "name": "防御戒指",
+      "baseStatsPerLevel": {
+        "dodge": 1.4,
+        "defense": 1.4
+      },
+      "implicit": {}
+    },
+    "resource_ring": {
+      "slot": "ring",
+      "name": "资源戒指",
+      "baseStatsPerLevel": {
+        "skillHaste": 1.75,
+        "attackSpeed": 1.4
+      },
+      "implicit": {}
+    },
+    "vitality_belt": {
+      "slot": "belt",
+      "name": "巨力腰带",
+      "baseStatsPerLevel": {
+        "health": 10.5,
+        "defense": 1.0499999999999998
+      },
+      "implicit": {}
+    },
+    "swift_belt": {
+      "slot": "belt",
+      "name": "迅捷腰带",
+      "baseStatsPerLevel": {
+        "moveSpeed": 1.75,
+        "attackSpeed": 1.4
+      },
+      "implicit": {}
+    },
+    "arcane_belt": {
+      "slot": "belt",
+      "name": "魔法腰带",
+      "baseStatsPerLevel": {
+        "skillHaste": 2.0999999999999996,
+        "magicAttack": 1.4
+      },
+      "implicit": {}
+    }
+  }
+}

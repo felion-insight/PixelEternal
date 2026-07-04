@@ -1,0 +1,40 @@
+{
+  "TRIAL_CONFIG": {
+    "firstJob": {
+      "warrior": {
+        "bossId": "trial_boss_warrior",
+        "title": "战士试炼",
+        "hint": "击败试炼铁人，证明战士之道"
+      },
+      "archer": {
+        "bossId": "trial_boss_archer",
+        "title": "射手试炼",
+        "hint": "击败猎场魔像，证明射术"
+      },
+      "mage": {
+        "bossId": "trial_boss_mage",
+        "title": "法师试炼",
+        "hint": "击败元素畸变体，掌控魔力"
+      },
+      "assassin": {
+        "bossId": "trial_boss_assassin",
+        "title": "刺客试炼",
+        "hint": "击败暗影猎手，完成暗杀试炼"
+      }
+    },
+    "secondJob": {
+      "paladin": { "bossId": "trial_boss_paladin", "title": "圣骑士觉醒", "hint": "击败堕落圣骑士" },
+      "destroyer": { "bossId": "trial_boss_destroyer", "title": "毁灭者觉醒", "hint": "击败狂暴战鬼" },
+      "temple_knight": { "bossId": "trial_boss_temple_knight", "title": "神殿骑士觉醒", "hint": "击败守护者之影" },
+      "beastmaster": { "bossId": "trial_boss_beastmaster", "title": "兽王觉醒", "hint": "击败兽群之主" },
+      "deadeye": { "bossId": "trial_boss_deadeye", "title": "死眼觉醒", "hint": "击败暗影射手" },
+      "phantom": { "bossId": "trial_boss_phantom", "title": "幻影觉醒", "hint": "击败风暴之灵" },
+      "archmage": { "bossId": "trial_boss_archmage", "title": "大魔导师觉醒", "hint": "击败元素之核" },
+      "oracle": { "bossId": "trial_boss_oracle", "title": "先知觉醒", "hint": "击败黑暗主教" },
+      "necromancer": { "bossId": "trial_boss_necromancer", "title": "死灵法师觉醒", "hint": "击败亡魂集合体" },
+      "nightblade": { "bossId": "trial_boss_nightblade", "title": "夜刃觉醒", "hint": "击败暗影镜像" },
+      "illusionist": { "bossId": "trial_boss_illusionist", "title": "幻术师觉醒", "hint": "击败幻象大师" },
+      "plaguebringer": { "bossId": "trial_boss_plaguebringer", "title": "瘟疫使者觉醒", "hint": "击败剧毒巨蛛" }
+    }
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "version": "2.0",
+  "statuses": {
+    "burn": {
+      "id": "burn",
+      "name": "灼烧",
+      "icon": "burn",
+      "color": "#ff6600",
+      "durationMs": 4000,
+      "tickIntervalMs": 1000,
+      "damagePerTickRatio": 0.2,
+      "damageType": "fire"
+    },
+    "frostbite": {
+      "id": "frostbite",
+      "name": "冻伤",
+      "icon": "freeze",
+      "color": "#88ddff",
+      "durationMs": 4000,
+      "moveSpeedMult": 0.7,
+      "attackSpeedMult": 0.8
+    },
+    "shock": {
+      "id": "shock",
+      "name": "感电",
+      "icon": "shock",
+      "color": "#ffff44",
+      "durationMs": 4000,
+      "splashDamageRatio": 0.3,
+      "splashRadius": 60
+    },
+    "poison": {
+      "id": "poison",
+      "name": "中毒",
+      "icon": "poison",
+      "color": "#55dd44",
+      "durationMs": 4000,
+      "tickIntervalMs": 1000,
+      "damagePerTickRatio": 0.15,
+      "maxStacks": 5,
+      "stackable": true
+    },
+    "dark_erosion": {
+      "id": "dark_erosion",
+      "name": "暗蚀",
+      "icon": "dark",
+      "color": "#8844cc",
+      "durationMs": 4000,
+      "defenseReductionPercent": 20
+    }
+  },
+  "synergies": [
+    {
+      "id": "thermal_shock",
+      "name": "热震",
+      "requiredStatuses": ["burn", "frostbite"],
+      "consumeStatuses": ["frostbite"],
+      "effect": {
+        "type": "true_damage",
+        "hpPercent": 0.03,
+        "capAttackMult": 3
+      },
+      "visualEffect": "explosion_fire_ice"
+    },
+    {
+      "id": "toxic_flame",
+      "name": "剧毒火焰",
+      "requiredStatuses": ["burn", "poison"],
+      "consumeStatuses": [],
+      "effect": {
+        "type": "dot_amplify",
+        "status": "poison",
+        "mult": 2,
+        "spreadRadius": 80,
+        "spreadCount": 1
+      }
+    },
+    {
+      "id": "conductive_freeze",
+      "name": "导电冻结",
+      "requiredStatuses": ["frostbite", "shock"],
+      "consumeStatuses": ["frostbite", "shock"],
+      "effect": {
+        "type": "stun",
+        "durationMs": 1500,
+        "damageBonusPercent": 20,
+        "damageBonusDurationMs": 4000
+      }
+    },
+    {
+      "id": "shadow_arc",
+      "name": "暗影电弧",
+      "requiredStatuses": ["shock", "dark_erosion"],
+      "consumeStatuses": [],
+      "effect": {
+        "type": "chain",
+        "chainCount": 2,
+        "damageRatio": 0.6,
+        "radius": 100
+      }
+    },
+    {
+      "id": "wither",
+      "name": "凋零",
+      "requiredStatuses": ["poison", "dark_erosion"],
+      "consumeStatuses": [],
+      "effect": {
+        "type": "attack_debuff",
+        "attackReductionPercent": 25,
+        "durationMs": 4000
+      }
+    },
+    {
+      "id": "chaos",
+      "name": "混乱",
+      "requiredMinStatusCount": 3,
+      "consumeAllStatuses": true,
+      "effect": {
+        "type": "stun",
+        "durationMs": 1000,
+        "explosionDamageRatio": 0.5
+      }
+    }
+  ]
+}

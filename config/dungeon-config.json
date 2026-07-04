@@ -1,3 +1,439 @@
 {
-  "DUNGEON_DEFINITIONS": []
+  "RIFT_AFFIXES": [
+    { "id": "swift", "name": "疾风", "playerSpeedMult": 1.15, "rewardMult": 1.1 },
+    { "id": "heavy", "name": "重压", "monsterDamageMult": 1.2, "rewardMult": 1.15 },
+    { "id": "fragile", "name": "脆化", "playerMaxHpMult": 0.85, "rewardMult": 1.2 },
+    { "id": "bounty", "name": "丰饶", "goldMult": 1.5, "rewardMult": 1.0 },
+    { "id": "arcane", "name": "奥术", "monsterHpMult": 1.1, "materialMult": 1.25 },
+    { "id": "bloodlust", "name": "嗜血", "monsterSpeedMult": 1.12, "rewardMult": 1.18 },
+    { "id": "silence", "name": "禁咒", "playerAttackCdMult": 1.2, "rewardMult": 1.22 },
+    { "id": "fortune", "name": "幸运", "rewardMult": 1.35 }
+  ],
+  "DUNGEON_DEFINITIONS": [
+    {
+      "id": "enhance_mine",
+      "name": "强化石矿洞",
+      "category": "daily",
+      "unlockLevel": 15,
+      "dailyLimit": 3,
+      "floorType": "dungeon_cave",
+      "mode": "stages",
+      "description": "采集强化石。击败全部精英可获额外高级强化石。",
+      "tiers": [
+        { "id": "shallow", "name": "浅层", "unlockLevel": 15, "monsterLevel": 15, "rewardMult": 1,
+          "stages": [
+            { "label": "矿道", "packs": [{ "type": "goblin", "count": 5 }] },
+            { "label": "矿脉", "packs": [{ "type": "goblinWarrior", "count": 4 }], "elite": { "type": "goblinChief", "count": 1 } },
+            { "label": "矿心", "bossId": "dungeon_mine_heart" }
+          ],
+          "rewards": [
+            { "type": "material", "id": "enhance_stone_basic", "min": 5, "max": 10 },
+            { "type": "material", "id": "enhance_stone_mid", "min": 2, "max": 5 }
+          ],
+          "eliteBonus": [{ "type": "material", "id": "enhance_stone_high", "min": 1, "max": 1 }]
+        },
+        { "id": "mid", "name": "中层", "unlockLevel": 25, "monsterLevel": 25, "rewardMult": 1.5,
+          "stages": [
+            { "label": "深矿", "packs": [{ "type": "skeleton", "count": 5 }] },
+            { "label": "傀儡区", "packs": [{ "type": "skeleton", "count": 4 }], "elite": { "type": "skeletonKnight", "count": 1 } },
+            { "label": "矿心", "bossId": "dungeon_mine_heart" }
+          ],
+          "rewards": [
+            { "type": "material", "id": "enhance_stone_basic", "min": 8, "max": 14 },
+            { "type": "material", "id": "enhance_stone_mid", "min": 4, "max": 8 }
+          ],
+          "eliteBonus": [{ "type": "material", "id": "enhance_stone_high", "min": 1, "max": 2 }]
+        },
+        { "id": "deep", "name": "深层", "unlockLevel": 40, "monsterLevel": 40, "rewardMult": 2.5,
+          "stages": [
+            { "label": "熔岩巷", "packs": [{ "type": "orcWarrior", "count": 5 }] },
+            { "label": "结晶层", "packs": [{ "type": "orcShaman", "count": 3 }, { "type": "orcBerserker", "count": 2 }] },
+            { "label": "矿心", "bossId": "dungeon_mine_heart" }
+          ],
+          "rewards": [
+            { "type": "material", "id": "enhance_stone_mid", "min": 6, "max": 10 },
+            { "type": "material", "id": "enhance_stone_high", "min": 2, "max": 4 }
+          ],
+          "eliteBonus": [{ "type": "material", "id": "enhance_stone_top", "min": 1, "max": 1 }]
+        },
+        { "id": "abyssal", "name": "极深", "unlockLevel": 55, "monsterLevel": 55, "rewardMult": 4,
+          "stages": [
+            { "label": "深渊矿道", "packs": [{ "type": "demonGuardian", "count": 5 }] },
+            { "label": "富矿脉", "packs": [{ "type": "demonSorcerer", "count": 4 }], "elite": { "type": "demon_elite", "count": 1 } },
+            { "label": "矿心", "bossId": "dungeon_mine_heart" }
+          ],
+          "rewards": [
+            { "type": "material", "id": "enhance_stone_high", "min": 5, "max": 8 },
+            { "type": "material", "id": "enhance_stone_top", "min": 2, "max": 4 }
+          ],
+          "eliteBonus": [{ "type": "material", "id": "enhance_stone_top", "min": 2, "max": 3 }]
+        }
+      ]
+    },
+    {
+      "id": "sigil_ruins",
+      "name": "徽记遗迹",
+      "category": "daily",
+      "unlockLevel": 20,
+      "dailyLimit": 2,
+      "openDays": [1, 3, 5],
+      "floorType": "dungeon_forest",
+      "mode": "stages",
+      "description": "周一/三攻击徽记偏向，周五全类型×1.5。",
+      "tiers": [
+        { "id": "normal", "name": "神殿废墟", "unlockLevel": 20, "monsterLevel": 20, "rewardMult": 1,
+          "stages": [
+            { "label": "外殿", "packs": [{ "type": "skeleton", "count": 6 }] },
+            { "label": "内殿", "packs": [{ "type": "skeletonArcher", "count": 4 }, { "type": "skeletonMage", "count": 2 }] },
+            { "label": "守护者", "bossId": "dungeon_sigil_guardian" }
+          ],
+          "rewards": [
+            { "type": "material", "id": "sigil_shard_attack", "min": 3, "max": 6 },
+            { "type": "material", "id": "sigil_synth_stone", "min": 1, "max": 2 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gold_vault",
+      "name": "金币金库",
+      "category": "daily",
+      "unlockLevel": 25,
+      "dailyLimit": 1,
+      "floorType": "dungeon",
+      "mode": "stages",
+      "description": "速通 S 级（90秒内）金币 +50%。",
+      "speedRankS": 90000,
+      "tiers": [
+        { "id": "vault", "name": "黄金殿堂", "unlockLevel": 25, "monsterLevel": 25, "rewardMult": 1,
+          "stages": [
+            { "label": "前厅", "packs": [{ "type": "goblinWarrior", "count": 6 }] },
+            { "label": "金库", "packs": [{ "type": "orcWarrior", "count": 4 }] },
+            { "label": "领主", "bossId": "dungeon_gold_lord" }
+          ],
+          "rewards": [
+            { "type": "gold", "min": 3000, "max": 8000, "levelScale": 60 },
+            { "type": "material", "id": "enhance_stone_basic", "min": 2, "max": 2 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "guardian_trial",
+      "name": "守护者试炼",
+      "category": "weekly",
+      "unlockLevel": 20,
+      "weeklyLimit": 3,
+      "floorType": "dungeon_void",
+      "mode": "waves",
+      "description": "5 波防守战，按波次发放奖励。",
+      "tiers": [
+        { "id": "standard", "name": "标准试炼", "unlockLevel": 20, "monsterLevel": 22, "rewardMult": 1,
+          "waves": [
+            { "label": "波1", "packs": [{ "type": "goblin", "count": 8 }] },
+            { "label": "波2", "packs": [{ "type": "goblinChief", "count": 1 }, { "type": "goblin", "count": 6 }] },
+            { "label": "波3", "packs": [{ "type": "goblinScout", "count": 4 }, { "type": "goblinWarrior", "count": 6 }] },
+            { "label": "波4", "packs": [{ "type": "goblinChief", "count": 2 }] },
+            { "label": "波5", "bossId": "dungeon_guardian_soul" }
+          ],
+          "waveRewards": {
+            "3": [{ "type": "material", "id": "enhance_stone_mid", "min": 3, "max": 3 }, { "type": "gold", "min": 1000, "max": 1000 }],
+            "4": [{ "type": "material", "id": "enhance_stone_high", "min": 2, "max": 2 }, { "type": "material", "id": "protect_charm_small", "min": 1, "max": 1 }],
+            "5": [{ "type": "material", "id": "break_stone", "min": 1, "max": 1 }, { "type": "material", "id": "protect_charm_small", "min": 2, "max": 2 }, { "type": "material", "id": "sigil_shard_attack", "min": 3, "max": 3 }]
+          }
+        }
+      ]
+    },
+    {
+      "id": "dragon_nest",
+      "name": "远古龙巢",
+      "category": "weekly",
+      "unlockLevel": 35,
+      "weeklyLimit": 2,
+      "floorType": "dungeon_volcano",
+      "mode": "stages",
+      "description": "三阶段 Boss 战，首通传说箱（装备）。",
+      "tiers": [
+        { "id": "nest", "name": "龙族巢穴", "unlockLevel": 35, "monsterLevel": 35, "rewardMult": 1,
+          "stages": [
+            { "label": "幼龙群", "packs": [{ "type": "demonImp", "count": 5 }] },
+            { "label": "青年龙", "packs": [{ "type": "demonGuardian", "count": 2 }] },
+            { "label": "远古巨龙", "bossId": "dungeon_ancient_dragon" }
+          ],
+          "rewards": [
+            { "type": "material", "id": "enhance_stone_high", "min": 5, "max": 5 },
+            { "type": "material", "id": "break_stone", "min": 2, "max": 2 },
+            { "type": "material", "id": "dragon_scale", "min": 1, "max": 3 }
+          ],
+          "firstClearBonus": [{ "type": "equipment", "quality": "legendary", "level": 35 }]
+        }
+      ]
+    },
+    {
+      "id": "end_tower",
+      "name": "终焉之塔",
+      "category": "weekly",
+      "unlockLevel": 50,
+      "weeklyLimit": 1,
+      "floorType": "dungeon_void",
+      "mode": "tower",
+      "noHeal": true,
+      "healFloors": [5, 10],
+      "healPercent": 0.3,
+      "description": "10 层爬塔，不可回血（5/10 层回复 30%）。",
+      "tiers": [
+        { "id": "standard", "name": "终焉", "unlockLevel": 50, "monsterLevel": 50, "rewardMult": 1,
+          "towerFloors": 10,
+          "packsPerFloor": [{ "type": "demonGuardian", "count": 4 }],
+          "midBossFloor": 5,
+          "midBossId": "boss_100",
+          "finalBossId": "dungeon_end_lord",
+          "rewards": [
+            { "type": "material", "id": "break_stone", "min": 3, "max": 3 },
+            { "type": "material", "id": "protect_charm_small", "min": 3, "max": 3 },
+            { "type": "material", "id": "mythic_shard", "min": 1, "max": 3 }
+          ],
+          "fullClearBonus": [
+            { "type": "material", "id": "mythic_shard", "min": 5, "max": 5 },
+            { "type": "material", "id": "skill_enhance_stone", "min": 2, "max": 2 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "abyss_shallow",
+      "name": "深渊·浅层",
+      "category": "abyss",
+      "unlockLevel": 20,
+      "dailyLimit": 3,
+      "floorType": "dungeon_void",
+      "mode": "stages",
+      "abyssEnergy": true,
+      "description": "积累深渊能量触发额外 Boss。",
+      "tiers": [
+        { "id": "shallow", "name": "浅层", "unlockLevel": 20, "monsterLevel": 22, "rewardMult": 1,
+          "stages": [
+            { "label": "裂隙", "packs": [{ "type": "skeleton", "count": 6 }] },
+            { "label": "深渊前哨", "packs": [{ "type": "skeletonWarrior", "count": 4 }] },
+            { "label": "守门者", "bossId": "dungeon_abyss_keeper" }
+          ],
+          "rewards": [
+            { "type": "material", "id": "sigil_shard_attack", "min": 2, "max": 4 },
+            { "type": "material", "id": "enhance_stone_mid", "min": 2, "max": 4 }
+          ],
+          "abyssGateBossId": "dungeon_abyss_gate",
+          "abyssGateRewards": [{ "type": "material", "id": "enhance_stone_high", "min": 1, "max": 2 }]
+        }
+      ]
+    },
+    {
+      "id": "abyss_mid",
+      "name": "深渊·中层",
+      "category": "abyss",
+      "unlockLevel": 30,
+      "dailyLimit": 3,
+      "floorType": "dungeon_void",
+      "mode": "stages",
+      "abyssEnergy": true,
+      "tiers": [
+        { "id": "mid", "name": "中层", "unlockLevel": 30, "monsterLevel": 32, "rewardMult": 1.3,
+          "stages": [
+            { "label": "暗潮", "packs": [{ "type": "orcWarrior", "count": 5 }] },
+            { "label": "深渊走廊", "packs": [{ "type": "orcShaman", "count": 4 }] },
+            { "label": "守门者", "bossId": "dungeon_abyss_keeper" }
+          ],
+          "rewards": [
+            { "type": "material", "id": "sigil_shard_defense", "min": 2, "max": 5 },
+            { "type": "material", "id": "enhance_stone_high", "min": 1, "max": 3 }
+          ],
+          "abyssGateBossId": "dungeon_abyss_gate",
+          "abyssGateRewards": [{ "type": "material", "id": "break_stone", "min": 1, "max": 1 }]
+        }
+      ]
+    },
+    {
+      "id": "abyss_deep",
+      "name": "深渊·深层",
+      "category": "abyss",
+      "unlockLevel": 40,
+      "dailyLimit": 3,
+      "floorType": "dungeon_void",
+      "mode": "stages",
+      "abyssEnergy": true,
+      "tiers": [
+        { "id": "deep", "name": "深层", "unlockLevel": 40, "monsterLevel": 42, "rewardMult": 1.6,
+          "stages": [
+            { "label": "炼狱入口", "packs": [{ "type": "demonGuardian", "count": 5 }] },
+            { "label": "灵魂熔炉", "packs": [{ "type": "demonSorcerer", "count": 4 }] },
+            { "label": "守门者", "bossId": "dungeon_abyss_keeper" }
+          ],
+          "rewards": [
+            { "type": "material", "id": "sigil_shard_special", "min": 2, "max": 4 },
+            { "type": "material", "id": "break_stone", "min": 1, "max": 2 }
+          ],
+          "abyssGateBossId": "dungeon_abyss_gate",
+          "abyssGateRewards": [{ "type": "material", "id": "protect_charm_small", "min": 1, "max": 1 }]
+        }
+      ]
+    },
+    {
+      "id": "abyss_hell",
+      "name": "深渊·地狱",
+      "category": "abyss",
+      "unlockLevel": 55,
+      "dailyLimit": 3,
+      "floorType": "dungeon_volcano",
+      "mode": "stages",
+      "abyssEnergy": true,
+      "tiers": [
+        { "id": "hell", "name": "地狱", "unlockLevel": 55, "monsterLevel": 55, "rewardMult": 2,
+          "stages": [
+            { "label": "炼狱", "packs": [{ "type": "demon_elite", "count": 3 }, { "type": "demonSorcerer", "count": 3 }] },
+            { "label": "终末之门", "bossId": "dungeon_abyss_hell_boss" }
+          ],
+          "rewards": [
+            { "type": "material", "id": "sigil_synth_stone", "min": 1, "max": 2 },
+            { "type": "material", "id": "mythic_shard", "min": 1, "max": 2 }
+          ],
+          "abyssGateBossId": "dungeon_abyss_gate",
+          "abyssGateRewards": [{ "type": "material", "id": "mythic_shard", "min": 1, "max": 1 }]
+        }
+      ]
+    },
+    {
+      "id": "rift_dungeon",
+      "name": "时空裂隙",
+      "category": "rift",
+      "unlockLevel": 30,
+      "floorType": "dungeon_void",
+      "mode": "rift",
+      "riftCost": 1,
+      "description": "消耗裂隙石，随机词缀，奖励×2。",
+      "tiers": [
+        { "id": "rift", "name": "裂隙", "unlockLevel": 30, "monsterLevel": 32, "rewardMult": 2,
+          "stages": [
+            { "label": "裂隙", "packs": [{ "type": "skeletonWarrior", "count": 6 }] },
+            { "label": "裂隙核心", "bossId": "dungeon_rift_keeper" }
+          ],
+          "rewards": [
+            { "type": "material", "id": "enhance_stone_mid", "min": 4, "max": 8 },
+            { "type": "material", "id": "sigil_shard_attack", "min": 2, "max": 4 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ancient_war",
+      "name": "远古遗迹·战神殿",
+      "category": "weekly",
+      "unlockLevel": 45,
+      "weeklyLimit": 1,
+      "floorType": "dungeon_cave",
+      "mode": "stages",
+      "description": "战士专属材料，每周 1 次。",
+      "tiers": [
+        { "id": "war", "name": "战神殿", "unlockLevel": 45, "monsterLevel": 45, "rewardMult": 1,
+          "stages": [
+            { "label": "试炼场", "packs": [{ "type": "orcBerserker", "count": 5 }] },
+            { "label": "战神", "bossId": "dungeon_ruin_war" }
+          ],
+          "rewards": [
+            { "type": "material", "id": "class_essence_warrior", "min": 2, "max": 4 },
+            { "type": "material", "id": "awakening_stone", "min": 1, "max": 1 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ancient_mage",
+      "name": "远古遗迹·魔塔",
+      "category": "weekly",
+      "unlockLevel": 55,
+      "weeklyLimit": 1,
+      "floorType": "dungeon_void",
+      "mode": "stages",
+      "tiers": [
+        { "id": "mage", "name": "魔塔", "unlockLevel": 55, "monsterLevel": 55, "rewardMult": 1,
+          "stages": [
+            { "label": "奥术层", "packs": [{ "type": "demonSorcerer", "count": 6 }] },
+            { "label": "塔顶", "bossId": "dungeon_ruin_mage" }
+          ],
+          "rewards": [
+            { "type": "material", "id": "class_essence_mage", "min": 2, "max": 4 },
+            { "type": "material", "id": "awakening_stone", "min": 1, "max": 2 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ancient_origin",
+      "name": "远古遗迹·起源",
+      "category": "weekly",
+      "unlockLevel": 60,
+      "weeklyLimit": 1,
+      "floorType": "dungeon_volcano",
+      "mode": "stages",
+      "tiers": [
+        { "id": "origin", "name": "起源", "unlockLevel": 60, "monsterLevel": 60, "rewardMult": 1,
+          "stages": [
+            { "label": "原初残响", "packs": [{ "type": "demon_elite", "count": 4 }] },
+            { "label": "起源意志", "bossId": "dungeon_ruin_origin" }
+          ],
+          "rewards": [
+            { "type": "material", "id": "class_essence_warrior", "min": 1, "max": 1 },
+            { "type": "material", "id": "class_essence_archer", "min": 1, "max": 1 },
+            { "type": "material", "id": "class_essence_mage", "min": 1, "max": 1 },
+            { "type": "material", "id": "class_essence_assassin", "min": 1, "max": 1 },
+            { "type": "material", "id": "awakening_stone", "min": 2, "max": 3 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "boss_rush",
+      "name": "Boss Rush",
+      "category": "weekly",
+      "unlockLevel": 40,
+      "weeklyLimit": 3,
+      "floorType": "dungeon_volcano",
+      "mode": "boss_rush",
+      "noHeal": true,
+      "description": "5 Boss 连战，不可回血。",
+      "tiers": [
+        { "id": "rush", "name": "连战", "unlockLevel": 40, "monsterLevel": 40, "rewardMult": 1,
+          "bossSequence": ["boss_60", "boss_80", "boss_100", "boss_120", "boss_140"],
+          "rewards": [
+            { "type": "material", "id": "enhance_stone_high", "min": 4, "max": 6 },
+            { "type": "material", "id": "break_stone", "min": 1, "max": 2 },
+            { "type": "gold", "min": 5000, "max": 8000 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "trial_tower",
+      "name": "试炼塔",
+      "category": "endgame",
+      "unlockLevel": 60,
+      "weeklyLimit": 999,
+      "floorType": "dungeon_void",
+      "mode": "trial_tower",
+      "noHeal": true,
+      "description": "无限层终局，每周记录最高层，5 层神话碎片。",
+      "tiers": [
+        { "id": "infinite", "name": "无限", "unlockLevel": 60, "monsterLevel": 60, "rewardMult": 1,
+          "towerFloors": 999,
+          "packsPerFloor": [{ "type": "demon_elite", "count": 3 }],
+          "bossEvery": 5,
+          "bossId": "dungeon_trial_boss",
+          "floorRewards": [{ "type": "material", "id": "mythic_shard", "min": 1, "max": 1, "every": 5 }]
+        }
+      ]
+    }
+  ],
+  "TEAM_RAIDS": [
+    { "id": "raid_frost", "name": "冰霜团本", "players": 4, "unlockLevel": 50, "status": "coming_soon" },
+    { "id": "raid_flame", "name": "烈焰团本", "players": 6, "unlockLevel": 55, "status": "coming_soon" },
+    { "id": "raid_void", "name": "虚空团本", "players": 8, "unlockLevel": 60, "status": "coming_soon" }
+  ]
 }

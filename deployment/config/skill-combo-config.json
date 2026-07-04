@@ -1,0 +1,70 @@
+{
+  "version": "2.0",
+  "combos": [
+    {
+      "id": "warrior_charge_bash",
+      "baseClass": "warrior",
+      "sequence": ["charge", "shield_bash"],
+      "windowMs": 3000,
+      "bonus": { "damageMult": 1.8, "stunMs": 2500 },
+      "name": "盾击连携"
+    },
+    {
+      "id": "warrior_stance_bash",
+      "baseClass": "warrior",
+      "sequence": ["defensive_stance", "shield_bash"],
+      "windowMs": 5000,
+      "requiresBlock": true,
+      "bonus": { "guaranteedCrit": true, "knockbackMult": 2 },
+      "name": "格挡盾击"
+    },
+    {
+      "id": "archer_backstep_aim",
+      "baseClass": "archer",
+      "sequence": ["backstep_shot", "archer_basic"],
+      "windowMs": 2500,
+      "bonus": { "projectileCount": 3, "totalDamageMult": 1.8 },
+      "name": "后跳三连射"
+    },
+    {
+      "id": "archer_poison_mark",
+      "baseClass": "archer",
+      "sequence": ["poison_arrow", "hunters_mark"],
+      "windowMs": 4000,
+      "bonus": { "poisonDamageMult": 1.5 },
+      "name": "毒印连携"
+    },
+    {
+      "id": "mage_armor_fireball",
+      "baseClass": "mage",
+      "sequence": ["ice_armor", "fireball"],
+      "windowMs": 4000,
+      "bonus": { "aoeRadiusMult": 1.5, "skillVariant": "molten_bolt" },
+      "name": "熔岩弹"
+    },
+    {
+      "id": "mage_blink_missile",
+      "baseClass": "mage",
+      "sequence": ["blink", "arcane_missile"],
+      "windowMs": 3000,
+      "bonus": { "damageMult": 1.4 },
+      "name": "闪现飞弹"
+    },
+    {
+      "id": "assassin_step_rend",
+      "baseClass": "assassin",
+      "sequence": ["shadow_step", "assassin_basic"],
+      "windowMs": 2000,
+      "bonus": { "bonusInstantDamageMult": 1.0 },
+      "name": "暗影割裂"
+    },
+    {
+      "id": "assassin_vanish_backstab",
+      "baseClass": "assassin",
+      "sequence": ["vanish", "assassin_basic"],
+      "windowMs": 3000,
+      "bonus": { "damageMult": 4.0 },
+      "name": "消失背刺"
+    }
+  ]
+}

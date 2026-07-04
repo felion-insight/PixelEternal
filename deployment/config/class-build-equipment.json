@@ -1,0 +1,118 @@
+{
+  "version": "2.0",
+  "description": "流派核心装备 — 改变技能行为",
+  "items": [
+    {
+      "equipmentId": "blood_howl",
+      "name": "血吼",
+      "slot": "weapon",
+      "weaponType": "greatsword",
+      "classRestriction": ["berserker", "destroyer"],
+      "skillModifiers": [
+        {
+          "skillId": "furious_charge",
+          "modifications": {
+            "aoeRadiusAdd": 50,
+            "onHitHealMaxHpPercent": 0.01
+          }
+        }
+      ],
+      "conditionalModifiers": [
+        {
+          "condition": "buff_active:berserk",
+          "moveSpeedPercent": -30
+        }
+      ],
+      "description": "冲锋范围+50%，每击中一敌恢复1%最大HP；狂暴期间移速-30%"
+    },
+    {
+      "equipmentId": "bone_crusher",
+      "name": "碎骨锤",
+      "slot": "weapon",
+      "weaponType": "hammer",
+      "classRestriction": ["berserker", "destroyer"],
+      "skillModifiers": [
+        {
+          "skillId": "furious_charge",
+          "skillReplace": {
+            "name": "碎骨重击",
+            "damageMultiplier": 3.0,
+            "aoeRadius": 90,
+            "effectTags": ["fan_aoe"],
+            "breakDamageMultiplier": 2
+          }
+        }
+      ],
+      "description": "狂暴冲锋变为前方扇形300%重击，对破防敌人伤害×2"
+    },
+    {
+      "equipmentId": "berserker_heart",
+      "name": "狂战之心",
+      "slot": "amulet",
+      "classRestriction": ["berserker", "destroyer"],
+      "skillModifiers": [
+        {
+          "skillId": "berserk",
+          "modifications": {
+            "attackSpeedPerTenPercentHpLost": 0.15,
+            "endHpLossPercent": 50
+          }
+        }
+      ],
+      "description": "狂暴期间每损失10%HP攻速+15%；结束时损失当前HP的50%"
+    },
+    {
+      "equipmentId": "elemental_staff",
+      "name": "元素法杖",
+      "slot": "weapon",
+      "weaponType": "staff",
+      "classRestriction": ["wizard", "archmage"],
+      "skillModifiers": [
+        {
+          "skillId": "fireball",
+          "modifications": {
+            "projectileCount": 3,
+            "damageMultiplier": 0.7,
+            "burnEfficiencyMult": 3
+          }
+        }
+      ],
+      "description": "火球术同时释放3颗（扇形），每颗伤害-30%，灼烧效率+200%"
+    },
+    {
+      "equipmentId": "ice_crystal_staff",
+      "name": "冰晶权杖",
+      "slot": "weapon",
+      "weaponType": "staff",
+      "classRestriction": ["wizard", "archmage"],
+      "skillModifiers": [
+        {
+          "skillId": "fireball",
+          "skillReplace": {
+            "name": "冰锥术",
+            "statusEffects": [{ "type": "frostbite", "durationMs": 4000 }],
+            "bonusVsStatus": { "frostbite": 1.4 }
+          }
+        }
+      ],
+      "description": "火球术变为冰锥术，施加冻伤；对冻伤敌人伤害+40%"
+    },
+    {
+      "equipmentId": "arcane_eye",
+      "name": "奥术之眼",
+      "slot": "amulet",
+      "classRestriction": ["mage", "wizard", "archmage", "sage", "oracle"],
+      "skillModifiers": [
+        {
+          "skillId": "blink",
+          "modifications": {
+            "noDisplacement": true,
+            "afterimageDurationMs": 3000,
+            "afterimageDamageRatio": 0.5
+          }
+        }
+      ],
+      "description": "闪现不再位移，改为制造3秒奥术残影，复制50%伤害"
+    }
+  ]
+}

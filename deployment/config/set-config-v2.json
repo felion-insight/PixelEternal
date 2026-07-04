@@ -1,0 +1,241 @@
+{
+  "version": "2.0",
+  "activationPieces": [
+    2,
+    4
+  ],
+  "sets": {
+    "fireheart": {
+      "name": "烈焰之心",
+      "slots": [
+        "weapon",
+        "body",
+        "hands",
+        "feet"
+      ],
+      "dropWeight": 1,
+      "effects": {
+        "2": {
+          "description": "攻击力+20，火属性伤害+25%",
+          "stats": {
+            "attack": 20
+          }
+        },
+        "4": {
+          "description": "暴击时释放火焰新星（150%攻击力AOE，冷却6s）",
+          "special": "fire_nova"
+        }
+      }
+    },
+    "frostborn": {
+      "name": "霜寒之触",
+      "slots": [
+        "helmet",
+        "body",
+        "legs",
+        "amulet"
+      ],
+      "dropWeight": 1,
+      "effects": {
+        "2": {
+          "description": "防御+15，HP+100",
+          "stats": {
+            "defense": 15,
+            "health": 100
+          }
+        },
+        "4": {
+          "description": "被击中时25%概率冰冻攻击者2s",
+          "special": "frost_touch"
+        }
+      }
+    },
+    "stormfury": {
+      "name": "雷霆之怒",
+      "slots": [
+        "weapon",
+        "hands",
+        "feet",
+        "ring"
+      ],
+      "dropWeight": 1,
+      "effects": {
+        "2": {
+          "description": "攻击速度+20%，移速+15%",
+          "stats": {
+            "attackSpeed": 20,
+            "moveSpeed": 15
+          }
+        },
+        "4": {
+          "description": "每第5次攻击释放闪电（200%攻击力连锁3个敌人）",
+          "special": "chain_strike"
+        }
+      }
+    },
+    "starlight": {
+      "name": "星辰之辉",
+      "slots": [
+        "helmet",
+        "body",
+        "amulet",
+        "ring"
+      ],
+      "dropWeight": 1,
+      "effects": {
+        "2": {
+          "description": "全属性+8%",
+          "stats": {
+            "allStats": 0.08
+          }
+        },
+        "4": {
+          "description": "击杀敌人后全属性额外+5%（可叠3层，持续10s）",
+          "special": "star_stack"
+        }
+      }
+    },
+    "shadowmantle": {
+      "name": "暗影之拥",
+      "slots": [
+        "hands",
+        "legs",
+        "feet",
+        "ring"
+      ],
+      "dropWeight": 1,
+      "effects": {
+        "2": {
+          "description": "闪避率+10%，暴伤+25%",
+          "stats": {
+            "dodge": 10,
+            "critDamage": 25
+          }
+        },
+        "4": {
+          "description": "闪避成功时下一次攻击必暴击且+80%暴伤（冷却5s）",
+          "special": "shadow_counter"
+        }
+      }
+    },
+    "dragonblood": {
+      "name": "龙族血脉",
+      "slots": [
+        "weapon",
+        "helmet",
+        "belt",
+        "amulet"
+      ],
+      "dropWeight": 0.8,
+      "effects": {
+        "2": {
+          "description": "HP+150，防御+20",
+          "stats": {
+            "health": 150,
+            "defense": 20
+          }
+        },
+        "4": {
+          "description": "HP低于50%时伤害+30%，减伤+15%",
+          "special": "dragon_rage"
+        }
+      }
+    },
+    "valor": {
+      "name": "无畏壁垒",
+      "classAffinity": "warrior",
+      "slots": [
+        "helmet",
+        "body",
+        "offHand",
+        "belt"
+      ],
+      "dropWeight": 0.6,
+      "effects": {
+        "2": {
+          "description": "防御+25，生命+120",
+          "stats": {
+            "defense": 25,
+            "health": 120
+          }
+        },
+        "4": {
+          "description": "受到攻击时20%概率获得护盾（15%最大HP）",
+          "special": "valor_shield"
+        }
+      }
+    },
+    "windchaser": {
+      "name": "追风者",
+      "classAffinity": "archer",
+      "slots": [
+        "hands",
+        "feet",
+        "ring",
+        "amulet"
+      ],
+      "dropWeight": 0.6,
+      "effects": {
+        "2": {
+          "description": "攻速+25%，移速+15%",
+          "stats": {
+            "attackSpeed": 25,
+            "moveSpeed": 15
+          }
+        },
+        "4": {
+          "description": "与敌人距离>100时，伤害+20%",
+          "special": "windchaser_range"
+        }
+      }
+    },
+    "arcane": {
+      "name": "秘法之源",
+      "classAffinity": "mage",
+      "slots": [
+        "weapon",
+        "offHand",
+        "helmet",
+        "amulet"
+      ],
+      "dropWeight": 0.6,
+      "effects": {
+        "2": {
+          "description": "技能伤害+15%，法力恢复+30%",
+          "stats": {
+            "magicAttack": 15,
+            "skillHaste": 10
+          }
+        },
+        "4": {
+          "description": "释放技能后2秒内下一个技能伤害+35%",
+          "special": "arcane_combo"
+        }
+      }
+    },
+    "shadow": {
+      "name": "暗影行者",
+      "classAffinity": "assassin",
+      "slots": [
+        "weapon",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 0.6,
+      "effects": {
+        "2": {
+          "description": "暴率+12%，闪避+8%",
+          "stats": {
+            "critRate": 12,
+            "dodge": 8
+          }
+        },
+        "4": {
+          "description": "背刺伤害+40%，暴击后移速+30%",
+          "special": "shadow_strike"
+        }
+      }
+    }
+  }
+}

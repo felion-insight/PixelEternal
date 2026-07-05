@@ -1,5 +1,5 @@
 {
-  "version": "2.0",
+  "version": "3.0",
   "baseClasses": {
     "warrior": {
       "id": "warrior",
@@ -33,10 +33,11 @@
         "regen": 5
       },
       "skills": [
-        "basic_attack",
-        "shield_bash",
+        "warrior_basic",
+        "shield_slam",
         "charge",
-        "defensive_stance"
+        "war_cry",
+        "wargod_descends"
       ],
       "advancements": [
         "knight",
@@ -78,10 +79,11 @@
         "regen": 8
       },
       "skills": [
-        "basic_shot",
-        "backstep",
+        "archer_basic",
+        "backstep_shot",
         "poison_arrow",
-        "rapid_shot"
+        "hunters_mark",
+        "arrow_storm"
       ],
       "advancements": [
         "ranger",
@@ -123,10 +125,11 @@
         "regen": 10
       },
       "skills": [
-        "magic_missile",
+        "mage_basic",
         "fireball",
-        "ice_armor",
-        "blink"
+        "frost_nova",
+        "blink",
+        "elemental_storm"
       ],
       "advancements": [
         "wizard",
@@ -168,10 +171,11 @@
         "regen": 12
       },
       "skills": [
-        "basic_stab",
-        "backstab",
-        "stealth",
-        "poison_blade"
+        "assassin_basic",
+        "shadow_step",
+        "smoke_bomb",
+        "poison_dagger",
+        "assassination"
       ],
       "advancements": [
         "shadowdancer",
@@ -188,7 +192,7 @@
       "name": "骑士",
       "baseClass": "warrior",
       "requiredLevel": 20,
-      "description": "骑士",
+      "description": "以圣光淬炼怒气的骑士，盾击与奉献突进守护队友。",
       "icon": "assets/icons/classes/knight.png",
       "role": "tank",
       "statsModifier": {
@@ -211,10 +215,14 @@
       ],
       "battleRole": "breaker",
       "battleRoleName": "击破手·坦克",
+      "themeColor": "#44bbdd",
       "skillEvolution": {
         "slot": "core1",
-        "first": "holy_shield_bash",
-        "second": "judgment_shield"
+        "first": "holy_shield_slam",
+        "second": "judgment_shield",
+        "core2Slot": "core2",
+        "core2First": "holy_rush",
+        "core2Second": "divine_rush"
       }
     },
     "berserker": {
@@ -245,6 +253,7 @@
       ],
       "battleRole": "striker",
       "battleRoleName": "强攻手·近战",
+      "themeColor": "#ee2211",
       "skillEvolution": {
         "slot": "core2",
         "first": "furious_charge",
@@ -279,10 +288,11 @@
       ],
       "battleRole": "support",
       "battleRoleName": "支援手·坦辅",
+      "themeColor": "#ddaa22",
       "skillEvolution": {
         "slot": "survival",
-        "first": "guardian_stance",
-        "second": "holy_domain"
+        "first": "unyielding_wall",
+        "second": "sacred_sacrifice"
       }
     },
     "ranger": {
@@ -382,7 +392,7 @@
       "battleRole": "switch",
       "battleRoleName": "速切手·机动",
       "skillEvolution": {
-        "slot": "survival",
+        "slot": "core1",
         "first": "wind_step",
         "second": "phantom_clone"
       }
@@ -484,7 +494,7 @@
       "battleRole": "anomaly",
       "battleRoleName": "异常手·召唤",
       "skillEvolution": {
-        "slot": "survival",
+        "slot": "team",
         "first": "summon_skeleton",
         "second": "skeleton_legion"
       }
@@ -519,7 +529,7 @@
       "battleRoleName": "击破手·爆发",
       "skillEvolution": {
         "slot": "core1",
-        "first": "shadow_strike",
+        "first": "backstab",
         "second": "shadow_assault"
       }
     },
@@ -586,9 +596,9 @@
       "battleRole": "anomaly",
       "battleRoleName": "异常手·DOT",
       "skillEvolution": {
-        "slot": "survival",
+        "slot": "core1",
         "first": "venom_blade",
-        "second": "plague"
+        "second": "plague_blade"
       }
     }
   },
@@ -598,7 +608,7 @@
       "name": "圣骑士",
       "firstAdvancement": "knight",
       "requiredLevel": 40,
-      "description": "圣骑士",
+      "description": "以神圣之力淬炼怒气的圣骑士，奉献地面与光环庇护队友。",
       "icon": "assets/icons/classes/paladin.png",
       "role": "tank",
       "statsModifier": {
@@ -612,7 +622,8 @@
         "dodge": 0.7
       },
       "battleRole": "breaker",
-      "battleRoleName": "击破手·支援坦"
+      "battleRoleName": "击破手·支援坦",
+      "themeColor": "#ffee88"
     },
     "destroyer": {
       "id": "destroyer",
@@ -963,8 +974,11 @@
   "evolutionSlots": {
     "knight": {
       "slot": "core1",
-      "first": "holy_shield_bash",
-      "second": "judgment_shield"
+      "first": "holy_shield_slam",
+      "second": "judgment_shield",
+      "core2Slot": "core2",
+      "core2First": "holy_rush",
+      "core2Second": "divine_rush"
     },
     "berserker": {
       "slot": "core2",
@@ -973,8 +987,8 @@
     },
     "guardian": {
       "slot": "survival",
-      "first": "guardian_stance",
-      "second": "holy_domain"
+      "first": "unyielding_wall",
+      "second": "sacred_sacrifice"
     },
     "ranger": {
       "slot": "core1",
@@ -987,7 +1001,7 @@
       "second": "perfect_shot"
     },
     "windrunner": {
-      "slot": "survival",
+      "slot": "core1",
       "first": "wind_step",
       "second": "phantom_clone"
     },
@@ -998,28 +1012,36 @@
     },
     "sage": {
       "slot": "core2",
-      "first": "healing_wave",
-      "second": "foresight"
+      "first": "holy_light",
+      "second": "time_field"
     },
     "warlock": {
-      "slot": "survival",
+      "slot": "team",
       "first": "summon_skeleton",
       "second": "skeleton_legion"
     },
     "shadowdancer": {
       "slot": "core1",
-      "first": "shadow_strike",
+      "first": "backstab",
       "second": "shadow_assault"
     },
     "trickster": {
       "slot": "core2",
-      "first": "illusion",
+      "first": "decoy",
       "second": "quintuple_illusion"
     },
     "venomancer": {
-      "slot": "survival",
+      "slot": "core1",
       "first": "venom_blade",
-      "second": "plague"
+      "second": "plague_blade"
+    },
+    "paladin": {
+      "slot": "core1",
+      "first": "holy_shield_slam",
+      "second": "judgment_shield",
+      "core2Slot": "core2",
+      "core2First": "holy_rush",
+      "core2Second": "divine_rush"
     }
   }
 }

@@ -45,6 +45,7 @@
     function inferBuffIconKey(buff) {
         if (buff.iconKey) return buff.iconKey;
         const e = buff.effects || {};
+        if (buff.holyShieldStacks > 0) return 'divineProtection';
         if (buff.shieldRemaining > 0 || (buff.shieldMax && buff.shieldMax > 0)) return 'divineProtection';
         if (e.damageReduction) return 'defense';
         if (e.attackPercent || e.attack) return 'attack';
@@ -102,6 +103,9 @@
         if (e.attackSpeed) parts.push(`攻速 +${e.attackSpeed}`);
         if (e.dodge) parts.push(`闪避 +${e.dodge}%`);
         if (e.moveSpeed) parts.push(`移速 +${e.moveSpeed}%`);
+        if (buff.holyShieldStacks > 0) {
+            parts.push(`圣盾 ${buff.holyShieldStacks}/${buff.stackMax || 3}`);
+        }
         if (buff.shieldRemaining > 0) {
             parts.push(`护盾 ${Math.ceil(buff.shieldRemaining)}${buff.shieldMax ? '/' + buff.shieldMax : ''}`);
         }
@@ -146,8 +150,118 @@
     }
 
     function applyStun(monster, ms) {
-        applyFreeze(monster, ms);
+        if (!monster || ms <= 0) return;
+        if (typeof window.applyMonsterStun === 'function') {
+            window.applyMonsterStun(monster, ms);
+        }
     }
+
+    const HOLY_SHIELD_BUFF_ID = 'holy_shield_stacks';
+
+    function findHolyShieldBuff(player) {
+        if (!player || !player.buffs) return null;
+        return player.buffs.find(b => b.id === HOLY_SHIELD_BUFF_ID && b.expireTime > Date.now()) || null;
+    }
+
+    window.getHolyShieldStacks = function getHolyShieldStacks(player) {
+        const buff = findHolyShieldBuff(player);
+        return buff ? (buff.holyShieldStacks || 0) : 0;
+    };
+
+    window.grantHolyShieldStacks = function grantHolyShieldStacks(player, amount, opts) {
+        if (!player || amount <= 0) return 0;
+        opts = opts || {};
+        const now = Date.now();
+        const stackMax = opts.stackMax || 3;
+        const pct = opts.absorbPercentPerStack || 5;
+        player.buffs = player.buffs || [];
+        let buff = findHolyShieldBuff(player);
+        if (!buff) {
+            buff = {
+                id: HOLY_SHIELD_BUFF_ID,
+                name: '圣盾',
+                expireTime: now + (opts.durationMs || 300000),
+                holyShieldStacks: 0,
+                stackMax,
+                absorbPercentPerStack: pct,
+                hudVisible: true,
+                effects: {}
+            };
+            player.buffs.push(buff);
+        }
+        buff.holyShieldStacks = Math.min(stackMax, (buff.holyShieldStacks || 0) + amount);
+        buff.stackMax = stackMax;
+        buff.absorbPercentPerStack = pct;
+        buff.expireTime = Math.max(buff.expireTime, now + (opts.durationMs || 300000));
+        return buff.holyShieldStacks;
+    };
+
+    window.consumeHolyShieldStack = function consumeHolyShieldStack(player, count) {
+        if (!player || count <= 0) return false;
+        const buff = findHolyShieldBuff(player);
+        if (!buff || buff.holyShieldStacks <= 0) return false;
+        buff.holyShieldStacks = Math.max(0, buff.holyShieldStacks - count);
+        if (buff.holyShieldStacks <= 0) {
+            player.buffs = player.buffs.filter(b => b.id !== HOLY_SHIELD_BUFF_ID);
+        }
+        return true;
+    };
+
+    window.updateHolyLightFields = function updateHolyLightFields(gameInstance, now) {
+        const p = gameInstance && gameInstance.player;
+        if (!p || !p._holyLightField) return;
+        const f = p._holyLightField;
+        if (now >= f.expireTime) {
+            p._holyLightField = null;
+            return;
+        }
+        f.x = p.x;
+        f.y = p.y;
+        if (now - f.lastConsumeTime >= 1000) {
+            f.lastConsumeTime = now;
+            const had = window.getHolyShieldStacks(p);
+            if (had <= 0 || !window.consumeHolyShieldStack(p, f.consumePerSec || 1)) {
+                f.expireTime = now;
+                floatText(gameInstance, p.x, p.y - 32, '圣盾耗尽', '#ffaa44');
+                p._holyLightField = null;
+                return;
+            }
+        }
+        p.invincibleUntil = Math.max(p.invincibleUntil || 0, now + 200);
+    };
+
+    window.updateClassSkillTransformEffects = function updateClassSkillTransformEffects(gameInstance, now) {
+        const p = gameInstance && gameInstance.player;
+        if (!p) return;
+        if (p._damageRedirectField) {
+            const f = p._damageRedirectField;
+            if (now >= f.expireTime) {
+                p._damageRedirectField = null;
+            } else {
+                f.x = p.x;
+                f.y = p.y;
+            }
+        }
+        const drain = p._transformHpDrain;
+        if (!drain || now >= drain.until) {
+            if (drain && now >= drain.until) {
+                p._transformHpDrain = null;
+                p._transformBasicRangeMult = null;
+                p._transformSizeMult = null;
+                p._transformLifeStealPercent = null;
+            }
+            return;
+        }
+        if (now - drain.lastTick >= 1000) {
+            drain.lastTick = now;
+            const loss = Math.max(1, Math.floor(p.maxHp * drain.perSec / 100));
+            if (p.hp - loss > 1) {
+                p.hp -= loss;
+            } else {
+                p.hp = 1;
+            }
+        }
+    };
 
     function applyMark(monster, se, skillDef, now) {
         if (!monster) return;
@@ -396,6 +510,85 @@
                 floatText(g, player.x, player.y - 20, '净化', '#aaffcc');
                 return true;
             }
+            case 'invincible_field': {
+                const stacks = window.getHolyShieldStacks(player);
+                if (stacks <= 0) {
+                    floatText(g, player.x, player.y - 20, '需要圣盾层数', '#ff6666');
+                    return false;
+                }
+                const radius = se.fieldRadius || skillDef.aoeRadius || 150;
+                const dur = se.durationMs || 8000;
+                player._holyLightField = {
+                    expireTime: now + dur,
+                    radius,
+                    lastConsumeTime: now,
+                    consumePerSec: se.consumeShieldPerSec || 1,
+                    x: player.x,
+                    y: player.y
+                };
+                pushBuff(player, {
+                    name: skillDef.name,
+                    id: buffId,
+                    expireTime: now + dur,
+                    effects: {},
+                    hudVisible: true
+                });
+                floatText(g, player.x, player.y - 28, `圣光领域 · ${Math.ceil(dur / 1000)}s`, '#66ddff');
+                equipFx(g, 'holy_blast', player.x, player.y, { radius, duration: 700 });
+                return true;
+            }
+            case 'transform': {
+                const effects = {};
+                if (se.attackPercent) effects.attackPercent = Math.floor(se.attackPercent * enh);
+                if (se.attackSpeedPercent) effects.attackSpeedPercent = Math.floor(se.attackSpeedPercent * enh);
+                if (se.defensePenalty) effects.defensePenalty = se.defensePenalty;
+                const dur = se.durationMs || 10000;
+                pushBuff(player, {
+                    name: skillDef.name,
+                    id: buffId,
+                    expireTime: now + dur,
+                    effects,
+                    hudVisible: true
+                });
+                if (se.basicAttackRangeMult) player._transformBasicRangeMult = se.basicAttackRangeMult;
+                if (se.sizeMult) player._transformSizeMult = se.sizeMult;
+                if (se.lifeStealPercent) player._transformLifeStealPercent = se.lifeStealPercent;
+                if (se.hpDrainPerSec) {
+                    player._transformHpDrain = {
+                        perSec: se.hpDrainPerSec,
+                        until: now + dur,
+                        lastTick: now
+                    };
+                }
+                floatText(g, player.x, player.y - 28, `${skillDef.name} · ${Math.ceil(dur / 1000)}s`, '#ff8844');
+                equipFx(g, 'fire_explosion', player.x, player.y, { radius: 52, duration: 520 });
+                return true;
+            }
+            case 'damage_redirect': {
+                const dur = se.durationMs || 8000;
+                const radius = skillDef.aoeRadius || se.fieldRadius || 150;
+                player._damageRedirectField = {
+                    expireTime: now + dur,
+                    redirectPercent: se.redirectPercent || 50,
+                    selfDrPercent: se.selfDrPercent || 80,
+                    radius,
+                    x: player.x,
+                    y: player.y,
+                    allyReviveOnDeath: se.allyReviveOnDeath || 0,
+                    revivesUsed: 0
+                };
+                const dr = Math.min(90, Math.floor((se.selfDrPercent || 80) * enh));
+                pushBuff(player, {
+                    name: skillDef.name,
+                    id: buffId,
+                    expireTime: now + dur,
+                    effects: { damageReduction: dr },
+                    hudVisible: true
+                });
+                floatText(g, player.x, player.y - 28, `不灭守护 · ${Math.ceil(dur / 1000)}s`, '#ddaa22');
+                equipFx(g, 'divine_shield', player.x, player.y, { radius, duration: 700 });
+                return true;
+            }
             default:
                 return false;
         }
@@ -552,6 +745,6 @@
         const tags = skillDef.effectTags || [];
         if (tags.includes('defense') || tags.includes('ice_armor') || tags.includes('heal')) return true;
         const t = skillDef.skillEffect && skillDef.skillEffect.type;
-        return ['ice_armor', 'damage_reduction', 'shield', 'guard', 'taunt', 'heal', 'cleanse'].includes(t);
+        return ['ice_armor', 'damage_reduction', 'shield', 'guard', 'taunt', 'heal', 'cleanse', 'invincible_field'].includes(t);
     };
 })();

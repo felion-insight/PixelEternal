@@ -169,6 +169,120 @@
         return (map && map[resType]) || resType || 'rage';
     };
 
+    /** 技能 VFX 配色族（骑士 holy / 狂战 fury / 守护者 guardian 金） */
+    window.getSkillVfxFamilyForPlayer = function getSkillVfxFamilyForPlayer(player, skillDef) {
+        if (player && player.classData) {
+            const prog = window.getActiveClassProgressionId(player.classData);
+            if (prog === 'knight' || prog === 'paladin') return 'holy';
+            if (prog === 'berserker' || prog === 'destroyer') return 'fury';
+            if (prog === 'guardian' || prog === 'temple_knight') return 'guardian';
+        }
+        if (skillDef && skillDef.classId === 'berserker') return 'fury';
+        if (skillDef && skillDef.classId === 'guardian') return 'guardian';
+        if (skillDef && skillDef.effectTags && skillDef.effectTags.includes('holy')) return 'holy';
+        if (skillDef && (skillDef.classId === 'knight' || skillDef.classId === 'paladin')) return 'holy';
+        return window.getResourceFamilyForClass(player && player.classData) || 'rage';
+    };
+
+    function isSkillTargetMonster(m) {
+        if (!m || m.hp <= 0) return false;
+        if (typeof TrainingDummy !== 'undefined' && m instanceof TrainingDummy) return false;
+        return true;
+    }
+
+    function countMonstersInRadius(cx, cy, monsters, radius) {
+        let n = 0;
+        (monsters || []).forEach(m => {
+            if (!isSkillTargetMonster(m)) return;
+            if (Math.hypot(m.x - cx, m.y - cy) <= radius) n++;
+        });
+        return n;
+    }
+
+    function clampGroundPointToCastRange(px, py, cx, cy, castRange) {
+        const dx = cx - px;
+        const dy = cy - py;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= castRange || dist < 1) return { x: cx, y: cy };
+        return { x: px + (dx / dist) * castRange, y: py + (dy / dist) * castRange };
+    }
+
+    /**
+     * 地面 AOE 最优落点：命中最多敌人，同分优先角色面向方向
+     */
+    window.pickBestAoeGroundPoint = function pickBestAoeGroundPoint(player, monsters, castRange, aoeRadius, options) {
+        options = options || {};
+        const px = player.x;
+        const py = player.y;
+        const facing = typeof player.angle === 'number' ? player.angle : 0;
+        const fx = Math.cos(facing);
+        const fy = Math.sin(facing);
+        const facingWeight = options.facingWeight != null ? options.facingWeight : 0.45;
+        const candidates = [];
+        const seen = new Set();
+
+        function addCandidate(cx, cy) {
+            const clamped = clampGroundPointToCastRange(px, py, cx, cy, castRange);
+            const key = Math.round(clamped.x) + ',' + Math.round(clamped.y);
+            if (seen.has(key)) return;
+            seen.add(key);
+            candidates.push(clamped);
+        }
+
+        const valid = (monsters || []).filter(m => isSkillTargetMonster(m));
+
+        valid.forEach(m => addCandidate(m.x, m.y));
+
+        for (let i = 0; i < valid.length; i++) {
+            for (let j = i + 1; j < valid.length; j++) {
+                const a = valid[i];
+                const b = valid[j];
+                if (Math.hypot(a.x - b.x, a.y - b.y) > aoeRadius * 2.2) continue;
+                addCandidate((a.x + b.x) * 0.5, (a.y + b.y) * 0.5);
+            }
+        }
+
+        for (const frac of [0.35, 0.55, 0.75, 0.95]) {
+            for (const angOff of [0, -0.35, 0.35, -0.7, 0.7]) {
+                const a = facing + angOff;
+                addCandidate(px + Math.cos(a) * castRange * frac, py + Math.sin(a) * castRange * frac);
+            }
+        }
+
+        if (candidates.length === 0) {
+            return {
+                x: px + fx * castRange * 0.65,
+                y: py + fy * castRange * 0.65,
+                hitCount: 0,
+                facingDot: 1
+            };
+        }
+
+        let best = candidates[0];
+        let bestHits = -1;
+        let bestFacing = -Infinity;
+        let bestScore = -Infinity;
+
+        candidates.forEach(c => {
+            const hits = countMonstersInRadius(c.x, c.y, monsters, aoeRadius);
+            const dx = c.x - px;
+            const dy = c.y - py;
+            const dist = Math.hypot(dx, dy) || 1;
+            const facingDot = (dx / dist) * fx + (dy / dist) * fy;
+            const score = hits + Math.max(0, facingDot) * facingWeight;
+            if (score > bestScore
+                || (Math.abs(score - bestScore) < 0.001 && facingDot > bestFacing)
+                || (Math.abs(score - bestScore) < 0.001 && Math.abs(facingDot - bestFacing) < 0.001 && hits > bestHits)) {
+                bestScore = score;
+                bestFacing = facingDot;
+                bestHits = hits;
+                best = c;
+            }
+        });
+
+        return { x: best.x, y: best.y, hitCount: bestHits, facingDot: bestFacing };
+    };
+
     window.getResourceFamilyMeta = function getResourceFamilyMeta(family) {
         const c = cfg();
         if (!c || !c.resourceFamilies || !family) return { name: '资源', max: 100, regenPerSec: 0 };
@@ -247,6 +361,21 @@
     /** 当前职业普攻（basic 槽位）技能，已解析进化形态 */
     window.getPlayerBasicClassSkill = function getPlayerBasicClassSkill(player) {
         if (!player || !window.hasPlayerClass(player.classData)) return null;
+        const baseClass = window.getPlayerBaseClassId(player.classData);
+        if (baseClass === 'warrior') {
+            const warriorBasic = window.getSkillDefinition('warrior_basic');
+            if (warriorBasic) {
+                const prog = window.getActiveClassProgressionId(player.classData);
+                if (prog === 'knight' || prog === 'paladin') {
+                    return Object.assign({}, warriorBasic, {
+                        description: prog === 'paladin'
+                            ? '【圣骑士·三段圣斩】横斩/上挑/重劈，附圣光特效，每段产生8点神圣怒气。'
+                            : '【骑士·三段圣斩】横斩/上挑/重劈，附圣光特效，每段产生8点神圣怒气。'
+                    });
+                }
+                return warriorBasic;
+            }
+        }
         const prog = window.getPlayerSkillProgression(player.classData);
         if (!prog || !prog.length) return null;
         const basicId = prog.find(id => {
@@ -259,6 +388,69 @@
     };
 
     /**
+     * 获取普攻当前连击段位，并在一定窗口后自动重置
+     * @returns {{ step: number, chain: number, isFinisher: boolean }}
+     */
+    function getBasicComboStep(player, skillDef) {
+        const ec = (skillDef && skillDef.entityConfig) || {};
+        const chain = ec.comboChain || 1;
+        const windowMs = ec.comboChainWindowMs || 1800;
+        const now = Date.now();
+        if (player._basicComboStep == null || player._basicComboLastTime == null
+            || now - player._basicComboLastTime > windowMs) {
+            player._basicComboStep = 0;
+        }
+        const step = player._basicComboStep % chain;
+        player._basicComboLastTime = now;
+        player._basicComboStep = (step + 1) % chain;
+        return { step, chain, isFinisher: step === chain - 1 };
+    }
+
+    /**
+     * 将 comboStep 参数覆盖到技能定义的 entityConfig 副本上
+     * @returns {object} 新的技能定义副本（浅拷贝+entityConfig深拷贝）
+     */
+    function applyBasicComboOverrides(skillDef, step) {
+        const ec = skillDef.entityConfig || {};
+        const ov = {};
+
+        if (ec.comboStepDamage && ec.comboStepDamage[step] != null)
+            ov.damageMultiplier = ec.comboStepDamage[step];
+        if (ec.comboStepRange && ec.comboStepRange[step] != null)
+            ov.range = ec.comboStepRange[step];
+        if (ec.comboStepAngle && ec.comboStepAngle[step] != null) {
+            const fullAngle = ec.comboStepAngle[step];
+            ov.halfAngleDeg = fullAngle / 2;
+            // 360° ≈ 全圆 → 切换为 radial 形状（战士第3段重劈）
+            if (fullAngle >= 350) ov.shape = 'radial';
+        }
+        // 普攻不再应用 comboStepKnockback 击退
+        if (ec.comboStepProjectiles && ec.comboStepProjectiles[step] != null)
+            ov.projectileCount = ec.comboStepProjectiles[step];
+        if (ec.comboStepSpread && ec.comboStepSpread[step] != null)
+            ov.spreadAngleDeg = ec.comboStepSpread[step];
+        if (ec.comboStepPierce && ec.comboStepPierce[step] != null)
+            ov.pierceCount = ec.comboStepPierce[step];
+        if (ec.comboStepExplosion && ec.comboStepExplosion[step] != null)
+            ov.explodeRadius = ec.comboStepExplosion[step];
+        if (ec.comboStepDash && ec.comboStepDash[step] != null && ec.comboStepDash[step] > 0)
+            ov._comboDash = ec.comboStepDash[step];
+        if (ec.comboStepDashBehind && ec.comboStepDashBehind[step]) {
+            ov._comboDashBehind = true;
+            ov.shape = 'pierce';
+            ov.pierceWidth = ec.pierceWidth || 28;
+        }
+
+        const newEc = Object.assign({}, ec, ov);
+        const chain = ec.comboChain || 1;
+        const newSkill = Object.assign({}, skillDef, { entityConfig: newEc });
+        newSkill._comboStep = step;
+        newSkill._comboChain = chain;
+        newSkill._comboDashBehind = !!ov._comboDashBehind;
+        return newSkill;
+    }
+
+    /**
      * 普攻时释放职业 basic 实体技能（飞弹/扇形斩等）
      * @returns {boolean} 是否已由实体系统处理
      */
@@ -267,8 +459,23 @@
         const basic = window.getPlayerBasicClassSkill(player);
         if (!basic || !basic.entityType || !basic.entityConfig) return false;
         if (typeof window.castSkillEntity !== 'function') return false;
+
+        const comboInfo = getBasicComboStep(player, basic);
+        const modified = applyBasicComboOverrides(basic, comboInfo.step);
+        // 暂存到 player 供 VFX / 资源等读取
+        player._lastBasicCombo = comboInfo;
         const now = Date.now();
-        return window.castSkillEntity(player, basic, gameInstance, monsters, now) !== false;
+        const result = window.castSkillEntity(player, modified, gameInstance, monsters, now);
+        if (result !== false) {
+            if (comboInfo.chain > 1 && gameInstance && typeof gameInstance.addFloatingText === 'function') {
+                const hitNum = comboInfo.step + 1;
+                const color = comboInfo.isFinisher ? '#ffdd44' : '#ccddff';
+                gameInstance.addFloatingText(player.x, player.y - 32,
+                    hitNum + '/' + comboInfo.chain, color, 900, 16);
+            }
+            return true;
+        }
+        return false;
     };
 
     window.recordSkillComboCast = function recordSkillComboCast(player, skillDef) {
@@ -629,7 +836,12 @@
             const maxRange = c.maxRange || def.range || 400;
             const explode = c.explodeRadius || 0;
             if (explode > 0) {
-                return { mode: 'ground_aoe', castRange: maxRange, aoeRadius: explode };
+                return {
+                    mode: 'ground_aoe',
+                    castRange: maxRange,
+                    aoeRadius: explode,
+                    autoLockOnTap: c.autoLockOnTap === true || c.trajectory === 'lob_ground'
+                };
             }
             return {
                 mode: 'direction_line',
@@ -675,6 +887,16 @@
             return false;
         }
 
+        const sePre = skillDef.skillEffect || {};
+        if (sePre.mode === 'primary' && sePre.type === 'invincible_field'
+            && typeof window.getHolyShieldStacks === 'function'
+            && window.getHolyShieldStacks(player) <= 0) {
+            if (gameInstance && typeof gameInstance.addFloatingText === 'function') {
+                gameInstance.addFloatingText(player.x, player.y - 20, '需要圣盾层数', '#ff6666');
+            }
+            return false;
+        }
+
         player.isCastingSkill = true;
         try {
             window.spendSkillResource(player, skillDef);
@@ -700,8 +922,12 @@
                     window.playClassSkillVfx(player, skillDef, gameInstance, {
                         primaryTarget: null,
                         hitTargets: [],
-                        hit: entityOk !== false
+                        hit: entityOk !== false,
+                        groundPoint: castOptions && castOptions.groundPoint
                     });
+                }
+                if (isPrimary && typeof window.applyClassSkillPrimaryEffect === 'function') {
+                    window.applyClassSkillPrimaryEffect(player, skillDef, gameInstance, now, { monsters });
                 }
                 if (activeCombo && gameInstance && typeof gameInstance.addFloatingText === 'function') {
                     gameInstance.addFloatingText(player.x, player.y - 36, activeCombo.name || '连携!', '#ffdd44');
@@ -717,13 +943,21 @@
                     && window.applyClassSkillPrimaryEffect(player, skillDef, gameInstance, now, { monsters });
                 const defensive = typeof window.isDefensiveClassSkill === 'function'
                     && window.isDefensiveClassSkill(skillDef);
-                if (typeof window.playClassSkillVfx === 'function') {
-                    window.playClassSkillVfx(player, skillDef, gameInstance, {
+                if (typeof window.playClassSkillVfx === 'function' && applied !== false) {
+                    const vfxCtx = {
                         primaryTarget: null,
                         hitTargets: [],
-                        hit: false,
+                        hit: applied !== false,
                         defensive
-                    });
+                    };
+                    if (se.type === 'invincible_field') {
+                        vfxCtx.holyDomain = true;
+                        vfxCtx.domainRadius = se.fieldRadius || skillDef.aoeRadius || 150;
+                    }
+                    window.playClassSkillVfx(player, skillDef, gameInstance, vfxCtx);
+                }
+                if (applied === false) {
+                    return false;
                 }
                 if (gameInstance && typeof gameInstance.addFloatingText === 'function') {
                     gameInstance.addFloatingText(player.x, player.y - 20, skillDef.name, defensive ? '#88ccff' : '#aaddff');

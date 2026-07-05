@@ -105,11 +105,96 @@
 
     function clampInRoom(g, x, y, pad) {
         const room = g && g.currentRoom;
-        if (!room) return { x, y };
         pad = pad || 40;
+        if (room) {
+            return {
+                x: Math.max((room.x || 0) + pad, Math.min((room.x || 0) + (room.width || 800) - pad, x)),
+                y: Math.max((room.y || 0) + pad, Math.min((room.y || 0) + (room.height || 600) - pad, y))
+            };
+        }
+        const cw = (typeof CONFIG !== 'undefined' && CONFIG.CANVAS_WIDTH) || 800;
+        const ch = (typeof CONFIG !== 'undefined' && CONFIG.CANVAS_HEIGHT) || 600;
         return {
-            x: Math.max((room.x || 0) + pad, Math.min((room.x || 0) + (room.width || 800) - pad, x)),
-            y: Math.max((room.y || 0) + pad, Math.min((room.y || 0) + (room.height || 600) - pad, y))
+            x: Math.max(pad, Math.min(cw - pad, x)),
+            y: Math.max(pad, Math.min(ch - pad, y))
+        };
+    }
+
+    function easeOutCubicPierce(t) { return 1 - Math.pow(1 - t, 3); }
+    function clamp01Pierce(t) { return Math.max(0, Math.min(1, t)); }
+
+    function startPierceDash(player, g, fromX, fromY, toX, toY, angle, now, durationMs) {
+        const p = clampInRoom(g, toX, toY);
+        player._pierceDash = {
+            startX: fromX,
+            startY: fromY,
+            endX: p.x,
+            endY: p.y,
+            startTime: now,
+            durationMs: durationMs || 220,
+            angle: angle
+        };
+        player.vx = 0;
+        player.vy = 0;
+        player.angle = angle;
+        player.invincibleUntil = Math.max(player.invincibleUntil || 0, now + (durationMs || 220) + 40);
+    }
+
+    window.updatePlayerPierceDash = function updatePlayerPierceDash(player, now) {
+        const pd = player && player._pierceDash;
+        if (!pd) return false;
+        const t = clamp01Pierce((now - pd.startTime) / pd.durationMs);
+        const ease = easeOutCubicPierce(t);
+        player.x = pd.startX + (pd.endX - pd.startX) * ease;
+        player.y = pd.startY + (pd.endY - pd.startY) * ease;
+        player.angle = pd.angle;
+        player.vx = 0;
+        player.vy = 0;
+        if (t >= 1) {
+            player.x = pd.endX;
+            player.y = pd.endY;
+            delete player._pierceDash;
+            return false;
+        }
+        return true;
+    };
+
+    function collectPierceTargets(player, monsters, range, pierceWidth) {
+        const targets = [];
+        (monsters || []).forEach(m => {
+            if (!m || m.hp <= 0) return;
+            const dx = m.x - player.x;
+            const dy = m.y - player.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist > range || dist < 1) return;
+            const toMon = Math.atan2(dy, dx);
+            let diff = toMon - player.angle;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            if (Math.abs(diff) > Math.PI * 0.55) return;
+            const perpDist = Math.abs(dist * Math.sin(diff));
+            const monR = (m.size || m.radius || 32) / 2;
+            if (perpDist <= pierceWidth + monR) targets.push(m);
+        });
+        targets.sort((a, b) => {
+            const da = Math.hypot(a.x - player.x, a.y - player.y);
+            const db = Math.hypot(b.x - player.x, b.y - player.y);
+            return da - db;
+        });
+        return targets;
+    }
+
+    function computePierceBehind(player, primary) {
+        const tang = Math.atan2(primary.y - player.y, primary.x - player.x);
+        const monR = (primary.size || primary.radius || 32) / 2;
+        const playerR = (player.size || player.playerGifSize || 24) / 2;
+        const behindDist = monR + playerR + 14;
+        return {
+            pierceTargetX: primary.x,
+            pierceTargetY: primary.y,
+            dashEndX: primary.x + Math.cos(tang) * behindDist,
+            dashEndY: primary.y + Math.sin(tang) * behindDist,
+            pierceAngle: tang
         };
     }
 
@@ -126,25 +211,185 @@
         if (g && typeof g.addFloatingText === 'function') g.addFloatingText(x, y, text, color || '#88ccff');
     }
 
-    /** 眩晕/击退/击飞（位移）：训练假人与怪物通用 */
-    function applyCcEffects(m, now, opts, g) {
-        if (!m) return;
-        const stunMs = opts.stunMs || 0;
-        const knockback = opts.knockback || 0;
-        const kbAngle = opts.knockbackAngle;
-        if (stunMs > 0) {
-            m.frozenUntil = Math.max(m.frozenUntil || 0, now + stunMs);
-            if (m.statusEffects) {
-                m.statusEffects.frozen = { until: now + stunMs };
+    function applyProjectileCc(proj, m, now, monsters, g) {
+        if (!m || !proj) return;
+        const ec = entityCfg(proj.skillDef);
+        const cfg = Object.assign({}, ec && ec.entityConfig, {
+            debuffSlowPercent: proj.debuffSlowPercent,
+            debuffDurationMs: proj.debuffDurationMs,
+            stunMs: proj.stunMs,
+            tauntDurationMs: proj.tauntDurationMs
+        });
+        applyCcEffects(m, now, cfg, g, proj.player);
+    }
+
+    function applyCcEffects(m, now, opts, g, tauntTarget) {
+        if (!m || !opts) return;
+        if (typeof window.applyMonsterSkillDebuffs === 'function') {
+            window.applyMonsterSkillDebuffs(m, opts, g, now, {
+                tauntTarget: tauntTarget || opts.tauntTarget || opts.player
+            });
+        }
+    }
+
+    function applyInstantAllyBuffs(player, c, skillDef, g, now) {
+        if (!player || !c) return;
+        const buffId = 'skill_' + skillDef.id + '_ally';
+        const dur = c.allySpeedMs || c.debuffDurationMs || 5000;
+        if (c.allySpeedPercent || c.allyAttackSpeedPercent) {
+            const effects = {};
+            if (c.allySpeedPercent) effects.moveSpeed = c.allySpeedPercent;
+            if (c.allyAttackSpeedPercent) effects.attackSpeedPercent = c.allyAttackSpeedPercent;
+            player.buffs = player.buffs || [];
+            player.buffs = player.buffs.filter(b => b.id !== buffId);
+            player.buffs.push({
+                name: skillDef.name + '·加速',
+                id: buffId,
+                expireTime: now + dur,
+                effects,
+                hudVisible: true
+            });
+            if (typeof player.updateStats === 'function') player.updateStats();
+            floatText(g, player.x, player.y - 28, '时间加速', '#cc88ff');
+        }
+    }
+
+    function onInstantSkillKill(player, skillDef, c, g, monsters, now, killedMonster) {
+        if (!player || !c || !killedMonster) return;
+        if (c.resetCDOnKill && typeof window.setSkillCooldown === 'function') {
+            const cdDef = Object.assign({}, skillDef, {
+                id: skillDef.evolutionPath && skillDef.evolutionPath.baseSkillId
+                    ? skillDef.evolutionPath.baseSkillId : skillDef.id
+            });
+            player.skillCooldowns = player.skillCooldowns || {};
+            player.skillCooldowns[cdDef.id] = 0;
+            floatText(g, player.x, player.y - 36, '冷却重置', '#ffdd44');
+        }
+        if (c.fearRadiusOnKill && c.fearMsOnKill) {
+            (monsters || []).forEach(m => {
+                if (!m || m.hp <= 0 || m === killedMonster) return;
+                if (Math.hypot(m.x - killedMonster.x, m.y - killedMonster.y) <= c.fearRadiusOnKill) {
+                    applyCcEffects(m, now, { fearMs: c.fearMsOnKill }, g);
+                }
+            });
+        }
+    }
+
+    function healPlayerPercent(player, pct, g, label) {
+        if (!player || !pct) return;
+        const heal = Math.max(1, Math.floor(player.maxHp * pct / 100));
+        player.hp = Math.min(player.maxHp, player.hp + heal);
+        floatText(g, player.x, player.y - 26, (label || '回复') + ' +' + heal, '#44ff88');
+    }
+
+    function grantPlayerShieldPercent(player, pct, skillDef, now, g) {
+        if (!player || !pct) return;
+        const amount = Math.max(1, Math.floor(player.maxHp * pct / 100));
+        const buffId = 'skill_' + (skillDef && skillDef.id || 'shield') + '_ally_shield';
+        player.buffs = player.buffs || [];
+        player.buffs = player.buffs.filter(b => b.id !== buffId);
+        player.buffs.push({
+            name: (skillDef && skillDef.name || '圣光') + '·护盾',
+            id: buffId,
+            expireTime: now + 8000,
+            effects: {},
+            shieldRemaining: amount,
+            shieldMax: amount,
+            hudVisible: true
+        });
+        if (typeof player.updateStats === 'function') player.updateStats();
+        floatText(g, player.x, player.y - 28, `护盾 +${amount}`, '#88eeff');
+    }
+
+    function applyTeamMarkOnMonster(m, bonusPct, skillDef, until, now) {
+        if (!m || !bonusPct) return;
+        m._classSkillMark = {
+            expireTime: until || (now + 8000),
+            damageBonus: bonusPct,
+            critBonus: 0,
+            name: skillDef && skillDef.name
+        };
+    }
+
+    function applyAllyFieldBuffs(f, ec, gameInstance, now) {
+        const owner = f.owner;
+        if (!owner || !ec) return;
+        if (Math.hypot(owner.x - f.x, owner.y - f.y) > f.radius) return;
+        if (ec.healAllyPerTick) {
+            healPlayerPercent(owner, ec.healAllyPerTick, gameInstance, '圣光');
+        }
+        if (ec.allyDmgBonusPercent) {
+            const buffId = 'skill_' + f.skillDef.id + '_consecration_dmg';
+            owner.buffs = owner.buffs || [];
+            owner.buffs = owner.buffs.filter(b => b.id !== buffId);
+            owner.buffs.push({
+                name: f.skillDef.name + '·增伤',
+                id: buffId,
+                expireTime: now + (f.tickIntervalMs || 1000) + 300,
+                effects: { attackPercent: ec.allyDmgBonusPercent },
+                hudVisible: true
+            });
+            if (typeof owner.updateStats === 'function') owner.updateStats();
+        }
+    }
+
+    function spawnConsecrationField(st, player, skillDef, x, y, cfg, now) {
+        if (!st || !player || !cfg) return;
+        const tickMs = cfg.tickIntervalMs || 1000;
+        const mult = cfg.damageMultiplierPerTick != null ? cfg.damageMultiplierPerTick : 0.3;
+        st.fields.push({
+            x, y,
+            radius: cfg.radius || 50,
+            expireTime: now + (cfg.durationMs || 4000),
+            tickIntervalMs: tickMs,
+            lastTick: now,
+            triggerType: 'periodic',
+            damage: calcDmg(player, skillDef, cfg, mult),
+            entityConfig: cfg,
+            statusOnTick: cfg.statusOnTick,
+            owner: player,
+            skillDef,
+            color: cfg.color || '#66ddff',
+            _consecrationGround: true
+        });
+    }
+
+    function applyProjectileExplodeEffects(proj, x, y, monsters, g, now) {
+        if (!proj.explodeRadius) return;
+        const ec = entityCfg(proj.skillDef);
+        const cfg = (ec && ec.entityConfig) || {};
+        (monsters || []).forEach(m => {
+            if (!m || m.hp <= 0) return;
+            if (Math.hypot(m.x - x, m.y - y) <= proj.explodeRadius) {
+                applyDmg(proj.player, m, proj.damage, proj.skillDef, g, proj.statusOnHit);
+                applyProjectileCc(proj, m, now, monsters, g);
+                if (proj.teamDmgBonus && proj.tauntDurationMs) {
+                    applyTeamMarkOnMonster(m, proj.teamDmgBonus, proj.skillDef,
+                        now + proj.tauntDurationMs, now);
+                }
             }
+        });
+        if (proj.allyShieldPercent && proj.player) {
+            grantPlayerShieldPercent(proj.player, proj.allyShieldPercent, proj.skillDef, now, g);
         }
-        if (knockback > 0 && kbAngle != null) {
-            const kbDist = opts.knockup ? knockback * 1.35 : knockback;
-            m.x += Math.cos(kbAngle) * kbDist;
-            m.y += Math.sin(kbAngle) * kbDist;
+        const consecCfg = proj.consecrationOnExplode || cfg.consecrationOnExplode;
+        if (consecCfg && proj.player) {
+            const st = ensureState(g);
+            spawnConsecrationField(st, proj.player, proj.skillDef, x, y, consecCfg, now);
         }
-        if (opts.knockup && g) {
-            floatText(g, m.x, m.y - 14, '击飞', '#ff8844');
+        if (g && typeof g.addEquipmentEffect === 'function') {
+            const fx = proj.visualVariant === 'light_spear' ? 'holy_blast' : 'fire_explosion';
+            g.addEquipmentEffect(fx, x, y, { radius: proj.explodeRadius, duration: 450 });
+        }
+        if (proj.visualVariant === 'light_spear' && typeof window.playClassSkillVfx === 'function' && proj.player) {
+            window.playClassSkillVfx(proj.player, proj.skillDef, g, {
+                hitTargets: [],
+                hit: true,
+                lightSpearImpact: true,
+                impactX: x,
+                impactY: y,
+                aoeRadius: proj.explodeRadius
+            });
         }
     }
 
@@ -202,11 +447,10 @@
                 if (!m || m.hp <= 0) return;
                 if (Math.hypot(m.x - ch.player.x, m.y - ch.player.y) > endR) return;
                 applyDmg(ch.player, m, endDmg, ch.skillDef, g, c.statusOnHit);
-                applyCcEffects(m, now, {
-                    stunMs: c.endStunMs != null ? c.endStunMs : c.stunMs,
-                    knockback: c.endKnockback != null ? c.endKnockback : (c.knockback || 0),
-                    knockbackAngle: ch.angle
-                }, g);
+                const ccCfg = Object.assign({}, c, {
+                    stunMs: c.endStunMs != null ? c.endStunMs : c.stunMs
+                });
+                applyCcEffects(m, now, ccCfg, g, ch.player);
                 hitTargets.push(m);
             });
             return hitTargets;
@@ -231,12 +475,9 @@
                 if (isDev && typeof window.applyBreakDamage === 'function') {
                     window.applyBreakDamage(m, Math.floor(dmg * 0.35), ch.player, ch.skillDef);
                 }
-                applyCcEffects(m, now, {
-                    stunMs: c.endStunMs != null ? c.endStunMs : (isDev ? 1200 : 700),
-                    knockback: c.endKnockback != null ? c.endKnockback : (c.knockback || 0),
-                    knockbackAngle: ch.angle,
-                    knockup: !!(c.endKnockup || (isDev && c.knockup))
-                }, g);
+                applyCcEffects(m, now, Object.assign({}, c, {
+                    stunMs: c.endStunMs != null ? c.endStunMs : (isDev ? 1200 : 700)
+                }), g, ch.player);
             });
             return hitTargets;
         }
@@ -280,6 +521,11 @@
                 sourceY: ch.player.y
             });
         }
+        if (c.spawnHolyFieldOnEnd && g) {
+            const st = ensureState(g);
+            spawnConsecrationField(st, ch.player, ch.skillDef, ch.player.x, ch.player.y,
+                c.spawnHolyFieldOnEnd, Date.now());
+        }
     }
 
     function execCharge(player, skillDef, ec, g, monsters, now, angle) {
@@ -314,13 +560,61 @@
         player.isCastingSkill = false;
         player._chargeSuperArmor = !!c.superArmor;
         floatText(g, player.x, player.y - 20, skillDef.name, '#ff8844');
+        if (typeof window.playClassSkillVfx === 'function') {
+            window.playClassSkillVfx(player, skillDef, g, { chargeStart: true, angle });
+        }
     }
 
 
-    function spawnProjectile(player, skillDef, ec, g, monsters, now) {
+    function resolveProjectileGroundPoint(player, c, skillDef, g, castOptions, monsters) {
+        const maxR = c.maxRange || skillDef.range || 350;
+        let tx;
+        let ty;
+        if (castOptions && castOptions.groundPoint) {
+            tx = castOptions.groundPoint.x;
+            ty = castOptions.groundPoint.y;
+        } else if (castOptions && castOptions.lockTarget && castOptions.lockTarget.hp > 0) {
+            tx = castOptions.lockTarget.x;
+            ty = castOptions.lockTarget.y;
+        } else if (c.autoLockOnTap !== false && c.trajectory === 'lob_ground') {
+            const aoeR = c.explodeRadius || skillDef.aoeRadius || 100;
+            if (typeof window.pickBestAoeGroundPoint === 'function') {
+                const pick = window.pickBestAoeGroundPoint(player, monsters, maxR, aoeR);
+                tx = pick.x;
+                ty = pick.y;
+                if (pick.hitCount > 0) {
+                    player.angle = Math.atan2(ty - player.y, tx - player.x);
+                }
+            } else {
+                const enemy = nearestEnemy(player, monsters, maxR);
+                if (enemy) {
+                    tx = enemy.x;
+                    ty = enemy.y;
+                    player.angle = Math.atan2(ty - player.y, tx - player.x);
+                } else {
+                    tx = player.x + Math.cos(player.angle) * maxR * 0.65;
+                    ty = player.y + Math.sin(player.angle) * maxR * 0.65;
+                }
+            }
+        } else {
+            tx = player.x + Math.cos(player.angle) * maxR * 0.65;
+            ty = player.y + Math.sin(player.angle) * maxR * 0.65;
+        }
+        const dx = tx - player.x;
+        const dy = ty - player.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > maxR) {
+            tx = player.x + (dx / dist) * maxR;
+            ty = player.y + (dy / dist) * maxR;
+        }
+        return clampInRoom(g, tx, ty);
+    }
+
+    function spawnProjectile(player, skillDef, ec, g, monsters, now, castOptions) {
         const c = ec.entityConfig;
         const st = ensureState(g);
-        const target = nearestEnemy(player, monsters, skillDef.range || 500);
+        const isLobGround = c.trajectory === 'lob_ground';
+        const target = isLobGround ? null : nearestEnemy(player, monsters, skillDef.range || 500);
         let angle = player.angle;
         if (target) angle = Math.atan2(target.y - player.y, target.x - player.x);
 
@@ -331,7 +625,7 @@
         }
         for (let i = 0; i < count; i++) {
             const offset = count > 1 ? spread * (i / (count - 1) - 0.5) : 0;
-            st.projectiles.push({
+            const base = {
                 x: player.x, y: player.y,
                 angle: angle + offset,
                 speed: c.speed || 400,
@@ -354,11 +648,32 @@
                 color: c.color || '#ff6600',
                 statusOnHit: c.statusOnHit,
                 projectileSpriteId: c.projectileSpriteId || null,
+                visualVariant: c.visualVariant || (skillDef.id === 'holy_taunt' ? 'light_spear' : null),
+                tauntDurationMs: c.tauntDurationMs,
+                debuffSlowPercent: c.debuffSlowPercent,
+                debuffDurationMs: c.debuffDurationMs,
+                consecrationOnExplode: c.consecrationOnExplode,
+                teamDmgBonus: c.teamDmgBonus,
+                allyShieldPercent: c.allyShieldPercent,
                 hitIds: new Set(),
                 spawnTime: now + (c.windupMs || 0),
                 active: !(c.windupMs > 0),
                 hideVisual: c.hideVisual === true
-            });
+            };
+            if (isLobGround) {
+                const land = resolveProjectileGroundPoint(player, c, skillDef, g, castOptions, monsters);
+                base.trajectory = 'lob_ground';
+                base.lobStartX = player.x;
+                base.lobStartY = player.y;
+                base.lobTargetX = land.x;
+                base.lobTargetY = land.y;
+                base.lobArcHeight = c.lobArcHeight || 120;
+                base.lobDurationMs = c.lobFlightMs || 650;
+                base.lobElapsed = 0;
+                base.pierceLeft = 0;
+                base.angle = Math.atan2(land.y - player.y, land.x - player.x);
+            }
+            st.projectiles.push(base);
         }
         if (c.preCast === 'backstep' && typeof window.applyClassSkillHybridEffect === 'function') {
             const fake = { skillEffect: { type: 'backstep', distance: c.backstepDistance || 100 } };
@@ -515,7 +830,12 @@
         const range = c.range || skillDef.range || 80;
         const targets = [];
 
-        if (c.shape === 'cone') {
+        const dashBehind = !!(c._comboDashBehind || skillDef._comboDashBehind);
+
+        if (c.shape === 'pierce' || dashBehind) {
+            const pierceWidth = c.pierceWidth || 28;
+            targets.push(...collectPierceTargets(player, monsters, range, pierceWidth));
+        } else if (c.shape === 'cone') {
             const half = (c.halfAngleDeg || 45) * Math.PI / 180;
             (monsters || []).forEach(m => {
                 if (!m || m.hp <= 0) return;
@@ -584,39 +904,99 @@
         let chainMult = 1;
         targets.forEach((m, i) => {
             if (c.shape === 'chain' && c.chainDecay) chainMult = 1 - i * c.chainDecay;
-            const d = Math.max(1, Math.floor(dmg * chainMult));
+            let d = Math.max(1, Math.floor(dmg * chainMult));
+            if (c.executeMultiplier != null && c.executeThresholdPercent != null) {
+                const ratio = m.hp / (m.maxHp || 1);
+                if (ratio <= c.executeThresholdPercent / 100) {
+                    d = Math.max(1, Math.floor(d * c.executeMultiplier));
+                }
+            }
+            const hpBefore = m.hp;
             applyDmg(player, m, d, skillDef, g, c.statusOnHit);
-            const kbAngle = c.shape === 'cone'
-                ? player.angle
-                : Math.atan2(m.y - player.y, m.x - player.x);
-            applyCcEffects(m, now, {
-                stunMs: c.stunMs || c.confuseMs,
-                knockback: c.knockback,
-                knockbackAngle: kbAngle
-            });
+            applyCcEffects(m, now, c, g, player);
+            if (c.lifeStealPercent) healPlayerPercent(player, c.lifeStealPercent, g, '吸血');
+            if (m.hp <= 0 && hpBefore > 0) {
+                onInstantSkillKill(player, skillDef, c, g, monsters, now, m);
+            }
         });
+        if (c.resourcePerHit && targets.length > 0 && player) {
+            const gain = c.resourcePerHit * targets.length;
+            if (typeof window.grantSkillResource === 'function') {
+                window.grantSkillResource(player, gain);
+            }
+        }
+        applyInstantAllyBuffs(player, c, skillDef, g, now);
         floatText(g, player.x, player.y - 20, skillDef.name, '#ffcc66');
+
+        if (c.grantShieldStacks > 0 && typeof window.grantHolyShieldStacks === 'function') {
+            const stacks = window.grantHolyShieldStacks(player, c.grantShieldStacks, {
+                stackMax: c.stackMax || 3,
+                absorbPercentPerStack: c.shieldPercentPerStack || 5
+            });
+            floatText(g, player.x, player.y - 36, `圣盾 ${stacks}/${c.stackMax || 3}`, '#66ddff');
+            if (g && typeof g.addEquipmentEffect === 'function') {
+                g.addEquipmentEffect('divine_shield', player.x, player.y, { radius: 52, duration: 680 });
+            }
+        }
+
+        const originX = player.x;
+        const originY = player.y;
+        let pierceCtx = null;
+        if (dashBehind && targets.length > 0) {
+            pierceCtx = computePierceBehind(player, targets[0]);
+        }
+
         if (typeof window.playClassSkillVfx === 'function') {
             window.playClassSkillVfx(player, skillDef, g, {
                 primaryTarget: targets[0] || null,
                 hitTargets: targets,
                 hit: targets.length > 0,
-                instantShape: c.shape
+                instantShape: c.shape,
+                comboStep: skillDef._comboStep,
+                comboChain: skillDef._comboChain,
+                pierceTargetX: pierceCtx && pierceCtx.pierceTargetX,
+                pierceTargetY: pierceCtx && pierceCtx.pierceTargetY,
+                dashEndX: pierceCtx && pierceCtx.dashEndX,
+                dashEndY: pierceCtx && pierceCtx.dashEndY,
+                pierceAngle: pierceCtx && pierceCtx.pierceAngle
             });
         }
-        if (targets.length > 0 && g && typeof g.triggerHitImpact === 'function' && (c.shape === 'cone' || c.shape === 'radial')) {
+        if (pierceCtx) {
+            startPierceDash(player, g, originX, originY, pierceCtx.dashEndX, pierceCtx.dashEndY, pierceCtx.pierceAngle, now, 220);
+            if (typeof window.updatePlayerPierceDash === 'function') {
+                window.updatePlayerPierceDash(player, now);
+            }
+        } else if (c._comboDash && c._comboDash > 0) {
+            const nx = player.x + Math.cos(player.angle) * c._comboDash;
+            const ny = player.y + Math.sin(player.angle) * c._comboDash;
+            const clamped = clampInRoom(g, nx, ny);
+            player.x = clamped.x;
+            player.y = clamped.y;
+        }
+        if (targets.length > 0 && g && typeof g.triggerHitImpact === 'function'
+            && (c.shape === 'cone' || c.shape === 'radial' || c.shape === 'pierce' || dashBehind)) {
             const hitR = c.range || skillDef.range || 80;
-            const fx = c.shape === 'radial'
-                ? player.x
-                : player.x + Math.cos(player.angle) * hitR * 0.45;
-            const fy = c.shape === 'radial'
-                ? player.y
-                : player.y + Math.sin(player.angle) * hitR * 0.45;
+            let fx;
+            let fy;
+            let sourceX = player.x;
+            let sourceY = player.y;
+            if (pierceCtx) {
+                fx = pierceCtx.pierceTargetX;
+                fy = pierceCtx.pierceTargetY;
+                sourceX = originX;
+                sourceY = originY;
+            } else if (c.shape === 'radial') {
+                fx = player.x;
+                fy = player.y;
+            } else {
+                fx = player.x + Math.cos(player.angle) * hitR * 0.45;
+                fy = player.y + Math.sin(player.angle) * hitR * 0.45;
+            }
             g.triggerHitImpact(fx, fy, {
-                skipSound: false, isCrit: false, sourceX: player.x, sourceY: player.y
+                skipSound: false, isCrit: false, sourceX, sourceY
             });
         }
-        return targets.length > 0 || c.shape === 'cone' || c.shape === 'radial';
+        return targets.length > 0 || c.shape === 'cone' || c.shape === 'radial' || c.shape === 'pierce';
     }
 
     function resolveBlink(player, skillDef, ec, g, monsters, now, castOptions) {
@@ -711,7 +1091,7 @@
         if (!type) return null;
         const cfg = ec || { entityType: type, entityConfig: {} };
         switch (type) {
-            case 'projectile': return spawnProjectile(player, skillDef, cfg, gameInstance, monsters, now);
+            case 'projectile': return spawnProjectile(player, skillDef, cfg, gameInstance, monsters, now, castOptions);
             case 'summon': return spawnSummon(player, skillDef, cfg, gameInstance, monsters, now);
             case 'field': return spawnField(player, skillDef, cfg, gameInstance, monsters, now, castOptions);
             case 'instant': return resolveInstant(player, skillDef, cfg, gameInstance, monsters, now);
@@ -767,6 +1147,31 @@
         st.projectiles = st.projectiles.filter(p => {
             if (now < p.spawnTime) return true;
             if (!p.active) p.active = true;
+            if (p.trajectory === 'lob_ground') {
+                p.lobElapsed = (p.lobElapsed || 0) + dt * 1000;
+                const dur = p.lobDurationMs || 650;
+                const t = Math.min(1, p.lobElapsed / dur);
+                const arcH = p.lobArcHeight || 120;
+                const sx = p.lobStartX;
+                const sy = p.lobStartY;
+                const ex = p.lobTargetX;
+                const ey = p.lobTargetY;
+                const tNext = Math.min(1, t + 0.03);
+                p.x = sx + (ex - sx) * t;
+                p.y = sy + (ey - sy) * t - arcH * Math.sin(Math.PI * t);
+                const nx = sx + (ex - sx) * tNext;
+                const ny = sy + (ey - sy) * tNext - arcH * Math.sin(Math.PI * tNext);
+                p.angle = Math.atan2(ny - p.y, nx - p.x);
+                if (t >= 1) {
+                    p.x = ex;
+                    p.y = ey;
+                    if (p.explodeRadius) {
+                        applyProjectileExplodeEffects(p, ex, ey, monsters, gameInstance, now);
+                    }
+                    return false;
+                }
+                return true;
+            }
             let vx, vy;
             if (p.trajectory === 'homing' && p.targetRef && p.targetRef.hp > 0) {
                 const ang = Math.atan2(p.targetRef.y - p.y, p.targetRef.x - p.x);
@@ -792,7 +1197,7 @@
                 vy = Math.sin(p.angle) * p.speed * dt;
                 p.traveled += p.speed * dt;
                 if (p.traveled >= p.maxRange) {
-                    if (p.explodeRadius) explodeAt(p.player, p, p.x, p.y, monsters, gameInstance);
+                    if (p.explodeRadius) applyProjectileExplodeEffects(p, p.x, p.y, monsters, gameInstance, now);
                     return false;
                 }
             }
@@ -804,7 +1209,8 @@
                 if (!m || m.hp <= 0 || p.hitIds.has(m)) return;
                 if (Math.hypot(m.x - p.x, m.y - p.y) <= p.radius + (m.size || 20) * 0.5) {
                     applyDmg(p.player, m, p.damage, p.skillDef, gameInstance, p.statusOnHit);
-                    if (p.stunMs) m.frozenUntil = Math.max(m.frozenUntil || 0, now + p.stunMs);
+                    if (p.stunMs) applyCcEffects(m, now, { stunMs: p.stunMs });
+                    applyProjectileCc(p, m, now, monsters, gameInstance);
                     if (p.healOnHitPercent && p.player) {
                         const heal = Math.max(1, Math.floor(p.player.maxHp * p.healOnHitPercent / 100));
                         p.player.hp = Math.min(p.player.maxHp, p.player.hp + heal);
@@ -814,7 +1220,7 @@
                         p.player.hp = Math.min(p.player.maxHp, p.player.hp + heal);
                     }
                     p.hitIds.add(m);
-                    if (p.explodeRadius) explodeAt(p.player, p, p.x, p.y, monsters, gameInstance);
+                    if (p.explodeRadius) applyProjectileExplodeEffects(p, p.x, p.y, monsters, gameInstance, now);
                     if (p.pierceLeft <= 0) { hit = true; }
                     else p.pierceLeft--;
                 }
@@ -880,7 +1286,7 @@
                         if (!m || m.hp <= 0) return;
                         if (Math.hypot(m.x - f.x, m.y - f.y) <= f.radius) {
                             applyDmg(f.owner, m, f.damage, f.skillDef, gameInstance, f.statusOnHit);
-                            if (f.stunMs) m.frozenUntil = Math.max(m.frozenUntil || 0, now + f.stunMs);
+                            applyCcEffects(m, now, { stunMs: f.stunMs }, gameInstance, f.owner);
                         }
                     });
                     if (f.summonOnImpact && f.owner) {
@@ -921,8 +1327,8 @@
                                 if (!m2 || m2.hp <= 0) return;
                                 if (Math.hypot(m2.x - f.x, m2.y - f.y) <= ot.explodeRadius) {
                                     applyDmg(f.owner, m2, f.damage, f.skillDef, gameInstance);
-                                    if (ot.freezeMs) m2.frozenUntil = Math.max(m2.frozenUntil || 0, now + ot.freezeMs);
                                     applyStatusFromConfig(f.owner, m2, f.skillDef, gameInstance, ot.statusOnHit);
+                                    applyCcEffects(m2, now, ot, gameInstance, f.owner);
                                 }
                             });
                         }
@@ -952,10 +1358,21 @@
                         });
                     }
                 } else {
+                    const ec = f.entityConfig || {};
                     (monsters || []).forEach(m => {
                         if (!m || m.hp <= 0) return;
                         if (Math.hypot(m.x - f.x, m.y - f.y) <= f.radius) {
-                            if (f.damage > 0) applyDmg(f.owner, m, f.damage, f.skillDef, gameInstance, f.statusOnTick);
+                            let tickDmg = f.damage;
+                            if (ec.damageEnemyPerTick != null && f.owner) {
+                                tickDmg = Math.max(1, Math.floor(baseAtk(f.owner) * ec.damageEnemyPerTick));
+                            }
+                            if (tickDmg > 0) applyDmg(f.owner, m, tickDmg, f.skillDef, gameInstance, f.statusOnTick);
+                            if (ec.enemySlowPercent) {
+                                applyCcEffects(m, now, {
+                                    enemySlowPercent: ec.enemySlowPercent,
+                                    enemySlowMs: ec.enemySlowMs || f.tickIntervalMs * 2 || 2000
+                                }, gameInstance);
+                            }
                             if (f.randomStatusOnTick && f.randomStatusOnTick.length) {
                                 const stype = f.randomStatusOnTick[Math.floor(Math.random() * f.randomStatusOnTick.length)];
                                 applyStatusFromConfig(f.owner, m, f.skillDef, gameInstance, [{ type: stype, durationMs: 4000 }]);
@@ -964,6 +1381,22 @@
                             }
                         }
                     });
+                    if (ec.allyDmgBonusPercent || ec.healAllyPerTick) {
+                        applyAllyFieldBuffs(f, ec, gameInstance, now);
+                    }
+                    if (ec.allyDmgBonusPerTick && f.owner) {
+                        const buffId = 'skill_' + f.skillDef.id + '_field_dmg';
+                        f.owner.buffs = f.owner.buffs || [];
+                        f.owner.buffs = f.owner.buffs.filter(b => b.id !== buffId);
+                        f.owner.buffs.push({
+                            name: f.skillDef.name + '·命运',
+                            id: buffId,
+                            expireTime: now + (f.tickIntervalMs || 1000) + 200,
+                            effects: { attackPercent: ec.allyDmgBonusPerTick },
+                            hudVisible: true
+                        });
+                        if (typeof f.owner.updateStats === 'function') f.owner.updateStats();
+                    }
                 }
             }
             return true;
@@ -972,6 +1405,7 @@
         // Charges
         st.charges = st.charges.filter(ch => {
             if (!ch.active) return false;
+            const c = ch.ec && ch.ec.entityConfig ? ch.ec.entityConfig : {};
             const step = ch.speed * dt;
             ch.traveled += step;
             const nx = ch.player.x + Math.cos(ch.angle) * step;
@@ -979,24 +1413,37 @@
             const p = clampInRoom(gameInstance, nx, ny);
             ch.player.x = p.x;
             ch.player.y = p.y;
+            if (c.leaveConsecrationTrail) {
+                ch.trailDist = (ch.trailDist || 0) + step;
+                const trail = c.leaveConsecrationTrail;
+                if (ch.trailDist >= (trail.interval || 45)) {
+                    ch.trailDist = 0;
+                    spawnConsecrationField(st, ch.player, ch.skillDef, ch.player.x, ch.player.y, trail, now);
+                }
+            }
             let stopped = ch.traveled >= ch.maxDist;
-            const c = ch.ec && ch.ec.entityConfig ? ch.ec.entityConfig : {};
             (monsters || []).forEach(m => {
                 if (!m || m.hp <= 0 || ch.hitIds.has(m)) return;
                 if (Math.hypot(m.x - ch.player.x, m.y - ch.player.y) <= ch.radius + 15) {
+                    if (ch.stopOnFirstHit) {
+                        const dx = ch.player.x - m.x;
+                        const dy = ch.player.y - m.y;
+                        const dist = Math.hypot(dx, dy) || 1;
+                        const monR = (m.size || CONFIG.MONSTER_SIZE || 32) / 2;
+                        const stopDist = monR + ch.radius + 4;
+                        const stopX = m.x + (dx / dist) * stopDist;
+                        const stopY = m.y + (dy / dist) * stopDist;
+                        const clamped = clampInRoom(gameInstance, stopX, stopY);
+                        ch.player.x = clamped.x;
+                        ch.player.y = clamped.y;
+                        stopped = true;
+                        return;
+                    }
                     applyDmg(ch.player, m, ch.damage, ch.skillDef, gameInstance);
                     ch.hitIds.add(m);
                     const pathStun = ch.pathStunMs != null ? ch.pathStunMs : ch.stunMs;
-                    applyCcEffects(m, now, {
-                        stunMs: pathStun,
-                        knockback: ch.knockback != null ? ch.knockback : c.knockback,
-                        knockbackAngle: ch.angle,
-                        knockup: ch.knockup
-                    }, gameInstance);
-                    if (ch.slowMult) {
-                        if (!m.slowEffects) m.slowEffects = [];
-                        m.slowEffects.push({ multiplier: ch.slowMult, expireTime: now + (ch.slowMs || 2000) });
-                    }
+                    const ccCfg = Object.assign({}, c, { stunMs: pathStun, slowMult: ch.slowMult || c.slowMult, slowMs: ch.slowMs || c.slowMs });
+                    applyCcEffects(m, now, ccCfg, gameInstance, ch.player);
                     if (ch.healOnHitMaxHpPercent > 0) {
                         const heal = Math.max(1, Math.floor(ch.player.maxHp * ch.healOnHitMaxHpPercent));
                         ch.player.hp = Math.min(ch.player.maxHp, ch.player.hp + heal);
@@ -1011,7 +1458,6 @@
                             floatText(gameInstance, ch.player.x, ch.player.y - 36, `加速 ×${stacks}`, '#ffcc66');
                         }
                     }
-                    if (ch.stopOnFirstHit) stopped = true;
                 }
             });
             if (stopped) {
@@ -1025,6 +1471,13 @@
             gameInstance.player._chargeSuperArmor = false;
         }
 
+        if (typeof window.updateHolyLightFields === 'function') {
+            window.updateHolyLightFields(gameInstance, now);
+        }
+        if (typeof window.updateClassSkillTransformEffects === 'function') {
+            window.updateClassSkillTransformEffects(gameInstance, now);
+        }
+
         const p = gameInstance.player;
         if (p && p._skillCastBar && now >= p._skillCastBar.endTime) {
             p._skillCastBar = null;
@@ -1033,16 +1486,32 @@
     };
 
     function explodeAt(player, proj, x, y, monsters, g) {
-        if (!proj.explodeRadius) return;
-        (monsters || []).forEach(m => {
-            if (!m || m.hp <= 0) return;
-            if (Math.hypot(m.x - x, m.y - y) <= proj.explodeRadius) {
-                applyDmg(player, m, proj.damage, proj.skillDef, g);
-            }
-        });
-        if (g && typeof g.addEquipmentEffect === 'function') {
-            g.addEquipmentEffect('fire_explosion', x, y, { radius: proj.explodeRadius, duration: 400 });
-        }
+        applyProjectileExplodeEffects(proj, x, y, monsters, g, Date.now());
+    }
+
+    function drawLightSpear(ctx, p) {
+        const len = Math.max(44, (p.radius || 14) * 3.2);
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+        const col = p.color || '#66ddff';
+        ctx.shadowColor = col;
+        ctx.shadowBlur = 16;
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.moveTo(len * 0.58, 0);
+        ctx.lineTo(-len * 0.38, -5);
+        ctx.lineTo(-len * 0.18, 0);
+        ctx.lineTo(-len * 0.38, 5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#e8ffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.globalAlpha = 0.55;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-len * 0.12, -2.5, len * 0.68, 5);
+        ctx.restore();
     }
 
     window.drawSkillEntities = function drawSkillEntities(ctx, gameInstance) {
@@ -1058,6 +1527,10 @@
                     ctx, p.x, p.y, p.angle, p.projectileSpriteId, Math.max(16, p.radius * 2)
                 );
             if (drawn) return;
+            if (p.visualVariant === 'light_spear') {
+                drawLightSpear(ctx, p);
+                return;
+            }
             ctx.save();
             ctx.fillStyle = p.color;
             ctx.shadowColor = p.color;
@@ -1071,6 +1544,50 @@
             ctx.stroke();
             ctx.restore();
         });
+
+        const pl = gameInstance.player;
+        if (pl && typeof window.getHolyShieldStacks === 'function') {
+            const stacks = window.getHolyShieldStacks(pl);
+            if (stacks > 0) {
+                const baseR = (pl.size || 24) * 0.52;
+                ctx.save();
+                for (let i = 0; i < stacks; i++) {
+                    const phase = now / 380 + i * Math.PI * 2 / 3;
+                    ctx.strokeStyle = `rgba(102,221,255,${0.4 + i * 0.12})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(pl.x, pl.y, baseR + 3 + i * 5 + Math.sin(phase) * 2, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                ctx.fillStyle = '#e8faff';
+                ctx.font = 'bold 10px Courier New';
+                ctx.textAlign = 'center';
+                ctx.fillText('盾×' + stacks, pl.x, pl.y - baseR - 14);
+                ctx.restore();
+            }
+        }
+        if (pl && pl._holyLightField && now < pl._holyLightField.expireTime) {
+            const f = pl._holyLightField;
+            const pulse = 0.92 + Math.sin(now / 180) * 0.06;
+            ctx.save();
+            ctx.globalAlpha = 0.22 + Math.sin(now / 320) * 0.06;
+            const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.radius * pulse);
+            g.addColorStop(0, 'rgba(180,240,255,0.35)');
+            g.addColorStop(0.55, 'rgba(68,200,255,0.18)');
+            g.addColorStop(1, 'rgba(40,120,180,0)');
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(f.x, f.y, f.radius * pulse, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(120,220,255,0.55)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([8, 6]);
+            ctx.beginPath();
+            ctx.arc(f.x, f.y, f.radius * pulse, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+        }
 
         st.summons.forEach(s => {
             ctx.save();
@@ -1105,13 +1622,30 @@
                 ctx.restore();
             } else if (!f.invisible) {
                 ctx.save();
-                ctx.fillStyle = f.color.replace(')', ',0.25)').replace('rgb', 'rgba').replace('#', '');
-                if (f.color.startsWith('#')) {
-                    ctx.fillStyle = f.color + '44';
+                if (f._consecrationGround) {
+                    const pulse = 0.9 + Math.sin(now / 200) * 0.08;
+                    ctx.globalAlpha = 0.28 + Math.sin(now / 350) * 0.06;
+                    const g2 = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.radius * pulse);
+                    g2.addColorStop(0, 'rgba(255,240,180,0.45)');
+                    g2.addColorStop(0.5, 'rgba(120,220,255,0.22)');
+                    g2.addColorStop(1, 'rgba(40,100,160,0)');
+                    ctx.fillStyle = g2;
+                    ctx.beginPath();
+                    ctx.arc(f.x, f.y, f.radius * pulse, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(180,240,255,0.55)';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([6, 5]);
+                    ctx.beginPath();
+                    ctx.arc(f.x, f.y, f.radius * pulse, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                } else {
+                    ctx.fillStyle = f.color.startsWith('#') ? f.color + '44' : f.color;
+                    ctx.beginPath();
+                    ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+                    ctx.fill();
                 }
-                ctx.beginPath();
-                ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
-                ctx.fill();
                 ctx.restore();
             }
         });

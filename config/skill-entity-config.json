@@ -203,11 +203,11 @@
         "knockback": 48,
         "slowMult": 0.6,
         "slowMs": 2000,
-        "stopOnFirstHit": false,
+        "stopOnFirstHit": true,
         "superArmor": false,
         "endFinish": "radial",
-        "endExplodeRadius": 55,
-        "endDamageMultiplier": 1.0,
+        "endExplodeRadius": 80,
+        "endDamageMultiplier": 1.2,
         "endStunMs": 800
       }
     },

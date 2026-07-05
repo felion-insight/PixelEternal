@@ -178,7 +178,7 @@ class Game {
             nonCritParticleScale: 0.38,
             nonCritShakeScale: 0.52,
             edgeFlash: { durationMs: 80, alpha: 0.45 },
-            enemyKnock: { melee: 8, ranged: 6, flashMs: 100, stunMs: 90, rangedStunMs: 70 }
+            enemyKnock: { melee: 0, ranged: 0, flashMs: 100, stunMs: 90, rangedStunMs: 70 }
         };
         this.hitStopTimer = 0; // ms
         this._hitStopRecoveryTicks = 0;
@@ -3561,7 +3561,7 @@ class Game {
             this.player.move(dx, dy);
             
             const attackPressed = (KB && KB.isActionPressed(this, 'attack')) || this.mouse.left;
-            if (attackPressed && !this.player.isDashing) {
+            if (attackPressed && !this.player.isDashing && !this.player._pierceDash) {
                 if (this.currentScene === SCENE_TYPES.TOWER && this.currentRoom && (this.currentRoom.type === ROOM_TYPES.BATTLE || this.currentRoom.type === ROOM_TYPES.ELITE || this.currentRoom.type === ROOM_TYPES.BOSS)) {
                     this.player.attack(this.currentRoom.monsters);
                 } else if (this.currentScene === SCENE_TYPES.TRAINING && this.trainingGroundScene) {
@@ -3812,14 +3812,6 @@ class Game {
         if (!target || typeof target.x !== 'number' || typeof target.y !== 'number') return;
         const now = Date.now();
         const cfg = this.hitFxConfig.enemyKnock;
-        const knock = isRanged ? cfg.ranged : cfg.melee;
-        const sx = Number.isFinite(sourceX) ? sourceX : (this.player ? this.player.x : target.x - 1);
-        const sy = Number.isFinite(sourceY) ? sourceY : (this.player ? this.player.y : target.y);
-        const dx = target.x - sx;
-        const dy = target.y - sy;
-        const dist = Math.hypot(dx, dy) || 1;
-        target.x += (dx / dist) * knock;
-        target.y += (dy / dist) * knock;
         target._hitFlashUntil = now + cfg.flashMs;
         target._hitStunUntil = now + (isRanged ? cfg.rangedStunMs : cfg.stunMs);
     }
@@ -5760,7 +5752,7 @@ class Game {
         
         // 玩家攻击训练桩（如果正在冲刺，不能攻击）
         const KB = window.KeybindSystem;
-        if ((KB && KB.isActionPressed(this, 'attack')) && !this.player.isDashing) {
+        if ((KB && KB.isActionPressed(this, 'attack')) && !this.player.isDashing && !this.player._pierceDash) {
             this.player.attack(this.trainingGroundScene.dummies);
         }
         
@@ -8504,6 +8496,16 @@ class Game {
             } else if (profile.mode === 'direction_line' || profile.mode === 'cone') {
                 castOptions.angle = g.aimAngle;
             }
+        } else if (profile && profile.mode === 'ground_aoe' && profile.autoLockOnTap) {
+            castOptions = {};
+            const monsters = this._getSkillMonsters();
+            const maxR = profile.castRange || 350;
+            const aoeR = profile.aoeRadius || 100;
+            if (typeof window.pickBestAoeGroundPoint === 'function') {
+                const pick = window.pickBestAoeGroundPoint(this.player, monsters, maxR, aoeR);
+                castOptions.groundPoint = { x: pick.x, y: pick.y };
+                this.player.angle = Math.atan2(pick.y - this.player.y, pick.x - this.player.x);
+            }
         }
         this.classSkillAim = null;
         this._castClassSkillHotbar(slotIndex, castOptions);
@@ -9003,18 +9005,7 @@ class Game {
     }
 
     applyPlayerKnockback(player, fromX, fromY, force) {
-        if (!player) return;
-        const dx = player.x - fromX;
-        const dy = player.y - fromY;
-        const d = Math.sqrt(dx * dx + dy * dy) || 1;
-        const nx = dx / d;
-        const ny = dy / d;
-        player.x += nx * force;
-        player.y += ny * force;
-        const w = CONFIG.CANVAS_WIDTH;
-        const h = CONFIG.CANVAS_HEIGHT;
-        player.x = Math.max(player.size / 2, Math.min(w - player.size / 2, player.x));
-        player.y = Math.max(player.size / 2, Math.min(h - player.size / 2, player.y));
+        // 命中击退已全局禁用
     }
 
     updateMonsterProjectiles() {

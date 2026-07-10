@@ -89,12 +89,17 @@
                         <span class="stat-bar-text"><span id="player-hp">100</span>/<span id="player-max-hp">100</span></span>
                     </div>
                 </div>
+                <div id="precision-stack-row" class="hud-bar-row precision-stack-row" style="display: none;">
+                    <span class="precision-stack-label">精准</span>
+                    <span id="precision-stack-dots" class="precision-stack-dots"></span>
+                </div>
                 <div id="class-resource-bar" class="hud-bar-row" style="display: none;">
                     <div class="stat-bar class-resource-bar-inner">
                         <div class="stat-bar-fill" id="class-resource-fill"></div>
                     </div>
                     <span id="class-resource-text" class="resource-value">0</span>
                 </div>
+                <div id="element-phase-indicator" class="element-phase-indicator" style="display: none;"></div>
                 <div id="weapon-skill-container">
                     <div id="weapon-skill-wrapper" style="display: none;">
                         <button id="weapon-skill-btn" type="button" aria-label="武器技能"></button>
@@ -1251,7 +1256,18 @@
     <script src="js/config-helpers.js"></script>
     <script src="js/trait-id-helpers.js"></script>
     <script src="js/class-system.js"></script>
+    <script src="js/warrior-passive.js"></script>
+    <script src="js/ranger-pet-system.js"></script>
+    <script src="js/beastmaster-system.js"></script>
+    <script src="js/marksman-precision-system.js"></script>
+    <script src="js/deadeye-system.js"></script>
+    <script src="js/phantom-clone-system.js"></script>
+    <script src="js/windrunner-system.js"></script>
+    <script src="js/wizard-element-system.js"></script>
+    <script src="js/sage-chronos-system.js"></script>
+    <script src="js/warlock-soul-system.js"></script>
     <script src="js/class-skill-vfx.js"></script>
+    <script src="js/destroy-mark-system.js"></script>
     <script src="js/combat-status-system.js"></script>
     <script src="js/break-gauge-system.js"></script>
     <script src="js/skill-entity-system.js"></script>

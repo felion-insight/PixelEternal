@@ -1071,6 +1071,11 @@ class Monster {
         }
     }
 
+    /** 远程技能瞄准点（怪物几何中心） */
+    getCombatAimPoint() {
+        return { x: this.x, y: this.y };
+    }
+
     update(player) {
         const now = Date.now();
         if (this._baseDamage != null) {
@@ -1134,8 +1139,15 @@ class Monster {
         
         const taunt = (typeof window.getSummonTauntTarget === 'function' && this.gameInstance)
             ? window.getSummonTauntTarget(this, player, this.gameInstance) : null;
-        const chaseX = taunt ? taunt.x : player.x;
-        const chaseY = taunt ? taunt.y : player.y;
+        let chaseX = taunt ? taunt.x : player.x;
+        let chaseY = taunt ? taunt.y : player.y;
+        if (!taunt && typeof window.resolvePhantomConfuseChasePoint === 'function') {
+            const confusePt = window.resolvePhantomConfuseChasePoint(this, player, this.gameInstance, now);
+            if (confusePt) {
+                chaseX = confusePt.x;
+                chaseY = confusePt.y;
+            }
+        }
         const dx = chaseX - this.x;
         const dy = chaseY - this.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -1943,6 +1955,12 @@ class Monster {
                 window.drawMonsterVulnerableOverlay(ctx, this.x, this.y, this.size, now);
             }
         }
+        if (typeof window.drawDestroyMarkOverlay === 'function') {
+            window.drawDestroyMarkOverlay(ctx, this, now);
+        }
+        if (typeof window.drawClassSkillMarkOverlay === 'function') {
+            window.drawClassSkillMarkOverlay(ctx, this, now);
+        }
         // 远程怪瞄准阶段：绘制红色弹道预览线
         if (this.isRanged && this.aimStartTime && this.gameInstance && this.gameInstance.player) {
             const aimElapsed = now - this.aimStartTime;
@@ -2392,8 +2410,15 @@ class TrainingDummy {
         
         const taunt = (typeof window.getSummonTauntTarget === 'function' && this.gameInstance)
             ? window.getSummonTauntTarget(this, player, this.gameInstance) : null;
-        const chaseX = taunt ? taunt.x : player.x;
-        const chaseY = taunt ? taunt.y : player.y;
+        let chaseX = taunt ? taunt.x : player.x;
+        let chaseY = taunt ? taunt.y : player.y;
+        if (!taunt && typeof window.resolvePhantomConfuseChasePoint === 'function') {
+            const confusePt = window.resolvePhantomConfuseChasePoint(this, player, this.gameInstance, now);
+            if (confusePt) {
+                chaseX = confusePt.x;
+                chaseY = confusePt.y;
+            }
+        }
         const dx = chaseX - this.x;
         const dy = chaseY - this.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -2467,12 +2492,14 @@ class TrainingDummy {
      * @param {number} amount - 伤害值
      */
     takeDamage(amount) {
+        const dmg = Number(amount);
+        if (!Number.isFinite(dmg) || dmg <= 0) return false;
         const now = Date.now();
         
         // 记录伤害
-        this.totalDamage += amount;
+        this.totalDamage = (Number.isFinite(this.totalDamage) ? this.totalDamage : 0) + dmg;
         this.damageHistory.push({
-            damage: amount,
+            damage: dmg,
             time: now
         });
         
@@ -2487,7 +2514,7 @@ class TrainingDummy {
             return false; // 永远返回false，表示不会死亡
         } else {
             // 如果不是无敌，正常扣血
-            this.hp -= amount;
+            this.hp -= dmg;
             return this.hp <= 0;
         }
     }
@@ -2769,6 +2796,12 @@ class TrainingDummy {
                 window.drawMonsterVulnerableOverlay(ctx, this.x, this.y, this.size, now);
             }
         }
+        if (typeof window.drawDestroyMarkOverlay === 'function') {
+            window.drawDestroyMarkOverlay(ctx, this, now);
+        }
+        if (typeof window.drawClassSkillMarkOverlay === 'function') {
+            window.drawClassSkillMarkOverlay(ctx, this, now);
+        }
         // 眩晕效果
         if (this.statusEffects.stunned && now < this.statusEffects.stunned.until
             && !(this.statusEffects.frozen && now < this.statusEffects.frozen.until)) {
@@ -2836,12 +2869,14 @@ class MonsterTrainingDummy extends Monster {
      * 受到伤害
      */
     takeDamage(amount) {
+        const dmg = Number(amount);
+        if (!Number.isFinite(dmg) || dmg <= 0) return false;
         const now = Date.now();
         
         // 记录伤害
-        this.totalDamage += amount;
+        this.totalDamage = (Number.isFinite(this.totalDamage) ? this.totalDamage : 0) + dmg;
         this.damageHistory.push({
-            damage: amount,
+            damage: dmg,
             time: now
         });
         
@@ -2856,7 +2891,7 @@ class MonsterTrainingDummy extends Monster {
             return false; // 永远返回false，表示不会死亡
         } else {
             // 如果不是无敌，正常扣血
-            this.hp -= amount;
+            this.hp -= dmg;
             return this.hp <= 0;
         }
     }
@@ -4859,6 +4894,18 @@ class Player {
                 window.updatePlayerPierceDash(this, Date.now());
                 return;
             }
+            if (this._leapSlam && typeof window.updatePlayerLeapSlam === 'function') {
+                window.updatePlayerLeapSlam(this, Date.now());
+                return;
+            }
+            if (this._backstepShot) {
+                return;
+            }
+            if (this._deadeyeSnipeRooted) {
+                this.vx = 0;
+                this.vy = 0;
+                return;
+            }
             // 更新走路音效状态
             const isMoving = (dx !== 0 || dy !== 0) && !this.isDashing;
             if (this.gameInstance && this.gameInstance.soundManager) {
@@ -6238,6 +6285,12 @@ class Player {
             if (this._pierceDash) {
                 return false;
             }
+            if (this._leapSlam) {
+                return false;
+            }
+            if (this._backstepShot) {
+                return false;
+            }
             
             // 如果冲刺结束后0.5秒内，不能攻击
             const now = Date.now();
@@ -6300,7 +6353,10 @@ class Player {
                 if (moveDot < 0 && speedSq > 0.02) return false; // 背对目标移动时不能远程攻击
                 this.angle = Math.atan2(dy, dx);
                 this.lastDirection = dx >= 0 ? 1 : -1;
-                let isCrit = Math.random() * 100 < this.baseCritRate;
+                let critRate = typeof window.getPlayerEffectiveCritRate === 'function'
+                    ? window.getPlayerEffectiveCritRate(this)
+                    : this.baseCritRate;
+                let isCrit = Math.random() * 100 < critRate;
                 let damage = this.effectiveAttack != null ? this.effectiveAttack : this.baseAttack;
                 if (isCrit) damage = applyCritDamageMultiplier(damage, this.baseCritDamage);
                 const traitResult = this.processAttackTraits(nearest, damage, isCrit);
@@ -6336,6 +6392,9 @@ class Player {
                             skipSound: true
                         });
                     }
+                    if (Math.floor(damage) > 0 && typeof window.onMarksmanBasicAttackHit === 'function') {
+                        window.onMarksmanBasicAttackHit(this, this.gameInstance);
+                    }
                 }
                 if (killed && this.gameInstance) {
                     this.processKillRewards([nearest]);
@@ -6370,7 +6429,10 @@ class Player {
             
             if (isInSlashRange) {
                 hit = true;
-                let isCrit = Math.random() * 100 < this.baseCritRate;
+                let critRate = typeof window.getPlayerEffectiveCritRate === 'function'
+                    ? window.getPlayerEffectiveCritRate(this)
+                    : this.baseCritRate;
+                let isCrit = Math.random() * 100 < critRate;
                 let damage = this.effectiveAttack != null ? this.effectiveAttack : this.baseAttack;
                 if (isCrit) {
                     damage = applyCritDamageMultiplier(damage, this.baseCritDamage);
@@ -6413,6 +6475,10 @@ class Player {
                         sourceY: this.y,
                         skipSound: true
                     });
+                }
+                if (!isDummy && Math.floor(damage) > 0
+                    && typeof window.onMarksmanBasicAttackHit === 'function') {
+                    window.onMarksmanBasicAttackHit(this, this.gameInstance);
                 }
                 
                 // 显示伤害数字
@@ -6521,7 +6587,15 @@ class Player {
             
             // 检查无敌状态
             if (this.invincibleUntil && Date.now() < this.invincibleUntil) {
+                if (attacker && typeof window.onWindStepPerfectDodge === 'function') {
+                    window.onWindStepPerfectDodge(this, this.gameInstance);
+                }
                 return false; // 无敌中，不受到伤害
+            }
+
+            if (attacker && typeof window.applyRaiseShieldBlock === 'function') {
+                amount = window.applyRaiseShieldBlock(this, amount, attacker);
+                if (amount <= 0) return false;
             }
 
             if (this._chargeSuperArmor) {
@@ -6569,6 +6643,9 @@ class Player {
                     const absorbed = Math.min(buff.shieldRemaining, actualDamage);
                     buff.shieldRemaining -= absorbed;
                     actualDamage -= absorbed;
+                    if (buff._foresightOwner && typeof window.onForesightShieldAbsorb === 'function') {
+                        window.onForesightShieldAbsorb(this, absorbed, buff, this.gameInstance);
+                    }
                     if (this.gameInstance && absorbed > 0) {
                         this.gameInstance.addFloatingText(this.x, this.y - 28, `护盾 -${absorbed}`, '#88eeff', 1200, 14, true);
                     }
@@ -6619,6 +6696,18 @@ class Player {
             
             // 扣血
             this.hp -= actualDamage;
+            if (this.hp <= 0) {
+                if (this._fateWeave && this._fateWeave.guardian) {
+                    this.hp = 1;
+                } else if (this.gameInstance && this.gameInstance.player
+                    && this.gameInstance.player._timeField
+                    && Date.now() < this.gameInstance.player._timeField.expireTime) {
+                    const tf = this.gameInstance.player._timeField;
+                    if (Math.hypot(this.x - tf.x, this.y - tf.y) <= tf.radius) {
+                        this.hp = 1;
+                    }
+                }
+            }
             if (attacker && actualDamage > 0 && typeof window.applyPlayerDefenseSkillOnHit === 'function') {
                 window.applyPlayerDefenseSkillOnHit(this, attacker);
             }
@@ -7179,7 +7268,11 @@ class Player {
 
     /** 按「吸血」比例，根据本次造成的伤害回复生命（训练桩不计） */
     applyLifeStealFromHit(damageDealt) {
-        const pct = this.lifeStealPercent || 0;
+        let pct = this.lifeStealPercent || 0;
+        if (typeof window.getBloodBattleBonuses === 'function') {
+            pct += window.getBloodBattleBonuses(this).lifeStealPercent || 0;
+        }
+        pct = Math.min(45, pct);
         if (pct <= 0 || damageDealt <= 0) return;
         const h = Math.floor(damageDealt * pct / 100);
         if (h > 0) this.heal(h, { playSound: false });
@@ -9626,6 +9719,9 @@ class Player {
             }
             this.processKillTraits(monster);
             this.handleSetKillEffects(monster);
+            if (typeof window.onPlayerKillResource === 'function') {
+                window.onPlayerKillResource(this);
+            }
             rollEquipmentDropAtMonster(monster, this.gameInstance, 0.22);
         });
     }
@@ -10009,6 +10105,17 @@ class Player {
         }
         
         // 绘制玩家（无敌时闪烁效果）
+        const leapOff = this._leapSlamVisualOffset || this._backstepVisualOffset || 0;
+        if (leapOff > 0) {
+            ctx.save();
+            ctx.globalAlpha = 0.35;
+            ctx.fillStyle = '#220000';
+            ctx.beginPath();
+            ctx.ellipse(this.x, this.y + 4, this.playerGifSize * 0.32, this.playerGifSize * 0.14, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
         if (isInvincible) {
             // 无敌时闪烁：每100ms切换一次透明度
             const blink = Math.floor(now / 100) % 2 === 0;
@@ -10045,6 +10152,14 @@ class Player {
                 const compressionScale = 1.0 - (this.dashCompression * 0.3); // 从1.0压缩到0.7
                 ctx.translate(this.x, this.y);
                 ctx.scale(1, compressionScale); // 只压缩Y轴
+                ctx.translate(-this.x, -this.y);
+            }
+
+            if (leapOff > 0) {
+                ctx.translate(0, -leapOff);
+                const leapScale = 1 + leapOff * 0.004;
+                ctx.translate(this.x, this.y);
+                ctx.scale(leapScale, leapScale);
                 ctx.translate(-this.x, -this.y);
             }
             

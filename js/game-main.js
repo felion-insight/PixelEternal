@@ -2771,6 +2771,10 @@ class Game {
         // 离开恶魔塔时清空仅塔内生效的状态（精英加护、恶魔干扰）
         const previousScene = this.currentScene;
         this.currentScene = targetScene;
+        if (previousScene !== targetScene
+            && typeof window.clearPlayerSkillWorldEntities === 'function') {
+            window.clearPlayerSkillWorldEntities(this);
+        }
         if (previousScene === SCENE_TYPES.TOWER && targetScene !== SCENE_TYPES.TOWER && this.player) {
             this.resetDemonTowerTransientPlayerState();
         }
@@ -8420,10 +8424,17 @@ class Game {
         if (!window.hasPlayerClass(this.player.classData)) return false;
         if (!this._canUseWeaponSkillForBattle()) return false;
         if (this.player.isDashing || this.player.isCastingSkill) return false;
+        if (this.player._leapSlam || this.player._backstepShot) return false;
         if (this.player._skillCastBar && Date.now() < this.player._skillCastBar.endTime) return false;
         const now = Date.now();
         if (this.player.dashEndTime && now - this.player.dashEndTime < 500) return false;
         const resolved = window.getResolvedSkillForPlayer(this.player, skillDef) || skillDef;
+        if (resolved.id === 'phantom_echo_blade'
+            && typeof window.isPlayerInVoidStorm === 'function'
+            && window.isPlayerInVoidStorm(this.player, now, this)
+            && typeof window.canCastVoidStormArraySalvo === 'function') {
+            return window.canCastVoidStormArraySalvo(this.player, now, this);
+        }
         const cooldownKey = resolved.evolutionPath && resolved.evolutionPath.baseSkillId
             ? resolved.evolutionPath.baseSkillId : resolved.id;
         if (window.getSkillCooldownRemaining(this.player, cooldownKey) > 0) return false;
@@ -8489,22 +8500,40 @@ class Game {
         let castOptions = null;
         if (wasActive && profile) {
             castOptions = {};
+            castOptions.chargeMs = Math.max(0, Date.now() - g.startTime - 160);
             if (profile.mode === 'ground_aoe') {
                 castOptions.groundPoint = { x: g.aimX, y: g.aimY };
+                castOptions._manualGroundAim = true;
             } else if (profile.mode === 'target_lock' && g.lockTarget) {
                 castOptions.lockTarget = g.lockTarget;
             } else if (profile.mode === 'direction_line' || profile.mode === 'cone') {
                 castOptions.angle = g.aimAngle;
             }
-        } else if (profile && profile.mode === 'ground_aoe' && profile.autoLockOnTap) {
-            castOptions = {};
+        } else if (profile && profile.autoLockOnTap !== false
+            && typeof window.buildAutoLockCastOptions === 'function') {
             const monsters = this._getSkillMonsters();
-            const maxR = profile.castRange || 350;
-            const aoeR = profile.aoeRadius || 100;
-            if (typeof window.pickBestAoeGroundPoint === 'function') {
-                const pick = window.pickBestAoeGroundPoint(this.player, monsters, maxR, aoeR);
-                castOptions.groundPoint = { x: pick.x, y: pick.y };
-                this.player.angle = Math.atan2(pick.y - this.player.y, pick.x - this.player.x);
+            castOptions = window.buildAutoLockCastOptions(
+                this.player, monsters, g.skillDef, profile, this
+            );
+            if (castOptions) {
+                if (castOptions.groundPoint) {
+                    const dx = castOptions.groundPoint.x - this.player.x;
+                    const dy = castOptions.groundPoint.y - this.player.y;
+                    if (Math.hypot(dx, dy) > 6) {
+                        this.player.angle = Math.atan2(dy, dx);
+                    }
+                } else if (castOptions.angle != null) {
+                    this.player.angle = castOptions.angle;
+                } else if (castOptions.lockTarget) {
+                    if (typeof window.snapPlayerAngleToCombatTarget === 'function') {
+                        window.snapPlayerAngleToCombatTarget(this.player, castOptions.lockTarget);
+                    } else {
+                        this.player.angle = Math.atan2(
+                            castOptions.lockTarget.y - this.player.y,
+                            castOptions.lockTarget.x - this.player.x
+                        );
+                    }
+                }
             }
         }
         this.classSkillAim = null;
@@ -8680,7 +8709,7 @@ class Game {
     _onWeaponSkillInputDown(source) {
         if (this.paused) return;
         if (!this._canUseWeaponSkillForBattle()) return;
-        if (this.player.isDashing || this.player.isCastingSkill) return;
+        if (this.player.isDashing || this.player.isCastingSkill || this.player._leapSlam || this.player._backstepShot) return;
         const now = Date.now();
         if (this.player.dashEndTime && now - this.player.dashEndTime < 500) return;
         if (this.player.weaponSkillCooldown > now) return;

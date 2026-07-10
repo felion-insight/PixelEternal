@@ -36,6 +36,16 @@
 
     window.applySkillLabPlayerConfig = function applySkillLabPlayerConfig(player, classData, level) {
         if (!player || !classData || !classData.baseClass) return false;
+        const gi = player.gameInstance;
+        if (gi && typeof window.clearPlayerSkillWorldEntities === 'function') {
+            window.clearPlayerSkillWorldEntities(gi);
+        }
+        if (typeof window.clearMarksmanPrecisionState === 'function') {
+            window.clearMarksmanPrecisionState(player);
+        }
+        if (typeof window.clearWindrunnerCombatState === 'function') {
+            window.clearWindrunnerCombatState(player);
+        }
         player.classData = window.normalizeClassData(classData);
         player.level = Math.max(1, Math.min(999, level | 0));
         player.skillCooldowns = {};

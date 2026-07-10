@@ -216,7 +216,11 @@
             const cost = window.NpcSystem ? window.NpcSystem.FIRST_JOB_COST : 1000;
             let html = '<p style="color:#aaa;margin:0 0 12px;">免费挑战试炼，或支付 ' + cost + ' 金币跳过</p><div class="npc-option-grid">';
             options.forEach(def => {
-                html += '<div class="npc-option-card"><h4>' + def.name + '</h4><p>' + (def.description || def.role || '') + '</p>'
+                const color = def.themeColor || '#ddaaff';
+                const label = def.themeLabel ? `<span class="npc-theme-label" style="color:${color}">${def.themeLabel}</span>` : '';
+                html += '<div class="npc-option-card" style="border-color:' + color + '; box-shadow: inset 0 0 0 1px ' + color + '33;">'
+                    + '<h4 style="color:' + color + '">' + def.name + ' ' + label + '</h4>'
+                    + '<p>' + (def.description || def.role || '') + '</p>'
                     + '<button type="button" class="npc-action-btn npc-trial-btn" data-first-id="' + def.id + '">免费试炼</button>'
                     + '<button type="button" class="npc-action-btn" data-first-paid="' + def.id + '">转职（' + cost + ' 金）</button></div>';
             });

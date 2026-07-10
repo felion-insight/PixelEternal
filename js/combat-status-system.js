@@ -240,13 +240,19 @@
         if (!monster) return 1;
         let mult = 1;
         if (monster._synergyDamageBonus && monster._synergyDamageBonus.until > Date.now()) {
-            mult *= monster._synergyDamageBonus.mult;
+            const synMult = monster._synergyDamageBonus.mult;
+            if (typeof synMult === 'number' && Number.isFinite(synMult)) {
+                mult *= synMult;
+            }
         }
         if (typeof window.getMonsterSkillDebuffDamageMultiplier === 'function') {
             mult *= window.getMonsterSkillDebuffDamageMultiplier(monster);
         }
         if (monster._breakVulnerable && monster._breakVulnerable.until > Date.now()) {
             mult *= 1 + (monster._breakVulnerable.bonusPercent || 30) / 100;
+        }
+        if (typeof window.getDestroyMarkDamageMultiplier === 'function') {
+            mult *= window.getDestroyMarkDamageMultiplier(monster);
         }
         return mult;
     };

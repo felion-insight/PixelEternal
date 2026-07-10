@@ -146,6 +146,26 @@
         return (base && base.name) || cd.baseClass;
     };
 
+    window.getClassThemeColor = function getClassThemeColor(classDataOrId) {
+        const id = typeof classDataOrId === 'string'
+            ? classDataOrId
+            : (classDataOrId && window.getActiveClassId
+                ? window.getActiveClassId(window.normalizeClassData(classDataOrId))
+                : null);
+        const def = id && window.getClassDefinition ? window.getClassDefinition(id) : null;
+        return (def && def.themeColor) || null;
+    };
+
+    window.getClassThemeLabel = function getClassThemeLabel(classDataOrId) {
+        const id = typeof classDataOrId === 'string'
+            ? classDataOrId
+            : (classDataOrId && window.getActiveClassId
+                ? window.getActiveClassId(window.normalizeClassData(classDataOrId))
+                : null);
+        const def = id && window.getClassDefinition ? window.getClassDefinition(id) : null;
+        return (def && def.themeLabel) || null;
+    };
+
     window.getPlayerBaseClassId = function getPlayerBaseClassId(classData) {
         const cd = window.normalizeClassData(classData);
         if (!cd.baseClass) return null;
@@ -251,7 +271,26 @@
         const base = isMagic ? (player.baseMagicAttack || 0) : (player.baseAttack || 0);
         const classId = window.getActiveClassId(player.classData);
         const aff = window.getWeaponAffinityMultiplier(classId, wt || resolved);
-        return Math.max(1, Math.floor(base * aff));
+        let atk = Math.max(1, Math.floor(base * aff));
+        if (typeof window.getBloodBattleBonuses === 'function') {
+            const bb = window.getBloodBattleBonuses(player);
+            if (bb.attackPercent > 0) {
+                atk = Math.max(1, Math.floor(atk * (1 + bb.attackPercent / 100)));
+            }
+        }
+        if (typeof window.getPackLeaderBonuses === 'function') {
+            const pl = window.getPackLeaderBonuses(player, player.gameInstance);
+            if (pl.attackPercent > 0) {
+                atk = Math.max(1, Math.floor(atk * (1 + pl.attackPercent / 100)));
+            }
+        }
+        if (typeof window.getPrecisionHoldBonuses === 'function') {
+            const prec = window.getPrecisionHoldBonuses(player);
+            if (prec.attackPercent > 0) {
+                atk = Math.max(1, Math.floor(atk * (1 + prec.attackPercent / 100)));
+            }
+        }
+        return atk;
     };
 
     window.computeEquipmentGearScore = function computeEquipmentGearScore(equipment) {

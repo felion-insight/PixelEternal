@@ -12,7 +12,11 @@
         energy: { main: '#cc33ee', light: '#ff99ff', core: '#ffe8ff', dark: '#550066' },
         holy:   { main: '#44bbdd', light: '#88eeff', core: '#e8faff', dark: '#116688' },
         fury:   { main: '#ee2211', light: '#ff6644', core: '#ffe8cc', dark: '#660000' },
-        guardian: { main: '#ddaa22', light: '#ffee88', core: '#fffbe8', dark: '#886600' }
+        guardian: { main: '#ddaa22', light: '#ffee88', core: '#fffbe8', dark: '#886600' },
+        nature: { main: '#44cc33', light: '#88ff66', core: '#eeffcc', dark: '#226611' },
+        gold:   { main: '#ffbb22', light: '#ffee88', core: '#fff8cc', dark: '#886600' },
+        wind:   { main: '#33ddcc', light: '#88ffff', core: '#e8fffa', dark: '#116688' },
+        reaper: { main: '#ff0044', light: '#ff6688', core: '#ffe8ee', dark: '#110008' }
     };
 
     function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
@@ -23,6 +27,28 @@
     }
     function easeOutQuad(t) { return 1 - (1 - t) * (1 - t); }
     function clamp01(t) { return Math.max(0, Math.min(1, t)); }
+
+    function aimPointFor(monster) {
+        if (!monster) return null;
+        if (typeof window.getCombatTargetAimPoint === 'function') {
+            return window.getCombatTargetAimPoint(monster);
+        }
+        return { x: monster.x, y: monster.y };
+    }
+
+    function resolveArcherVfxTarget(primary, gameInstance, px, py, range) {
+        if (primary) return primary;
+        if (!gameInstance || !gameInstance.monsters) return null;
+        let best = null;
+        let bestD = Infinity;
+        (gameInstance.monsters || []).forEach(m => {
+            if (!m || m.hp <= 0) return;
+            const ap = aimPointFor(m);
+            const d = Math.hypot(ap.x - px, ap.y - py);
+            if (d <= range && d < bestD) { bestD = d; best = m; }
+        });
+        return best;
+    }
 
     function paletteFor(family) {
         return PALETTE[family] || PALETTE.rage;
@@ -72,6 +98,199 @@
             color: paletteFor(family).light
         });
     }
+
+    function reaperBurst(gameInstance, x, y, count, spread) {
+        const pm = gameInstance && gameInstance.particleManager;
+        if (!pm || typeof pm.createSystem !== 'function') return;
+        const pal = paletteFor('reaper');
+        pm.createSystem(x, y, {
+            color: pal.main,
+            size: 4,
+            count: count || 16,
+            lifetime: 520,
+            fadeoutTime: 340,
+            speed: 3.2,
+            speedVariation: 1.8,
+            angleSpread: spread || Math.PI * 2,
+            spreadRadius: 8,
+            pixelStyle: true
+        });
+        pm.createSystem(x, y, {
+            color: pal.dark,
+            size: 3,
+            count: Math.floor((count || 16) * 0.55),
+            lifetime: 640,
+            fadeoutTime: 420,
+            speed: 2.2,
+            speedVariation: 1.2,
+            angleSpread: spread || Math.PI * 2,
+            spreadRadius: 10,
+            pixelStyle: true
+        });
+    }
+
+    function drawReaperSkull(ctx, r, alpha, elapsed) {
+        const pulse = 0.92 + 0.08 * Math.sin((elapsed || 0) * 0.018);
+        const sr = r * pulse;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = '#ffe8ee';
+        ctx.beginPath();
+        ctx.arc(0, -sr * 0.08, sr * 0.62, Math.PI, 0);
+        ctx.lineTo(sr * 0.55, sr * 0.35);
+        ctx.quadraticCurveTo(0, sr * 0.55, -sr * 0.55, sr * 0.35);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#110008';
+        ctx.beginPath();
+        ctx.arc(-sr * 0.22, -sr * 0.02, sr * 0.16, 0, Math.PI * 2);
+        ctx.arc(sr * 0.22, -sr * 0.02, sr * 0.16, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(-sr * 0.12, sr * 0.18, sr * 0.24, sr * 0.08);
+        ctx.restore();
+    }
+
+    window.playDeadeyeSnipeEnterVfx = function playDeadeyeSnipeEnterVfx(player, gameInstance, target, durationMs) {
+        if (!player || !gameInstance) return;
+        const dur = durationMs || 8000;
+        const px = player.x;
+        const py = player.y;
+        const ap = aimPointFor(target);
+        const tx = ap ? ap.x : px + Math.cos(player.angle || 0) * 280;
+        const ty = ap ? ap.y : py + Math.sin(player.angle || 0) * 280;
+
+        addVfx(gameInstance, px, py, {
+            variant: 'deadeye_snipe_enter',
+            duration: 780,
+            radius: 150,
+            family: 'reaper',
+            followTarget: player,
+            ox: px,
+            oy: py,
+            targetX: tx,
+            targetY: ty
+        });
+        addVfx(gameInstance, px, py, {
+            variant: 'deadeye_snipe_aura',
+            duration: dur,
+            radius: 78,
+            family: 'reaper',
+            followTarget: player,
+            ox: px,
+            oy: py
+        });
+        addVfx(gameInstance, px, py, {
+            variant: 'deadeye_snipe_vignette',
+            duration: dur,
+            radius: 460,
+            family: 'reaper',
+            followTarget: player
+        });
+        if (target && ap) {
+            addVfx(gameInstance, ap.x, ap.y, {
+                variant: 'deadeye_target_lock',
+                duration: dur,
+                radius: (target.size || 32) * 0.65 + 30,
+                family: 'reaper',
+                followTarget: target
+            });
+            player._deadeyeSnipeLockVfxTarget = target;
+        }
+        reaperBurst(gameInstance, px, py, 22, Math.PI * 2);
+        castFlash(gameInstance, px, py, 'reaper', 54);
+    };
+
+    window.tickDeadeyeSnipeVfx = function tickDeadeyeSnipeVfx(player, gameInstance, target, now) {
+        if (!player || !gameInstance || typeof window.isDeadeyeSnipeActive !== 'function') return;
+        if (!window.isDeadeyeSnipeActive(player, now)) return;
+        if (target && target !== player._deadeyeSnipeLockVfxTarget && target.hp > 0) {
+            const ap = aimPointFor(target);
+            const until = (player._deadeyeSnipeUntil || now) - now;
+            if (ap && until > 0) {
+                addVfx(gameInstance, ap.x, ap.y, {
+                    variant: 'deadeye_target_lock',
+                    duration: until,
+                    radius: (target.size || 32) * 0.65 + 30,
+                    family: 'reaper',
+                    followTarget: target
+                });
+                player._deadeyeSnipeLockVfxTarget = target;
+            }
+        }
+    };
+
+    window.playDeadeyeSnipeChargeVfx = function playDeadeyeSnipeChargeVfx(player, gameInstance, target) {
+        if (!player || !gameInstance) return;
+        const ap = aimPointFor(target);
+        const tx = ap ? ap.x : player.x + Math.cos(player.angle || 0) * 320;
+        const ty = ap ? ap.y : player.y + Math.sin(player.angle || 0) * 320;
+        addVfx(gameInstance, player.x, player.y, {
+            variant: 'deadeye_snipe_charge',
+            duration: 340,
+            radius: 120,
+            family: 'reaper',
+            followTarget: player,
+            ox: player.x,
+            oy: player.y,
+            targetX: tx,
+            targetY: ty
+        });
+    };
+
+    window.playDeadeyeSnipeFireVfx = function playDeadeyeSnipeFireVfx(player, gameInstance, target, shotIndex) {
+        if (!player || !gameInstance) return;
+        const ap = aimPointFor(target);
+        const tx = ap ? ap.x : player.x + Math.cos(player.angle || 0) * 320;
+        const ty = ap ? ap.y : player.y + Math.sin(player.angle || 0) * 320;
+        addVfx(gameInstance, player.x, player.y, {
+            variant: 'deadeye_snipe_fire',
+            duration: 280,
+            radius: 64 + (shotIndex || 0) * 6,
+            family: 'reaper',
+            followTarget: player,
+            ox: player.x,
+            oy: player.y,
+            targetX: tx,
+            targetY: ty,
+            shotIndex: shotIndex || 0
+        });
+        reaperBurst(gameInstance, player.x, player.y, 10 + (shotIndex || 0) * 2, Math.PI * 0.35);
+    };
+
+    window.playDeathReaperImpactVfx = function playDeathReaperImpactVfx(player, gameInstance, x, y, isCrit) {
+        if (!gameInstance) return;
+        addVfx(gameInstance, x, y, {
+            variant: 'death_reaper_impact',
+            duration: isCrit ? 620 : 480,
+            radius: isCrit ? 110 : 86,
+            family: 'reaper',
+            ox: x,
+            oy: y
+        });
+        reaperBurst(gameInstance, x, y, isCrit ? 28 : 18, Math.PI * 2);
+        if (gameInstance.screenShake) {
+            const amp = isCrit ? 10 : 6;
+            gameInstance.screenShake.amplitude = Math.max(gameInstance.screenShake.amplitude, amp);
+            gameInstance.screenShake.timer = Math.max(gameInstance.screenShake.timer, isCrit ? 220 : 160);
+            gameInstance.screenShake.duration = Math.max(gameInstance.screenShake.duration, isCrit ? 220 : 160);
+            gameInstance.screenShake.bigFrames = Math.max(gameInstance.screenShake.bigFrames, isCrit ? 3 : 1);
+        }
+    };
+
+    window.clearDeadeyeSnipeVfx = function clearDeadeyeSnipeVfx(player, gameInstance) {
+        if (!player) return;
+        delete player._deadeyeSnipeLockVfxTarget;
+        if (gameInstance && typeof gameInstance.addEquipmentEffect === 'function') {
+            addVfx(gameInstance, player.x, player.y, {
+                variant: 'deadeye_snipe_end',
+                duration: 420,
+                radius: 90,
+                family: 'reaper',
+                ox: player.x,
+                oy: player.y
+            });
+        }
+    };
 
     /**
      * 播放职业技能全套特效
@@ -339,8 +558,8 @@
                 }
             } else {
                 addVfx(gameInstance, px, py, {
-                    variant: 'aoe_nova',
-                    duration: 520,
+                    variant: skillDef.id === 'devastation_charge' ? 'earth_split_slam' : 'aoe_nova',
+                    duration: skillDef.id === 'devastation_charge' ? 560 : 520,
                     radius: endR,
                     angle,
                     family,
@@ -356,6 +575,19 @@
                     ox: px,
                     oy: py
                 });
+                if (skillDef.id === 'devastation_charge') {
+                    addVfx(gameInstance, px, py, {
+                        variant: 'devastation_slam',
+                        duration: 500,
+                        delayMs: 60,
+                        radius: endR,
+                        angle,
+                        family,
+                        halfAngleDeg: 180,
+                        ox: px,
+                        oy: py
+                    });
+                }
             }
             hitTargets.forEach((m, i) => {
                 burstParticles(gameInstance, m.x, m.y, family, 10, Math.PI * 1.2);
@@ -415,6 +647,32 @@
             return;
         }
 
+        if (context && context.markApplied && context.primaryTarget) {
+            const m = context.primaryTarget;
+            const mx = m.x;
+            const my = m.y;
+            const mr = (m.size || 32) / 2 + 12;
+            castFlash(gameInstance, mx, my, family, mr);
+            addVfx(gameInstance, mx, my, {
+                variant: 'cast_flash',
+                duration: 420,
+                radius: mr * 1.2,
+                family,
+                color: '#ffcc44'
+            });
+            addVfx(gameInstance, mx, my, {
+                variant: 'aoe_shock',
+                duration: 360,
+                delayMs: 60,
+                radius: mr,
+                family,
+                ox: mx,
+                oy: my
+            });
+            burstParticles(gameInstance, mx, my, family, 12, Math.PI * 2);
+            return;
+        }
+
         if (skillDef.entityType === 'projectile' && (skillDef.id === 'holy_taunt' || ec.visualVariant === 'light_spear')) {
             if (ec.trajectory === 'lob_ground') {
                 castFlash(gameInstance, px, py, family, 42);
@@ -438,7 +696,7 @@
             return;
         }
 
-        if (skillDef.id === 'unyielding_wall') {
+        if (skillDef.id === 'unyielding_wall' || skillDef.id === 'sacred_sacrifice') {
             const radialR = ec.range || skillDef.aoeRadius || 150;
             castFlash(gameInstance, px, py, family, 56);
             addVfx(gameInstance, px, py, {
@@ -483,6 +741,39 @@
                     ox: px,
                     oy: py
                 });
+            });
+            return;
+        }
+
+        if (skillDef.id === 'raise_shield' || skillDef.id === 'divine_bastion') {
+            const radialR = skillDef.id === 'divine_bastion'
+                ? (skillDef.aoeRadius || 160) : 54;
+            castFlash(gameInstance, px, py, family, radialR * 0.45);
+            addVfx(gameInstance, px, py, {
+                variant: skillDef.id === 'divine_bastion' ? 'guardian_sanctuary_dome' : 'guardian_aegis_aura',
+                duration: skillDef.id === 'divine_bastion' ? 900 : 620,
+                radius: radialR,
+                angle,
+                family,
+                ox: px,
+                oy: py
+            });
+            if (gameInstance.addEquipmentEffect) {
+                gameInstance.addEquipmentEffect('mithril_shield', px, py, { radius: radialR, duration: 620 });
+            }
+            return;
+        }
+
+        if (skillDef.id === 'sacred_bond') {
+            castFlash(gameInstance, px, py, family, 44);
+            addVfx(gameInstance, px, py, {
+                variant: 'guardian_aegis_aura',
+                duration: 720,
+                radius: 48,
+                angle,
+                family,
+                ox: px,
+                oy: py
             });
             return;
         }
@@ -596,7 +887,263 @@
             return;
         }
 
-        if (skillDef.id === 'whirlwind_slash') {
+        if (skillDef.id === 'devastation_rift' || ec.shape === 'fissure') {
+            const fissureR = ec.range || skillDef.range || 300;
+            castFlash(gameInstance, px, py, family, 50);
+            addVfx(gameInstance, px, py, {
+                variant: 'earth_split_slam',
+                duration: 620,
+                radius: fissureR * 0.55,
+                angle,
+                family,
+                ox: px,
+                oy: py
+            });
+            addVfx(gameInstance, px, py, {
+                variant: 'devastation_slam',
+                duration: 560,
+                delayMs: 60,
+                radius: fissureR,
+                angle,
+                family,
+                halfAngleDeg: 28,
+                ox: px,
+                oy: py
+            });
+            addVfx(gameInstance, px, py, {
+                variant: 'aoe_shock',
+                duration: 480,
+                delayMs: 100,
+                radius: fissureR * 0.85,
+                angle,
+                family,
+                halfAngleDeg: 24,
+                ox: px,
+                oy: py
+            });
+            hitTargets.forEach((m, i) => {
+                addVfx(gameInstance, m.x, m.y, {
+                    variant: 'hit_spark',
+                    duration: 340,
+                    delayMs: 80 + i * 25,
+                    radius: 44,
+                    angle,
+                    family,
+                    ox: px,
+                    oy: py
+                });
+                burstParticles(gameInstance, m.x, m.y, family, 10, Math.PI * 1.2);
+            });
+            if (gameInstance.addEquipmentEffect) {
+                gameInstance.addEquipmentEffect('fire_explosion', px, py, {
+                    radius: fissureR * 0.4, duration: 520
+                });
+            }
+            return;
+        }
+
+        if (skillDef.id === 'devastation_whirlwind' || ec.leapSlam) {
+            const radialR = ec.range || skillDef.range || 110;
+            castFlash(gameInstance, px, py, family, 52);
+            addVfx(gameInstance, px, py, {
+                variant: 'earth_split_slam',
+                duration: 680,
+                radius: radialR,
+                angle,
+                family,
+                ox: px,
+                oy: py
+            });
+            addVfx(gameInstance, px, py, {
+                variant: 'devastation_slam',
+                duration: 520,
+                delayMs: 80,
+                radius: radialR,
+                angle,
+                family,
+                halfAngleDeg: 180,
+                ox: px,
+                oy: py
+            });
+            addVfx(gameInstance, px, py, {
+                variant: 'aoe_shock',
+                duration: 480,
+                delayMs: 120,
+                radius: radialR * 1.1,
+                family,
+                ox: px,
+                oy: py
+            });
+            hitTargets.forEach((m, i) => {
+                addVfx(gameInstance, m.x, m.y, {
+                    variant: 'hit_spark',
+                    duration: 340,
+                    delayMs: 100 + i * 28,
+                    radius: 44,
+                    angle,
+                    family,
+                    ox: px,
+                    oy: py
+                });
+                burstParticles(gameInstance, m.x, m.y, family, 10, Math.PI * 1.2);
+            });
+            if (gameInstance.addEquipmentEffect) {
+                gameInstance.addEquipmentEffect('fire_explosion', px, py, { radius: radialR, duration: 580 });
+            }
+            if (gameInstance.soundManager) {
+                try { gameInstance.soundManager.playSound('explosion'); } catch (e) {}
+            }
+            return;
+        }
+
+        if (skillDef.id === 'executioners_cry') {
+            const coneRange = ec.range || skillDef.range || 100;
+            const halfAngleDeg = ec.halfAngleDeg || 45;
+            castFlash(gameInstance, px, py, family, 54);
+            addVfx(gameInstance, px, py, {
+                variant: 'devastation_roar',
+                duration: 660,
+                radius: coneRange,
+                angle,
+                family,
+                halfAngleDeg,
+                ox: px,
+                oy: py
+            });
+            addVfx(gameInstance, px, py, {
+                variant: 'blood_roar_wave',
+                duration: 620,
+                delayMs: 30,
+                radius: coneRange,
+                angle,
+                family,
+                halfAngleDeg,
+                ox: px,
+                oy: py
+            });
+            addVfx(gameInstance, px, py, {
+                variant: 'fury_blood_mist',
+                duration: 540,
+                delayMs: 100,
+                radius: coneRange * 0.75,
+                angle,
+                family,
+                ox: px,
+                oy: py
+            });
+            hitTargets.forEach((m, i) => {
+                addVfx(gameInstance, m.x, m.y, {
+                    variant: 'hit_spark',
+                    duration: 320,
+                    delayMs: 80 + i * 30,
+                    radius: 42,
+                    angle,
+                    family,
+                    ox: px,
+                    oy: py
+                });
+                burstParticles(gameInstance, m.x, m.y, family, 8, Math.PI * 1.1);
+            });
+            if (gameInstance.soundManager) {
+                try { gameInstance.soundManager.playSound('swing'); } catch (e) {}
+            }
+            return;
+        }
+
+        if (skillDef.id === 'blood_demon_form' || (context && context.destructionTransform)) {
+            const radialR = (context && context.aoeRadius) || ec.pulseRadius || skillDef.aoeRadius || 160;
+            castFlash(gameInstance, px, py, family, 62);
+            addVfx(gameInstance, px, py, {
+                variant: 'fury_transform',
+                duration: 920,
+                radius: radialR * 0.7,
+                angle,
+                family,
+                ox: px,
+                oy: py
+            });
+            addVfx(gameInstance, px, py, {
+                variant: 'destruction_pulse',
+                duration: 780,
+                delayMs: 60,
+                radius: radialR,
+                family,
+                ox: px,
+                oy: py
+            });
+            if (gameInstance.addEquipmentEffect) {
+                gameInstance.addEquipmentEffect('fire_explosion', px, py, { radius: radialR * 0.6, duration: 680 });
+            }
+            burstParticles(gameInstance, px, py, family, 22, Math.PI * 2);
+            return;
+        }
+
+        if (context && context.destructionPulse) {
+            const pulseR = context.aoeRadius || 160;
+            addVfx(gameInstance, px, py, {
+                variant: 'destruction_pulse',
+                duration: 420,
+                radius: pulseR,
+                angle,
+                family,
+                ox: px,
+                oy: py
+            });
+            addVfx(gameInstance, px, py, {
+                variant: 'aoe_shock',
+                duration: 340,
+                delayMs: 40,
+                radius: pulseR * 0.85,
+                family,
+                ox: px,
+                oy: py
+            });
+            return;
+        }
+
+        if (context && context.destructionFinal) {
+            const finalR = context.aoeRadius || 160;
+            addVfx(gameInstance, px, py, {
+                variant: 'earth_split_slam',
+                duration: 820,
+                radius: finalR * 1.2,
+                angle,
+                family,
+                ox: px,
+                oy: py
+            });
+            addVfx(gameInstance, px, py, {
+                variant: 'devastation_slam',
+                duration: 720,
+                delayMs: 60,
+                radius: finalR,
+                angle,
+                family,
+                halfAngleDeg: 180,
+                ox: px,
+                oy: py
+            });
+            if (gameInstance.addEquipmentEffect) {
+                gameInstance.addEquipmentEffect('fire_explosion', px, py, { radius: finalR, duration: 780 });
+            }
+            burstParticles(gameInstance, px, py, family, 28, Math.PI * 2);
+            return;
+        }
+
+        if (context && context.destroyMarkBurst) {
+            burstParticles(gameInstance, px, py, family, 16, Math.PI * 2);
+            addVfx(gameInstance, px, py, {
+                variant: 'aoe_nova',
+                duration: 380,
+                radius: 48,
+                family,
+                ox: px,
+                oy: py
+            });
+            return;
+        }
+
+        if (skillDef.id === 'whirlwind_slash' || skillDef.id === 'devastation_whirlwind_old') {
             const radialR = ec.range || skillDef.range || 100;
             castFlash(gameInstance, px, py, family, 48);
             addVfx(gameInstance, px, py, {
@@ -1125,23 +1672,41 @@
 
         // ---- field: 领域/陷阱/场地 ----
         if (skillDef.entityType === 'field') {
+            const groundPt = context && context.groundPoint;
+            const fx = groundPt ? groundPt.x : px;
+            const fy = groundPt ? groundPt.y : py;
             const fieldR = ec.fieldRadius || 80;
             const fieldT = ec.triggerType || 'periodic';
             const isTrap = fieldT === 'proximity_mine' || fieldT === 'delayed_strike';
             const isBurst = fieldT === 'instant_burst';
-            castFlash(gameInstance, px, py, family, isBurst ? 50 : 36);
-            if (isBurst) {
+            if (skillDef.id === 'phantom_storm') {
+                castFlash(gameInstance, px, py, family, 52);
                 addVfx(gameInstance, px, py, {
+                    variant: 'wind_cyclone',
+                    duration: ec.fieldDurationMs || 6000,
+                    radius: fieldR,
+                    angle,
+                    family,
+                    ox: px,
+                    oy: py,
+                    fieldColor: ec.color || '#88eeff'
+                });
+                burstParticles(gameInstance, px, py, family, 16, Math.PI * 2);
+                return;
+            }
+            castFlash(gameInstance, fx, fy, family, isBurst ? 50 : 36);
+            if (isBurst) {
+                addVfx(gameInstance, fx, fy, {
                     variant: 'aoe_nova',
                     duration: 460,
                     radius: fieldR,
                     angle,
                     family,
-                    ox: px,
-                    oy: py
+                    ox: fx,
+                    oy: fy
                 });
             } else if (isTrap) {
-                addVfx(gameInstance, px, py, {
+                addVfx(gameInstance, fx, fy, {
                     variant: 'field_pulse',
                     duration: 900,
                     radius: fieldR,
@@ -1149,11 +1714,18 @@
                     family,
                     fieldColor: ec.color || '#88ddff',
                     pulseCount: 3,
-                    ox: px,
-                    oy: py
+                    ox: fx,
+                    oy: fy
                 });
+                if (skillDef.id === 'frozen_trap' && typeof gameInstance.addEquipmentEffect === 'function') {
+                    gameInstance.addEquipmentEffect('freeze_ring', fx, fy, {
+                        radius: fieldR,
+                        duration: 720,
+                        delayMs: 0
+                    });
+                }
             } else {
-                addVfx(gameInstance, px, py, {
+                addVfx(gameInstance, fx, fy, {
                     variant: 'field_pulse',
                     duration: 1000,
                     radius: fieldR,
@@ -1161,20 +1733,20 @@
                     family,
                     fieldColor: ec.color || '#55aa44',
                     pulseCount: 5,
-                    ox: px,
-                    oy: py
+                    ox: fx,
+                    oy: fy
                 });
             }
-            addVfx(gameInstance, px, py, {
+            addVfx(gameInstance, fx, fy, {
                 variant: 'aoe_shock',
                 duration: 420,
                 delayMs: 60,
                 radius: fieldR * 0.65,
                 family,
-                ox: px,
-                oy: py
+                ox: fx,
+                oy: fy
             });
-            burstParticles(gameInstance, px, py, family, isBurst ? 18 : 10, Math.PI * 2);
+            burstParticles(gameInstance, fx, fy, family, isBurst ? 18 : 10, Math.PI * 2);
             return;
         }
 
@@ -1203,8 +1775,132 @@
             return;
         }
 
+        // ---- 风行者：风之步 ----
+        if (skillDef.id === 'wind_step' && skillDef.entityType === 'blink') {
+            const dist = ec.distance || 120;
+            const tx = px + Math.cos(angle) * dist;
+            const ty = py + Math.sin(angle) * dist;
+            castFlash(gameInstance, px, py, family, 34);
+            const bladeCount = ec.onCastWindBlades || 3;
+            const spread = (ec.windBladeSpreadDeg || 22) * Math.PI / 180;
+            const br = ec.windBladeRange || 380;
+            for (let i = 0; i < bladeCount; i++) {
+                const off = bladeCount > 1 ? spread * (i / (bladeCount - 1) - 0.5) : 0;
+                const ba = angle + off;
+                addVfx(gameInstance, px, py, {
+                    variant: 'wind_blade_arc',
+                    duration: 320,
+                    delayMs: i * 35,
+                    radius: br * 0.55,
+                    angle: ba,
+                    family,
+                    ox: px,
+                    oy: py
+                });
+            }
+            addVfx(gameInstance, px, py, {
+                variant: 'wind_step_dash',
+                duration: 380,
+                delayMs: 60,
+                radius: dist,
+                angle,
+                family,
+                ox: px,
+                oy: py,
+                targetX: tx,
+                targetY: ty
+            });
+            addVfx(gameInstance, tx, ty, {
+                variant: 'cast_flash',
+                duration: 260,
+                delayMs: 120,
+                radius: 40,
+                family,
+                color: pal.light
+            });
+            burstParticles(gameInstance, px, py, family, 12, Math.PI * 1.4);
+            burstParticles(gameInstance, tx, ty, family, 8, Math.PI * 2);
+            return;
+        }
+
+        // ---- 风行者/幻影：风刃 ----
+        if ((skillDef.id === 'wind_blade' || skillDef.id === 'phantom_echo_blade' || ec.visualVariant === 'wind_blade')
+            && skillDef.entityType === 'projectile') {
+            const maxR = ec.maxRange || skillDef.range || 400;
+            const bladeR = (ec.collisionRadius || 30) * (context && context.windSynergy ? 2 : 1);
+            castFlash(gameInstance, px, py, family, 36);
+            addVfx(gameInstance, px, py, {
+                variant: 'wind_blade_arc',
+                duration: 420,
+                radius: maxR * 0.65,
+                angle,
+                family,
+                ox: px,
+                oy: py,
+                bladeWidth: bladeR
+            });
+            if (typeof window.hasWindrunnerSpeedBoost === 'function'
+                && window.hasWindrunnerSpeedBoost(player)) {
+                addVfx(gameInstance, px, py, {
+                    variant: 'buff_aura',
+                    duration: 500,
+                    radius: 52,
+                    angle,
+                    family,
+                    ox: px,
+                    oy: py
+                });
+            }
+            burstParticles(gameInstance, px, py, family, 14, Math.PI * 0.8);
+            return;
+        }
+
+        // ---- 风行者：风之印记 ----
+        if (skillDef.id === 'wind_mark' && skillDef.entityType === 'projectile') {
+            castFlash(gameInstance, px, py, family, 30);
+            if (resolvedPrimary) {
+                addVfx(gameInstance, resolvedPrimary.x, resolvedPrimary.y, {
+                    variant: 'wind_mark_apply',
+                    duration: 700,
+                    radius: 36,
+                    family,
+                    ox: resolvedPrimary.x,
+                    oy: resolvedPrimary.y
+                });
+            }
+            addVfx(gameInstance, px, py, {
+                variant: 'archer_shot',
+                duration: 280,
+                radius: 24,
+                angle,
+                family,
+                ox: px,
+                oy: py,
+                targetX: resolvedPrimary ? resolvedPrimary.x : px + Math.cos(angle) * 200,
+                targetY: resolvedPrimary ? resolvedPrimary.y : py + Math.sin(angle) * 200,
+                color: pal.main
+            });
+            return;
+        }
+
         // ---- blink: 闪烁/位移 ----
         if (skillDef.entityType === 'blink') {
+            if (skillDef.id === 'phantom_clone' && (ec.leaveEchoOnCast || ec.leaveCloneOnCast)) {
+                const originX = (context && context.blinkOriginX != null)
+                    ? context.blinkOriginX
+                    : (player._lastBlinkOriginX != null ? player._lastBlinkOriginX : px);
+                const originY = (context && context.blinkOriginY != null)
+                    ? context.blinkOriginY
+                    : (player._lastBlinkOriginY != null ? player._lastBlinkOriginY : py);
+                addVfx(gameInstance, originX, originY, {
+                    variant: 'phantom_clone_spawn',
+                    duration: 560,
+                    radius: 58,
+                    family: 'energy',
+                    ox: originX,
+                    oy: originY
+                });
+            }
             addVfx(gameInstance, px, py, {
                 variant: 'blink_trail',
                 duration: 420,
@@ -1228,12 +1924,224 @@
             return;
         }
 
+        // ---- 弓箭手后跳射击 ----
+        if (skillDef.id === 'backstep_shot' && skillDef.entityType === 'projectile') {
+            const backstepMs = ec.backstepDurationMs || 320;
+            const backDist = ec.backstepDistance || 100;
+            const ex = px - Math.cos(angle) * backDist;
+            const ey = py - Math.sin(angle) * backDist;
+            const count = ec.projectileCount || 3;
+            const spread = (ec.spreadAngleDeg || 30) * Math.PI / 180;
+            const stagger = ec.projectileStaggerMs || 45;
+            const maxR = ec.maxRange || skillDef.range || 400;
+            const arrowSpeed = ec.speed || 850;
+
+            let aimTarget = resolvedPrimary;
+            if (!aimTarget) {
+                aimTarget = resolveArcherVfxTarget(null, gameInstance, ex, ey, maxR);
+            }
+
+            castFlash(gameInstance, px, py, family, 28);
+            addVfx(gameInstance, px, py, {
+                variant: 'archer_backstep_kick',
+                duration: backstepMs + 80,
+                radius: 52,
+                angle,
+                family,
+                ox: px,
+                oy: py,
+                targetX: ex,
+                targetY: ey
+            });
+            addVfx(gameInstance, ex, ey, {
+                variant: 'archer_backstep_trail',
+                duration: backstepMs,
+                radius: backDist,
+                angle,
+                family,
+                ox: px,
+                oy: py,
+                targetX: ex,
+                targetY: ey
+            });
+            addVfx(gameInstance, ex, ey, {
+                variant: 'cast_flash',
+                duration: 240,
+                delayMs: backstepMs,
+                radius: 34,
+                family,
+                color: pal.light
+            });
+            burstParticles(gameInstance, px, py, family, 8, Math.PI * 0.6);
+
+            for (let i = 0; i < count; i++) {
+                const offset = (count > 1 && spread > 0) ? spread * (i / (count - 1) - 0.5) : 0;
+                const shotAngle = angle + offset;
+                let tx;
+                let ty;
+                if (aimTarget) {
+                    const ap = aimPointFor(aimTarget);
+                    const directDist = Math.hypot(ap.x - ex, ap.y - ey);
+                    tx = ex + Math.cos(shotAngle) * directDist;
+                    ty = ey + Math.sin(shotAngle) * directDist;
+                } else {
+                    tx = ex + Math.cos(shotAngle) * maxR * 0.72;
+                    ty = ey + Math.sin(shotAngle) * maxR * 0.72;
+                }
+                const travelDist = Math.hypot(tx - ex, ty - ey);
+                const travelMs = Math.min(520, Math.max(280, (travelDist / arrowSpeed) * 1000));
+                const shotDelay = backstepMs + i * stagger;
+
+                addVfx(gameInstance, tx, ty, {
+                    variant: 'archer_shot',
+                    duration: travelMs,
+                    delayMs: shotDelay,
+                    radius: 58,
+                    angle: shotAngle,
+                    family,
+                    ox: ex,
+                    oy: ey,
+                    targetX: tx,
+                    targetY: ty,
+                    shotIndex: i
+                });
+                if (aimTarget) {
+                    addVfx(gameInstance, tx, ty, {
+                        variant: 'hit_spark',
+                        duration: 320,
+                        delayMs: shotDelay + Math.floor(travelMs * 0.74),
+                        radius: 38,
+                        angle: shotAngle,
+                        family,
+                        ox: ex,
+                        oy: ey
+                    });
+                }
+            }
+
+            burstParticles(gameInstance, ex, ey, family, 10, Math.PI * 1.35);
+            if (gameInstance.soundManager) {
+                try { gameInstance.soundManager.playSound('swing'); } catch (e) { /* ignore */ }
+            }
+            return;
+        }
+
+        // ---- 弓箭手普攻：迅矢三连 ----
+        if (skillDef.id === 'archer_basic' && skillDef.entityType === 'projectile') {
+            const comboStep = (context && context.comboStep != null)
+                ? context.comboStep : (skillDef._comboStep || 0);
+            const range = ec.maxRange || skillDef.range || 450;
+            const aimMon = resolveArcherVfxTarget(resolvedPrimary, gameInstance, px, py, range);
+            const ap = aimPointFor(aimMon);
+            const tx = ap ? ap.x : px + Math.cos(angle) * range * 0.82;
+            const ty = ap ? ap.y : py + Math.sin(angle) * range * 0.82;
+            const projCount = ec.projectileCount || 1;
+            const stagger = ec.projectileStaggerMs || 0;
+            const windup = ec.windupMs || 0;
+
+            if (comboStep === 2 && windup > 0) {
+                addVfx(gameInstance, px, py, {
+                    variant: 'archer_draw_charge',
+                    duration: windup + 40,
+                    radius: 44,
+                    angle,
+                    family,
+                    ox: px,
+                    oy: py,
+                    targetX: tx,
+                    targetY: ty
+                });
+            }
+
+            castFlash(gameInstance, px, py, family, comboStep === 2 ? 36 : (comboStep === 1 ? 26 : 24));
+
+            const shotDur = comboStep === 0 ? 240 : (comboStep === 1 ? 190 : 420);
+            const shotR = comboStep === 2 ? 78 : (comboStep === 1 ? 46 : 54);
+            for (let i = 0; i < projCount; i++) {
+                addVfx(gameInstance, tx, ty, {
+                    variant: 'archer_shot',
+                    duration: shotDur,
+                    delayMs: windup + i * stagger,
+                    radius: shotR,
+                    angle,
+                    family,
+                    ox: px,
+                    oy: py,
+                    targetX: tx,
+                    targetY: ty,
+                    archerComboStep: comboStep,
+                    shotIndex: i
+                });
+            }
+
+            if (comboStep === 2) {
+                addVfx(gameInstance, tx, ty, {
+                    variant: 'archer_pierce_streak',
+                    duration: 480,
+                    delayMs: windup + 120,
+                    radius: range * 0.85,
+                    angle,
+                    family,
+                    ox: px,
+                    oy: py,
+                    targetX: tx,
+                    targetY: ty
+                });
+                addVfx(gameInstance, tx, ty, {
+                    variant: 'hit_spark',
+                    duration: 340,
+                    delayMs: windup + 280,
+                    radius: 62,
+                    angle,
+                    family,
+                    ox: px,
+                    oy: py
+                });
+            } else if (comboStep === 1) {
+                addVfx(gameInstance, px + Math.cos(angle) * 28, py + Math.sin(angle) * 28, {
+                    variant: 'cast_flash',
+                    duration: 160,
+                    delayMs: windup + stagger,
+                    radius: 22,
+                    family,
+                    color: pal.light
+                });
+            }
+
+            burstParticles(
+                gameInstance, px + Math.cos(angle) * 16, py + Math.sin(angle) * 16,
+                family, comboStep === 2 ? 12 : (comboStep === 1 ? 8 : 6),
+                Math.PI * 0.35
+            );
+            if (gameInstance.soundManager) {
+                try {
+                    gameInstance.soundManager.playSound(comboStep === 2 ? 'swing' : 'swing');
+                } catch (e) { /* ignore */ }
+            }
+            return;
+        }
+
+        // ---- 法师实体弹道：仅施法闪光，不叠默认 mage_bolt 色球 ----
+        if (skillDef.entityType === 'projectile'
+            && typeof window.shouldHideClassProjectileVisual === 'function'
+            && window.shouldHideClassProjectileVisual(player, skillDef, ec)) {
+            const base = typeof window.getPlayerBaseClassId === 'function'
+                ? window.getPlayerBaseClassId(player.classData) : null;
+            if (base === 'mage') {
+                castFlash(gameInstance, px, py, family, 30);
+                burstParticles(gameInstance, px, py, family, 8, Math.PI * 1.2);
+                return;
+            }
+        }
+
         // ---- 默认弹道/斩击 travel ----
-        const aimX = primary
-            ? primary.x
+        const aimMon = resolveArcherVfxTarget(primary, gameInstance, px, py, skillDef.range || ec.maxRange || 400);
+        const aimPt = aimPointFor(aimMon);
+        const aimX = aimPt
+            ? aimPt.x
             : px + Math.cos(angle) * Math.min(skillDef.range || 80, 130);
-        const aimY = primary
-            ? primary.y
+        const aimY = aimPt
+            ? aimPt.y
             : py + Math.sin(angle) * Math.min(skillDef.range || 80, 130);
 
         const travelVariant = {
@@ -1892,25 +2800,191 @@
                 break;
             }
 
-            case 'archer_shot': {
-                const t = easeOutCubic(progress);
+            case 'archer_backstep_kick': {
+                const t = easeOutBack(clamp01(progress / 0.55));
+                const fade = 1 - easeOutQuad(clamp01((progress - 0.5) / 0.5));
                 const bx = ox + (tx - ox) * t;
                 const by = oy + (ty - oy) * t;
-                const bang = Math.atan2(ty - oy, tx - ox);
+                const pathAng = Math.atan2(ty - oy, tx - ox);
 
                 ctx.save();
                 ctx.globalCompositeOperation = 'lighter';
-                for (let i = 4; i >= 0; i--) {
-                    const lag = clamp01(t - i * 0.06);
+                for (let g = 5; g >= 1; g--) {
+                    const gt = Math.max(0, t - g * 0.07);
+                    const gx = ox + (tx - ox) * gt;
+                    const gy = oy + (ty - oy) * gt;
+                    ctx.globalAlpha = alpha * fade * (0.06 + g * 0.02);
+                    ctx.fillStyle = pal.dark;
+                    ctx.beginPath();
+                    ctx.ellipse(gx, gy, 10, 6, pathAng, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.globalAlpha = alpha * fade * 0.35;
+                ctx.strokeStyle = pal.light;
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(ox, oy);
+                ctx.lineTo(bx, by);
+                ctx.stroke();
+
+                ctx.globalAlpha = alpha * fade * 0.5;
+                const dustR = r * (0.25 + t * 0.35);
+                const dg = ctx.createRadialGradient(bx, by, 0, bx, by, dustR);
+                dg.addColorStop(0, pal.core);
+                dg.addColorStop(0.45, pal.light);
+                dg.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = dg;
+                ctx.beginPath();
+                ctx.arc(bx, by, dustR, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                break;
+            }
+
+            case 'archer_backstep_trail': {
+                const t = easeOutBack(clamp01(progress));
+                const fade = 1 - easeOutQuad(clamp01((progress - 0.55) / 0.45));
+                const bx = ox + (tx - ox) * t;
+                const by = oy + (ty - oy) * t;
+                const pathAng = Math.atan2(ty - oy, tx - ox);
+
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = alpha * fade * 0.28;
+                ctx.strokeStyle = pal.main;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 5]);
+                ctx.beginPath();
+                ctx.moveTo(ox, oy);
+                ctx.lineTo(bx, by);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.globalAlpha = alpha * fade * 0.45;
+                ctx.strokeStyle = pal.core;
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(ox, oy);
+                ctx.lineTo(bx, by);
+                ctx.stroke();
+
+                if (progress > 0.82) {
+                    const landT = (progress - 0.82) / 0.18;
+                    const lr = r * 0.22 * (1 + landT);
+                    ctx.globalAlpha = alpha * (1 - landT) * 0.55;
+                    drawRing(ctx, tx, ty, lr, pal.light, 2, alpha * (1 - landT));
+                    ctx.fillStyle = pal.main;
+                    ctx.globalAlpha = alpha * (1 - landT) * 0.2;
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, lr * 0.7, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+                break;
+            }
+
+            case 'archer_draw_charge': {
+                const pullT = easeOutCubic(clamp01(progress / 0.45));
+                const releaseT = clamp01((progress - 0.45) / 0.55);
+                const pullDist = r * 0.35 * pullT;
+                const bx = ox - Math.cos(ang) * pullDist;
+                const by = oy - Math.sin(ang) * pullDist;
+
+                ctx.save();
+                ctx.translate(bx, by);
+                ctx.rotate(ang);
+                ctx.globalAlpha = alpha * (1 - releaseT * 0.3);
+                ctx.strokeStyle = pal.light;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(-8, 0, 14 + pullT * 6, -0.5, 0.5);
+                ctx.stroke();
+                ctx.strokeStyle = pal.main;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(-18 - pullT * 10, 0);
+                ctx.lineTo(6, 0);
+                ctx.stroke();
+                ctx.fillStyle = pal.core;
+                ctx.beginPath();
+                ctx.moveTo(8 + releaseT * 6, 0);
+                ctx.lineTo(-4, -4);
+                ctx.lineTo(-4, 4);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+
+                if (releaseT > 0) {
+                    const ringR = 12 + releaseT * r * 0.4;
+                    ctx.globalAlpha = alpha * (1 - releaseT) * 0.55;
+                    drawRing(ctx, ox + Math.cos(ang) * 10, oy + Math.sin(ang) * 10, ringR, pal.light, 2, alpha);
+                }
+                break;
+            }
+
+            case 'archer_pierce_streak': {
+                const t = easeOutCubic(progress);
+                const len = r * t;
+                const sx = ox + Math.cos(ang) * 12;
+                const sy = oy + Math.sin(ang) * 12;
+                const ex = sx + Math.cos(ang) * len;
+                const ey = sy + Math.sin(ang) * len;
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.lineCap = 'round';
+                for (let layer = 0; layer < 3; layer++) {
+                    ctx.globalAlpha = alpha * (1 - t * 0.5) * (0.35 - layer * 0.08);
+                    ctx.strokeStyle = layer === 0 ? pal.core : pal.light;
+                    ctx.lineWidth = 10 - layer * 3;
+                    ctx.beginPath();
+                    ctx.moveTo(sx, sy);
+                    ctx.lineTo(ex, ey);
+                    ctx.stroke();
+                }
+                ctx.restore();
+                if (t > 0.5) {
+                    const hitT = (t - 0.5) / 0.5;
+                    ctx.globalAlpha = alpha * (1 - hitT) * 0.7;
+                    for (let i = 0; i < 4; i++) {
+                        const a = ang + (i * Math.PI / 2);
+                        ctx.strokeStyle = pal.core;
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(tx, ty);
+                        ctx.lineTo(tx + Math.cos(a) * 18 * hitT, ty + Math.sin(a) * 18 * hitT);
+                        ctx.stroke();
+                    }
+                }
+                break;
+            }
+
+            case 'archer_shot': {
+                const comboStep = effect.archerComboStep != null ? effect.archerComboStep : 0;
+                const speedMult = comboStep === 1 ? 1.18 : (comboStep === 2 ? 0.88 : 1);
+                const t = easeOutCubic(Math.min(1, progress * speedMult));
+                const bx = ox + (tx - ox) * t;
+                const by = oy + (ty - oy) * t;
+                const bang = Math.atan2(ty - oy, tx - ox);
+                const arrowLen = comboStep === 2 ? 24 : (comboStep === 1 ? 13 : 16);
+                const trailCount = comboStep === 2 ? 9 : (comboStep === 1 ? 3 : 5);
+                const trailLag = comboStep === 1 ? 0.045 : 0.06;
+
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                for (let i = trailCount; i >= 0; i--) {
+                    const lag = clamp01(t - i * trailLag);
                     if (lag <= 0) continue;
                     const lx = ox + (tx - ox) * lag;
                     const ly = oy + (ty - oy) * lag;
-                    ctx.globalAlpha = alpha * (0.15 + 0.12 * (4 - i));
-                    ctx.strokeStyle = pal.light;
-                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = alpha * (0.08 + 0.11 * (trailCount - i));
+                    ctx.strokeStyle = comboStep === 2 ? pal.core : pal.light;
+                    ctx.lineWidth = comboStep === 2 ? 3 : 2;
                     ctx.beginPath();
-                    ctx.moveTo(lx - Math.cos(bang) * 14, ly - Math.sin(bang) * 14);
-                    ctx.lineTo(lx + Math.cos(bang) * 8, ly + Math.sin(bang) * 8);
+                    ctx.moveTo(lx - Math.cos(bang) * arrowLen, ly - Math.sin(bang) * arrowLen);
+                    ctx.lineTo(lx + Math.cos(bang) * 6, ly + Math.sin(bang) * 6);
                     ctx.stroke();
                 }
                 ctx.restore();
@@ -1919,27 +2993,37 @@
                 ctx.translate(bx, by);
                 ctx.rotate(bang);
                 ctx.globalAlpha = alpha;
-                ctx.fillStyle = pal.main;
+                ctx.fillStyle = comboStep === 2 ? pal.light : pal.main;
                 ctx.beginPath();
-                ctx.moveTo(14, 0);
-                ctx.lineTo(-8, -5);
-                ctx.lineTo(-4, 0);
-                ctx.lineTo(-8, 5);
+                ctx.moveTo(arrowLen, 0);
+                ctx.lineTo(-10, comboStep === 2 ? -6 : -4);
+                ctx.lineTo(-5, 0);
+                ctx.lineTo(-10, comboStep === 2 ? 6 : 4);
                 ctx.closePath();
                 ctx.fill();
                 ctx.fillStyle = pal.core;
-                ctx.fillRect(-10, -1, 8, 2);
+                ctx.fillRect(-12, -1.5, comboStep === 2 ? 10 : 7, 3);
+                if (comboStep === 2) {
+                    ctx.globalAlpha = alpha * 0.55;
+                    ctx.strokeStyle = pal.core;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(-14, 0);
+                    ctx.lineTo(arrowLen + 4, 0);
+                    ctx.stroke();
+                }
                 ctx.restore();
 
-                if (progress > 0.75) {
-                    const hitT = (progress - 0.75) / 0.25;
-                    const star = r * 0.35 * (1 + hitT * 0.8);
+                if (progress > 0.72) {
+                    const hitT = (progress - 0.72) / 0.28;
+                    const star = r * 0.28 * (1 + hitT * (comboStep === 2 ? 1.2 : 0.6));
                     ctx.save();
                     ctx.globalAlpha = alpha * (1 - hitT);
                     ctx.strokeStyle = pal.core;
-                    ctx.lineWidth = 2;
-                    for (let i = 0; i < 4; i++) {
-                        const a = bang + (i * Math.PI / 2);
+                    ctx.lineWidth = comboStep === 2 ? 3 : 2;
+                    const spikes = comboStep === 2 ? 6 : 4;
+                    for (let i = 0; i < spikes; i++) {
+                        const a = bang + (i * Math.PI * 2 / spikes);
                         ctx.beginPath();
                         ctx.moveTo(tx - Math.cos(a) * star, ty - Math.sin(a) * star);
                         ctx.lineTo(tx + Math.cos(a) * star, ty + Math.sin(a) * star);
@@ -2133,6 +3217,41 @@
                     ctx.fillStyle = pal.core;
                     ctx.fillRect(x + Math.cos(a) * dist - 2, y + Math.sin(a) * dist - 6, 4, 8);
                 }
+                break;
+            }
+
+            case 'pet_bite': {
+                const t = easeOutBack(clamp01(progress / 0.7));
+                const fade = 1 - easeOutQuad(clamp01((progress - 0.35) / 0.65));
+                const biteR = r * (0.6 + t * 0.9);
+                const biteColor = effect.color || pal.main;
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(ang);
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = alpha * fade * 0.9;
+                ctx.strokeStyle = biteColor;
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.arc(0, 0, biteR, -0.65, 0.65);
+                ctx.stroke();
+                ctx.globalAlpha = alpha * fade * 0.45;
+                ctx.fillStyle = biteColor;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, biteR * 0.82, -0.5, 0.5);
+                ctx.closePath();
+                ctx.fill();
+                ctx.globalAlpha = alpha * fade;
+                ctx.strokeStyle = '#fff4cc';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(biteR * 0.55, -5);
+                ctx.lineTo(biteR * 0.95, 0);
+                ctx.lineTo(biteR * 0.55, 5);
+                ctx.stroke();
+                ctx.restore();
                 break;
             }
 
@@ -2347,6 +3466,113 @@
                 break;
             }
 
+            case 'wind_step_dash': {
+                const t = easeOutCubic(clamp01(progress / 0.65));
+                const fade = 1 - easeOutQuad(clamp01((progress - 0.15) / 0.85));
+                const tx = effect.targetX != null ? effect.targetX : x + Math.cos(ang) * r;
+                const ty = effect.targetY != null ? effect.targetY : y + Math.sin(ang) * r;
+                const cx = x + (tx - x) * t;
+                const cy = y + (ty - y) * t;
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                for (let i = 0; i < 4; i++) {
+                    const lag = i * 0.12;
+                    const lt = clamp01(t - lag);
+                    ctx.globalAlpha = alpha * fade * (0.35 - i * 0.07);
+                    ctx.fillStyle = i === 0 ? pal.core : pal.main;
+                    ctx.beginPath();
+                    ctx.arc(x + (tx - x) * lt, y + (ty - y) * lt, 10 - i * 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = alpha * fade * 0.55;
+                ctx.strokeStyle = pal.light;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(cx, cy);
+                ctx.stroke();
+                ctx.restore();
+                break;
+            }
+
+            case 'wind_blade_arc': {
+                const t = easeOutCubic(clamp01(progress / 0.75));
+                const fade = 1 - easeOutQuad(clamp01((progress - 0.2) / 0.8));
+                const arcLen = r * t;
+                const bw = effect.bladeWidth || 18;
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.translate(x, y);
+                ctx.rotate(ang);
+                ctx.globalAlpha = alpha * fade * 0.5;
+                ctx.strokeStyle = pal.main;
+                ctx.lineWidth = bw;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.arc(arcLen * 0.35, 0, arcLen * 0.55, -0.55, 0.55);
+                ctx.stroke();
+                ctx.globalAlpha = alpha * fade * 0.75;
+                ctx.strokeStyle = pal.core;
+                ctx.lineWidth = Math.max(2, bw * 0.35);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(arcLen, 0);
+                ctx.stroke();
+                ctx.restore();
+                break;
+            }
+
+            case 'wind_cyclone': {
+                const spin = elapsed * 0.004;
+                const pulse = 0.88 + 0.12 * Math.sin(elapsed * 0.008);
+                const cx = x, cy = y;
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                for (let i = 0; i < 3; i++) {
+                    const pr = r * (0.35 + i * 0.22) * pulse;
+                    ctx.globalAlpha = alpha * (0.22 - i * 0.05);
+                    ctx.strokeStyle = effect.fieldColor || pal.main;
+                    ctx.lineWidth = 3 - i * 0.5;
+                    ctx.setLineDash([10, 8]);
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, pr, spin + i, spin + i + Math.PI * 1.6);
+                    ctx.stroke();
+                }
+                ctx.setLineDash([]);
+                ctx.globalAlpha = alpha * 0.35;
+                const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * pulse);
+                grd.addColorStop(0, pal.core);
+                grd.addColorStop(0.5, pal.main);
+                grd.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = grd;
+                ctx.beginPath();
+                ctx.arc(cx, cy, r * pulse * 0.85, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                break;
+            }
+
+            case 'wind_mark_apply': {
+                const pulse = 0.9 + 0.1 * Math.sin(elapsed * 0.012);
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = alpha * 0.7;
+                ctx.strokeStyle = pal.main;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.arc(x, y, r * pulse, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = pal.core;
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('风', x, y - 2);
+                ctx.restore();
+                break;
+            }
+
             case 'blink_trail': {
                 // 闪烁轨迹：残影 + 烟雾
                 const t = easeOutCubic(clamp01(progress / 0.55));
@@ -2527,6 +3753,107 @@
                     ctx.fillRect(Math.cos(a) * dr - sz / 2, Math.sin(a) * dr - sz / 2, sz, sz);
                 }
 
+                ctx.restore();
+                break;
+            }
+
+            case 'earth_split_slam': {
+                const t = easeOutBack(clamp01(progress / 0.5));
+                const fade = 1 - easeOutQuad(clamp01((progress - 0.3) / 0.7));
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = alpha * fade * 0.55;
+                ctx.strokeStyle = '#ffcc88';
+                ctx.lineWidth = 3;
+                for (let i = 0; i < 8; i++) {
+                    const a = (i / 8) * Math.PI * 2 + elapsed * 0.002;
+                    const cr = r * (0.35 + t * 0.65);
+                    const jitter = Math.sin(i * 1.9 + elapsed * 0.012) * 10;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(Math.cos(a) * cr + jitter * Math.sin(a), Math.sin(a) * cr - jitter * Math.cos(a));
+                    ctx.stroke();
+                }
+                for (let w = 0; w < 3; w++) {
+                    const wp = (t + w * 0.12) % 1;
+                    const wr = r * wp * 1.05;
+                    ctx.globalAlpha = alpha * (1 - wp) * 0.55;
+                    ctx.strokeStyle = w === 0 ? pal.core : pal.main;
+                    ctx.lineWidth = w === 0 ? 4 : 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, wr, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                const coreR = r * 0.25 * t;
+                const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, coreR);
+                grd.addColorStop(0, '#ffffff');
+                grd.addColorStop(0.4, pal.core);
+                grd.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.globalAlpha = alpha * (1 - t * 0.4);
+                ctx.fillStyle = grd;
+                ctx.beginPath();
+                ctx.arc(0, 0, coreR, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                break;
+            }
+
+            case 'devastation_roar': {
+                const half = (effect.halfAngleDeg || 45) * Math.PI / 180;
+                const t = easeOutCubic(clamp01(progress / 0.65));
+                const fade = 1 - easeOutQuad(clamp01((progress - 0.4) / 0.6));
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(ang);
+                ctx.globalCompositeOperation = 'lighter';
+                const reach = r * (0.25 + t * 0.85);
+                ctx.globalAlpha = alpha * fade * 0.35;
+                const wg = ctx.createLinearGradient(0, 0, reach, 0);
+                wg.addColorStop(0, pal.core);
+                wg.addColorStop(0.6, pal.main);
+                wg.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = wg;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, reach, -half, half);
+                ctx.closePath();
+                ctx.fill();
+                for (let w = 0; w < 4; w++) {
+                    const wp = (t + w * 0.1) % 1;
+                    const wr = reach * wp;
+                    ctx.globalAlpha = alpha * (1 - wp) * 0.5;
+                    ctx.strokeStyle = w % 2 === 0 ? pal.light : pal.main;
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, wr, -half, half);
+                    ctx.stroke();
+                }
+                ctx.restore();
+                break;
+            }
+
+            case 'destruction_pulse': {
+                const t = easeOutCubic(clamp01(progress / 0.75));
+                const fade = 1 - easeOutQuad(clamp01((progress - 0.35) / 0.65));
+                const pulseR = r * t;
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = alpha * fade * 0.4;
+                const g = ctx.createRadialGradient(x, y, pulseR * 0.2, x, y, pulseR);
+                g.addColorStop(0, pal.core);
+                g.addColorStop(0.5, pal.main);
+                g.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(x, y, pulseR, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = alpha * (1 - t) * 0.7;
+                ctx.strokeStyle = pal.light;
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(x, y, pulseR, 0, Math.PI * 2);
+                ctx.stroke();
                 ctx.restore();
                 break;
             }
@@ -3195,6 +4522,364 @@
                 ctx.stroke();
                 ctx.setLineDash([]);
                 drawRing(ctx, x, y, ringR * 0.55, pal.core, 2, alpha * fade * 0.6);
+                ctx.restore();
+                break;
+            }
+
+            case 'deadeye_snipe_enter': {
+                const t = easeOutBack(clamp01(progress / 0.72));
+                const fade = 1 - easeOutQuad(clamp01((progress - 0.55) / 0.45));
+                const scopeR = r * (0.25 + t * 0.75);
+                const lineAng = Math.atan2(ty - oy, tx - ox);
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = alpha * fade * 0.22;
+                const vg = ctx.createRadialGradient(x, y, scopeR * 0.2, x, y, scopeR);
+                vg.addColorStop(0, 'rgba(255,0,68,0.35)');
+                vg.addColorStop(0.55, 'rgba(17,0,8,0.55)');
+                vg.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = vg;
+                ctx.beginPath();
+                ctx.arc(x, y, scopeR, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = alpha * fade * 0.9;
+                ctx.strokeStyle = pal.main;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(x, y, scopeR * 0.92, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.strokeStyle = pal.core;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(x - scopeR * 0.35, y);
+                ctx.lineTo(x + scopeR * 0.35, y);
+                ctx.moveTo(x, y - scopeR * 0.35);
+                ctx.lineTo(x, y + scopeR * 0.35);
+                ctx.stroke();
+                ctx.globalAlpha = alpha * fade * 0.75;
+                ctx.strokeStyle = pal.light;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 10]);
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + Math.cos(lineAng) * scopeR * 1.15, y + Math.sin(lineAng) * scopeR * 1.15);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.translate(x + Math.cos(lineAng) * scopeR * 0.55, y + Math.sin(lineAng) * scopeR * 0.55);
+                drawReaperSkull(ctx, scopeR * 0.14, alpha * fade * 0.85, elapsed);
+                ctx.restore();
+                break;
+            }
+
+            case 'deadeye_snipe_aura': {
+                const pulse = 0.9 + 0.1 * Math.sin(elapsed * 0.009);
+                const spin = elapsed * 0.0028;
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.translate(x, y);
+                for (let i = 0; i < 2; i++) {
+                    const ringR = r * (0.72 + i * 0.18) * pulse;
+                    ctx.globalAlpha = alpha * (0.55 - i * 0.12);
+                    ctx.strokeStyle = i === 0 ? pal.main : pal.light;
+                    ctx.lineWidth = 2.5 - i * 0.5;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, ringR, spin + i * 0.6, spin + i * 0.6 + Math.PI * 1.35);
+                    ctx.stroke();
+                }
+                ctx.globalAlpha = alpha * 0.35;
+                ctx.strokeStyle = pal.core;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(-r * 0.55 * pulse, 0);
+                ctx.lineTo(r * 0.55 * pulse, 0);
+                ctx.moveTo(0, -r * 0.55 * pulse);
+                ctx.lineTo(0, r * 0.55 * pulse);
+                ctx.stroke();
+                for (let i = 0; i < 4; i++) {
+                    const a = spin * 2 + (i / 4) * Math.PI * 2;
+                    const pr = r * (0.45 + 0.12 * Math.sin(elapsed * 0.012 + i));
+                    ctx.globalAlpha = alpha * 0.45;
+                    ctx.fillStyle = i % 2 ? pal.main : pal.dark;
+                    ctx.beginPath();
+                    ctx.arc(Math.cos(a) * pr, Math.sin(a) * pr, 3.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = alpha * 0.28;
+                const ag = ctx.createRadialGradient(0, 0, 0, 0, 0, r * pulse);
+                ag.addColorStop(0, pal.core);
+                ag.addColorStop(0.45, pal.main);
+                ag.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = ag;
+                ctx.beginPath();
+                ctx.arc(0, 0, r * pulse, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                break;
+            }
+
+            case 'deadeye_snipe_vignette': {
+                const pulse = 0.96 + 0.04 * Math.sin(elapsed * 0.006);
+                ctx.save();
+                ctx.globalCompositeOperation = 'multiply';
+                ctx.globalAlpha = alpha * 0.42;
+                const vg = ctx.createRadialGradient(x, y, r * 0.08, x, y, r * pulse);
+                vg.addColorStop(0, 'rgba(255,255,255,0.92)');
+                vg.addColorStop(0.42, 'rgba(120,20,40,0.55)');
+                vg.addColorStop(0.78, 'rgba(20,0,8,0.82)');
+                vg.addColorStop(1, 'rgba(0,0,0,0.95)');
+                ctx.fillStyle = vg;
+                ctx.beginPath();
+                ctx.arc(x, y, r * pulse, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = alpha * 0.08;
+                ctx.strokeStyle = pal.main;
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 6; i++) {
+                    const a = elapsed * 0.0015 + (i / 6) * Math.PI * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x + Math.cos(a) * r * 0.88, y + Math.sin(a) * r * 0.88);
+                    ctx.stroke();
+                }
+                ctx.restore();
+                break;
+            }
+
+            case 'deadeye_snipe_charge': {
+                const t = easeOutCubic(clamp01(progress / 0.88));
+                const fade = 1 - easeOutQuad(clamp01((progress - 0.65) / 0.35));
+                const lineAng = Math.atan2(ty - oy, tx - ox);
+                const beamLen = Math.hypot(tx - ox, ty - oy) * Math.min(1, t * 1.05);
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = alpha * fade * 0.18;
+                ctx.strokeStyle = pal.main;
+                ctx.lineWidth = 18;
+                ctx.beginPath();
+                ctx.moveTo(ox, oy);
+                ctx.lineTo(ox + Math.cos(lineAng) * beamLen, oy + Math.sin(lineAng) * beamLen);
+                ctx.stroke();
+                ctx.globalAlpha = alpha * fade * 0.85;
+                ctx.strokeStyle = pal.core;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 8]);
+                ctx.beginPath();
+                ctx.moveTo(ox, oy);
+                ctx.lineTo(ox + Math.cos(lineAng) * beamLen, oy + Math.sin(lineAng) * beamLen);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                const orbR = 8 + t * 14;
+                ctx.translate(ox + Math.cos(lineAng) * orbR * 0.6, oy + Math.sin(lineAng) * orbR * 0.6);
+                ctx.rotate(lineAng);
+                const og = ctx.createRadialGradient(0, 0, 0, 0, 0, orbR * 2);
+                og.addColorStop(0, pal.core);
+                og.addColorStop(0.35, pal.main);
+                og.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.globalAlpha = alpha * fade;
+                ctx.fillStyle = og;
+                ctx.beginPath();
+                ctx.arc(0, 0, orbR * 2, 0, Math.PI * 2);
+                ctx.fill();
+                drawReaperSkull(ctx, orbR * 0.55, alpha * fade * 0.9, elapsed);
+                ctx.restore();
+                break;
+            }
+
+            case 'deadeye_snipe_fire': {
+                const t = easeOutBack(clamp01(progress / 0.55));
+                const fade = 1 - easeOutQuad(clamp01((progress - 0.35) / 0.65));
+                const lineAng = Math.atan2(ty - oy, tx - ox);
+                const flashR = r * (0.45 + t * 0.9);
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = alpha * fade * 0.55;
+                const fg = ctx.createRadialGradient(x, y, 0, x, y, flashR);
+                fg.addColorStop(0, pal.core);
+                fg.addColorStop(0.35, pal.main);
+                fg.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = fg;
+                ctx.beginPath();
+                ctx.arc(x, y, flashR, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = alpha * fade * 0.9;
+                ctx.strokeStyle = pal.light;
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + Math.cos(lineAng) * flashR * 1.6, y + Math.sin(lineAng) * flashR * 1.6);
+                ctx.stroke();
+                drawRing(ctx, x, y, flashR * 0.75, pal.main, 3, alpha * fade * 0.85);
+                ctx.restore();
+                break;
+            }
+
+            case 'deadeye_target_lock': {
+                const pulse = 0.86 + 0.14 * Math.sin(elapsed * 0.014);
+                const rot = elapsed * 0.0025;
+                const lr = r * pulse;
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.translate(x, y);
+                ctx.rotate(rot);
+                ctx.globalAlpha = alpha * 0.75;
+                ctx.strokeStyle = pal.main;
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(-lr, 0);
+                ctx.lineTo(-lr * 0.35, 0);
+                ctx.moveTo(lr, 0);
+                ctx.lineTo(lr * 0.35, 0);
+                ctx.moveTo(0, -lr);
+                ctx.lineTo(0, -lr * 0.35);
+                ctx.moveTo(0, lr);
+                ctx.lineTo(0, lr * 0.35);
+                ctx.stroke();
+                ctx.strokeStyle = pal.core;
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(-lr * 0.55, -lr * 0.55, lr * 1.1, lr * 1.1);
+                drawReaperSkull(ctx, lr * 0.22, alpha * 0.8, elapsed);
+                ctx.globalAlpha = alpha * 0.35;
+                ctx.strokeStyle = pal.light;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(0, 0, lr * 0.95, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+                break;
+            }
+
+            case 'death_reaper_impact': {
+                const t = easeOutBack(clamp01(progress / 0.5));
+                const fade = 1 - easeOutQuad(clamp01((progress - 0.38) / 0.62));
+                const ringR = r * (0.3 + t * 1.05);
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = alpha * fade * 0.45;
+                const bg = ctx.createRadialGradient(x, y, 0, x, y, ringR);
+                bg.addColorStop(0, pal.core);
+                bg.addColorStop(0.25, pal.main);
+                bg.addColorStop(0.65, pal.dark);
+                bg.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = bg;
+                ctx.beginPath();
+                ctx.arc(x, y, ringR, 0, Math.PI * 2);
+                ctx.fill();
+                drawRing(ctx, x, y, ringR * 0.88, pal.main, 5, alpha * fade * 0.9);
+                for (let i = 0; i < 8; i++) {
+                    const a = (i / 8) * Math.PI * 2 + elapsed / 180;
+                    ctx.globalAlpha = alpha * fade * 0.75;
+                    ctx.strokeStyle = i % 2 ? pal.light : pal.main;
+                    ctx.lineWidth = i % 2 ? 3 : 2;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x + Math.cos(a) * ringR * 0.92, y + Math.sin(a) * ringR * 0.92);
+                    ctx.stroke();
+                }
+                ctx.translate(x, y);
+                drawReaperSkull(ctx, ringR * 0.22 * (1 - t * 0.35), alpha * fade, elapsed);
+                ctx.restore();
+                break;
+            }
+
+            case 'deadeye_snipe_end': {
+                const t = easeOutCubic(clamp01(progress / 0.75));
+                const fade = 1 - easeOutQuad(clamp01((progress - 0.45) / 0.55));
+                const ringR = r * (0.5 + t * 0.8);
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = alpha * fade * 0.35;
+                const eg = ctx.createRadialGradient(x, y, 0, x, y, ringR);
+                eg.addColorStop(0, pal.core);
+                eg.addColorStop(0.5, pal.main);
+                eg.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = eg;
+                ctx.beginPath();
+                ctx.arc(x, y, ringR, 0, Math.PI * 2);
+                ctx.fill();
+                drawRing(ctx, x, y, ringR * 0.7, pal.light, 2, alpha * fade * 0.6);
+                ctx.restore();
+                break;
+            }
+
+            case 'phantom_clone_spawn': {
+                const t = easeOutBack(clamp01(progress / 0.65));
+                const fade = 1 - easeOutQuad(clamp01((progress - 0.5) / 0.5));
+                const ringR = r * (0.2 + t * 0.95);
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = alpha * fade * 0.4;
+                const g = ctx.createRadialGradient(x, y, 0, x, y, ringR);
+                g.addColorStop(0, '#eeccff');
+                g.addColorStop(0.35, pal.main);
+                g.addColorStop(0.7, pal.dark);
+                g.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(x, y, ringR, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = alpha * fade * 0.85;
+                ctx.strokeStyle = pal.light;
+                ctx.lineWidth = 3;
+                ctx.setLineDash([6, 8]);
+                ctx.beginPath();
+                ctx.arc(x, y, ringR * 0.72, elapsed / 500, elapsed / 500 + Math.PI * 1.6);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.globalAlpha = alpha * fade;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                const ch = ringR * 0.35 * t;
+                ctx.beginPath();
+                ctx.moveTo(x - ch, y);
+                ctx.lineTo(x + ch, y);
+                ctx.moveTo(x, y - ch);
+                ctx.lineTo(x, y + ch);
+                ctx.stroke();
+                for (let i = 0; i < 6; i++) {
+                    const a = (i / 6) * Math.PI * 2 + elapsed / 400;
+                    ctx.globalAlpha = alpha * fade * 0.45;
+                    ctx.fillStyle = i % 2 ? pal.main : pal.core;
+                    ctx.beginPath();
+                    ctx.arc(x + Math.cos(a) * ringR * 0.55, y + Math.sin(a) * ringR * 0.55, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+                break;
+            }
+
+            case 'phantom_clone_shot': {
+                const t = easeOutCubic(clamp01(progress / 0.85));
+                const fade = 1 - easeOutQuad(clamp01((progress - 0.55) / 0.45));
+                const bx = ox + (tx - ox) * t;
+                const by = oy + (ty - oy) * t;
+                const bang = Math.atan2(ty - oy, tx - ox);
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = alpha * fade * 0.35;
+                ctx.strokeStyle = pal.main;
+                ctx.lineWidth = 10;
+                ctx.beginPath();
+                ctx.moveTo(ox, oy);
+                ctx.lineTo(bx, by);
+                ctx.stroke();
+                ctx.globalAlpha = alpha * fade;
+                ctx.strokeStyle = pal.core;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(ox, oy);
+                ctx.lineTo(bx, by);
+                ctx.stroke();
+                ctx.translate(bx, by);
+                ctx.rotate(bang);
+                ctx.fillStyle = pal.light;
+                ctx.beginPath();
+                ctx.moveTo(10, 0);
+                ctx.lineTo(-6, -3);
+                ctx.lineTo(-3, 0);
+                ctx.lineTo(-6, 3);
+                ctx.closePath();
+                ctx.fill();
                 ctx.restore();
                 break;
             }

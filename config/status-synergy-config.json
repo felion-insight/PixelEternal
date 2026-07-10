@@ -40,6 +40,15 @@
       "maxStacks": 5,
       "stackable": true
     },
+    "bleed": {
+      "id": "bleed",
+      "name": "撕裂",
+      "icon": "bleed",
+      "color": "#cc3344",
+      "durationMs": 3000,
+      "tickIntervalMs": 1000,
+      "damagePerTickRatio": 0.2
+    },
     "dark_erosion": {
       "id": "dark_erosion",
       "name": "暗蚀",
@@ -47,6 +56,16 @@
       "color": "#8844cc",
       "durationMs": 4000,
       "defenseReductionPercent": 20
+    },
+    "corruption": {
+      "id": "corruption",
+      "name": "腐蚀",
+      "icon": "dark",
+      "color": "#552266",
+      "durationMs": 6000,
+      "tickIntervalMs": 1000,
+      "damagePerTickRatio": 0.3,
+      "damageType": "dark"
     }
   },
   "synergies": [

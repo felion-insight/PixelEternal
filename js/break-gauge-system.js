@@ -75,6 +75,9 @@
             if (typeof window.onBuildBreak === 'function') {
                 window.onBuildBreak(player);
             }
+            if (typeof window.onMonsterBreakGaugeBroken === 'function') {
+                window.onMonsterBreakGaugeBroken(monster, player, now);
+            }
         }
     };
 

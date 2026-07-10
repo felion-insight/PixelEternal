@@ -128,8 +128,11 @@
             const tip = $('class-skill-tooltip');
             if (!tip) return;
             const p = this.game.player;
-            const hotbar = window.getPlayerHotbarSkills(p);
-            const sk = hotbar[slotIndex];
+            const sk = typeof window.getHotbarSkillAtSlot === 'function'
+                ? window.getHotbarSkillAtSlot(p, slotIndex, {
+                    labMode: this.game.currentScene === SCENE_TYPES.SKILL_LAB
+                })
+                : (window.getPlayerHotbarSkills(p)[slotIndex] || null);
             if (!sk) {
                 tip.style.display = 'none';
                 return;
@@ -369,13 +372,16 @@
                     lines.push(`<div class="class-tree-node active">${b ? b.name : cd.baseClass} (基础)</div>`);
                     if (cd.firstAdvancement) {
                         const f = window.getClassDefinition(cd.firstAdvancement);
-                        lines.push(`<div class="class-tree-node active">→ ${f ? f.name : cd.firstAdvancement} (一转)</div>`);
+                        const fc = f && f.themeColor ? f.themeColor : '#88ff88';
+                        const fl = f && f.themeLabel ? ` · ${f.themeLabel}` : '';
+                        lines.push(`<div class="class-tree-node active" style="color:${fc}">→ ${f ? f.name : cd.firstAdvancement} (一转)${fl}</div>`);
                     } else if (p.level >= 20) {
                         lines.push('<div class="class-tree-node locked">→ 一转（待转职）</div>');
                     }
                     if (cd.secondAdvancement) {
                         const s = window.getClassDefinition(cd.secondAdvancement);
-                        lines.push(`<div class="class-tree-node active">→ ${s ? s.name : cd.secondAdvancement} (二转)</div>`);
+                        const sc = s && s.themeColor ? s.themeColor : '#88ff88';
+                        lines.push(`<div class="class-tree-node active" style="color:${sc}">→ ${s ? s.name : cd.secondAdvancement} (二转)</div>`);
                     } else if (p.level >= 40 && cd.firstAdvancement) {
                         lines.push('<div class="class-tree-node locked">→ 二转（待觉醒）</div>');
                     }
@@ -458,8 +464,8 @@
             allProg.forEach((skillId, idx) => {
                 const def = window.getSkillDefinition(skillId);
                 if (!def) return;
-                const resolved = window.resolveEvolvedSkill(def, p.classData, level);
-                const displayDef = resolved || def;
+                const displayDef = window.getResolvedSkillForPlayer(p, def)
+                    || window.resolveEvolvedSkill(def, p.classData, level) || def;
                 const reqLv = displayDef.unlockLevel || slots[idx] || 1;
                 const isUnlocked = level >= reqLv;
                 const enhLv = window.getSkillEnhanceLevel(p, displayDef.id);
@@ -587,6 +593,11 @@
                         : String(i + 1);
                     btn.title = `[${keyLabel}] ${sk.name} — ${desc}`;
                     btn.dataset.skillId = sk.id;
+                    if (sk._beastPackDisplayPhase) {
+                        btn.dataset.beastPhase = sk._beastPackDisplayPhase;
+                    } else {
+                        delete btn.dataset.beastPhase;
+                    }
                     const keyEl = btn.querySelector('.class-skill-key');
                     if (keyEl) keyEl.textContent = keyLabel;
                     btn.querySelector('.class-skill-label').textContent = sk.name.length > 4 ? sk.name.slice(0, 4) : sk.name;
@@ -611,17 +622,64 @@
             const fill = $('class-resource-fill');
             const text = $('class-resource-text');
             const wrap = $('class-resource-bar');
+            const precRow = $('precision-stack-row');
+            const precDots = $('precision-stack-dots');
             if (!fill || !wrap) return;
             const st = window.getPlayerResourceState(this.game.player);
             if (!st.family) {
                 wrap.style.display = 'none';
+                if (precRow) precRow.style.display = 'none';
                 return;
             }
             wrap.style.display = 'flex';
             const pct = st.max > 0 ? (st.current / st.max) * 100 : 0;
             fill.style.width = pct + '%';
             fill.dataset.family = st.family;
-            if (text) text.textContent = `${Math.floor(st.current)}/${st.max}`;
+            if (text) {
+                text.textContent = `${Math.floor(st.current)}/${st.max}`;
+                text.dataset.family = st.family;
+                const theme = window.getClassThemeColor && window.getClassThemeColor(this.game.player.classData);
+                if (theme) text.style.color = theme;
+            }
+            const phaseEl = $('element-phase-indicator');
+            if (phaseEl && typeof window.getElementPhase === 'function') {
+                const phase = window.getElementPhase(this.game.player);
+                if (phase && typeof window.isWizardTreePlayer === 'function'
+                    && window.isWizardTreePlayer(this.game.player)) {
+                    phaseEl.style.display = 'block';
+                    phaseEl.textContent = phase === 'fire' ? '灼热相位'
+                        : phase === 'frost' ? '霜寒相位'
+                        : phase === 'overload' ? '过载相位'
+                        : phase === 'arctic' ? '极寒相位' : phase;
+                    phaseEl.dataset.phase = phase;
+                } else if (phaseEl) {
+                    phaseEl.style.display = 'none';
+                }
+            }
+            const showPrec = typeof window.isMarksmanTreePlayer === 'function'
+                && window.isMarksmanTreePlayer(this.game.player);
+            if (precRow && precDots) {
+                if (showPrec) {
+                    precRow.style.display = 'flex';
+                    const stacks = typeof window.getPrecisionStacks === 'function'
+                        ? window.getPrecisionStacks(this.game.player) : 0;
+                    const hold = typeof window.getPrecisionHoldBonuses === 'function'
+                        ? window.getPrecisionHoldBonuses(this.game.player) : { attackPercent: 0, critRate: 0 };
+                    let dots = '';
+                    const maxPrec = typeof window.getMaxPrecisionStacks === 'function'
+                        ? window.getMaxPrecisionStacks() : 5;
+                    for (let i = 0; i < maxPrec; i++) {
+                        dots += `<span class="precision-dot${i < stacks ? ' active' : ''}"></span>`;
+                    }
+                    if (hold.attackPercent > 0 || hold.critRate > 0) {
+                        dots += `<span class="precision-hold-bonus">+${hold.attackPercent}%攻 +${hold.critRate}%暴</span>`;
+                    }
+                    precDots.innerHTML = dots;
+                } else {
+                    precRow.style.display = 'none';
+                    precDots.innerHTML = '';
+                }
+            }
         }
 
         updateStatusBuffs() {

@@ -6,6 +6,7 @@
     'use strict';
 
     const PALETTE = {
+        // Default fallbacks
         rage:   { main: '#ff4422', light: '#ffaa44', core: '#fff4cc', dark: '#881100' },
         focus:  { main: '#55dd44', light: '#ccff99', core: '#f4ffe8', dark: '#226611' },
         mana:   { main: '#7755ff', light: '#ccbaff', core: '#f0e8ff', dark: '#331188' },
@@ -16,7 +17,40 @@
         nature: { main: '#44cc33', light: '#88ff66', core: '#eeffcc', dark: '#226611' },
         gold:   { main: '#ffbb22', light: '#ffee88', core: '#fff8cc', dark: '#886600' },
         wind:   { main: '#33ddcc', light: '#88ffff', core: '#e8fffa', dark: '#116688' },
-        reaper: { main: '#ff0044', light: '#ff6688', core: '#ffe8ee', dark: '#110008' }
+        reaper: { main: '#ff0044', light: '#ff6688', core: '#ffe8ee', dark: '#110008' },
+
+        // 28 Classes Palettes
+        warrior: { main: '#cc6633', light: '#ffaa66', core: '#fff0e0', dark: '#882200' },
+        knight: { main: '#44bbdd', light: '#88eeff', core: '#e8faff', dark: '#116688' },
+        paladin: { main: '#ffee88', light: '#ffffcc', core: '#ffffff', dark: '#bba844' },
+        berserker: { main: '#ee2211', light: '#ff6644', core: '#ffe8cc', dark: '#660000' },
+        destroyer: { main: '#cc1100', light: '#ff4433', core: '#ffcccc', dark: '#440000' },
+        guardian: { main: '#ddaa22', light: '#ffee88', core: '#fffbe8', dark: '#886600' },
+        temple_knight: { main: '#ccaa44', light: '#ffdd88', core: '#fffbf0', dark: '#665511' },
+
+        archer: { main: '#55aa55', light: '#88dd88', core: '#f0fff0', dark: '#225522' },
+        ranger: { main: '#44cc33', light: '#88ff66', core: '#eeffcc', dark: '#226611' },
+        beastmaster: { main: '#55aa22', light: '#88dd44', core: '#f0ffdd', dark: '#225500' },
+        marksman: { main: '#ffbb22', light: '#ffee88', core: '#fff8cc', dark: '#886600' },
+        deadeye: { main: '#cc2244', light: '#ff6688', core: '#ffe8ee', dark: '#660011' },
+        windrunner: { main: '#33ddcc', light: '#88ffff', core: '#e8fffa', dark: '#116688' },
+        phantom: { main: '#9944dd', light: '#cc88ff', core: '#f4e8ff', dark: '#441188' },
+
+        mage: { main: '#8866cc', light: '#bb99ff', core: '#eeddff', dark: '#4422aa' },
+        wizard: { main: '#ff6622', light: '#ffaa66', core: '#fff0e0', dark: '#882200' },
+        archmage: { main: '#ee4400', light: '#ff8844', core: '#fff0ee', dark: '#771100' },
+        sage: { main: '#cc88ff', light: '#e0bbff', core: '#f8f0ff', dark: '#6633aa' },
+        oracle: { main: '#7788ee', light: '#aaccff', core: '#f0f4ff', dark: '#223388' },
+        warlock: { main: '#663399', light: '#9966cc', core: '#f0e0ff', dark: '#331155' },
+        necromancer: { main: '#552288', light: '#8855bb', core: '#e8d0ff', dark: '#220044' },
+
+        assassin: { main: '#6644aa', light: '#9977cc', core: '#eeddff', dark: '#331155' },
+        shadowdancer: { main: '#7733aa', light: '#bb66ee', core: '#eeddff', dark: '#220044' },
+        nightblade: { main: '#330066', light: '#663399', core: '#e0c0ff', dark: '#110033' },
+        trickster: { main: '#6688cc', light: '#99bbff', core: '#eef4ff', dark: '#223366' },
+        illusionist: { main: '#3344aa', light: '#6677dd', core: '#e8ecff', dark: '#111155' },
+        venomancer: { main: '#44aa22', light: '#88dd66', core: '#eeffdd', dark: '#115511' },
+        plaguebringer: { main: '#228800', light: '#55cc44', core: '#e8ffcc', dark: '#0a3300' }
     };
 
     function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
@@ -307,6 +341,15 @@
         const angle = typeof player.angle === 'number' ? player.angle : 0;
         const px = player.x;
         const py = player.y;
+        const ec = skillDef.entityConfig || {};
+        if (typeof window.playMageSkillVfx === 'function'
+            && window.playMageSkillVfx(player, skillDef, gameInstance, context)) {
+            return;
+        }
+        if (typeof window.playAssassinSkillVfx === 'function'
+            && window.playAssassinSkillVfx(player, skillDef, gameInstance, context)) {
+            return;
+        }
         const isBuff = skillDef.effectTags && skillDef.effectTags.includes('buff');
         const aoe = skillDef.aoeRadius || 0;
         const primary = context && context.primaryTarget;
@@ -321,7 +364,6 @@
             });
         }
         const hitTargets = (context && context.hitTargets) || [];
-        const ec = skillDef.entityConfig || {};
         const instantShape = context && context.instantShape;
 
         if (context && context.chargeStart) {
@@ -2366,6 +2408,19 @@
         const oy = effect.oy != null ? effect.oy : y;
         const tx = effect.targetX != null ? effect.targetX : x;
         const ty = effect.targetY != null ? effect.targetY : y;
+
+        if (typeof window.drawMageSkillVfxEffect === 'function') {
+            const handled = window.drawMageSkillVfxEffect(ctx, effect, progress, alpha, elapsed, {
+                variant, family, pal, ang, x, y, r, ox, oy, tx, ty, effect
+            });
+            if (handled) return;
+        }
+        if (typeof window.drawAssassinSkillVfxEffect === 'function') {
+            const handled = window.drawAssassinSkillVfxEffect(ctx, effect, progress, alpha, elapsed, {
+                variant, family, pal, ang, x, y, r, ox, oy, tx, ty, effect
+            });
+            if (handled) return;
+        }
 
         switch (variant) {
             case 'cast_flash': {

@@ -3474,7 +3474,7 @@ class Game {
             'esc-menu-modal', 'gap-shop-modal', 'target-slot-select-modal', 'resurrection-modal',
             'death-penalty-modal', 'first-time-guide-modal', 'level-up-capacity-modal',
             'dummy-spawn-modal', 'random-box-quantity-modal', 'random-box-rewards-modal',
-            'dungeon-selection-modal', 'elite-boon-choice-modal', 'skill-lab-modal',
+            'dungeon-selection-modal', 'elite-boon-choice-modal',
             'class-select-modal', 'character-panel-modal', 'skill-panel-modal',
             'class-master-modal', 'enchanter-modal', 'jeweler-modal', 'chronicle-modal', 'awakening-modal', 'dungeon-hub-modal',
             'player-name-modal'
@@ -3520,18 +3520,22 @@ class Game {
             if (this.paused) {
                 return;
             }
-            
-            // 如果正在释放技能，禁用所有输入
-            if (this.player.isCastingSkill) {
-                return;
-            }
-            if (this.player._skillCastBar && Date.now() < this.player._skillCastBar.endTime) {
+
+            const inCombatLab = this.currentScene === SCENE_TYPES.SKILL_LAB
+                || this.currentScene === SCENE_TYPES.TRAINING;
+            const castBarActive = this.player._skillCastBar
+                && Date.now() < this.player._skillCastBar.endTime;
+            const castingBlocksMove = this.player.isCastingSkill || castBarActive;
+
+            // 实验场/训练场：施法条仅限制移动，不阻断普攻测试
+            if (castingBlocksMove && !inCombatLab) {
                 return;
             }
             
             let dx = 0;
             let dy = 0;
             
+            if (!castingBlocksMove) {
             const KB = window.KeybindSystem;
             if (KB && KB.isActionPressed(this, 'moveUp')) dy -= 1;
             if (KB && KB.isActionPressed(this, 'moveDown')) dy += 1;
@@ -3559,14 +3563,18 @@ class Game {
             // 无论是否冲刺，都要调用move来执行移动
             // move函数内部会根据isDashing状态决定使用冲刺速度还是正常速度
             this.player.move(dx, dy);
+            }
             
+            const KB = window.KeybindSystem;
             const attackPressed = (KB && KB.isActionPressed(this, 'attack')) || this.mouse.left;
             if (attackPressed && !this.player.isDashing) {
                 if (this.currentScene === SCENE_TYPES.TOWER && this.currentRoom && (this.currentRoom.type === ROOM_TYPES.BATTLE || this.currentRoom.type === ROOM_TYPES.ELITE || this.currentRoom.type === ROOM_TYPES.BOSS)) {
                     this.player.attack(this.currentRoom.monsters);
                 } else if (this.currentScene === SCENE_TYPES.TRAINING && this.trainingGroundScene) {
+                    this._ensureTrainingAttackTargets();
                     this.player.attack(this.trainingGroundScene.dummies);
                 } else if (this.currentScene === SCENE_TYPES.SKILL_LAB && this.skillLabScene) {
+                    this._ensureSkillLabAttackTargets();
                     this.player.attack(this.skillLabScene.dummies);
                 } else if (this.currentScene === SCENE_TYPES.TRIAL && this.trialScene) {
                     this.player.attack(this.trialScene.getMonsters());
@@ -3753,7 +3761,9 @@ class Game {
 
         this._spawnHitExplosionParticles(x, y, isRanged, isCrit);
 
-        this._applyEnemyHitReaction(options.target, options.sourceX, options.sourceY, isRanged);
+        const skipEnemyKnock = options.skipEnemyKnock === true
+            || (options.allowEnemyKnock !== true && !(options.knockForce > 0));
+        this._applyEnemyHitReaction(options.target, options.sourceX, options.sourceY, isRanged, skipEnemyKnock, options);
         if (!skipSound) {
             this.playHitSound(isRanged ? 'ranged' : 'melee', isCrit);
         }
@@ -3808,18 +3818,21 @@ class Game {
         });
     }
 
-    _applyEnemyHitReaction(target, sourceX, sourceY, isRanged) {
+    _applyEnemyHitReaction(target, sourceX, sourceY, isRanged, skipEnemyKnock, options) {
         if (!target || typeof target.x !== 'number' || typeof target.y !== 'number') return;
         const now = Date.now();
         const cfg = this.hitFxConfig.enemyKnock;
-        const knock = isRanged ? cfg.ranged : cfg.melee;
-        const sx = Number.isFinite(sourceX) ? sourceX : (this.player ? this.player.x : target.x - 1);
-        const sy = Number.isFinite(sourceY) ? sourceY : (this.player ? this.player.y : target.y);
-        const dx = target.x - sx;
-        const dy = target.y - sy;
-        const dist = Math.hypot(dx, dy) || 1;
-        target.x += (dx / dist) * knock;
-        target.y += (dy / dist) * knock;
+        const opts = options || {};
+        if (!skipEnemyKnock) {
+            const knock = opts.knockForce > 0 ? opts.knockForce : (isRanged ? cfg.ranged : cfg.melee);
+            const sx = Number.isFinite(sourceX) ? sourceX : (this.player ? this.player.x : target.x - 1);
+            const sy = Number.isFinite(sourceY) ? sourceY : (this.player ? this.player.y : target.y);
+            const dx = target.x - sx;
+            const dy = target.y - sy;
+            const dist = Math.hypot(dx, dy) || 1;
+            target.x += (dx / dist) * knock;
+            target.y += (dy / dist) * knock;
+        }
         target._hitFlashUntil = now + cfg.flashMs;
         target._hitStunUntil = now + (isRanged ? cfg.rangedStunMs : cfg.stunMs);
     }
@@ -4181,6 +4194,7 @@ class Game {
                     if (this.player && typeof this.player.damageMonsterFromEnvironment === 'function') {
                         this.player.damageMonsterFromEnvironment(monster, closestDamage);
                     } else {
+                        if (isDummy) monster._pendingDamageSource = 'basic';
                         monster.takeDamage(closestDamage);
                     }
                     this.addFloatingText(monster.x, monster.y, `轨迹! ${closestDamage}`, trailColor, 2000, 18, true);
@@ -5474,6 +5488,71 @@ class Game {
         this.openTrainingGround();
     }
 
+    /** 技能实验场：重置玩家战斗/位移残留，避免冲锋、隐身、场效污染场景 */
+    resetSkillLabCombatState() {
+        const p = this.player;
+        if (!p) return;
+
+        p.isCastingSkill = false;
+        p._skillCastBar = null;
+        p.isDashing = false;
+        p._chargeSuperArmor = false;
+        p.dashGhosts = [];
+        p.dashBrightness = 0;
+        p.dashCompression = 0;
+        p.vx = 0;
+        p.vy = 0;
+
+        delete p._pierceDash;
+        delete p._leapSlam;
+        delete p._backstepShot;
+        delete p._backstepVisualOffset;
+        delete p._leapSlamVisualOffset;
+        delete p._shadowRaidReturn;
+        delete p._midnightRaidFinalSlash;
+        delete p._stealthUntil;
+
+        if (Array.isArray(p.buffs)) {
+            p.buffs = p.buffs.filter(b => !b || !b.stealth);
+        }
+
+        if (typeof window.clearAssassinCombatState === 'function') {
+            window.clearAssassinCombatState(p);
+        }
+        if (typeof window.clearAssassinBranchState === 'function') {
+            window.clearAssassinBranchState(p);
+        }
+        if (typeof window.clearPlayerSkillWorldEntities === 'function') {
+            window.clearPlayerSkillWorldEntities(this);
+        }
+
+        this.equipmentEffects = [];
+        this._syncSkillLabCamera();
+        if (typeof p.updateStats === 'function') p.updateStats();
+    }
+
+    /** 将技能实验场相机与玩家世界坐标对齐（玩家始终在屏幕中心） */
+    _syncSkillLabCamera() {
+        if (!this.player) return;
+        this.cameraX = this.player.x - CONFIG.CANVAS_WIDTH / 2;
+        this.cameraY = this.player.y - CONFIG.CANVAS_HEIGHT / 2;
+    }
+
+    /** 在屏幕中心附近生成默认训练假人 */
+    spawnSkillLabDefaultDummies() {
+        if (!this.skillLabScene || !this.player) return;
+        const cx = CONFIG.CANVAS_WIDTH / 2;
+        const cy = CONFIG.CANVAS_HEIGHT / 2;
+        this.player.x = cx;
+        this.player.y = cy;
+        this._syncSkillLabCamera();
+        this.skillLabScene.clearAllDummies();
+        // 贴近近战普攻射程（约 50–70），避免一进场就打空
+        this.skillLabScene.addDummy(cx + 52, cy, { invincible: true, chasePlayer: false });
+        this.skillLabScene.addDummy(cx - 48, cy + 42, { invincible: true, chasePlayer: false });
+        this.skillLabScene.addDummy(cx, cy - 50, { invincible: true, chasePlayer: false });
+    }
+
     /**
      * 开发者：进入技能实验场景
      */
@@ -5487,18 +5566,9 @@ class Game {
         this._saveSkillLabReturnState();
         this.transitionScene(SCENE_TYPES.SKILL_LAB);
 
-        this.player.x = CONFIG.CANVAS_WIDTH / 2;
-        this.player.y = CONFIG.CANVAS_HEIGHT / 2;
         this.player.hp = this.player.maxHp;
-
-        if (this.skillLabScene) {
-            this.skillLabScene.clearAllDummies();
-            const cx = this.player.x;
-            const cy = this.player.y;
-            this.skillLabScene.addDummy(cx + 120, cy, { invincible: true, chasePlayer: false });
-            this.skillLabScene.addDummy(cx - 100, cy + 60, { invincible: true, chasePlayer: false });
-            this.skillLabScene.addDummy(cx, cy - 100, { invincible: true, chasePlayer: false });
-        }
+        this.resetSkillLabCombatState();
+        this.spawnSkillLabDefaultDummies();
 
         if (this.skillLabUI) {
             this.skillLabUI.open();
@@ -5584,6 +5654,263 @@ class Game {
         if (countElement && this.trainingGroundScene) {
             countElement.textContent = this.trainingGroundScene.dummies.length;
         }
+        this.renderBattleStats();
+    }
+    
+    /**
+     * 获取所有训练假人的聚合伤害统计
+     */
+    getAggregatedBattleStats() {
+        if (!this.trainingGroundScene || !this.trainingGroundScene.dummies) return null;
+        const aggregated = { basic: { hits: 0, damage: 0 }, skills: {}, dot: { hits: 0, damage: 0 } };
+        this.trainingGroundScene.dummies.forEach(dummy => {
+            if (!dummy._battleStats) return;
+            const bs = dummy._battleStats;
+            aggregated.basic.hits += (bs.basic || {}).hits || 0;
+            aggregated.basic.damage += (bs.basic || {}).damage || 0;
+            aggregated.dot.hits += (bs.dot || {}).hits || 0;
+            aggregated.dot.damage += (bs.dot || {}).damage || 0;
+            if (bs.skills) {
+                Object.keys(bs.skills).forEach(skillId => {
+                    if (!aggregated.skills[skillId]) aggregated.skills[skillId] = { hits: 0, damage: 0 };
+                    aggregated.skills[skillId].hits += bs.skills[skillId].hits || 0;
+                    aggregated.skills[skillId].damage += bs.skills[skillId].damage || 0;
+                });
+            }
+        });
+        return aggregated;
+    }
+    
+    /**
+     * 渲染战斗统计到UI
+     */
+    renderBattleStats() {
+        const container = document.getElementById('battle-stats-content');
+        if (!container) return;
+        
+        const stats = this.getAggregatedBattleStats();
+        if (!stats || (stats.basic.hits === 0 && stats.dot.hits === 0 && Object.keys(stats.skills).length === 0)) {
+            container.innerHTML = '<p style="color: #666; text-align: center; margin: 20px 0;">生成训练桩后开始记录</p>';
+            return;
+        }
+        
+        // 获取技能名称对照表
+        const skillNames = {};
+        if (typeof window.getSkillDefinition === 'function') {
+            Object.keys(stats.skills).forEach(id => {
+                const def = window.getSkillDefinition(id);
+                skillNames[id] = def ? (def.name || id) : id;
+            });
+        }
+        
+        let html = '<table style="width:100%; border-collapse: collapse; color: #ccc; font-size: 13px;">';
+        html += '<thead><tr style="border-bottom: 1px solid #555; color: #aaa; font-size: 11px; text-align: left;">';
+        html += '<th style="padding:4px 6px;">来源</th><th style="padding:4px 6px; text-align: right;">命中次数</th><th style="padding:4px 6px; text-align: right;">总伤害</th><th style="padding:4px 6px; text-align: right;">占比</th>';
+        html += '</tr></thead><tbody>';
+        
+        // 先计算总伤害
+        let totalDmg = stats.basic.damage + (stats.dot ? stats.dot.damage : 0);
+        Object.values(stats.skills).forEach(s => totalDmg += s.damage);
+        if (totalDmg <= 0) totalDmg = 1;
+        
+        const pct = (v) => (v / totalDmg * 100).toFixed(1);
+        
+        // 普攻
+        if (stats.basic.hits > 0) {
+            html += `<tr style="border-bottom: 1px solid #444;">
+                <td style="padding:4px 6px;"><span style="color: #4af;">▲ 普攻</span></td>
+                <td style="padding:4px 6px; text-align: right; color: #fff;">${stats.basic.hits}</td>
+                <td style="padding:4px 6px; text-align: right; color: #ffd700;">${Math.floor(stats.basic.damage)}</td>
+                <td style="padding:4px 6px; text-align: right; color: #888;">${pct(stats.basic.damage)}%</td>
+            </tr>`;
+        }
+        
+        // 各技能
+        const skillSorted = Object.entries(stats.skills).sort((a, b) => b[1].damage - a[1].damage);
+        skillSorted.forEach(([skillId, data]) => {
+            if (data.hits <= 0) return;
+            const name = skillNames[skillId] || skillId;
+            html += `<tr style="border-bottom: 1px solid #444;">
+                <td style="padding:4px 6px;"><span style="color: #ff9944;">◆ ${name}</span></td>
+                <td style="padding:4px 6px; text-align: right; color: #fff;">${data.hits}</td>
+                <td style="padding:4px 6px; text-align: right; color: #ffd700;">${Math.floor(data.damage)}</td>
+                <td style="padding:4px 6px; text-align: right; color: #888;">${pct(data.damage)}%</td>
+            </tr>`;
+        });
+        
+        // DOT
+        if (stats.dot && stats.dot.hits > 0) {
+            html += `<tr style="border-bottom: 1px solid #444;">
+                <td style="padding:4px 6px;"><span style="color: #ff4466;">● 持续伤害</span></td>
+                <td style="padding:4px 6px; text-align: right; color: #fff;">${stats.dot.hits}</td>
+                <td style="padding:4px 6px; text-align: right; color: #ffd700;">${Math.floor(stats.dot.damage)}</td>
+                <td style="padding:4px 6px; text-align: right; color: #888;">${pct(stats.dot.damage)}%</td>
+            </tr>`;
+        }
+        
+        // 总计
+        const totalHits = stats.basic.hits + (stats.dot ? stats.dot.hits : 0) + Object.values(stats.skills).reduce((a, s) => a + s.hits, 0);
+        html += `<tr style="border-top: 2px solid #ffd700; font-weight: bold;">
+            <td style="padding:6px 6px; color: #ffd700;">总计</td>
+            <td style="padding:6px 6px; text-align: right; color: #fff;">${totalHits}</td>
+            <td style="padding:6px 6px; text-align: right; color: #ffd700;">${Math.floor(totalDmg)}</td>
+            <td style="padding:6px 6px; text-align: right; color: #ffd700;">100%</td>
+        </tr>`;
+        
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+    
+    /**
+     * 重置所有假人的战斗统计
+     */
+    resetAllBattleStats() {
+        if (!this.trainingGroundScene || !this.trainingGroundScene.dummies) return;
+        this.trainingGroundScene.dummies.forEach(dummy => {
+            dummy._battleStats = { basic: { hits: 0, damage: 0 }, skills: {} };
+            dummy.totalDamage = 0;
+            dummy.damageHistory = [];
+        });
+        this.renderBattleStats();
+    }
+    
+    /**
+     * 技能实验场：若无假人则在玩家面前生成一个，避免普攻完全无目标
+     */
+    _ensureSkillLabAttackTargets() {
+        if (!this.skillLabScene || !this.player) return;
+        if (this.skillLabScene.dummies && this.skillLabScene.dummies.length > 0) return;
+        const ang = typeof this.player.angle === 'number' ? this.player.angle : 0;
+        this.skillLabScene.addDummy(
+            this.player.x + Math.cos(ang) * 52,
+            this.player.y + Math.sin(ang) * 52,
+            { invincible: true, chasePlayer: false }
+        );
+    }
+
+    /**
+     * 训练场：若无假人则生成一个近战测试靶
+     */
+    _ensureTrainingAttackTargets() {
+        if (!this.trainingGroundScene || !this.player) return;
+        if (this.trainingGroundScene.dummies && this.trainingGroundScene.dummies.length > 0) return;
+        const ang = typeof this.player.angle === 'number' ? this.player.angle : 0;
+        this.trainingGroundScene.addDummy(
+            this.player.x + Math.cos(ang) * 52,
+            this.player.y + Math.sin(ang) * 52,
+            { invincible: true, chasePlayer: false }
+        );
+    }
+
+    /**
+     * 获取技能实验场所有假人的聚合伤害统计
+     */
+    getSkillLabBattleStats() {
+        if (!this.skillLabScene || !this.skillLabScene.dummies) return null;
+        const aggregated = { basic: { hits: 0, damage: 0 }, skills: {}, dot: { hits: 0, damage: 0 } };
+        this.skillLabScene.dummies.forEach(dummy => {
+            if (!dummy._battleStats) return;
+            const bs = dummy._battleStats;
+            aggregated.basic.hits += (bs.basic || {}).hits || 0;
+            aggregated.basic.damage += (bs.basic || {}).damage || 0;
+            aggregated.dot.hits += (bs.dot || {}).hits || 0;
+            aggregated.dot.damage += (bs.dot || {}).damage || 0;
+            if (bs.skills) {
+                Object.keys(bs.skills).forEach(skillId => {
+                    if (!aggregated.skills[skillId]) aggregated.skills[skillId] = { hits: 0, damage: 0 };
+                    aggregated.skills[skillId].hits += bs.skills[skillId].hits || 0;
+                    aggregated.skills[skillId].damage += bs.skills[skillId].damage || 0;
+                });
+            }
+        });
+        return aggregated;
+    }
+    
+    /**
+     * 渲染技能实验场战斗统计
+     */
+    renderSkillLabBattleStats() {
+        const container = document.getElementById('skill-lab-battle-stats-content');
+        if (!container) return;
+        
+        const stats = this.getSkillLabBattleStats();
+        if (!stats || (stats.basic.hits === 0 && stats.dot.hits === 0 && Object.keys(stats.skills).length === 0)) {
+            container.innerHTML = '<p style="color: #666; text-align: center; margin: 20px 0;">生成假人后开始记录</p>';
+            return;
+        }
+        
+        const skillNames = {};
+        if (typeof window.getSkillDefinition === 'function') {
+            Object.keys(stats.skills).forEach(id => {
+                const def = window.getSkillDefinition(id);
+                skillNames[id] = def ? (def.name || id) : id;
+            });
+        }
+        
+        let html = '<table style="width:100%; border-collapse: collapse; color: #ccc; font-size: 13px;">';
+        html += '<thead><tr style="border-bottom: 1px solid #555; color: #aaa; font-size: 11px; text-align: left;">';
+        html += '<th style="padding:4px 6px;">来源</th><th style="padding:4px 6px; text-align: right;">命中次数</th><th style="padding:4px 6px; text-align: right;">总伤害</th><th style="padding:4px 6px; text-align: right;">占比</th>';
+        html += '</tr></thead><tbody>';
+        
+        let totalDmg = stats.basic.damage + (stats.dot ? stats.dot.damage : 0);
+        Object.values(stats.skills).forEach(s => totalDmg += s.damage);
+        if (totalDmg <= 0) totalDmg = 1;
+        
+        const pct = (v) => (v / totalDmg * 100).toFixed(1);
+        
+        if (stats.basic.hits > 0) {
+            html += `<tr style="border-bottom: 1px solid #444;">
+                <td style="padding:4px 6px;"><span style="color: #4af;">▲ 普攻</span></td>
+                <td style="padding:4px 6px; text-align: right; color: #fff;">${stats.basic.hits}</td>
+                <td style="padding:4px 6px; text-align: right; color: #ffd700;">${Math.floor(stats.basic.damage)}</td>
+                <td style="padding:4px 6px; text-align: right; color: #888;">${pct(stats.basic.damage)}%</td>
+            </tr>`;
+        }
+        
+        const skillSorted = Object.entries(stats.skills).sort((a, b) => b[1].damage - a[1].damage);
+        skillSorted.forEach(([skillId, data]) => {
+            if (data.hits <= 0) return;
+            const name = skillNames[skillId] || skillId;
+            html += `<tr style="border-bottom: 1px solid #444;">
+                <td style="padding:4px 6px;"><span style="color: #ff9944;">◆ ${name}</span></td>
+                <td style="padding:4px 6px; text-align: right; color: #fff;">${data.hits}</td>
+                <td style="padding:4px 6px; text-align: right; color: #ffd700;">${Math.floor(data.damage)}</td>
+                <td style="padding:4px 6px; text-align: right; color: #888;">${pct(data.damage)}%</td>
+            </tr>`;
+        });
+        
+        if (stats.dot && stats.dot.hits > 0) {
+            html += `<tr style="border-bottom: 1px solid #444;">
+                <td style="padding:4px 6px;"><span style="color: #ff4466;">● 持续伤害</span></td>
+                <td style="padding:4px 6px; text-align: right; color: #fff;">${stats.dot.hits}</td>
+                <td style="padding:4px 6px; text-align: right; color: #ffd700;">${Math.floor(stats.dot.damage)}</td>
+                <td style="padding:4px 6px; text-align: right; color: #888;">${pct(stats.dot.damage)}%</td>
+            </tr>`;
+        }
+        
+        const totalHits = stats.basic.hits + (stats.dot ? stats.dot.hits : 0) + Object.values(stats.skills).reduce((a, s) => a + s.hits, 0);
+        html += `<tr style="border-top: 2px solid #ffd700; font-weight: bold;">
+            <td style="padding:6px 6px; color: #ffd700;">总计</td>
+            <td style="padding:6px 6px; text-align: right; color: #fff;">${totalHits}</td>
+            <td style="padding:6px 6px; text-align: right; color: #ffd700;">${Math.floor(totalDmg)}</td>
+            <td style="padding:6px 6px; text-align: right; color: #ffd700;">100%</td>
+        </tr>`;
+        
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+    
+    /**
+     * 重置技能实验场所有假人的战斗统计
+     */
+    resetAllSkillLabBattleStats() {
+        if (!this.skillLabScene || !this.skillLabScene.dummies) return;
+        this.skillLabScene.dummies.forEach(dummy => {
+            dummy._battleStats = { basic: { hits: 0, damage: 0 }, skills: {} };
+            dummy.totalDamage = 0;
+            dummy.damageHistory = [];
+        });
+        this.renderSkillLabBattleStats();
     }
     
     /**
@@ -5801,6 +6128,7 @@ class Game {
                         // 每秒造成一次伤害
                         const lastTick = burn.lastTick || burn.startTime;
                         if (now - lastTick >= 1000) {
+                            dummy._pendingDamageSource = 'dot';
                             dummy.takeDamage(burn.damage);
                             burn.lastTick = now;
                         }
@@ -5867,6 +6195,7 @@ class Game {
                     if (elapsed >= 1000 && elapsed < burn.duration) {
                         const lastTick = burn.lastTick || burn.startTime;
                         if (now - lastTick >= 1000) {
+                            dummy._pendingDamageSource = 'dot';
                             dummy.takeDamage(burn.damage);
                             burn.lastTick = now;
                         }
@@ -5876,6 +6205,7 @@ class Game {
         });
 
         if (this.skillLabUI) this.skillLabUI.updateDummyCount();
+        this.renderSkillLabBattleStats();
     }
 
     /**
@@ -6012,6 +6342,7 @@ class Game {
             this.trainingGroundScene.clearAllDummies();
         }
         if (this.currentScene === SCENE_TYPES.SKILL_LAB) {
+            this.resetSkillLabCombatState();
             if (this.skillLabScene) this.skillLabScene.clearAllDummies();
             if (this.skillLabUI) this.skillLabUI.close();
             this._restoreSkillLabReturnState();
@@ -6448,6 +6779,14 @@ class Game {
         if (closeTrainingGroundBtn) {
             closeTrainingGroundBtn.addEventListener('click', () => {
                 this.closeTrainingGround();
+            });
+        }
+        
+        // 伤害统计重置按钮
+        const resetStatsBtn = document.getElementById('reset-battle-stats-btn');
+        if (resetStatsBtn) {
+            resetStatsBtn.addEventListener('click', () => {
+                this.resetAllBattleStats();
             });
         }
         
@@ -8129,10 +8468,26 @@ class Game {
         if (typeof window.drawSkillEntities === 'function') {
             window.drawSkillEntities(this.ctx, this);
         }
+        if (typeof window.drawWarlockSoulLinkTethers === 'function') {
+            window.drawWarlockSoulLinkTethers(this.ctx, this, Date.now());
+        }
         this.ctx.translate(this.cameraX, this.cameraY);
+
+        // 技能实验场：职业特效绘制在角色之后，需再绘一层角色避免被全屏/贴身 VFX 遮住
+        if (this.currentScene === SCENE_TYPES.SKILL_LAB && this.player) {
+            this.ctx.save();
+            const labOffsetX = CONFIG.CANVAS_WIDTH / 2 - this.player.x;
+            const labOffsetY = CONFIG.CANVAS_HEIGHT / 2 - this.player.y;
+            this.ctx.translate(labOffsetX, labOffsetY);
+            this.player.draw(this.ctx);
+            this.ctx.restore();
+        }
         
         // 恢复缩放状态
         this.ctx.restore();
+        if (typeof window.drawAssassinNightfallOverlay === 'function') {
+            window.drawAssassinNightfallOverlay(this.ctx, this);
+        }
         this.drawEdgeDamageFlash(this.ctx);
         
         // 绘制小地图
@@ -8315,7 +8670,13 @@ class Game {
             variant: options.variant || null,
             family: options.family || null,
             followTarget: options.followTarget || null,
-            projectileSpriteId: options.projectileSpriteId || null
+            projectileSpriteId: options.projectileSpriteId || null,
+            eternal: options.eternal || false,
+            deathMark: options.deathMark || false,
+            strikeIndex: options.strikeIndex,
+            strikeTotal: options.strikeTotal,
+            cloneCount: options.cloneCount,
+            fail: options.fail
         };
         this.equipmentEffects.push(effect);
     }
@@ -8427,11 +8788,15 @@ class Game {
         if (this.paused || !skillDef) return false;
         if (!window.hasPlayerClass(this.player.classData)) return false;
         if (!this._canUseWeaponSkillForBattle()) return false;
-        if (this.player.isDashing || this.player.isCastingSkill) return false;
-        if (this.player._skillCastBar && Date.now() < this.player._skillCastBar.endTime) return false;
         const now = Date.now();
-        if (this.player.dashEndTime && now - this.player.dashEndTime < 500) return false;
         const resolved = window.getResolvedSkillForPlayer(this.player, skillDef) || skillDef;
+        if (typeof window.canShadowRaidReturnCast === 'function'
+            && window.canShadowRaidReturnCast(this.player, resolved, now)) {
+            return true;
+        }
+        if (this.player.isDashing || this.player.isCastingSkill) return false;
+        if (this.player._skillCastBar && now < this.player._skillCastBar.endTime) return false;
+        if (this.player.dashEndTime && now - this.player.dashEndTime < 500) return false;
         const cooldownKey = resolved.evolutionPath && resolved.evolutionPath.baseSkillId
             ? resolved.evolutionPath.baseSkillId : resolved.id;
         if (window.getSkillCooldownRemaining(this.player, cooldownKey) > 0) return false;
@@ -8440,8 +8805,8 @@ class Game {
     }
 
     _castClassSkillHotbar(slotIndex, castOptions) {
-        if (!this._canPrepareClassSkillCast(this._getClassSkillDefForHotbarSlot(slotIndex))) return;
         const skillDef = this._getClassSkillDefForHotbarSlot(slotIndex);
+        if (!this._canPrepareClassSkillCast(skillDef)) return;
         if (!skillDef) return;
         const monsters = this._getSkillMonsters();
         if (!monsters) return;

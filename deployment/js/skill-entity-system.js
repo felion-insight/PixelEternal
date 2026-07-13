@@ -50,27 +50,85 @@
         const enhMult = 1 + enh * 0.1;
         let mult = multOverride != null ? multOverride
             : (ec.damageMultiplier != null ? ec.damageMultiplier : (skillDef.damageMultiplier || 1));
-        return Math.max(1, Math.floor(baseAtk(player) * mult * enhMult));
+        var dmg = Math.max(1, Math.floor(baseAtk(player) * mult * enhMult));
+        if (player._cloneDmgFactor) {
+            dmg = Math.max(1, Math.floor(dmg * player._cloneDmgFactor));
+        }
+        return dmg;
+    }
+
+    function sanitizeSkillDamage(dmg) {
+        const n = Number(dmg);
+        return Number.isFinite(n) ? Math.max(1, Math.floor(n)) : 1;
+    }
+
+    function isClassBasicSkill(skillDef) {
+        return !!(skillDef && (skillDef.slotType === 'basic' || skillDef.type === 'basic'));
+    }
+
+    function isTrainingCombatTarget(monster) {
+        return (typeof TrainingDummy !== 'undefined' && monster instanceof TrainingDummy)
+            || (typeof MonsterTrainingDummy !== 'undefined' && monster instanceof MonsterTrainingDummy);
     }
 
     function applyDmg(player, monster, dmg, skillDef, g, statusList) {
         if (!monster || monster.hp <= 0) return;
+        dmg = sanitizeSkillDamage(dmg);
         if (typeof window.getClassSkillMarkBonus === 'function') {
-            dmg = Math.max(1, Math.floor(dmg * window.getClassSkillMarkBonus(monster).mult));
+            const markBonus = window.getClassSkillMarkBonus(monster, skillDef);
+            const mult = markBonus && Number.isFinite(markBonus.mult) ? markBonus.mult : 1;
+            dmg = sanitizeSkillDamage(dmg * mult);
+        }
+        if (typeof window.getDeadeyeMarkDamageMultiplier === 'function') {
+            const dm = window.getDeadeyeMarkDamageMultiplier(monster, player, skillDef);
+            dmg = sanitizeSkillDamage(dmg * (Number.isFinite(dm) ? dm : 1));
+        }
+        if (typeof window.getMarkExecuteDamageMultiplier === 'function') {
+            const em = window.getMarkExecuteDamageMultiplier(monster, player);
+            dmg = sanitizeSkillDamage(dmg * (Number.isFinite(em) ? em : 1));
         }
         if (typeof window.getCombatStatusDamageMultiplier === 'function') {
-            dmg = Math.max(1, Math.floor(dmg * window.getCombatStatusDamageMultiplier(monster)));
+            const cm = window.getCombatStatusDamageMultiplier(monster);
+            dmg = sanitizeSkillDamage(dmg * (Number.isFinite(cm) ? cm : 1));
         }
         if (typeof window.getStrikerDamageBonus === 'function') {
-            dmg = Math.max(1, Math.floor(dmg * window.getStrikerDamageBonus(player, monster)));
+            const sm = window.getStrikerDamageBonus(player, monster);
+            dmg = sanitizeSkillDamage(dmg * (Number.isFinite(sm) ? sm : 1));
+        }
+        if (typeof window.getAssassinSkillDamageMult === 'function') {
+            const am = window.getAssassinSkillDamageMult(player, skillDef, monster);
+            dmg = sanitizeSkillDamage(dmg * (Number.isFinite(am) ? am : 1));
         }
         if (typeof window.getBuildDamageMultiplier === 'function') {
-            dmg = Math.max(1, Math.floor(dmg * window.getBuildDamageMultiplier(player, monster, skillDef)));
+            const bm = window.getBuildDamageMultiplier(player, monster, skillDef);
+            dmg = sanitizeSkillDamage(dmg * (Number.isFinite(bm) ? bm : 1));
+        }
+        if (typeof window.getWizardSkillDamageMult === 'function') {
+            const wm = window.getWizardSkillDamageMult(player, skillDef, monster);
+            dmg = sanitizeSkillDamage(dmg * (Number.isFinite(wm) ? wm : 1));
+        }
+        if (skillDef && skillDef.id === 'shadow_arrow' && typeof window.onShadowArrowHit === 'function') {
+            const sm = window.onShadowArrowHit(player, monster, (skillDef.entityConfig || {}));
+            if (sm && sm !== 1) dmg = sanitizeSkillDamage(dmg * sm);
+        }
+        if (skillDef && skillDef.id === 'death_coil' && typeof window.onDeathCoilHit === 'function') {
+            const dm = window.onDeathCoilHit(player, monster);
+            if (dm && dm !== 1) dmg = sanitizeSkillDamage(dmg * dm);
         }
         const defRed = typeof window.getCombatStatusDefenseReduction === 'function'
             ? window.getCombatStatusDefenseReduction(monster) : 0;
-        if (defRed > 0) dmg = Math.max(1, Math.floor(dmg * (1 + defRed / 100)));
-        monster.takeDamage(dmg);
+        if (defRed > 0) dmg = sanitizeSkillDamage(dmg * (1 + defRed / 100));
+        if (isTrainingCombatTarget(monster)) {
+            const isBasic = skillDef && (skillDef.slotType === 'basic' || skillDef.type === 'basic');
+            monster._pendingDamageSource = isBasic
+                ? 'basic'
+                : (skillDef && skillDef.id ? 'skill:' + skillDef.id : null);
+        }
+        const killed = monster.takeDamage(dmg);
+        if (g && isTrainingCombatTarget(monster) && dmg > 0
+            && typeof g.addFloatingText === 'function') {
+            g.addFloatingText(monster.x, monster.y, String(dmg), '#ffeedd', 1200, 18, true);
+        }
         if (typeof window.onBuildSkillHit === 'function') {
             window.onBuildSkillHit(player, monster, skillDef, dmg, g);
         }
@@ -79,7 +137,45 @@
         }
         applyStatusFromConfig(player, monster, skillDef, g, statusList);
         if (g && typeof g.triggerHitImpact === 'function') {
-            g.triggerHitImpact(monster.x, monster.y, { target: monster, sourceX: player.x, sourceY: player.y, skipSound: true });
+            g.triggerHitImpact(monster.x, monster.y, {
+                target: monster,
+                sourceX: player.x,
+                sourceY: player.y,
+                skipSound: true
+            });
+        }
+        if (killed && player && g && g.player === player && typeof player.processKillRewards === 'function') {
+            const isDummy = typeof TrainingDummy !== 'undefined' && monster instanceof TrainingDummy;
+            const isMonDummy = typeof MonsterTrainingDummy !== 'undefined' && monster instanceof MonsterTrainingDummy;
+            if (!isDummy) player.processKillRewards([monster]);
+        }
+        if (killed && monster._classSkillMark && typeof window.onPhantomMarkVictimKilled === 'function') {
+            window.onPhantomMarkVictimKilled(player, monster, g, null, Date.now());
+        }
+        if (killed && monster._classSkillMark && typeof window.onWindMarkVictimKilled === 'function') {
+            window.onWindMarkVictimKilled(player, monster, g, null, Date.now());
+        }
+        if (killed && monster._classSkillMark && typeof window.onDeadeyeMarkVictimKilled === 'function') {
+            window.onDeadeyeMarkVictimKilled(player, monster, g, null, Date.now());
+        }
+        if (killed && monster._classSkillMark && typeof window.onMarksmanMarkVictimKilled === 'function') {
+            window.onMarksmanMarkVictimKilled(player, monster, g, null, Date.now());
+        }
+        if (killed && monster.isBoss && typeof window.onDeadeyeBossKill === 'function') {
+            window.onDeadeyeBossKill(player, monster, skillDef, g);
+        }
+        if (killed && monster._classSkillMark && typeof window.onPackRoarMarkKill === 'function') {
+            window.onPackRoarMarkKill(player, monster, g);
+        }
+        if (killed && typeof window.onWarlockKill === 'function') {
+            window.onWarlockKill(player);
+        }
+        if (killed && monster._spreadCurseOnDeath && typeof window.onSpreadCurseDeath === 'function') {
+            window.onSpreadCurseDeath(monster, g);
+        }
+        if (typeof window.onTimelyShotHit === 'function' && skillDef
+            && (skillDef.id === 'timely_shot' || skillDef.id === 'timely_shot_plus')) {
+            window.onTimelyShotHit(player, monster, false, g, skillDef.entityConfig || {});
         }
     }
 
@@ -92,25 +188,643 @@
         window.applySkillStatusEffects(patched, monster, player, g);
     }
 
+    function isTrainingSceneDummyTarget(m, player) {
+        if (typeof TrainingDummy === 'undefined' || !(m instanceof TrainingDummy)) return false;
+        const g = player && player.gameInstance;
+        if (!g || !g.currentScene) return false;
+        return g.currentScene === 'skill_lab' || g.currentScene === 'training';
+    }
+
     function nearestEnemy(player, monsters, range) {
         let best = null, bestD = Infinity;
         (monsters || []).forEach(m => {
             if (!m || m.hp <= 0) return;
-            if (typeof TrainingDummy !== 'undefined' && m instanceof TrainingDummy) return;
+            if (typeof TrainingDummy !== 'undefined' && m instanceof TrainingDummy
+                && !isTrainingSceneDummyTarget(m, player)) return;
             const d = Math.hypot(m.x - player.x, m.y - player.y);
             if (d <= range && d < bestD) { bestD = d; best = m; }
         });
         return best;
     }
 
+    function nearestEnemyInCone(px, py, angle, monsters, range, halfAngleRad, exclude, playerRef) {
+        let best = null, bestD = Infinity;
+        (monsters || []).forEach(m => {
+            if (!m || m.hp <= 0 || (exclude && exclude.has(m))) return;
+            if (typeof TrainingDummy !== 'undefined' && m instanceof TrainingDummy
+                && !isTrainingSceneDummyTarget(m, playerRef)) return;
+            const dx = m.x - px, dy = m.y - py;
+            const d = Math.hypot(dx, dy);
+            if (d > range || d >= bestD) return;
+            let diff = Math.atan2(dy, dx) - angle;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            if (Math.abs(diff) <= halfAngleRad) { bestD = d; best = m; }
+        });
+        return best;
+    }
+
+    function getAimPoint(monster) {
+        if (!monster) return null;
+        if (typeof window.getCombatTargetAimPoint === 'function') {
+            return window.getCombatTargetAimPoint(monster);
+        }
+        return { x: monster.x, y: monster.y };
+    }
+
+    function angleToAimPoint(fromX, fromY, monster) {
+        const ap = getAimPoint(monster);
+        if (!ap) return null;
+        return Math.atan2(ap.y - fromY, ap.x - fromX);
+    }
+
+    function resolveProjectileTarget(player, monsters, skillDef, c, castOptions) {
+        const range = skillDef.range || c.maxRange || 500;
+        if (castOptions && castOptions.lockTarget && castOptions.lockTarget.hp > 0) {
+            return castOptions.lockTarget;
+        }
+        if (skillDef && (skillDef.type === 'basic' || skillDef.slotType === 'basic')
+            && typeof window.pickNearestSkillTarget === 'function') {
+            return window.pickNearestSkillTarget(player, monsters, range);
+        }
+        if (c.lockTargetCenter !== false && shouldUseArcherCenterLock(player, skillDef, c)) {
+            if (typeof window.pickArcherAutoLockTarget === 'function') {
+                return window.pickArcherAutoLockTarget(player, monsters, range, {
+                    gameInstance: player && player.gameInstance,
+                    preferFacingCone: skillDef.type === 'basic' || skillDef.slotType === 'basic'
+                });
+            }
+        }
+        return nearestEnemy(player, monsters, range);
+    }
+
+    function snapPlayerAngleToTarget(player, target) {
+        if (!player || !target) return;
+        const ang = angleToAimPoint(player.x, player.y, target);
+        if (ang != null) player.angle = ang;
+    }
+
+    function applyProjectileMarkOnHit(monster, c, skillDef, player, now, g) {
+        if (!monster || !c || !c.markTarget) return;
+        if (typeof window.applyClassSkillMarkOnMonster === 'function') {
+            window.applyClassSkillMarkOnMonster(monster, {
+                durationMs: c.markDurationMs || 8000,
+                damageBonus: c.markDmgBonus != null ? c.markDmgBonus : 15,
+                critBonus: c.markCritBonus || 0,
+                critDmgBonus: c.markCritDmgBonus || 0,
+                windDamageBonus: c.markWindDmgBonus || 0,
+                phantomEchoDamageBonus: c.markPhantomDmgBonus || 0,
+                phantomConfuseChance: c.phantomConfuseChance || 0,
+                phantomConfuseRadius: c.phantomConfuseRadius || 0,
+                ownerDamageBonus: c.markOwnerDamageBonus,
+                ownerCritDmgBonus: c.markOwnerCritDmgBonus,
+                executeThreshold: c.markExecuteThreshold,
+                executeMultiplier: c.markExecuteMultiplier,
+                owner: player,
+                markId: skillDef && skillDef.id
+            }, skillDef, now);
+        } else {
+            monster._classSkillMark = {
+                expireTime: now + (c.markDurationMs || 8000),
+                damageBonus: c.markDmgBonus != null ? c.markDmgBonus : 15,
+                critBonus: c.markCritBonus || 0,
+                name: skillDef && skillDef.name,
+                owner: player
+            };
+        }
+        floatText(g, monster.x, monster.y - 16, '标记!', '#ffcc44');
+        if (c.petFocusMark && g && typeof window.rallyPetsToMark === 'function') {
+            window.rallyPetsToMark(player, monster, g, c.petMarkDamageBonus || 30);
+        }
+        if (g && typeof window.playClassSkillVfx === 'function' && player) {
+            window.playClassSkillVfx(player, skillDef, g, {
+                markApplied: true,
+                primaryTarget: monster,
+                hitTargets: [monster],
+                hit: true
+            });
+        }
+    }
+
+    function spawnFieldFromHit(player, skillDef, fieldCfg, x, y, g, now) {
+        if (!fieldCfg || !player) return;
+        const st = ensureState(g);
+        st.fields.push({
+            x, y,
+            radius: fieldCfg.fieldRadius || 60,
+            expireTime: now + (fieldCfg.fieldDurationMs || 4000),
+            tickIntervalMs: fieldCfg.tickIntervalMs || 1000,
+            lastTick: now,
+            triggerType: 'periodic',
+            damage: 0,
+            statusOnTick: fieldCfg.statusOnTick,
+            owner: player,
+            skillDef,
+            entityConfig: fieldCfg,
+            color: fieldCfg.color || '#55dd44'
+        });
+    }
+
+    function spawnWindBlades(player, g, monsters, bladeCfg, skillDef, now) {
+        if (!player || !g || !bladeCfg) return;
+        const st = ensureState(g);
+        const count = bladeCfg.count || 3;
+        const spread = (bladeCfg.spreadAngleDeg || 20) * Math.PI / 180;
+        const baseAng = bladeCfg.angle != null ? bladeCfg.angle : player.angle;
+        const ox = bladeCfg.originX != null ? bladeCfg.originX : player.x;
+        const oy = bladeCfg.originY != null ? bladeCfg.originY : player.y;
+        const dmgMult = bladeCfg.damageMultiplier || 0.5;
+        const maxRange = bladeCfg.maxRange || 380;
+        const speed = bladeCfg.speed || 750;
+        const refDef = skillDef || { id: 'wind_blade', name: '风刃', entityConfig: { damageMultiplier: dmgMult } };
+        const refEc = refDef.entityConfig || {};
+        const bladeRadius = bladeCfg.collisionRadius || refEc.collisionRadius || 14;
+        const bladeEc = {
+            damageMultiplier: dmgMult,
+            collisionRadius: bladeRadius,
+            pierceCount: refEc.pierceCount != null ? refEc.pierceCount : 99,
+            coneTrackDeg: refEc.coneTrackDeg || 18
+        };
+        let markTarget = bladeCfg.markTarget || null;
+        if (!markTarget && (bladeCfg.homingToMark || bladeCfg.fromPhantomEcho)
+            && typeof window.findWindrunnerMarkTarget === 'function') {
+            markTarget = window.findWindrunnerMarkTarget(player, monsters, now);
+        }
+        const echoBlade = !!bladeCfg.fromPhantomEcho;
+        const useHoming = !!(markTarget && markTarget.hp > 0 && !echoBlade);
+        for (let i = 0; i < count; i++) {
+            let ang = baseAng;
+            let trajectory = 'cone_track';
+            let targetRef = null;
+            let guaranteedHit = false;
+            if (useHoming) {
+                const ap = getAimPoint(markTarget);
+                ang = ap ? Math.atan2(ap.y - oy, ap.x - ox) : Math.atan2(markTarget.y - oy, markTarget.x - ox);
+                trajectory = 'homing';
+                targetRef = markTarget;
+                guaranteedHit = true;
+            } else if (echoBlade && markTarget && markTarget.hp > 0) {
+                const ap = getAimPoint(markTarget);
+                ang = ap ? Math.atan2(ap.y - oy, ap.x - ox) : Math.atan2(markTarget.y - oy, markTarget.x - ox);
+            } else {
+                const offset = count > 1 ? spread * (i / (count - 1) - 0.5) : 0;
+                ang = baseAng + offset;
+            }
+            st.projectiles.push({
+                x: ox, y: oy,
+                angle: ang,
+                initialAngle: ang,
+                speed,
+                maxRange,
+                traveled: 0,
+                radius: bladeRadius,
+                pierceLeft: bladeEc.pierceCount != null ? bladeEc.pierceCount : 99,
+                damage: calcDmg(player, refDef, bladeEc, dmgMult),
+                skillDef: refDef,
+                player,
+                trajectory,
+                targetRef,
+                guaranteedHit,
+                coneTrackDeg: useHoming ? 0 : 12,
+                color: bladeCfg.fromPhantomEcho ? '#9944ff' : '#66eedd',
+                visualVariant: 'wind_blade',
+                hitIds: new Set(),
+                spawnTime: now,
+                active: true,
+                hideVisual: !bladeCfg.fromPhantomEcho,
+                _fromWindStepBlade: !!(skillDef && skillDef.id === 'wind_step'),
+                _fromPhantomEcho: !!bladeCfg.fromPhantomEcho,
+                _cloneDamagePercent: bladeCfg.echoDamagePercent,
+                entityConfig: bladeEc
+            });
+        }
+        if (useHoming && g && typeof g.addFloatingText === 'function') {
+            g.addFloatingText(player.x, player.y - 36, '风刃追踪!', '#66eedd', 800, 13);
+        }
+    }
+
+    window.spawnWindrunnerWindBlades = spawnWindBlades;
+
+    window.resolveWindMarkExplosion = function resolveWindMarkExplosion(player, center, g, monsters, opts, now) {
+        if (!player || !center || !opts) return;
+        const t = now != null ? now : Date.now();
+        const radius = opts.radius || 90;
+        const skillDef = opts.skillDef || { id: 'wind_mark', name: '风之印记' };
+        const ec = { damageMultiplier: opts.dmgMult || 1.8 };
+        const dmg = calcDmg(player, skillDef, ec, ec.damageMultiplier);
+        const list = monsters || (g && typeof g.getCurrentSceneTargets === 'function' ? g.getCurrentSceneTargets() : []);
+        const cx = center.x;
+        const cy = center.y;
+        (list || []).forEach(m => {
+            if (!m || m.hp <= 0) return;
+            if (Math.hypot(m.x - cx, m.y - cy) > radius + (m.size || 20) * 0.5) return;
+            applyDmg(player, m, dmg, skillDef, g);
+            const kb = opts.knockback > 0 ? opts.knockback : 0;
+            if (kb > 0 && typeof window.applyEnemyKnockback === 'function') {
+                window.applyEnemyKnockback(m, cx, cy, kb);
+            }
+        });
+        floatText(g, cx, cy - 20, opts.label || '风爆!', '#66eedd');
+        if (g && typeof g.triggerHitImpact === 'function') {
+            g.triggerHitImpact(cx, cy, { isRanged: true, isCrit: false, sourceX: player.x, sourceY: player.y });
+        }
+        if (g && typeof g.addEquipmentEffect === 'function') {
+            g.addEquipmentEffect('freeze_ring', cx, cy, { radius, duration: 480, delayMs: 0 });
+        }
+    };
+
+    function rollSkillCrit(player, c, monster) {
+        if (!player) return false;
+        if (c && c.guaranteedCrit) return true;
+        let critRate = typeof window.getPlayerEffectiveCritRate === 'function'
+            ? window.getPlayerEffectiveCritRate(player)
+            : (player.baseCritRate || 0);
+        if (monster && typeof window.getClassSkillMarkBonus === 'function') {
+            critRate += window.getClassSkillMarkBonus(monster, null).crit || 0;
+        }
+        return Math.random() * 100 < critRate;
+    }
+
+    function applySkillCritDamage(player, dmg, isCrit, c, monster) {
+        if (!isCrit || typeof applyCritDamageMultiplier !== 'function') return dmg;
+        let extra = (c && c.critDmgBonus) || 0;
+        if (monster && typeof window.getClassSkillMarkBonus === 'function') {
+            extra += window.getClassSkillMarkBonus(monster, null).critDmg || 0;
+        }
+        if (typeof window.getDeadeyeMarkCritDmgBonus === 'function') {
+            extra += window.getDeadeyeMarkCritDmgBonus(monster, player);
+        }
+        if (typeof window.getAssassinCritDmgBonus === 'function') {
+            extra += window.getAssassinCritDmgBonus(player, monster);
+        }
+        if (typeof window.getPlayerPrecisionCritDmgBonus === 'function') {
+            extra += window.getPlayerPrecisionCritDmgBonus(player);
+        }
+        if (typeof window.getBreathHoldSelfCritDmg === 'function') {
+            extra += window.getBreathHoldSelfCritDmg(player);
+        }
+        if (typeof window.getBreathHoldTeamCritDmgBonus === 'function' && player && player.gameInstance) {
+            extra += window.getBreathHoldTeamCritDmgBonus(player, player.gameInstance);
+        }
+        return applyCritDamageMultiplier(dmg, player.baseCritDamage, 1 + extra / 100);
+    }
+
+    function applyDefenseIgnoreBonus(dmg, c) {
+        const ignore = c && c.ignoreDefensePercent;
+        if (!ignore) return dmg;
+        return Math.max(1, Math.floor(dmg * (1 + ignore / 100 * 0.35)));
+    }
+
+    function applyProjectileHitEffects(player, monster, p, g, now) {
+        const ec = entityCfg(p.skillDef);
+        const c = Object.assign({}, (ec && ec.entityConfig) || {}, p.entityConfig || {});
+        if (p.precisionCritDmgBonus) {
+            c.critDmgBonus = (c.critDmgBonus || 0) + p.precisionCritDmgBonus;
+        }
+        let dmg = p.damage;
+        if (p._fromPhantomClone && p.player && typeof window.calcPhantomCloneDamage === 'function') {
+            dmg = window.calcPhantomCloneDamage(p.player, p._cloneDamagePercent || 60);
+        }
+        if (p._fromPhantomEcho && typeof window.getPhantomEchoMarkDamageMultiplier === 'function') {
+            const em = window.getPhantomEchoMarkDamageMultiplier(monster, player, p);
+            dmg = sanitizeSkillDamage(dmg * (Number.isFinite(em) ? em : 1));
+        }
+        dmg = sanitizeSkillDamage(dmg);
+        dmg = applyDefenseIgnoreBonus(dmg, c);
+
+        const skillId = p.skillDef && p.skillDef.id;
+        if (skillId === 'death_gaze' && monster.maxHp > 0) {
+            const threshold = c.executeHpThreshold != null ? c.executeHpThreshold : 0.3;
+            const execMult = c.executeDamageMult != null ? c.executeDamageMult : 1.5;
+            if (monster.hp / monster.maxHp < threshold) {
+                dmg = Math.max(1, Math.floor(dmg * execMult));
+                if (g && typeof g.addFloatingText === 'function') {
+                    g.addFloatingText(monster.x, monster.y - 24, '斩杀!', '#ff2244', 800, 16);
+                }
+            }
+        }
+
+        const hpBefore = monster.hp;
+        const isCrit = rollSkillCrit(player, c, monster);
+        if (isCrit) dmg = applySkillCritDamage(player, dmg, true, c, monster);
+        applyDmg(player, monster, dmg, p.skillDef, g, p.statusOnHit);
+        const killed = monster.hp <= 0 && hpBefore > 0;
+
+        if (typeof window.onWindrunnerWindBladeMarkHit === 'function') {
+            window.onWindrunnerWindBladeMarkHit(player, monster, p.skillDef, p, g, now);
+        }
+        if (c.resourcePerHit && typeof window.grantSkillResource === 'function') {
+            window.grantSkillResource(player, c.resourcePerHit);
+        }
+        if (isCrit && typeof window.onPlayerCritResource === 'function') {
+            window.onPlayerCritResource(player);
+        }
+        if (isCrit && p.skillDef && p.skillDef.id === 'aimed_shot'
+            && typeof window.onMarksmanAimedShotCrit === 'function' && !p._critRefundDone) {
+            p._critRefundDone = true;
+            window.onMarksmanAimedShotCrit(player, c.critRefundAmmo || 5);
+        }
+        applyProjectileMarkOnHit(monster, c, p.skillDef, player, now, g);
+        if (p.skillDef && p.skillDef.id === 'weakness_mark'
+            && typeof window.onMarksmanWeaknessMarkHit === 'function') {
+            window.onMarksmanWeaknessMarkHit(player, g);
+        }
+        if (p.skillDef && p.skillDef.id === 'weakness_mark_de'
+            && typeof window.onDeadeyeWeaknessMarkHit === 'function') {
+            window.onDeadeyeWeaknessMarkHit(player, g);
+        }
+        if (isCrit && typeof window.onDeadeyeAllyCritMarkedTarget === 'function') {
+            window.onDeadeyeAllyCritMarkedTarget(player, monster, now);
+        }
+        if (p.skillDef && typeof window.isMarksmanBasicAttackSkill === 'function'
+            && window.isMarksmanBasicAttackSkill(p.skillDef)
+            && typeof window.onMarksmanBasicAttackHit === 'function') {
+            window.onMarksmanBasicAttackHit(player, g);
+        }
+        if (c.spawnFieldOnHit) {
+            spawnFieldFromHit(player, p.skillDef, c.spawnFieldOnHit, monster.x, monster.y, g, now);
+        }
+        return { killed, isCrit };
+    }
+
     function clampInRoom(g, x, y, pad) {
         const room = g && g.currentRoom;
-        if (!room) return { x, y };
         pad = pad || 40;
+        if (room) {
+            return {
+                x: Math.max((room.x || 0) + pad, Math.min((room.x || 0) + (room.width || 800) - pad, x)),
+                y: Math.max((room.y || 0) + pad, Math.min((room.y || 0) + (room.height || 600) - pad, y))
+            };
+        }
+        const cw = (typeof CONFIG !== 'undefined' && CONFIG.CANVAS_WIDTH) || 800;
+        const ch = (typeof CONFIG !== 'undefined' && CONFIG.CANVAS_HEIGHT) || 600;
         return {
-            x: Math.max((room.x || 0) + pad, Math.min((room.x || 0) + (room.width || 800) - pad, x)),
-            y: Math.max((room.y || 0) + pad, Math.min((room.y || 0) + (room.height || 600) - pad, y))
+            x: Math.max(pad, Math.min(cw - pad, x)),
+            y: Math.max(pad, Math.min(ch - pad, y))
         };
+    }
+
+    function easeOutCubicPierce(t) { return 1 - Math.pow(1 - t, 3); }
+    function clamp01Pierce(t) { return Math.max(0, Math.min(1, t)); }
+    function easeOutBackStep(t) {
+        const c1 = 1.70158;
+        const c3 = c1 + 1;
+        return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+    }
+
+    window.startPlayerBackstepShot = function startPlayerBackstepShot(player, g, opts, now) {
+        if (!player) return 0;
+        const t = now != null ? now : Date.now();
+        const dist = (opts && opts.distance) || 100;
+        const durationMs = (opts && opts.durationMs) || 320;
+        const ang = (opts && opts.angle != null) ? opts.angle : player.angle;
+        const end = clampInRoom(g,
+            player.x - Math.cos(ang) * dist,
+            player.y - Math.sin(ang) * dist);
+        player._backstepShot = {
+            startX: player.x,
+            startY: player.y,
+            endX: end.x,
+            endY: end.y,
+            startTime: t,
+            durationMs,
+            peakHeight: (opts && opts.peakHeight) || 32,
+            angle: ang,
+            invincibleMs: (opts && opts.invincibleMs != null) ? opts.invincibleMs : (durationMs + 80)
+        };
+        player._backstepVisualOffset = 0;
+        player.invincibleUntil = Math.max(player.invincibleUntil || 0, t + player._backstepShot.invincibleMs);
+        player.isCastingSkill = true;
+        player.vx = 0;
+        player.vy = 0;
+        return durationMs;
+    };
+
+    window.updatePlayerBackstepShot = function updatePlayerBackstepShot(player, now) {
+        const bs = player && player._backstepShot;
+        if (!bs) return false;
+        const t = clamp01Pierce((now - bs.startTime) / bs.durationMs);
+        const ease = easeOutBackStep(t);
+        player.x = bs.startX + (bs.endX - bs.startX) * ease;
+        player.y = bs.startY + (bs.endY - bs.startY) * ease;
+        player._backstepVisualOffset = bs.peakHeight * Math.sin(t * Math.PI);
+        player.angle = bs.angle;
+        player.vx = 0;
+        player.vy = 0;
+        if (t >= 1) {
+            player.x = bs.endX;
+            player.y = bs.endY;
+            player._backstepVisualOffset = 0;
+            delete player._backstepShot;
+            player.isCastingSkill = false;
+            return false;
+        }
+        return true;
+    };
+
+    function startPierceDash(player, g, fromX, fromY, toX, toY, angle, now, durationMs) {
+        const p = clampInRoom(g, toX, toY);
+        player._pierceDash = {
+            startX: fromX,
+            startY: fromY,
+            endX: p.x,
+            endY: p.y,
+            startTime: now,
+            durationMs: durationMs || 220,
+            angle: angle
+        };
+        player.vx = 0;
+        player.vy = 0;
+        player.angle = angle;
+        player.invincibleUntil = Math.max(player.invincibleUntil || 0, now + (durationMs || 220) + 40);
+    }
+
+    window.updatePlayerPierceDash = function updatePlayerPierceDash(player, now) {
+        const pd = player && player._pierceDash;
+        if (!pd) return false;
+        const t = clamp01Pierce((now - pd.startTime) / pd.durationMs);
+        const ease = easeOutCubicPierce(t);
+        player.x = pd.startX + (pd.endX - pd.startX) * ease;
+        player.y = pd.startY + (pd.endY - pd.startY) * ease;
+        player.angle = pd.angle;
+        player.vx = 0;
+        player.vy = 0;
+        if (t >= 1) {
+            player.x = pd.endX;
+            player.y = pd.endY;
+            delete player._pierceDash;
+            return false;
+        }
+        return true;
+    };
+
+    function resolveLeapLanding(player, c, g, monsters, castOptions) {
+        const maxRange = c.leapRange || 200;
+        const impactR = c.range || c.leapSlamRadius || 90;
+        const manualGroundAim = castOptions && castOptions._manualGroundAim && castOptions.groundPoint;
+
+        if (!manualGroundAim && c.autoLockOnTap !== false
+            && typeof window.pickBestLeapSlamGroundPoint === 'function') {
+            const pick = window.pickBestLeapSlamGroundPoint(player, monsters, maxRange, impactR);
+            return clampInRoom(g, pick.x, pick.y);
+        }
+
+        if (castOptions && castOptions.groundPoint) {
+            const gp = castOptions.groundPoint;
+            const dist = Math.hypot(gp.x - player.x, gp.y - player.y);
+            if (dist > maxRange) {
+                const ang = Math.atan2(gp.y - player.y, gp.x - player.x);
+                return clampInRoom(g,
+                    player.x + Math.cos(ang) * maxRange,
+                    player.y + Math.sin(ang) * maxRange);
+            }
+            return clampInRoom(g, gp.x, gp.y);
+        }
+        if (c.autoLockOnTap !== false && typeof window.pickBestLeapSlamGroundPoint === 'function') {
+            const pick = window.pickBestLeapSlamGroundPoint(player, monsters, maxRange, impactR);
+            return clampInRoom(g, pick.x, pick.y);
+        }
+        const ang = (castOptions && castOptions.angle != null)
+            ? castOptions.angle
+            : (typeof window.pickNearestEnemyAngle === 'function'
+                ? window.pickNearestEnemyAngle(player, monsters, maxRange)
+                : player.angle);
+        const dist = Math.min(c.leapDistance || maxRange * 0.45, maxRange);
+        return clampInRoom(g,
+            player.x + Math.cos(ang) * dist,
+            player.y + Math.sin(ang) * dist);
+    }
+
+    function startLeapSlam(player, endX, endY, skillDef, ec, g, monsters, now) {
+        const c = ec.entityConfig;
+        const ang = Math.atan2(endY - player.y, endX - player.x);
+        player.angle = ang;
+        player._leapSlam = {
+            startX: player.x,
+            startY: player.y,
+            endX,
+            endY,
+            startTime: now,
+            durationMs: c.leapDurationMs || 400,
+            peakHeight: c.leapPeakHeight || 58,
+            skillDef,
+            ec,
+            g,
+            monsters,
+            angle: ang
+        };
+        player._leapSlamVisualOffset = 0;
+        player.isCastingSkill = true;
+        if (c.superArmor) player._chargeSuperArmor = true;
+        player.invincibleUntil = Math.max(player.invincibleUntil || 0, now + (c.leapDurationMs || 400) + 80);
+        player.vx = 0;
+        player.vy = 0;
+    }
+
+    function finishLeapSlamImpact(player, ls, now) {
+        player.x = ls.endX;
+        player.y = ls.endY;
+        player.angle = ls.angle;
+        player._leapSlamVisualOffset = 0;
+        player.isCastingSkill = false;
+        if (!player.isDashing) player._chargeSuperArmor = false;
+        execInstant(player, ls.skillDef, ls.ec, ls.g, ls.monsters, now, null, { skipLeap: true, leapLand: true });
+    }
+
+    window.updatePlayerLeapSlam = function updatePlayerLeapSlam(player, now) {
+        const ls = player && player._leapSlam;
+        if (!ls) return false;
+        const t = clamp01Pierce((now - ls.startTime) / ls.durationMs);
+        const ease = t < 0.5
+            ? 2 * t * t
+            : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        player.x = ls.startX + (ls.endX - ls.startX) * ease;
+        player.y = ls.startY + (ls.endY - ls.startY) * ease;
+        player._leapSlamVisualOffset = ls.peakHeight * Math.sin(t * Math.PI);
+        player.angle = ls.angle;
+        player.vx = 0;
+        player.vy = 0;
+        if (t >= 1) {
+            finishLeapSlamImpact(player, ls, now);
+            delete player._leapSlam;
+            return false;
+        }
+        return true;
+    };
+
+    function collectPierceTargets(player, monsters, range, pierceWidth) {
+        const targets = [];
+        (monsters || []).forEach(m => {
+            if (!m || m.hp <= 0) return;
+            const dx = m.x - player.x;
+            const dy = m.y - player.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist > range || dist < 1) return;
+            const toMon = Math.atan2(dy, dx);
+            let diff = toMon - player.angle;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            if (Math.abs(diff) > Math.PI * 0.55) return;
+            const perpDist = Math.abs(dist * Math.sin(diff));
+            const monR = (m.size || m.radius || 32) / 2;
+            if (perpDist <= pierceWidth + monR) targets.push(m);
+        });
+        targets.sort((a, b) => {
+            const da = Math.hypot(a.x - player.x, a.y - player.y);
+            const db = Math.hypot(b.x - player.x, b.y - player.y);
+            return da - db;
+        });
+        return targets;
+    }
+
+    function computePierceBehind(player, primary) {
+        const tang = Math.atan2(primary.y - player.y, primary.x - player.x);
+        const monR = (primary.size || primary.radius || 32) / 2;
+        const playerR = (player.size || player.playerGifSize || 24) / 2;
+        const behindDist = monR + playerR + 14;
+        return {
+            pierceTargetX: primary.x,
+            pierceTargetY: primary.y,
+            dashEndX: primary.x + Math.cos(tang) * behindDist,
+            dashEndY: primary.y + Math.sin(tang) * behindDist,
+            pierceAngle: tang
+        };
+    }
+
+    function getSkillWindupMs(player, skillDef, c) {
+        if (typeof window.getEffectiveSkillWindupMs === 'function') {
+            return window.getEffectiveSkillWindupMs(player, skillDef, c);
+        }
+        return c.windupMs || 0;
+    }
+
+    function applyCastAimAngle(player, castOptions, monsters, skillDef, c) {
+        if (castOptions && castOptions.angle != null) {
+            player.angle = castOptions.angle;
+            return;
+        }
+        const range = c.range || skillDef.range || 80;
+        if (c.shape === 'fissure' || c.shape === 'pierce') {
+            if (typeof window.pickBestLineAngle === 'function') {
+                player.angle = window.pickBestLineAngle(
+                    player, monsters, range, (c.pierceWidth || 40) * 2
+                );
+            }
+        } else if (c.shape === 'cone' && c.autoLockOnTap !== false) {
+            if (castOptions && castOptions.lockTarget && castOptions.lockTarget.hp > 0
+                && typeof window.snapPlayerAngleToCombatTarget === 'function') {
+                window.snapPlayerAngleToCombatTarget(player, castOptions.lockTarget);
+            } else if ((skillDef.type === 'basic' || skillDef.slotType === 'basic')
+                && typeof window.pickNearestSkillTarget === 'function'
+                && typeof window.snapPlayerAngleToCombatTarget === 'function') {
+                const lockT = window.pickNearestSkillTarget(player, monsters, range + 40);
+                if (lockT) window.snapPlayerAngleToCombatTarget(player, lockT);
+            } else if (typeof window.pickBestConeAngle === 'function') {
+                player.angle = window.pickBestConeAngle(
+                    player, monsters, range, c.halfAngleDeg || 45
+                );
+            }
+        }
     }
 
     function setCastBar(player, skillDef, start, end, color) {
@@ -126,25 +840,490 @@
         if (g && typeof g.addFloatingText === 'function') g.addFloatingText(x, y, text, color || '#88ccff');
     }
 
-    /** 眩晕/击退/击飞（位移）：训练假人与怪物通用 */
-    function applyCcEffects(m, now, opts, g) {
-        if (!m) return;
-        const stunMs = opts.stunMs || 0;
-        const knockback = opts.knockback || 0;
-        const kbAngle = opts.knockbackAngle;
-        if (stunMs > 0) {
-            m.frozenUntil = Math.max(m.frozenUntil || 0, now + stunMs);
-            if (m.statusEffects) {
-                m.statusEffects.frozen = { until: now + stunMs };
+    function applyProjectileCc(proj, m, now, monsters, g) {
+        if (!m || !proj) return;
+        const ec = entityCfg(proj.skillDef);
+        const cfg = Object.assign({}, ec && ec.entityConfig, {
+            debuffSlowPercent: proj.debuffSlowPercent,
+            debuffDurationMs: proj.debuffDurationMs,
+            stunMs: proj.stunMs,
+            tauntDurationMs: proj.tauntDurationMs
+        });
+        applyCcEffects(m, now, cfg, g, proj.player);
+    }
+
+    function applyCcEffects(m, now, opts, g, tauntTarget) {
+        if (!m || !opts) return;
+        if (typeof window.applyMonsterSkillDebuffs === 'function') {
+            const src = tauntTarget || opts.tauntTarget || opts.player;
+            window.applyMonsterSkillDebuffs(m, opts, g, now, {
+                tauntTarget: src,
+                sourceX: src && src.x,
+                sourceY: src && src.y
+            });
+        }
+    }
+
+    function applyInstantAllyBuffs(player, c, skillDef, g, now) {
+        if (!player || !c) return;
+        const buffId = 'skill_' + skillDef.id + '_ally';
+        const dur = c.allySpeedMs || c.debuffDurationMs || 5000;
+        if (c.allySpeedPercent || c.allyAttackSpeedPercent) {
+            const effects = {};
+            if (c.allySpeedPercent) effects.moveSpeed = c.allySpeedPercent;
+            if (c.allyAttackSpeedPercent) effects.attackSpeedPercent = c.allyAttackSpeedPercent;
+            player.buffs = player.buffs || [];
+            player.buffs = player.buffs.filter(b => b.id !== buffId);
+            player.buffs.push({
+                name: skillDef.name + '·加速',
+                id: buffId,
+                expireTime: now + dur,
+                effects,
+                hudVisible: true
+            });
+            if (typeof player.updateStats === 'function') player.updateStats();
+            floatText(g, player.x, player.y - 28, '时间加速', '#cc88ff');
+        }
+    }
+
+    function onInstantSkillKill(player, skillDef, c, g, monsters, now, killedMonster) {
+        if (!player || !c || !killedMonster) return;
+        if (c.resetCDOnKill && typeof window.setSkillCooldown === 'function') {
+            const cdDef = Object.assign({}, skillDef, {
+                id: skillDef.evolutionPath && skillDef.evolutionPath.baseSkillId
+                    ? skillDef.evolutionPath.baseSkillId : skillDef.id
+            });
+            player.skillCooldowns = player.skillCooldowns || {};
+            player.skillCooldowns[cdDef.id] = 0;
+            floatText(g, player.x, player.y - 36, '冷却重置', '#ffdd44');
+        }
+        if (c.fearRadiusOnKill && c.fearMsOnKill) {
+            (monsters || []).forEach(m => {
+                if (!m || m.hp <= 0 || m === killedMonster) return;
+                if (Math.hypot(m.x - killedMonster.x, m.y - killedMonster.y) <= c.fearRadiusOnKill) {
+                    applyCcEffects(m, now, { fearMs: c.fearMsOnKill }, g);
+                }
+            });
+        }
+        if (c.chainOnKill && c.chainOnKill > 0
+            && typeof window.triggerAssassinChainOnKill === 'function') {
+            window.triggerAssassinChainOnKill(
+                player, skillDef, { entityConfig: c }, g, monsters, now, killedMonster, c.chainOnKill - 1
+            );
+        }
+    }
+
+    function distPointToSegment(px, py, x1, y1, x2, y2) {
+        const dx = x2 - x1, dy = y2 - y1;
+        const lenSq = dx * dx + dy * dy;
+        if (lenSq < 0.001) return Math.hypot(px - x1, py - y1);
+        let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+        t = Math.max(0, Math.min(1, t));
+        return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+    }
+
+    function applyInstantSkillSingleHit(player, m, skillDef, ec, g, monsters, now, chainMult, hitOpts) {
+        const c = ec.entityConfig || ec;
+        const opts = hitOpts || {};
+        const baseDmg = opts.baseDmg != null
+            ? opts.baseDmg
+            : calcDmg(player, skillDef, c, c.damageMultiplier);
+        let d = Math.max(1, Math.floor(baseDmg * (chainMult || 1)));
+        if (typeof window.applyComboPointDamageMult === 'function') {
+            d = window.applyComboPointDamageMult(player, c, d, g);
+        }
+        const hpRatio = m.hp / (m.maxHp || 1);
+        let isExecute = false;
+        if (c.executeThreshold != null) {
+            const execTh = (m.isBoss || m.isElite)
+                ? (c.executeBossThreshold != null ? c.executeBossThreshold : c.executeThreshold)
+                : c.executeThreshold;
+            if (hpRatio <= execTh) {
+                isExecute = true;
+                if (c.executeMultiplier != null) {
+                    d = Math.max(1, Math.floor(d * c.executeMultiplier));
+                }
+                if (!m.isBoss && !m.isElite) {
+                    d = Math.max(d, m.hp);
+                }
+                floatText(g, m.x, m.y - 28, '暗杀·处决!', '#ff2244', 18);
             }
         }
-        if (knockback > 0 && kbAngle != null) {
-            const kbDist = opts.knockup ? knockback * 1.35 : knockback;
-            m.x += Math.cos(kbAngle) * kbDist;
-            m.y += Math.sin(kbAngle) * kbDist;
+        const isCrit = rollSkillCrit(player, c, m);
+        d = applySkillCritDamage(player, d, isCrit, c, m);
+        const hpBefore = m.hp;
+        applyDmg(player, m, d, skillDef, g, c.statusOnHit);
+        if (typeof window.onAssassinSkillHit === 'function') {
+            window.onAssassinSkillHit(player, m, skillDef, isCrit, g);
         }
-        if (opts.knockup && g) {
-            floatText(g, m.x, m.y - 14, '击飞', '#ff8844');
+        if (!isExecute && c.nonExecuteComboPoints && typeof window.grantComboPoints === 'function') {
+            window.grantComboPoints(player, c.nonExecuteComboPoints);
+        }
+        applyCcEffects(m, now, {
+            stunMs: c.stunMs || c.confuseMs,
+            knockback: isClassBasicSkill(skillDef) ? 0 : c.knockback,
+            knockbackAngle: Math.atan2(m.y - player.y, m.x - player.x)
+        }, g);
+        const killed = m.hp <= 0 && hpBefore > 0;
+        if (killed && !opts.skipChainOnKill) {
+            onInstantSkillKill(player, skillDef, c, g, monsters, now, m);
+        }
+        return { killed, isExecute, isCrit, damage: d };
+    }
+    window.applyInstantSkillSingleHit = applyInstantSkillSingleHit;
+
+    function shadowRaidBaseSkillId(skillDef) {
+        if (!skillDef) return null;
+        if (skillDef.evolutionPath && skillDef.evolutionPath.baseSkillId) {
+            return skillDef.evolutionPath.baseSkillId;
+        }
+        if (skillDef.id === 'shadow_raid' || skillDef.id === 'shadow_dance') return 'shadow_vortex';
+        return skillDef.id;
+    }
+
+    const SHADOW_RAID_SKILL_IDS = { shadow_raid: true, shadow_vortex: true, shadow_dance: true };
+
+    window.shadowRaidSkillMatches = function shadowRaidSkillMatches(player, skillDef, pending) {
+        if (!pending || !skillDef) return false;
+        const resolved = (typeof window.getResolvedSkillForPlayer === 'function'
+            ? window.getResolvedSkillForPlayer(player, skillDef) : null) || skillDef;
+        if (pending.skillId === resolved.id) return true;
+        if (pending.baseSkillId && resolved.id === pending.baseSkillId) return true;
+        if (pending.slotType === 'core2' && resolved.slotType === 'core2'
+            && SHADOW_RAID_SKILL_IDS[pending.skillId] && SHADOW_RAID_SKILL_IDS[resolved.id]) {
+            return true;
+        }
+        return false;
+    };
+
+    window.canShadowRaidReturnCast = function canShadowRaidReturnCast(player, skillDef, now) {
+        if (!player || !skillDef || player.isDashing) return false;
+        const pending = player._shadowRaidReturn;
+        if (!pending || now > pending.expireTime) return false;
+        return window.shadowRaidSkillMatches(player, skillDef, pending);
+    };
+
+    function offerShadowRaidReturn(ch, g, now) {
+        const c = ch.ec && ch.ec.entityConfig ? ch.ec.entityConfig : {};
+        if (!c.returnWindowMs) return;
+        ch.player._shadowRaidReturn = {
+            skillId: ch.skillDef.id,
+            baseSkillId: shadowRaidBaseSkillId(ch.skillDef),
+            slotType: ch.skillDef.slotType || 'core2',
+            skillDef: ch.skillDef,
+            ec: ch.ec,
+            startX: ch.startX,
+            startY: ch.startY,
+            endX: ch.player.x,
+            endY: ch.player.y,
+            expireTime: now + c.returnWindowMs,
+            returnMult: c.returnDamageMultiplier != null ? c.returnDamageMultiplier : 1.2,
+            hitIds: ch.hitIds ? new Set(ch.hitIds) : new Set()
+        };
+        floatText(g, ch.player.x, ch.player.y - 28, '影袭·可返回', '#bb88ff');
+        if (c.autoReturnMs !== false) {
+            floatText(g, ch.player.x, ch.player.y - 44, '自动返回中…', '#9966cc');
+        }
+    }
+
+    function scheduleShadowRaidAutoReturn(ch, g, monsters, now) {
+        const c = ch.ec && ch.ec.entityConfig ? ch.ec.entityConfig : {};
+        if (!c.returnWindowMs || c.autoReturnMs === false) return;
+        const delay = c.autoReturnMs != null ? c.autoReturnMs : 220;
+        const st = ensureState(g);
+        st.pendingShadowReturns = st.pendingShadowReturns || [];
+        st.pendingShadowReturns.push({
+            activateTime: now + delay,
+            expireTime: now + c.returnWindowMs,
+            player: ch.player,
+            skillDef: ch.skillDef,
+            monsters
+        });
+    }
+
+    function tickPendingShadowReturns(st, g, monsters, now) {
+        if (!st.pendingShadowReturns || !st.pendingShadowReturns.length) return;
+        st.pendingShadowReturns = st.pendingShadowReturns.filter(pr => {
+            if (now < pr.activateTime) return true;
+            if (pr.player && pr.player._shadowRaidReturn && now <= pr.expireTime
+                && typeof window.tryShadowRaidReturn === 'function') {
+                window.tryShadowRaidReturn(pr.player, pr.skillDef, g, pr.monsters || monsters, now);
+            }
+            return false;
+        });
+    }
+
+    window.tryShadowRaidReturn = function tryShadowRaidReturn(player, skillDef, g, monsters, now) {
+        if (!player || !skillDef) return null;
+        if (player.isDashing) return null;
+        const pending = player._shadowRaidReturn;
+        if (!pending || !window.shadowRaidSkillMatches(player, skillDef, pending)) return null;
+        if (now > pending.expireTime) {
+            delete player._shadowRaidReturn;
+            return null;
+        }
+        delete player._shadowRaidReturn;
+        const ec = pending.ec || { entityConfig: {} };
+        const c = ec.entityConfig || {};
+        if (typeof window.clearComboPointDamageMult === 'function') {
+            window.clearComboPointDamageMult(player);
+        }
+        if (c.consumeAllComboPoints && typeof window.prepareComboPointDamageMult === 'function') {
+            window.prepareComboPointDamageMult(player, c, g);
+        }
+        const fromX = player.x;
+        const fromY = player.y;
+        const toX = pending.startX;
+        const toY = pending.startY;
+        if (!Number.isFinite(toX) || !Number.isFinite(toY)) {
+            delete player._shadowRaidReturn;
+            return null;
+        }
+        const clamped = clampInRoom(g, toX, toY);
+        player.x = clamped.x;
+        player.y = clamped.y;
+        player.angle = Math.atan2(toY - fromY, toX - fromX);
+        const hitRadius = (c.collisionRadius || 22) + 15;
+        const returnDmg = calcDmg(player, pending.skillDef, c, pending.returnMult);
+        const hitTargets = [];
+        (monsters || []).forEach(m => {
+            if (!m || m.hp <= 0) return;
+            if (distPointToSegment(m.x, m.y, fromX, fromY, pending.endX, pending.endY) > hitRadius + (m.size || 16) * 0.35) return;
+            let d = returnDmg;
+            if (typeof window.applyComboPointDamageMult === 'function') {
+                d = window.applyComboPointDamageMult(player, c, d, g);
+            }
+            const isCrit = rollSkillCrit(player, c, m);
+            d = applySkillCritDamage(player, d, isCrit, c, m);
+            applyDmg(player, m, d, pending.skillDef, g, c.statusOnHit);
+            if (typeof window.onAssassinSkillHit === 'function') {
+                window.onAssassinSkillHit(player, m, pending.skillDef, isCrit, g);
+            }
+            hitTargets.push(m);
+        });
+        if (c.grantBackstabStance && typeof window.grantBackstabStance === 'function') {
+            window.grantBackstabStance(player, c.grantBackstabStance.angleDeg || 180, c.grantBackstabStance.durationMs || 3500);
+        }
+        floatText(g, player.x, player.y - 24, '影袭返回!', '#aa66ee');
+        if (typeof window.playAssassinShadowRaidReturnVfx === 'function') {
+            window.playAssassinShadowRaidReturnVfx(player, g, {
+                fromX, fromY, toX, toY, hitTargets, skillDef: pending.skillDef
+            });
+        } else if (typeof window.playAssassinSkillVfx === 'function') {
+            window.playAssassinSkillVfx(player, pending.skillDef, g, { returnDash: true, fromX, fromY, hitTargets });
+        }
+        if (typeof window.clearComboPointDamageMult === 'function') {
+            window.clearComboPointDamageMult(player);
+        }
+        if (g && g.currentScene === window.SCENE_TYPES.SKILL_LAB && typeof g._syncSkillLabCamera === 'function') {
+            g._syncSkillLabCamera();
+        }
+        return true;
+    };
+
+
+    function healPlayerPercent(player, pct, g, label) {
+        if (!player || !pct) return;
+        const heal = Math.max(1, Math.floor(player.maxHp * pct / 100));
+        player.hp = Math.min(player.maxHp, player.hp + heal);
+        floatText(g, player.x, player.y - 26, (label || '回复') + ' +' + heal, '#44ff88');
+    }
+
+    function grantPlayerShieldPercent(player, pct, skillDef, now, g) {
+        if (!player || !pct) return;
+        const amount = Math.max(1, Math.floor(player.maxHp * pct / 100));
+        const buffId = 'skill_' + (skillDef && skillDef.id || 'shield') + '_ally_shield';
+        player.buffs = player.buffs || [];
+        player.buffs = player.buffs.filter(b => b.id !== buffId);
+        player.buffs.push({
+            name: (skillDef && skillDef.name || '圣光') + '·护盾',
+            id: buffId,
+            expireTime: now + 8000,
+            effects: {},
+            shieldRemaining: amount,
+            shieldMax: amount,
+            hudVisible: true
+        });
+        if (typeof player.updateStats === 'function') player.updateStats();
+        floatText(g, player.x, player.y - 28, `护盾 +${amount}`, '#88eeff');
+    }
+
+    function applyTeamMarkOnMonster(m, bonusPct, skillDef, until, now) {
+        if (!m || !bonusPct) return;
+        m._classSkillMark = {
+            expireTime: until || (now + 8000),
+            damageBonus: bonusPct,
+            critBonus: 0,
+            name: skillDef && skillDef.name
+        };
+    }
+
+    function applyAllyFieldBuffs(f, ec, gameInstance, now) {
+        const owner = f.owner;
+        if (!owner || !ec) return;
+        if (Math.hypot(owner.x - f.x, owner.y - f.y) > f.radius) return;
+        if (ec.healAllyPerTick) {
+            healPlayerPercent(owner, ec.healAllyPerTick, gameInstance, '圣光');
+        }
+        if (ec.allyDmgBonusPercent) {
+            const buffId = 'skill_' + f.skillDef.id + '_consecration_dmg';
+            owner.buffs = owner.buffs || [];
+            owner.buffs = owner.buffs.filter(b => b.id !== buffId);
+            owner.buffs.push({
+                name: f.skillDef.name + '·增伤',
+                id: buffId,
+                expireTime: now + (f.tickIntervalMs || 1000) + 300,
+                effects: { attackPercent: ec.allyDmgBonusPercent },
+                hudVisible: true
+            });
+            if (typeof owner.updateStats === 'function') owner.updateStats();
+        }
+    }
+
+    function spawnConsecrationField(st, player, skillDef, x, y, cfg, now) {
+        if (!st || !player || !cfg) return;
+        const tickMs = cfg.tickIntervalMs || 1000;
+        const mult = cfg.damageMultiplierPerTick != null ? cfg.damageMultiplierPerTick : 0.3;
+        st.fields.push({
+            x, y,
+            radius: cfg.radius || 50,
+            expireTime: now + (cfg.durationMs || 4000),
+            tickIntervalMs: tickMs,
+            lastTick: now,
+            triggerType: 'periodic',
+            damage: calcDmg(player, skillDef, cfg, mult),
+            entityConfig: cfg,
+            statusOnTick: cfg.statusOnTick,
+            owner: player,
+            skillDef,
+            color: cfg.color || '#66ddff',
+            _consecrationGround: true,
+            _ruinGround: !!cfg._ruinGround
+        });
+    }
+
+    function applyAttackSpeedOnHit(player, c, skillDef, hitCount, now) {
+        if (!player || !c.attackSpeedOnHitPercent || hitCount <= 0) return;
+        const per = c.attackSpeedOnHitPercent;
+        const maxStacks = c.attackSpeedOnHitMaxStacks || 5;
+        const dur = c.attackSpeedOnHitDurationMs || 4000;
+        const stacks = Math.min(maxStacks, hitCount);
+        const buffId = 'skill_' + skillDef.id + '_as_stack';
+        player.buffs = player.buffs || [];
+        player.buffs = player.buffs.filter(b => b.id !== buffId);
+        player.buffs.push({
+            name: skillDef.name + '·狂怒',
+            id: buffId,
+            expireTime: now + dur,
+            effects: { attackSpeedPercent: per * stacks },
+            hudVisible: true,
+            iconKey: 'attackSpeed'
+        });
+        if (typeof player.updateStats === 'function') player.updateStats();
+    }
+
+    function applyAllyProtectionOnLand(player, c, skillDef, g, now) {
+        const ap = c.allyProtectionOnLand;
+        if (!player || !ap) return;
+        const dur = ap.durationMs || 6000;
+        const dr = ap.drPercent || 20;
+        const buffId = 'skill_' + skillDef.id + '_protect';
+        player.buffs = player.buffs || [];
+        player.buffs = player.buffs.filter(b => b.id !== buffId);
+        player.buffs.push({
+            name: skillDef.name + '·守护',
+            id: buffId,
+            expireTime: now + dur,
+            effects: { damageReduction: dr },
+            hudVisible: true
+        });
+        player._damageRedirectField = {
+            expireTime: now + dur,
+            redirectPercent: ap.redirectPercent || 30,
+            selfDrPercent: dr,
+            radius: c.range || skillDef.aoeRadius || 90,
+            x: player.x,
+            y: player.y,
+            healAllyPerSecPercent: ap.healAllyPerSecPercent || 0,
+            lastHealTick: now
+        };
+        if (typeof player.updateStats === 'function') player.updateStats();
+        floatText(g, player.x, player.y - 32, `减伤${dr}% · 承伤${ap.redirectPercent || 30}%`, '#ddaa44');
+    }
+
+    function applyLeapSlamLandingExtras(player, c, skillDef, g, monsters, now, targets) {
+        if (!player || !c) return;
+        const st = ensureState(g);
+        if (c.spawnConsecrationOnLand) {
+            spawnConsecrationField(st, player, skillDef, player.x, player.y, c.spawnConsecrationOnLand, now);
+        }
+        if (c.attackSpeedOnHitPercent && targets && targets.length > 0) {
+            applyAttackSpeedOnHit(player, c, skillDef, targets.length, now);
+        }
+        if (c.allyProtectionOnLand) {
+            applyAllyProtectionOnLand(player, c, skillDef, g, now);
+        }
+    }
+
+    function detonateMarksOnTargets(targets, player, skillDef, g, multPerStack, now) {
+        if (!targets || !multPerStack || typeof window.detonateDestroyMarks !== 'function') return;
+        const seen = new Set();
+        targets.forEach(m => {
+            if (!m || seen.has(m)) return;
+            seen.add(m);
+            window.detonateDestroyMarks(m, player, skillDef, g, multPerStack, now);
+        });
+    }
+
+    function spawnFissureGround(st, player, skillDef, c, g, now) {
+        if (!st || !player || !c.spawnFissureGround) return;
+        const range = c.range || 300;
+        const steps = c.fissureGroundSteps || 8;
+        const cfg = c.spawnFissureGround;
+        for (let i = 1; i <= steps; i++) {
+            const t = i / steps;
+            const fx = player.x + Math.cos(player.angle) * range * t;
+            const fy = player.y + Math.sin(player.angle) * range * t;
+            spawnConsecrationField(st, player, skillDef, fx, fy, cfg, now);
+        }
+    }
+
+    function applyProjectileExplodeEffects(proj, x, y, monsters, g, now) {
+        if (!proj.explodeRadius) return;
+        const ec = entityCfg(proj.skillDef);
+        const cfg = (ec && ec.entityConfig) || {};
+        (monsters || []).forEach(m => {
+            if (!m || m.hp <= 0) return;
+            if (Math.hypot(m.x - x, m.y - y) <= proj.explodeRadius) {
+                applyDmg(proj.player, m, proj.damage, proj.skillDef, g, proj.statusOnHit);
+                applyProjectileCc(proj, m, now, monsters, g);
+                if (proj.teamDmgBonus && proj.tauntDurationMs) {
+                    applyTeamMarkOnMonster(m, proj.teamDmgBonus, proj.skillDef,
+                        now + proj.tauntDurationMs, now);
+                }
+            }
+        });
+        if (proj.allyShieldPercent && proj.player) {
+            grantPlayerShieldPercent(proj.player, proj.allyShieldPercent, proj.skillDef, now, g);
+        }
+        const consecCfg = proj.consecrationOnExplode || cfg.consecrationOnExplode;
+        if (consecCfg && proj.player) {
+            const st = ensureState(g);
+            spawnConsecrationField(st, proj.player, proj.skillDef, x, y, consecCfg, now);
+        }
+        if (g && typeof g.addEquipmentEffect === 'function') {
+            const fx = proj.visualVariant === 'light_spear' ? 'holy_blast' : 'fire_explosion';
+            g.addEquipmentEffect(fx, x, y, { radius: proj.explodeRadius, duration: 450 });
+        }
+        if (proj.visualVariant === 'light_spear' && typeof window.playClassSkillVfx === 'function' && proj.player) {
+            window.playClassSkillVfx(proj.player, proj.skillDef, g, {
+                hitTargets: [],
+                hit: true,
+                lightSpearImpact: true,
+                impactX: x,
+                impactY: y,
+                aoeRadius: proj.explodeRadius
+            });
         }
     }
 
@@ -202,11 +1381,10 @@
                 if (!m || m.hp <= 0) return;
                 if (Math.hypot(m.x - ch.player.x, m.y - ch.player.y) > endR) return;
                 applyDmg(ch.player, m, endDmg, ch.skillDef, g, c.statusOnHit);
-                applyCcEffects(m, now, {
-                    stunMs: c.endStunMs != null ? c.endStunMs : c.stunMs,
-                    knockback: c.endKnockback != null ? c.endKnockback : (c.knockback || 0),
-                    knockbackAngle: ch.angle
-                }, g);
+                const ccCfg = Object.assign({}, c, {
+                    stunMs: c.endStunMs != null ? c.endStunMs : c.stunMs
+                });
+                applyCcEffects(m, now, ccCfg, g, ch.player);
                 hitTargets.push(m);
             });
             return hitTargets;
@@ -231,12 +1409,9 @@
                 if (isDev && typeof window.applyBreakDamage === 'function') {
                     window.applyBreakDamage(m, Math.floor(dmg * 0.35), ch.player, ch.skillDef);
                 }
-                applyCcEffects(m, now, {
-                    stunMs: c.endStunMs != null ? c.endStunMs : (isDev ? 1200 : 700),
-                    knockback: c.endKnockback != null ? c.endKnockback : (c.knockback || 0),
-                    knockbackAngle: ch.angle,
-                    knockup: !!(c.endKnockup || (isDev && c.knockup))
-                }, g);
+                applyCcEffects(m, now, Object.assign({}, c, {
+                    stunMs: c.endStunMs != null ? c.endStunMs : (isDev ? 1200 : 700)
+                }), g, ch.player);
             });
             return hitTargets;
         }
@@ -248,6 +1423,14 @@
         ch.player.isDashing = false;
         ch.player._chargeSuperArmor = false;
         ch.active = false;
+
+        if (!ch.multiDash) {
+            offerShadowRaidReturn(ch, g, now);
+            scheduleShadowRaidAutoReturn(ch, g, monsters, now);
+            if (g && g.currentScene === window.SCENE_TYPES.SKILL_LAB && typeof g._syncSkillLabCamera === 'function') {
+                g._syncSkillLabCamera();
+            }
+        }
 
         const finish = c.endFinish || (c.endExplodeRadius > 0 ? 'radial' : null);
         const hitTargets = finish ? resolveChargeEndFinish(ch, ec, g, monsters, now) : [];
@@ -280,15 +1463,83 @@
                 sourceY: ch.player.y
             });
         }
+        if (c.detonateMarksOnEnd != null && typeof window.detonateDestroyMarks === 'function') {
+            const endR = c.endExplodeRadius || 100;
+            (monsters || []).forEach(m => {
+                if (!m || m.hp <= 0) return;
+                if (Math.hypot(m.x - ch.player.x, m.y - ch.player.y) <= endR + 60) {
+                    window.detonateDestroyMarks(m, ch.player, ch.skillDef, g, c.detonateMarksOnEnd, now);
+                }
+            });
+        }
+        if (c.spawnHolyFieldOnEnd && g) {
+            const st = ensureState(g);
+            spawnConsecrationField(st, ch.player, ch.skillDef, ch.player.x, ch.player.y,
+                c.spawnHolyFieldOnEnd, Date.now());
+        }
+        if (c.endAllyDrPercent && g && g._skillEntities) {
+            const endR = c.endExplodeRadius || 100;
+            const dur = c.endAllyDrDurationMs || 4000;
+            (g._skillEntities.summons || []).forEach(s => {
+                if (!s || s.owner !== ch.player || s.hp <= 0) return;
+                if (Math.hypot(s.x - ch.player.x, s.y - ch.player.y) > endR) return;
+                s._guardDrPercent = c.endAllyDrPercent;
+                s._guardShieldUntil = now + dur;
+            });
+        }
     }
 
     function execCharge(player, skillDef, ec, g, monsters, now, angle) {
         const c = ec.entityConfig;
         const st = ensureState(g);
+        const isMultiDash = c.type === 'shadow_dance'
+            || (c.dashCount > 1 && c.dashDamage && c.dashDamage.length > 1);
+        if (isMultiDash) {
+            const dashCount = c.dashCount || 3;
+            const dashDamage = c.dashDamage || [1.5, 1.875, 2.34];
+            const dashRange = c.dashRange || 130;
+            st.charges.push({
+                player, skillDef, ec,
+                angle,
+                startX: player.x,
+                startY: player.y,
+                speed: c.speed || 680,
+                baseSpeed: c.speed || 680,
+                radius: c.collisionRadius || 30,
+                superArmor: !!c.superArmor,
+                multiDash: true,
+                dashIndex: 0,
+                dashCount,
+                dashDamage,
+                dashRange,
+                dashIntervalMs: c.dashIntervalMs || 150,
+                dashWaitUntil: 0,
+                dashPhase: 'moving',
+                traveled: 0,
+                maxDist: dashRange,
+                damage: calcDmg(player, skillDef, c, dashDamage[0]),
+                hitIds: new Set(),
+                stopOnFirstHit: false,
+                active: true
+            });
+            player.isDashing = true;
+            player.isCastingSkill = false;
+            player._chargeSuperArmor = !!c.superArmor;
+            if (c.dashInvincibilityMs) {
+                player.invincibleUntil = now + c.dashInvincibilityMs;
+            }
+            floatText(g, player.x, player.y - 20, skillDef.name, '#ff8844');
+            if (typeof window.playAssassinSkillVfx === 'function') {
+                window.playAssassinSkillVfx(player, skillDef, g, { chargeStart: true, angle, dashIndex: 0, dashTotal: dashCount });
+            }
+            return;
+        }
         const baseSpeed = c.speed || 450;
         st.charges.push({
             player, skillDef, ec,
             angle,
+            startX: player.x,
+            startY: player.y,
             speed: baseSpeed,
             baseSpeed,
             maxDist: c.maxDistance || 150,
@@ -314,35 +1565,140 @@
         player.isCastingSkill = false;
         player._chargeSuperArmor = !!c.superArmor;
         floatText(g, player.x, player.y - 20, skillDef.name, '#ff8844');
+        if (typeof window.playClassSkillVfx === 'function') {
+            window.playClassSkillVfx(player, skillDef, g, { chargeStart: true, angle });
+        }
     }
 
 
-    function spawnProjectile(player, skillDef, ec, g, monsters, now) {
-        const c = ec.entityConfig;
+    function resolveProjectileGroundPoint(player, c, skillDef, g, castOptions, monsters) {
+        const maxR = c.maxRange || skillDef.range || 350;
+        let tx;
+        let ty;
+        if (castOptions && castOptions.groundPoint) {
+            tx = castOptions.groundPoint.x;
+            ty = castOptions.groundPoint.y;
+        } else if (castOptions && castOptions.lockTarget && castOptions.lockTarget.hp > 0) {
+            tx = castOptions.lockTarget.x;
+            ty = castOptions.lockTarget.y;
+        } else if (c.autoLockOnTap !== false
+            && (c.trajectory === 'lob_ground' || (c.explodeRadius && c.explodeRadius > 0))) {
+            const aoeR = c.explodeRadius || skillDef.aoeRadius || 100;
+            if (typeof window.pickBestAoeGroundPoint === 'function') {
+                const pick = window.pickBestAoeGroundPoint(player, monsters, maxR, aoeR);
+                tx = pick.x;
+                ty = pick.y;
+                if (pick.hitCount > 0) {
+                    player.angle = Math.atan2(ty - player.y, tx - player.x);
+                }
+            } else {
+                const enemy = nearestEnemy(player, monsters, maxR);
+                if (enemy) {
+                    tx = enemy.x;
+                    ty = enemy.y;
+                    player.angle = Math.atan2(ty - player.y, tx - player.x);
+                } else {
+                    tx = player.x + Math.cos(player.angle) * maxR * 0.65;
+                    ty = player.y + Math.sin(player.angle) * maxR * 0.65;
+                }
+            }
+        } else {
+            tx = player.x + Math.cos(player.angle) * maxR * 0.65;
+            ty = player.y + Math.sin(player.angle) * maxR * 0.65;
+        }
+        const dx = tx - player.x;
+        const dy = ty - player.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > maxR) {
+            tx = player.x + (dx / dist) * maxR;
+            ty = player.y + (dy / dist) * maxR;
+        }
+        return clampInRoom(g, tx, ty);
+    }
+
+    /** 弓箭手弹道默认锁定敌人中心，便于箭矢视觉与命中对齐 */
+    function shouldUseArcherCenterLock(player, skillDef, c) {
+        if (c && c.lockTargetCenter === false) return false;
+        if (c && c.lockTargetCenter) return true;
+        return shouldHideProjectileVisual(player, skillDef, c);
+    }
+
+    /** 弓箭手/法师职业技能由 VFX 层表现，不再绘制默认色块弹道 */
+    function shouldHideProjectileVisual(player, skillDef, c) {
+        if (c && c.hideVisual) return true;
+        if (!skillDef || !player || !player.classData) return false;
+        const isClassProjectile = skillDef.entityType === 'projectile'
+            && (skillDef.category === 'class' || skillDef.type === 'basic' || skillDef.slotType === 'basic');
+        if (!isClassProjectile) return false;
+        const base = typeof window.getPlayerBaseClassId === 'function'
+            ? window.getPlayerBaseClassId(player.classData) : null;
+        return base === 'archer' || base === 'mage';
+    }
+
+    window.shouldHideClassProjectileVisual = shouldHideProjectileVisual;
+
+    function spawnProjectile(player, skillDef, ec, g, monsters, now, castOptions) {
+        let c = ec.entityConfig;
+        if ((skillDef.id === 'wind_blade' || skillDef.id === 'phantom_echo_blade' || c.visualVariant === 'wind_blade')
+            && typeof window.applyWindBladeProjectileMods === 'function') {
+            c = window.applyWindBladeProjectileMods(player, c, now);
+        }
         const st = ensureState(g);
-        const target = nearestEnemy(player, monsters, skillDef.range || 500);
+        const isLobGround = c.trajectory === 'lob_ground';
+        let target = isLobGround ? null : resolveProjectileTarget(player, monsters, skillDef, c, castOptions);
         let angle = player.angle;
-        if (target) angle = Math.atan2(target.y - player.y, target.x - player.x);
+        const lockCenter = shouldUseArcherCenterLock(player, skillDef, c);
+        if (target) {
+            const aimAng = angleToAimPoint(player.x, player.y, target);
+            if (aimAng != null) angle = aimAng;
+            if (lockCenter) snapPlayerAngleToTarget(player, target);
+        }
+
+        let trajectory = c.trajectory || 'straight';
+        if (c.guaranteedHit && target) trajectory = 'homing';
+        else if (trajectory === 'straight_toward_target' && target) trajectory = 'straight';
 
         const count = c.projectileCount || 1;
         const spread = (c.spreadAngleDeg || 0) * Math.PI / 180;
-        if (c.windupMs > 0) {
-            setCastBar(player, skillDef, now, now + c.windupMs, '#ffaa44');
+        const windupMs = getSkillWindupMs(player, skillDef, c);
+        let backstepDelayMs = 0;
+        if (c.preCast === 'backstep' && typeof window.startPlayerBackstepShot === 'function') {
+            backstepDelayMs = window.startPlayerBackstepShot(player, g, {
+                distance: c.backstepDistance || 100,
+                durationMs: c.backstepDurationMs || 320,
+                peakHeight: c.backstepPeakHeight || 32,
+                invincibleMs: c.backstepInvincibleMs,
+                angle: player.angle
+            }, now);
+        }
+        if (windupMs > 0) {
+            setCastBar(player, skillDef, now, now + windupMs + backstepDelayMs, '#ffaa44');
         }
         for (let i = 0; i < count; i++) {
-            const offset = count > 1 ? spread * (i / (count - 1) - 0.5) : 0;
-            st.projectiles.push({
+            const offset = (count > 1 && spread > 0) ? spread * (i / (count - 1) - 0.5) : 0;
+            const projAngle = angle + offset;
+            const staggerMs = (c.projectileStaggerMs || 0) * i;
+            const spawnAt = now + windupMs + backstepDelayMs + staggerMs;
+            const precisionBonus = player._pendingPrecisionCritBonus || 0;
+            const shotDmg = calcDmg(player, skillDef, c, c.damageMultiplier);
+            const base = {
                 x: player.x, y: player.y,
-                angle: angle + offset,
+                angle: projAngle,
+                initialAngle: projAngle,
+                spreadOffset: offset,
                 speed: c.speed || 400,
                 maxRange: c.maxRange || 600,
                 traveled: 0,
                 radius: c.collisionRadius || 20,
                 pierceLeft: c.pierceCount != null ? c.pierceCount : 0,
-                damage: calcDmg(player, skillDef, c, c.damageMultiplier),
+                damage: shotDmg,
                 skillDef, player,
-                trajectory: c.trajectory || 'straight',
+                trajectory,
                 targetRef: target,
+                lockTargetCenter: lockCenter,
+                guaranteedHit: !!c.guaranteedHit,
+                coneTrackDeg: c.coneTrackDeg,
+                entityConfig: c,
                 hitEffect: c.hitEffect,
                 explodeRadius: c.explodeRadius || 0,
                 stunMs: c.stunMs,
@@ -354,50 +1710,194 @@
                 color: c.color || '#ff6600',
                 statusOnHit: c.statusOnHit,
                 projectileSpriteId: c.projectileSpriteId || null,
+                visualVariant: c.visualVariant || (skillDef.id === 'holy_taunt' ? 'light_spear' : null),
+                tauntDurationMs: c.tauntDurationMs,
+                debuffSlowPercent: c.debuffSlowPercent,
+                debuffDurationMs: c.debuffDurationMs,
+                consecrationOnExplode: c.consecrationOnExplode,
+                teamDmgBonus: c.teamDmgBonus,
+                allyShieldPercent: c.allyShieldPercent,
                 hitIds: new Set(),
-                spawnTime: now + (c.windupMs || 0),
-                active: !(c.windupMs > 0),
-                hideVisual: c.hideVisual === true
-            });
+                spawnTime: spawnAt,
+                active: spawnAt <= now,
+                hideVisual: shouldHideProjectileVisual(player, skillDef, c),
+                spawnFromOwner: c.preCast === 'backstep',
+                recalcAngleOnSpawn: c.preCast === 'backstep',
+                spawnTrapOnLand: c.spawnTrapOnLand || null,
+                precisionCritDmgBonus: precisionBonus
+            };
+            if (precisionBonus > 0) {
+                base.entityConfig = Object.assign({}, c, { critDmgBonus: (c.critDmgBonus || 0) + precisionBonus });
+            }
+            if (isLobGround) {
+                const land = resolveProjectileGroundPoint(player, c, skillDef, g, castOptions, monsters);
+                base.trajectory = 'lob_ground';
+                base.lobStartX = player.x;
+                base.lobStartY = player.y;
+                base.lobTargetX = land.x;
+                base.lobTargetY = land.y;
+                base.lobArcHeight = c.lobArcHeight || 120;
+                base.lobDurationMs = c.lobFlightMs || 650;
+                base.lobElapsed = 0;
+                base.pierceLeft = 0;
+                base.angle = Math.atan2(land.y - player.y, land.x - player.x);
+            }
+            st.projectiles.push(base);
         }
-        if (c.preCast === 'backstep' && typeof window.applyClassSkillHybridEffect === 'function') {
-            const fake = { skillEffect: { type: 'backstep', distance: c.backstepDistance || 100 } };
-            window.applyClassSkillHybridEffect(player, fake, g, now, { monsters, hitTargets: [], baseDamage: 0 });
+        if (player._pendingPrecisionCritBonus) {
+            player._pendingPrecisionCritBonus = 0;
+        }
+        if (typeof window.recordPhantomEchoAction === 'function') {
+            window.recordPhantomEchoAction(player, {
+                skillDef: skillDef,
+                entityConfig: c,
+                angle: angle,
+                targetRef: target,
+                trajectory: trajectory,
+                speed: c.speed || 400,
+                maxRange: c.maxRange || 600,
+                pierceCount: c.pierceCount != null ? c.pierceCount : 0,
+                collisionRadius: c.collisionRadius || 20,
+                echoReplayDelayMs: c.echoReplayDelayMs,
+                echoDamagePercent: c.echoDamagePercent
+            }, g, now);
         }
         floatText(g, player.x, player.y - 20, skillDef.name, '#ffaa44');
+        if (c._windSynergyActive) {
+            floatText(g, player.x, player.y - 36, '疾风强化!', '#66eedd');
+        }
         return true;
     }
 
     function spawnSummon(player, skillDef, ec, g, monsters, now) {
         const c = ec.entityConfig;
         const st = ensureState(g);
+
+        if (c.undeadLegion && typeof window.spendAllSoulShardsForLegion === 'function') {
+            const shardCount = window.spendAllSoulShardsForLegion(player);
+            if (shardCount <= 0) {
+                floatText(g, player.x, player.y, '无灵魂碎片', '#ff6666');
+                return false;
+            }
+            const weights = c.legionWeights || {
+                skeleton_warrior: 40, skeleton_mage: 30, specter: 20, bone_dragon: 10
+            };
+            const units = Object.keys(weights);
+            const inh = c.inheritStats || {};
+            let spawned = 0;
+            for (let i = 0; i < shardCount && spawned < (c.maxCount || 6); i++) {
+                const roll = Math.random() * 100;
+                let acc = 0;
+                let unitId = units[0];
+                for (const u of units) {
+                    acc += weights[u] || 0;
+                    if (roll <= acc) { unitId = u; break; }
+                }
+                const ang = Math.random() * Math.PI * 2;
+                const off = (c.spawnOffset || 50) + i * 14;
+                const pos = clampInRoom(g, player.x + Math.cos(ang) * off, player.y + Math.sin(ang) * off);
+                st.summons.push({
+                    x: pos.x, y: pos.y,
+                    hp: Math.max(1, Math.floor(player.maxHp * (inh.hp || 0.35))),
+                    maxHp: Math.max(1, Math.floor(player.maxHp * (inh.hp || 0.35))),
+                    attack: Math.max(1, Math.floor(baseAtk(player) * (inh.attack || 0.42))),
+                    defense: Math.floor((player.baseDefense || 5) * (inh.defense || 0.12)),
+                    owner: player, unitId: unitId,
+                    aiType: unitId.includes('mage') ? 'ranged_chase' : 'melee_chase',
+                    attackIntervalMs: 1000,
+                    lastAttack: 0,
+                    expireTime: now + (c.durationMs || 30000),
+                    size: c.size || 22,
+                    color: c.color || '#aaaacc',
+                    skillDef, vx: 0, vy: 0,
+                    isUndead: true
+                });
+                spawned++;
+            }
+            floatText(g, player.x, player.y - 24, '亡灵军团×' + spawned, '#8844aa');
+            return true;
+        }
+
+        if (c.beastPackCommand && typeof window.tryBeastPackCommand === 'function') {
+            return window.tryBeastPackCommand(player, skillDef, ec, g, monsters, now);
+        }
+
+        if (c.pounceCommand && !c.skipPounceCommand
+            && typeof window.maintainPetCap === 'function') {
+            const unitId = c.summonUnitId || 'wolf_pet';
+            const maxCount = c.maxCount || 2;
+            const capOpts = typeof window.buildPetCapOpts === 'function'
+                ? window.buildPetCapOpts(c, { unitId: unitId })
+                : { unitId: unitId, maxCount: maxCount, durationMs: c.durationMs };
+            const result = window.maintainPetCap(player, g, capOpts, now, skillDef);
+            if (result.atCap && typeof window.tryWolfPounceCommand === 'function') {
+                if (result.refreshed > 0 && typeof g.addFloatingText === 'function') {
+                    g.addFloatingText(player.x, player.y - 28, '兽群刷新!', '#aaddff', 800, 13);
+                }
+                return window.tryWolfPounceCommand(player, skillDef, ec, g, monsters, now);
+            }
+            if (result.spawned > 0 || result.refreshed > 0) {
+                floatText(g, player.x, player.y - 20, skillDef.name, '#aaddff');
+                return true;
+            }
+            return true;
+        }
+
+        if (c.summonUnitId && c.capAndRefresh !== false
+            && typeof window.maintainPetCap === 'function') {
+            const capOpts = typeof window.buildPetCapOpts === 'function'
+                ? window.buildPetCapOpts(c, { unitId: c.summonUnitId })
+                : { unitId: c.summonUnitId, maxCount: c.maxCount || 1 };
+            const result = window.maintainPetCap(player, g, capOpts, now, skillDef);
+            if (result.spawned > 0 || result.refreshed > 0) {
+                floatText(g, player.x, player.y - 20,
+                    result.refreshed > 0 ? '宠物刷新!' : skillDef.name, '#aaddff');
+            }
+            return true;
+        }
+
         const existing = st.summons.filter(s => s.owner === player && s.unitId === c.summonUnitId);
-        if (existing.length >= (c.maxCount || 1)) {
+        const maxCount = c.maxCount || 1;
+        if (existing.length >= maxCount) {
             existing.sort((a, b) => a.expireTime - b.expireTime);
             existing[0].expireTime = 0;
         }
-        const ang = Math.random() * Math.PI * 2;
-        const off = c.spawnOffset || 50;
-        const pos = clampInRoom(g, player.x + Math.cos(ang) * off, player.y + Math.sin(ang) * off);
+
+        const aliveCount = st.summons.filter(s => s.owner === player && s.unitId === c.summonUnitId && s.hp > 0).length;
+        const spawnPerCast = c.spawnPerCast != null
+            ? c.spawnPerCast
+            : Math.max(1, maxCount - aliveCount);
         const inh = c.inheritStats || {};
-        st.summons.push({
-            x: pos.x, y: pos.y,
-            hp: Math.max(1, Math.floor(player.maxHp * (inh.hp || 0.4))),
-            maxHp: Math.max(1, Math.floor(player.maxHp * (inh.hp || 0.4))),
-            attack: Math.max(1, Math.floor(baseAtk(player) * (inh.attack || 0.3))),
-            defense: Math.floor((player.baseDefense || 5) * (inh.defense || 0.2)),
-            owner: player, unitId: c.summonUnitId,
-            aiType: c.aiType || 'melee_chase',
-            attackIntervalMs: c.attackIntervalMs || 1000,
-            lastAttack: 0,
-            expireTime: now + (c.durationMs || 20000),
-            size: c.size || 20,
-            color: c.color || '#888888',
-            statusOnHit: c.statusOnHit,
-            skillDef, vx: 0, vy: 0,
-            tauntRadius: c.tauntRadius || 0
-        });
-        if (c.ownerDamageBonusPercent) {
+        const permanent = !!(c.permanent || c.durationMs === 0);
+        const expireAt = permanent ? Number.MAX_SAFE_INTEGER : now + (c.durationMs || 20000);
+
+        for (let n = 0; n < spawnPerCast; n++) {
+            if (st.summons.filter(s => s.owner === player && s.unitId === c.summonUnitId && s.hp > 0).length >= maxCount) break;
+            const ang = Math.random() * Math.PI * 2;
+            const off = (c.spawnOffset || 50) + n * 12;
+            const pos = clampInRoom(g, player.x + Math.cos(ang) * off, player.y + Math.sin(ang) * off);
+            st.summons.push({
+                x: pos.x, y: pos.y,
+                hp: Math.max(1, Math.floor(player.maxHp * (inh.hp || 0.4))),
+                maxHp: Math.max(1, Math.floor(player.maxHp * (inh.hp || 0.4))),
+                attack: Math.max(1, Math.floor(baseAtk(player) * (inh.attack || 0.3))),
+                defense: Math.floor((player.baseDefense || 5) * (inh.defense || 0.2)),
+                owner: player, unitId: c.summonUnitId,
+                aiType: c.aiType || 'melee_chase',
+                attackIntervalMs: c.attackIntervalMs || 1000,
+                lastAttack: 0,
+                expireTime: expireAt,
+                size: c.size || 20,
+                color: c.color || '#888888',
+                statusOnHit: c.statusOnHit,
+                skillDef, vx: 0, vy: 0,
+                tauntRadius: c.tauntRadius || 0,
+                isGhost: !!c.isGhost,
+                bleedDmgPerSecMult: c.bleedDmgPerSecMult
+            });
+        }
+
+        if (c.ownerDamageBonusPercent && !permanent) {
             player.buffs = player.buffs || [];
             player.buffs.push({
                 id: 'summon_bonus_' + skillDef.id,
@@ -406,7 +1906,7 @@
                 effects: { attackPercent: c.ownerDamageBonusPercent }
             });
         }
-        floatText(g, pos.x, pos.y, '召唤!', '#aaddff');
+        floatText(g, player.x, player.y - 20, skillDef.name, '#aaddff');
         return true;
     }
 
@@ -418,6 +1918,14 @@
             if (castOptions && castOptions.groundPoint) {
                 fx = castOptions.groundPoint.x;
                 fy = castOptions.groundPoint.y;
+            } else if (c.autoLockOnTap !== false && typeof window.pickBestAoeGroundPoint === 'function') {
+                const pick = window.pickBestAoeGroundPoint(
+                    player, monsters,
+                    skillDef.range || 220,
+                    c.fieldRadius || skillDef.aoeRadius || 80
+                );
+                fx = pick.x;
+                fy = pick.y;
             } else {
                 const t = nearestEnemy(player, monsters, skillDef.range || 220);
                 if (t) { fx = t.x; fy = t.y; }
@@ -425,6 +1933,9 @@
         } else if (c.spawnAtCaster) {
             fx = player.x; fy = player.y;
         }
+        const clampedField = clampInRoom(g, fx, fy);
+        fx = clampedField.x;
+        fy = clampedField.y;
 
         if (c.triggerType === 'instant_burst') {
             (monsters || []).forEach(m => {
@@ -443,6 +1954,17 @@
             }
             floatText(g, fx, fy, skillDef.name, '#55dd44');
             return true;
+        }
+
+        if ((c.triggerType === 'proximity_mine' || c.triggerType === 'hunter_net') && c.maxCount) {
+            const mineFields = st.fields.filter(
+                f => f.owner === player && f.triggerType === c.triggerType
+                    && f.skillDef && f.skillDef.id === skillDef.id
+            );
+            if (mineFields.length >= c.maxCount) {
+                mineFields.sort((a, b) => a.expireTime - b.expireTime);
+                mineFields[0].expireTime = 0;
+            }
         }
 
         const ot = c.onTrigger || {};
@@ -476,9 +1998,60 @@
             summonOnImpact: c.summonOnImpact,
             randomStatusOnTick: c.randomStatusOnTick,
             leaveBurnGroundMs: c.leaveBurnGroundMs,
-            struck: false
+            struck: false,
+            spawnTime: now,
+            _arrowsSpawned: 0
         };
         st.fields.push(field);
+        if (c.spawnPhantomCount && typeof window.spawnVoidStormPhantoms === 'function') {
+            window.spawnVoidStormPhantoms(player, g, skillDef, c, now);
+        }
+        if (skillDef.id === 'void_storm' && player) {
+            player._voidStormActiveUntil = now + (c.fieldDurationMs || 8000);
+        }
+        if (skillDef.id === 'phantom_storm' && player) {
+            player._phantomStormActiveUntil = now + (c.fieldDurationMs || 6000);
+        }
+        if (c.invincibleDuringField && player) {
+            player.buffs = player.buffs || [];
+            const stormBuffId = 'phantom_storm_' + skillDef.id;
+            player.buffs = player.buffs.filter(b => b.id !== stormBuffId);
+            player.buffs.push({
+                id: stormBuffId,
+                name: skillDef.name,
+                expireTime: now + (c.fieldDurationMs || 6000),
+                effects: { moveSpeed: 40 },
+                _windSpeedBoost: true,
+                hudVisible: true
+            });
+            if (typeof player.updateStats === 'function') player.updateStats();
+        }
+        if (c.spawnMirrorClones && player && g && typeof window.spawnSkillSummon === 'function') {
+            field._mirrorDomain = true;
+            var cloneCount = c.spawnMirrorClones;
+            var cloneRadius = c.fieldRadius || 120;
+            for (var ci = 0; ci < cloneCount; ci++) {
+                var angMirror = (Math.PI * 2 * ci) / cloneCount + Math.random() * 0.3;
+                var distMirror = cloneRadius * 0.5;
+                var cx = fx + Math.cos(angMirror) * distMirror;
+                var cy = fy + Math.sin(angMirror) * distMirror;
+                var cloneSummon = window.spawnSkillSummon(player, skillDef, g, {
+                    x: cx, y: cy,
+                    unitId: 'mirror_clone',
+                    durationMs: c.fieldDurationMs || 10000,
+                    size: 20,
+                    color: '#4466cc'
+                });
+                if (cloneSummon) {
+                    cloneSummon._mirrorDomainClone = true;
+                    cloneSummon._mirrorDomainField = field;
+                    var cloneHp = Math.max(1, Math.floor((player.maxHp || 100) * 0.2));
+                    cloneSummon.hp = cloneHp;
+                    cloneSummon.maxHp = cloneHp;
+                    cloneSummon._damageReduction = c.cloneDamageReduction || 40;
+                }
+            }
+        }
         floatText(g, fx, fy, skillDef.name, '#88ddff');
         return true;
     }
@@ -493,35 +2066,88 @@
         return Math.abs(diff) > Math.PI * 0.5;
     }
 
-    function resolveInstant(player, skillDef, ec, g, monsters, now) {
+    function resolveInstant(player, skillDef, ec, g, monsters, now, castOptions) {
         const c = ec.entityConfig;
-        if ((c.windupMs || 0) > 0) {
-            setCastBar(player, skillDef, now, now + c.windupMs, '#ffcc66');
+        const windupMs = getSkillWindupMs(player, skillDef, c);
+        if (windupMs > 0) {
+            setCastBar(player, skillDef, now, now + windupMs, '#ffcc66');
             const st = ensureState(g);
             st.pendingInstants = st.pendingInstants || [];
             st.pendingInstants.push({
-                activateTime: now + c.windupMs,
-                player, skillDef, ec, monsters
+                activateTime: now + windupMs,
+                player, skillDef, ec, monsters, castOptions
             });
             floatText(g, player.x, player.y - 20, skillDef.name, '#ffcc66');
             return true;
         }
-        return execInstant(player, skillDef, ec, g, monsters, now);
+        return execInstant(player, skillDef, ec, g, monsters, now, castOptions);
     }
 
-    function execInstant(player, skillDef, ec, g, monsters, now) {
+    function execInstant(player, skillDef, ec, g, monsters, now, castOptions, impactOpts) {
         const c = ec.entityConfig;
-        const dmg = calcDmg(player, skillDef, c, c.damageMultiplier);
+        const opts = impactOpts || {};
+        if (c.breathHold || c.deadeyeSnipe) return true;
+        // 巫师/大魔导师：元素爆发走专用 handler（烈焰风暴引导 / 极寒新星 / 雷霆之怒 / 元素熔合）
+        if (skillDef.id === 'elemental_burst' || c.archmageFusionBurst) {
+            if (typeof window.castArchmageElementalBurst === 'function') {
+                var archResult = window.castArchmageElementalBurst(player, skillDef, g, monsters, now, castOptions || {});
+                if (archResult !== false) return archResult;
+            }
+            if (typeof window.castWizardElementalBurst === 'function') {
+                return window.castWizardElementalBurst(player, skillDef, g, monsters, now, castOptions || {});
+            }
+            return false;
+        }
+        // 极寒新星延迟爆发：由 castWizardFrostBurst 推入延迟队列，激活时走专用 handler
+        if (c.wizardFrostBurst) {
+            if (typeof window.resolveWizardFrostBurst === 'function') {
+                window.resolveWizardFrostBurst(player, skillDef, c, g, monsters, now);
+                return true;
+            }
+        }
+        if (c.leapSlam && !opts.skipLeap) {
+            if (player._leapSlam) return false;
+            const landing = resolveLeapLanding(player, c, g, monsters, castOptions);
+            startLeapSlam(player, landing.x, landing.y, skillDef, ec, g, monsters, now);
+            return true;
+        }
         const range = c.range || skillDef.range || 80;
+        const dashBehind = !!(c._comboDashBehind || skillDef._comboDashBehind);
+        applyCastAimAngle(player, castOptions, monsters, skillDef, c);
+        if ((skillDef.type === 'basic' || skillDef.slotType === 'basic')
+            && castOptions && castOptions.lockTarget && castOptions.lockTarget.hp > 0
+            && !dashBehind) {
+            const t = castOptions.lockTarget;
+            const dx = t.x - player.x;
+            const dy = t.y - player.y;
+            const dist = Math.hypot(dx, dy);
+            const hitRange = c.range || skillDef.range || 80;
+            const monR = ((t.size || t.radius || 32) / 2);
+            if (dist > hitRange + monR * 0.35 && dist < hitRange * 1.85) {
+                const step = Math.min(dist - (hitRange + monR * 0.2), c._comboDash || 20);
+                if (step > 2) {
+                    const nx = player.x + (dx / dist) * step;
+                    const ny = player.y + (dy / dist) * step;
+                    const clamped = clampInRoom(g, nx, ny);
+                    player.x = clamped.x;
+                    player.y = clamped.y;
+                }
+            }
+        }
+        const dmg = calcDmg(player, skillDef, c, c.damageMultiplier);
         const targets = [];
 
-        if (c.shape === 'cone') {
+        if (c.shape === 'pierce' || c.shape === 'fissure' || dashBehind) {
+            const pierceWidth = c.pierceWidth || (c.shape === 'fissure' ? 40 : 28);
+            targets.push(...collectPierceTargets(player, monsters, range, pierceWidth));
+        } else if (c.shape === 'cone') {
             const half = (c.halfAngleDeg || 45) * Math.PI / 180;
             (monsters || []).forEach(m => {
                 if (!m || m.hp <= 0) return;
+                const monR = ((m.size || m.radius || 32) / 2);
                 const dx = m.x - player.x, dy = m.y - player.y;
                 const dist = Math.hypot(dx, dy);
-                if (dist > range) return;
+                if (dist > range + monR) return;
                 let diff = Math.atan2(dy, dx) - player.angle;
                 while (diff > Math.PI) diff -= Math.PI * 2;
                 while (diff < -Math.PI) diff += Math.PI * 2;
@@ -530,7 +2156,8 @@
         } else if (c.shape === 'radial') {
             (monsters || []).forEach(m => {
                 if (!m || m.hp <= 0) return;
-                if (Math.hypot(m.x - player.x, m.y - player.y) <= range) targets.push(m);
+                const monR = ((m.size || m.radius || 32) / 2);
+                if (Math.hypot(m.x - player.x, m.y - player.y) <= range + monR) targets.push(m);
             });
         } else if (c.shape === 'chain') {
             let cur = nearestEnemy(player, monsters, c.range || 200);
@@ -584,39 +2211,132 @@
         let chainMult = 1;
         targets.forEach((m, i) => {
             if (c.shape === 'chain' && c.chainDecay) chainMult = 1 - i * c.chainDecay;
-            const d = Math.max(1, Math.floor(dmg * chainMult));
+            let d = Math.max(1, Math.floor(dmg * chainMult));
+            if (c.executeMultiplier != null && c.executeThresholdPercent != null) {
+                const ratio = m.hp / (m.maxHp || 1);
+                if (ratio <= c.executeThresholdPercent / 100) {
+                    d = Math.max(1, Math.floor(d * c.executeMultiplier));
+                }
+            }
+            const hpBefore = m.hp;
             applyDmg(player, m, d, skillDef, g, c.statusOnHit);
-            const kbAngle = c.shape === 'cone'
-                ? player.angle
-                : Math.atan2(m.y - player.y, m.x - player.x);
-            applyCcEffects(m, now, {
-                stunMs: c.stunMs || c.confuseMs,
-                knockback: c.knockback,
-                knockbackAngle: kbAngle
-            });
+            applyCcEffects(m, now, c, g, player);
+            if (c.destroyMarkStacks && typeof window.applySkillDestroyMarks === 'function') {
+                window.applySkillDestroyMarks(player, m, skillDef, c.destroyMarkStacks, g, { now });
+            }
+            if (c.lifeStealPercent) healPlayerPercent(player, c.lifeStealPercent, g, '吸血');
+            if (m.hp <= 0 && hpBefore > 0) {
+                onInstantSkillKill(player, skillDef, c, g, monsters, now, m);
+            }
         });
+        if (c.detonateMarksOnHit != null) {
+            detonateMarksOnTargets(targets, player, skillDef, g, c.detonateMarksOnHit, now);
+        }
+        if (opts.leapLand) {
+            applyLeapSlamLandingExtras(player, c, skillDef, g, monsters, now, targets);
+        }
+        if (c.shape === 'fissure' && c.spawnFissureGround) {
+            const st = ensureState(g);
+            spawnFissureGround(st, player, skillDef, c, g, now);
+        }
+        if (c.resourcePerHit && targets.length > 0 && player) {
+            const gain = c.resourcePerHit * targets.length;
+            if (typeof window.grantSkillResource === 'function') {
+                window.grantSkillResource(player, gain);
+            }
+        }
+        applyInstantAllyBuffs(player, c, skillDef, g, now);
+        if (c.beastRampageUlt && typeof window.applyBeastRampageUlt === 'function') {
+            window.applyBeastRampageUlt(player, Object.assign({
+                durationMs: c.ultDurationMs || 10000
+            }, c.petBloodlust || {}), g, now);
+        } else if (c.petBloodlust && typeof window.applyPetBloodlust === 'function') {
+            window.applyPetBloodlust(player, c.petBloodlust, g, now);
+        }
+        if (c.spawnGhostWolves && typeof window.spawnGhostWolvesForUlt === 'function') {
+            window.spawnGhostWolvesForUlt(player, skillDef, c.spawnGhostWolves, g, monsters, now);
+        }
         floatText(g, player.x, player.y - 20, skillDef.name, '#ffcc66');
+
+        if (c.grantShieldStacks > 0 && typeof window.grantHolyShieldStacks === 'function') {
+            const stacks = window.grantHolyShieldStacks(player, c.grantShieldStacks, {
+                stackMax: c.stackMax || 3,
+                absorbPercentPerStack: c.shieldPercentPerStack || 5
+            });
+            floatText(g, player.x, player.y - 36, `圣盾 ${stacks}/${c.stackMax || 3}`, '#66ddff');
+            if (g && typeof g.addEquipmentEffect === 'function') {
+                g.addEquipmentEffect('divine_shield', player.x, player.y, { radius: 52, duration: 680 });
+            }
+        }
+
+        const originX = player.x;
+        const originY = player.y;
+        let pierceCtx = null;
+        if (dashBehind && targets.length > 0) {
+            pierceCtx = computePierceBehind(player, targets[0]);
+        }
+
         if (typeof window.playClassSkillVfx === 'function') {
             window.playClassSkillVfx(player, skillDef, g, {
                 primaryTarget: targets[0] || null,
                 hitTargets: targets,
-                hit: targets.length > 0,
-                instantShape: c.shape
+                hit: targets.length > 0 || opts.leapLand,
+                instantShape: c.shape,
+                comboStep: skillDef._comboStep,
+                comboChain: skillDef._comboChain,
+                leapLand: opts.leapLand,
+                pierceTargetX: pierceCtx && pierceCtx.pierceTargetX,
+                pierceTargetY: pierceCtx && pierceCtx.pierceTargetY,
+                dashEndX: pierceCtx && pierceCtx.dashEndX,
+                dashEndY: pierceCtx && pierceCtx.dashEndY,
+                pierceAngle: pierceCtx && pierceCtx.pierceAngle
             });
         }
-        if (targets.length > 0 && g && typeof g.triggerHitImpact === 'function' && (c.shape === 'cone' || c.shape === 'radial')) {
+        if (pierceCtx) {
+            startPierceDash(player, g, originX, originY, pierceCtx.dashEndX, pierceCtx.dashEndY, pierceCtx.pierceAngle, now, 220);
+            if (typeof window.updatePlayerPierceDash === 'function') {
+                window.updatePlayerPierceDash(player, now);
+            }
+        } else if (c._comboDash && c._comboDash > 0) {
+            const nx = player.x + Math.cos(player.angle) * c._comboDash;
+            const ny = player.y + Math.sin(player.angle) * c._comboDash;
+            const clamped = clampInRoom(g, nx, ny);
+            player.x = clamped.x;
+            player.y = clamped.y;
+        }
+        if (targets.length > 0 && g && typeof g.triggerHitImpact === 'function'
+            && (c.shape === 'cone' || c.shape === 'radial' || c.shape === 'pierce' || dashBehind)) {
             const hitR = c.range || skillDef.range || 80;
-            const fx = c.shape === 'radial'
-                ? player.x
-                : player.x + Math.cos(player.angle) * hitR * 0.45;
-            const fy = c.shape === 'radial'
-                ? player.y
-                : player.y + Math.sin(player.angle) * hitR * 0.45;
+            let fx;
+            let fy;
+            let sourceX = player.x;
+            let sourceY = player.y;
+            if (pierceCtx) {
+                fx = pierceCtx.pierceTargetX;
+                fy = pierceCtx.pierceTargetY;
+                sourceX = originX;
+                sourceY = originY;
+            } else if (c.shape === 'radial') {
+                fx = player.x;
+                fy = player.y;
+            } else {
+                fx = player.x + Math.cos(player.angle) * hitR * 0.45;
+                fy = player.y + Math.sin(player.angle) * hitR * 0.45;
+            }
             g.triggerHitImpact(fx, fy, {
-                skipSound: false, isCrit: false, sourceX: player.x, sourceY: player.y
+                skipSound: false, isCrit: false, sourceX, sourceY
             });
+        } else if ((skillDef.type === 'basic' || skillDef.slotType === 'basic')
+            && g && typeof g.triggerHitImpact === 'function') {
+            const hitR = c.range || skillDef.range || 80;
+            g.triggerHitImpact(
+                player.x + Math.cos(player.angle) * hitR * 0.35,
+                player.y + Math.sin(player.angle) * hitR * 0.35,
+                { skipSound: false, isCrit: false, sourceX: player.x, sourceY: player.y }
+            );
         }
-        return targets.length > 0 || c.shape === 'cone' || c.shape === 'radial';
+        return targets.length > 0 || c.shape === 'cone' || c.shape === 'radial' || c.shape === 'pierce'
+            || skillDef.type === 'basic' || skillDef.slotType === 'basic';
     }
 
     function resolveBlink(player, skillDef, ec, g, monsters, now, castOptions) {
@@ -634,6 +2354,7 @@
         }
         let tx = player.x, ty = player.y;
         const target = (castOptions && castOptions.lockTarget)
+            || (c.autoLockOnTap !== false ? window.pickNearestSkillTarget(player, monsters, c.range || 100) : null)
             || nearestEnemy(player, monsters, c.range || 100);
         if (c.behindTarget && target) {
             const ang = Math.atan2(target.y - player.y, target.x - player.x);
@@ -642,10 +2363,34 @@
             player.angle = ang;
         } else {
             const dist = c.distance || 100;
-            const ang = (castOptions && castOptions.angle != null) ? castOptions.angle : player.angle;
+            let ang = (castOptions && castOptions.angle != null) ? castOptions.angle : player.angle;
+            if (castOptions == null || castOptions.angle == null) {
+                if (typeof window.pickBestLineAngle === 'function') {
+                    ang = window.pickBestLineAngle(player, monsters, dist, 28);
+                }
+            }
             player.angle = ang;
             tx = player.x + Math.cos(ang) * dist;
             ty = player.y + Math.sin(ang) * dist;
+        }
+        const originX = player.x;
+        const originY = player.y;
+        const blinkAngle = player.angle;
+        player._lastBlinkOriginX = originX;
+        player._lastBlinkOriginY = originY;
+        if (skillDef.id === 'wind_step' && c.onCastWindBlades
+            && typeof window.spawnWindrunnerWindBlades === 'function') {
+            window.spawnWindrunnerWindBlades(player, g, monsters, {
+                count: c.onCastWindBlades,
+                damageMultiplier: c.windBladeDamageMultiplier || 0.5,
+                spreadAngleDeg: c.windBladeSpreadDeg || 22,
+                maxRange: c.windBladeRange || 380,
+                speed: c.windBladeSpeed || 750,
+                angle: blinkAngle,
+                originX,
+                originY,
+                homingToMark: c.homingToMarkedTarget !== false
+            }, skillDef, now);
         }
         const p = clampInRoom(g, tx, ty);
         player.x = p.x; player.y = p.y;
@@ -660,8 +2405,29 @@
                 id: 'wind_step_' + skillDef.id,
                 name: skillDef.name,
                 expireTime: now + (c.grantMoveSpeedMs || 4000),
-                effects: { moveSpeed: c.grantMoveSpeed }
+                effects: { moveSpeed: c.grantMoveSpeed },
+                _windSpeedBoost: true,
+                hudVisible: true
             });
+            if (typeof player.updateStats === 'function') player.updateStats();
+        }
+        if (skillDef.id === 'wind_step' && typeof window.onWindStepCastComplete === 'function') {
+            window.onWindStepCastComplete(player, skillDef, ec, g, monsters, now);
+        }
+        if (c.leaveEchoOnCast || c.leaveCloneOnCast) {
+            const echoOpts = {
+                durationMs: c.echoDurationMs || c.cloneDurationMs || 8000,
+                damagePercent: c.echoDamagePercent || c.cloneDamagePercent || 70,
+                echoReplayDelayMs: c.echoReplayDelayMs || 350,
+                skillDef: skillDef,
+                faceAngle: blinkAngle,
+                maxCount: c.echoMaxCount || 4
+            };
+            if (typeof window.spawnPhantomEcho === 'function') {
+                window.spawnPhantomEcho(player, g, originX, originY, echoOpts);
+            } else if (typeof window.spawnPhantomClone === 'function') {
+                window.spawnPhantomClone(player, g, originX, originY, echoOpts);
+            }
         }
         if (c.spawnSummonsOnCast) {
             const sc = c.spawnSummonsOnCast;
@@ -674,6 +2440,10 @@
                 spawnSummon(player, skillDef, fakeEc, g, monsters, now);
             }
         }
+        if (c.phaseShift && typeof window.onWizardPhaseShiftComplete === 'function') {
+            player._phaseShiftPrevPhase = player._elementPhase;
+            window.onWizardPhaseShiftComplete(player, skillDef, g, monsters, now, originX, originY);
+        }
         floatText(g, player.x, player.y - 20, skillDef.name, '#cc88ff');
         return true;
     }
@@ -683,19 +2453,26 @@
         let angle = player.angle;
         if (castOptions && castOptions.angle != null) {
             angle = castOptions.angle;
+        } else if (typeof window.pickBestLineAngle === 'function') {
+            angle = window.pickBestLineAngle(
+                player, monsters,
+                c.maxDistance || 150,
+                (c.collisionRadius || 35) * 2
+            );
         } else {
             const target = nearestEnemy(player, monsters, skillDef.range || 200);
             if (target) angle = Math.atan2(target.y - player.y, target.x - player.x);
         }
         player.angle = angle;
-        if (c.windupMs > 0) {
-            setCastBar(player, skillDef, now, now + c.windupMs, '#ff8844');
+        const windupMs = getSkillWindupMs(player, skillDef, c);
+        if (windupMs > 0) {
+            setCastBar(player, skillDef, now, now + windupMs, '#ff8844');
             player.isCastingSkill = true;
             if (c.superArmor || c.superArmorWindup) player._chargeSuperArmor = true;
             const st = ensureState(g);
             st.pendingCharges = st.pendingCharges || [];
             st.pendingCharges.push({
-                activateTime: now + c.windupMs,
+                activateTime: now + windupMs,
                 player, skillDef, ec, monsters, angle
             });
             floatText(g, player.x, player.y - 24, '蓄力…', '#ffaa44');
@@ -705,20 +2482,71 @@
         return true;
     }
 
+    window.spawnSkillSummon = function spawnSkillSummon(player, skillDef, g, opts) {
+        if (!player || !g) return null;
+        var st = ensureState(g);
+        var now = Date.now();
+        var unitId = (opts && opts.unitId) || 'shadow_clone';
+        var durationMs = (opts && opts.durationMs) || 8000;
+        var pos = { x: (opts && opts.x) || player.x, y: (opts && opts.y) || player.y };
+        var isClone = unitId === 'shadow_clone' || unitId === 'decoy' || unitId === 'mirror_clone' || (opts && opts.isClone);
+        // 根据类型决定默认 AI：分身追击，替身站桩嘲讽
+        var defaultAi = unitId === 'decoy' ? 'taunt_static' : 'melee_chase';
+        var summon = {
+            x: pos.x, y: pos.y,
+            hp: 1, maxHp: 1,
+            attack: 0,
+            defense: 0,
+            owner: player,
+            unitId: unitId,
+            aiType: defaultAi,
+            attackIntervalMs: 1200,
+            lastAttack: 0,
+            expireTime: now + durationMs,
+            size: (opts && opts.size) || 22,
+            color: (opts && opts.color) || '#6688cc',
+            skillDef: skillDef,
+            vx: 0, vy: 0,
+            isClone: isClone,
+            spawnTime: now
+        };
+        st.summons.push(summon);
+        return summon;
+    };
+
     window.castSkillEntity = function castSkillEntity(player, skillDef, gameInstance, monsters, now, castOptions) {
         const ec = entityCfg(skillDef);
         const type = (ec && ec.entityType) || window.inferSkillEntityType(skillDef);
         if (!type) return null;
         const cfg = ec || { entityType: type, entityConfig: {} };
         switch (type) {
-            case 'projectile': return spawnProjectile(player, skillDef, cfg, gameInstance, monsters, now);
+            case 'projectile': return spawnProjectile(player, skillDef, cfg, gameInstance, monsters, now, castOptions);
             case 'summon': return spawnSummon(player, skillDef, cfg, gameInstance, monsters, now);
             case 'field': return spawnField(player, skillDef, cfg, gameInstance, monsters, now, castOptions);
-            case 'instant': return resolveInstant(player, skillDef, cfg, gameInstance, monsters, now);
+            case 'instant': return resolveInstant(player, skillDef, cfg, gameInstance, monsters, now, castOptions);
             case 'blink': return resolveBlink(player, skillDef, cfg, gameInstance, monsters, now, castOptions);
             case 'charge': return startCharge(player, skillDef, cfg, gameInstance, monsters, now, castOptions);
             default: return null;
         }
+    };
+
+    window.castSkillEntityFromPosition = function castSkillEntityFromPosition(player, skillDef, g, x, y, dmgFactor, monsters, now, castOptions) {
+        if (!player || !skillDef || !g) return null;
+        var origX = player.x;
+        var origY = player.y;
+        player.x = x;
+        player.y = y;
+        var origDmgFactor = player._cloneDmgFactor;
+        player._cloneDmgFactor = dmgFactor || 0.6;
+        var result = null;
+        try {
+            result = window.castSkillEntity(player, skillDef, g, monsters, now, castOptions);
+        } finally {
+            player.x = origX;
+            player.y = origY;
+            player._cloneDmgFactor = origDmgFactor;
+        }
+        return result;
     };
 
     window.hasSkillEntityBehavior = function hasSkillEntityBehavior(skillDef) {
@@ -758,21 +2586,127 @@
         if (st.pendingInstants && st.pendingInstants.length) {
             st.pendingInstants = st.pendingInstants.filter(pi => {
                 if (now < pi.activateTime) return true;
-                execInstant(pi.player, pi.skillDef, pi.ec, gameInstance, pi.monsters, now);
+                execInstant(pi.player, pi.skillDef, pi.ec, gameInstance, pi.monsters, now, pi.castOptions);
                 return false;
             });
+        }
+
+        const pLeap = gameInstance.player;
+        if (pLeap && pLeap._leapSlam && typeof window.updatePlayerLeapSlam === 'function') {
+            window.updatePlayerLeapSlam(pLeap, now);
+        }
+        if (pLeap && pLeap._backstepShot && typeof window.updatePlayerBackstepShot === 'function') {
+            window.updatePlayerBackstepShot(pLeap, now);
+        }
+        if (pLeap && pLeap._pierceDash && typeof window.updatePlayerPierceDash === 'function') {
+            window.updatePlayerPierceDash(pLeap, now);
+        }
+
+        if (pLeap && typeof window.tickDeadeyeStates === 'function') {
+            window.tickDeadeyeStates(pLeap, monsters, gameInstance, now);
+        }
+        if (pLeap && typeof window.tickWizardElementStates === 'function') {
+            window.tickWizardElementStates(pLeap, gameInstance, now);
+        }
+        if (pLeap && typeof window.tickSageChronosStates === 'function') {
+            window.tickSageChronosStates(pLeap, gameInstance, monsters, now);
+        }
+        if (pLeap && typeof window.tickWarlockSoulStates === 'function') {
+            window.tickWarlockSoulStates(pLeap, gameInstance, monsters, now);
+        }
+        if (typeof window.tickAssassinMultiStrikes === 'function') {
+            window.tickAssassinMultiStrikes(gameInstance, monsters, now);
+        }
+        if (st.pendingShadowReturns && st.pendingShadowReturns.length) {
+            tickPendingShadowReturns(st, gameInstance, monsters, now);
         }
 
         // Projectiles
         st.projectiles = st.projectiles.filter(p => {
             if (now < p.spawnTime) return true;
-            if (!p.active) p.active = true;
+            if (!p.active) {
+                p.active = true;
+                if (p.spawnFromOwner && p.player) {
+                    p.x = p.player.x;
+                    p.y = p.player.y;
+                    if (p.recalcAngleOnSpawn && p.targetRef && p.targetRef.hp > 0) {
+                        const baseAng = angleToAimPoint(p.x, p.y, p.targetRef);
+                        if (baseAng != null) {
+                            p.angle = baseAng + (p.spreadOffset || 0);
+                            p.initialAngle = p.angle;
+                        }
+                    }
+                }
+            }
+            if (p.trajectory === 'lob_ground') {
+                p.lobElapsed = (p.lobElapsed || 0) + dt * 1000;
+                const dur = p.lobDurationMs || 650;
+                const t = Math.min(1, p.lobElapsed / dur);
+                const arcH = p.lobArcHeight || 120;
+                const sx = p.lobStartX;
+                const sy = p.lobStartY;
+                const ex = p.lobTargetX;
+                const ey = p.lobTargetY;
+                const tNext = Math.min(1, t + 0.03);
+                p.x = sx + (ex - sx) * t;
+                p.y = sy + (ey - sy) * t - arcH * Math.sin(Math.PI * t);
+                const nx = sx + (ex - sx) * tNext;
+                const ny = sy + (ey - sy) * tNext - arcH * Math.sin(Math.PI * tNext);
+                p.angle = Math.atan2(ny - p.y, nx - p.x);
+                if (t >= 1) {
+                    p.x = ex;
+                    p.y = ey;
+                    if (p.spawnTrapOnLand && typeof window.spawnTrapFieldAt === 'function') {
+                        window.spawnTrapFieldAt(p.player, p.skillDef, p.spawnTrapOnLand, ex, ey, gameInstance, now);
+                    } else if (p.explodeRadius) {
+                        applyProjectileExplodeEffects(p, ex, ey, monsters, gameInstance, now);
+                    }
+                    return false;
+                }
+                return true;
+            }
             let vx, vy;
-            if (p.trajectory === 'homing' && p.targetRef && p.targetRef.hp > 0) {
-                const ang = Math.atan2(p.targetRef.y - p.y, p.targetRef.x - p.x);
+            const homingTarget = (p.guaranteedHit || p.trajectory === 'homing') && p.targetRef
+                && p.targetRef.hp > 0 && !p.hitIds.has(p.targetRef) ? p.targetRef : null;
+            if (homingTarget) {
+                const ap = getAimPoint(homingTarget);
+                const ang = ap ? Math.atan2(ap.y - p.y, ap.x - p.x)
+                    : Math.atan2(homingTarget.y - p.y, homingTarget.x - p.x);
                 vx = Math.cos(ang) * p.speed * dt;
                 vy = Math.sin(ang) * p.speed * dt;
                 p.angle = ang;
+                p.traveled = (p.traveled || 0) + p.speed * dt;
+                if (p.traveled >= p.maxRange) {
+                    if (p.explodeRadius) applyProjectileExplodeEffects(p, p.x, p.y, monsters, gameInstance, now);
+                    return false;
+                }
+            } else if (p.trajectory === 'cone_track' || p.coneTrackDeg) {
+                const trackDeg = (p.coneTrackDeg || 20) * Math.PI / 180;
+                let targetAng = null;
+                if (p.lockTargetCenter && p.targetRef && p.targetRef.hp > 0) {
+                    targetAng = angleToAimPoint(p.x, p.y, p.targetRef);
+                } else {
+                    const remain = Math.max(80, (p.maxRange || 600) - (p.traveled || 0));
+                    const trackTarget = nearestEnemyInCone(
+                        p.x, p.y, p.initialAngle != null ? p.initialAngle : p.angle,
+                        monsters, remain, trackDeg, p.hitIds, p.player
+                    );
+                    if (trackTarget) targetAng = angleToAimPoint(p.x, p.y, trackTarget);
+                }
+                if (targetAng != null) {
+                    let diff = targetAng - p.angle;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+                    while (diff < -Math.PI) diff += Math.PI * 2;
+                    const maxTurn = trackDeg * Math.max(1, dt * 60) * 0.08;
+                    p.angle += Math.max(-maxTurn, Math.min(maxTurn, diff));
+                }
+                vx = Math.cos(p.angle) * p.speed * dt;
+                vy = Math.sin(p.angle) * p.speed * dt;
+                p.traveled += p.speed * dt;
+                if (!p.guaranteedHit && p.traveled >= p.maxRange) {
+                    if (p.explodeRadius) applyProjectileExplodeEffects(p, p.x, p.y, monsters, gameInstance, now);
+                    return false;
+                }
             } else if (p.boomerang) {
                 if (p.boomerangPhase === 'out') {
                     vx = Math.cos(p.angle) * p.speed * dt;
@@ -791,20 +2725,38 @@
                 vx = Math.cos(p.angle) * p.speed * dt;
                 vy = Math.sin(p.angle) * p.speed * dt;
                 p.traveled += p.speed * dt;
-                if (p.traveled >= p.maxRange) {
-                    if (p.explodeRadius) explodeAt(p.player, p, p.x, p.y, monsters, gameInstance);
+                if (!p.guaranteedHit && p.traveled >= p.maxRange) {
+                    if (p.explodeRadius) applyProjectileExplodeEffects(p, p.x, p.y, monsters, gameInstance, now);
                     return false;
                 }
             }
             const np = clampInRoom(gameInstance, p.x + vx, p.y + vy);
             p.x = np.x; p.y = np.y;
 
+            if (p.visualVariant === 'death_reaper_bolt') {
+                p._reaperTrail = p._reaperTrail || [];
+                p._reaperTrail.push({ x: p.x, y: p.y });
+                if (p._reaperTrail.length > 18) p._reaperTrail.shift();
+            }
+            if (p.visualVariant === 'phantom_bolt') {
+                p._phantomTrail = p._phantomTrail || [];
+                p._phantomTrail.push({ x: p.x, y: p.y });
+                if (p._phantomTrail.length > 12) p._phantomTrail.shift();
+            }
+
             let hit = false;
             (monsters || []).forEach(m => {
                 if (!m || m.hp <= 0 || p.hitIds.has(m)) return;
                 if (Math.hypot(m.x - p.x, m.y - p.y) <= p.radius + (m.size || 20) * 0.5) {
-                    applyDmg(p.player, m, p.damage, p.skillDef, gameInstance, p.statusOnHit);
-                    if (p.stunMs) m.frozenUntil = Math.max(m.frozenUntil || 0, now + p.stunMs);
+                    const hitFx = applyProjectileHitEffects(p.player, m, p, gameInstance, now);
+                    if (p.visualVariant === 'death_reaper_bolt'
+                        && typeof window.playDeathReaperImpactVfx === 'function') {
+                        window.playDeathReaperImpactVfx(
+                            p.player, gameInstance, p.x, p.y, hitFx && hitFx.isCrit
+                        );
+                    }
+                    if (p.stunMs) applyCcEffects(m, now, { stunMs: p.stunMs });
+                    applyProjectileCc(p, m, now, monsters, gameInstance);
                     if (p.healOnHitPercent && p.player) {
                         const heal = Math.max(1, Math.floor(p.player.maxHp * p.healOnHitPercent / 100));
                         p.player.hp = Math.min(p.player.maxHp, p.player.hp + heal);
@@ -814,9 +2766,65 @@
                         p.player.hp = Math.min(p.player.maxHp, p.player.hp + heal);
                     }
                     p.hitIds.add(m);
-                    if (p.explodeRadius) explodeAt(p.player, p, p.x, p.y, monsters, gameInstance);
-                    if (p.pierceLeft <= 0) { hit = true; }
-                    else p.pierceLeft--;
+                    // 毒师普攻弹射：命中后弹射到最近中毒目标
+                    var ecRic = p.entityConfig || {};
+                    if ((ecRic.ricochetBounces || 0) > 0 && p.player && p.player.hp > 0) {
+                        if (p._ricochetBouncesLeft == null) p._ricochetBouncesLeft = ecRic.ricochetBounces;
+                        if (!p._ricochetChainHitIds) p._ricochetChainHitIds = new Set();
+                        p._ricochetChainHitIds.add(m);
+                        var rBounces = p._ricochetBouncesLeft;
+                        var rDecay = ecRic.ricochetDecay || 0.2;
+                        var rRange = ecRic.ricochetRange || 150;
+                        var lastTarget = m;
+                        for (var rb = 0; rb < rBounces; rb++) {
+                            var nearestPoisoned = null;
+                            var nearDist = Infinity;
+                            (monsters || []).forEach(function(mR) {
+                                if (!mR || mR.hp <= 0 || p._ricochetChainHitIds.has(mR)) return;
+                                if (mR.combatStatuses && mR.combatStatuses.poison) {
+                                    var dR = Math.hypot(mR.x - lastTarget.x, mR.y - lastTarget.y);
+                                    if (dR <= rRange && dR < nearDist) {
+                                        nearDist = dR;
+                                        nearestPoisoned = mR;
+                                    }
+                                }
+                            });
+                            if (!nearestPoisoned) break;
+                            p._ricochetChainHitIds.add(nearestPoisoned);
+                            var bounceDmg = Math.max(1, Math.floor(p.damage * Math.pow(1 - rDecay, rb + 1)));
+                            if (typeof window.applyDmg === 'function') {
+                                window.applyDmg(p.player, nearestPoisoned, bounceDmg, p.skillDef, gameInstance, p.statusOnHit);
+                            } else {
+                                nearestPoisoned.takeDamage(bounceDmg);
+                            }
+                            if (gameInstance && typeof gameInstance.addFloatingText === 'function') {
+                                gameInstance.addFloatingText(
+                                    nearestPoisoned.x, nearestPoisoned.y - 14, String(bounceDmg),
+                                    '#66ff44', 500, 11, true
+                                );
+                            }
+                            if (p.statusOnHit && typeof window.applyStatusFromConfig === 'function') {
+                                window.applyStatusFromConfig(p.player, nearestPoisoned, p.skillDef, gameInstance, p.statusOnHit);
+                            }
+                            lastTarget = nearestPoisoned;
+                        }
+                    }
+                    if (p.explodeRadius) applyProjectileExplodeEffects(p, p.x, p.y, monsters, gameInstance, now);
+                    const ecHit = p.entityConfig || {};
+                    const critContinue = ecHit.continueOnCritKill && hitFx && hitFx.isCrit && hitFx.killed;
+                    if (p.pierceLeft <= 0 && !critContinue) {
+                        hit = true;
+                    } else if (!critContinue) {
+                        p.pierceLeft--;
+                        if (p.guaranteedHit || p.trajectory === 'homing') {
+                            p.targetRef = null;
+                            p.guaranteedHit = false;
+                            p.trajectory = 'cone_track';
+                            if (p.coneTrackDeg == null && ecHit.coneTrackDeg != null) {
+                                p.coneTrackDeg = ecHit.coneTrackDeg;
+                            }
+                        }
+                    }
                 }
             });
             return !hit;
@@ -824,35 +2832,137 @@
 
         // Summons
         st.summons = st.summons.filter(s => {
-            if (now >= s.expireTime || s.hp <= 0) return false;
+            if (!s) return false;
+            if (s.hp <= 0) {
+                if (s._explosionOnDeath && s.owner && s.skillDef) {
+                    const decoyEc = s.skillDef.entityConfig || {};
+                    const exRadius = s._explosionRadius || 80;
+                    const exDmg = calcDmg(s.owner, s.skillDef, decoyEc, s._explosionDamageMult || 1.5);
+                    (monsters || []).forEach(m => {
+                        if (!m || m.hp <= 0) return;
+                        if (Math.hypot(m.x - s.x, m.y - s.y) <= exRadius) {
+                            applyDmg(s.owner, m, exDmg, s.skillDef, gameInstance);
+                        }
+                    });
+                    if (typeof window.playAssassinDecoyExplosionVfx === 'function') {
+                        window.playAssassinDecoyExplosionVfx(s.owner, s.x, s.y, exRadius, gameInstance);
+                    }
+                    if (gameInstance && typeof gameInstance.addFloatingText === 'function') {
+                        gameInstance.addFloatingText(s.x, s.y - 24, '替身爆破!', '#99bbff', 700, 12);
+                    }
+                }
+                if (s.isUndead && typeof window.onUndeadDeath === 'function') {
+                    window.onUndeadDeath(s, gameInstance);
+                }
+                if (s.isClone && s.owner && typeof window.onTricksterCloneDeath === 'function') {
+                    window.onTricksterCloneDeath(s.owner, gameInstance, false);
+                }
+                // 幻影戏法/影之盛宴：分身死亡→保护目标获得无敌
+                if ((s._phantomTrickClone || s._shadowFeastClone) && s._protectTarget && s._protectTarget.hp > 0) {
+                    s._protectTarget.invincibleUntil = Math.max(s._protectTarget.invincibleUntil || 0, Date.now() + 3000);
+                    if (gameInstance && typeof gameInstance.addFloatingText === 'function') {
+                        gameInstance.addFloatingText(s._protectTarget.x, s._protectTarget.y - 30, '分身庇护! 3s无敌', '#6688cc', 800, 12);
+                    }
+                }
+                return false;
+            }
+            if (s.expireTime == null || !isFinite(s.expireTime)) return false;
+            if (now >= s.expireTime) {
+                if (s.isClone && s.owner && typeof window.onTricksterCloneDeath === 'function') {
+                    window.onTricksterCloneDeath(s.owner, gameInstance, true);
+                }
+                // 幻影戏法/影之盛宴：分身过期→保护目标获得无敌
+                if ((s._phantomTrickClone || s._shadowFeastClone) && s._protectTarget && s._protectTarget.hp > 0) {
+                    s._protectTarget.invincibleUntil = Math.max(s._protectTarget.invincibleUntil || 0, Date.now() + 3000);
+                }
+                return false;
+            }
+            if (s.isPhantomClone && typeof window.updatePhantomCloneSummon === 'function') {
+                return window.updatePhantomCloneSummon(s, monsters, gameInstance, now);
+            }
+            if (typeof window.updatePetPounce === 'function'
+                && window.updatePetPounce(s, monsters, gameInstance, now)) {
+                return true;
+            }
+            if (typeof window.isPetAttackBusy === 'function'
+                && window.isPetAttackBusy(s, now)) {
+                if (typeof window.tickPetMeleeAttack === 'function') {
+                    window.tickPetMeleeAttack(s, gameInstance, now);
+                }
+                return true;
+            }
             if (s.aiType === 'taunt_static') return true;
             if (!s.attack) return true;
-            let target = null, td = Infinity;
-            (monsters || []).forEach(m => {
-                if (!m || m.hp <= 0) return;
-                const d = Math.hypot(m.x - s.x, m.y - s.y);
-                if (d < td) { td = d; target = m; }
-            });
+            let target = null;
+            if (s.focusTarget && s.focusTarget.hp > 0
+                && (!s.focusUntil || now < s.focusUntil)) {
+                target = s.focusTarget;
+            }
+            if (!target && typeof window.findMarkedTargetForOwner === 'function') {
+                target = window.findMarkedTargetForOwner(s.owner, monsters);
+            }
+            let td = Infinity;
+            if (!target) {
+                (monsters || []).forEach(m => {
+                    if (!m || m.hp <= 0) return;
+                    const d = Math.hypot(m.x - s.x, m.y - s.y);
+                    if (d < td) { td = d; target = m; }
+                });
+            }
             if (!target) return true;
             const dx = target.x - s.x, dy = target.y - s.y;
             const dist = Math.hypot(dx, dy) || 1;
-            if (dist > 35) {
+            s.faceAngle = Math.atan2(dy, dx);
+            if (dist > (typeof window.PET_MELEE_RANGE === 'number' ? window.PET_MELEE_RANGE : 38)) {
                 const sp = 2.5;
                 s.x += (dx / dist) * sp;
                 s.y += (dy / dist) * sp;
-            } else if (now - s.lastAttack >= s.attackIntervalMs) {
-                s.lastAttack = now;
-                target.takeDamage(s.attack);
-                if (s.statusOnHit && typeof window.applySkillStatusEffects === 'function') {
-                    window.applySkillStatusEffects({ statusEffects: s.statusOnHit }, target, s.owner, gameInstance);
+            } else {
+                const atkInterval = typeof window.getPetBloodlustAttackInterval === 'function'
+                    ? window.getPetBloodlustAttackInterval(s, s.attackIntervalMs)
+                    : s.attackIntervalMs;
+                if (typeof window.tryStartPetMeleeAttack === 'function'
+                    && window.tryStartPetMeleeAttack(s, target, atkInterval, now)) {
+                    // windup started; damage lands in tickPetMeleeAttack
                 }
             }
             return true;
         });
 
+        if (gameInstance && gameInstance.player
+            && typeof window.updateBearGuardPassive === 'function') {
+            window.updateBearGuardPassive(gameInstance.player, gameInstance, now);
+        }
+
         // Fields
         st.fields = st.fields.filter(f => {
             if (now >= f.expireTime) {
+                const ecEnd = f.entityConfig || {};
+                if (f.skillDef && f.skillDef.id === 'phantom_storm' && f.owner) {
+                    delete f.owner._phantomStormActiveUntil;
+                }
+                if (f.skillDef && f.skillDef.id === 'void_storm' && f.owner) {
+                    delete f.owner._voidStormActiveUntil;
+                }
+                if (f.skillDef && f.skillDef.id === 'beast_rampage' && f.owner) {
+                    delete f.owner._beastRampageUntil;
+                }
+                if (ecEnd.endExplosionDamage && f.owner) {
+                    const exDmg = calcDmg(f.owner, f.skillDef, ecEnd, ecEnd.endExplosionDamage);
+                    (monsters || []).forEach(m => {
+                        if (!m || m.hp <= 0) return;
+                        if (Math.hypot(m.x - f.x, m.y - f.y) <= f.radius) {
+                            applyDmg(f.owner, m, exDmg, f.skillDef, gameInstance);
+                        }
+                    });
+                    floatText(gameInstance, f.x, f.y, '风暴冲击!', '#88eeff');
+                    if (gameInstance && typeof gameInstance.triggerHitImpact === 'function') {
+                        gameInstance.triggerHitImpact(f.x, f.y, {
+                            isRanged: true, isCrit: true,
+                            sourceX: f.owner.x, sourceY: f.owner.y
+                        });
+                    }
+                }
                 if (f.leaveBurnGroundMs && f.owner && !f._burnSpawned) {
                     st.fields.push({
                         x: f.x, y: f.y,
@@ -869,9 +2979,111 @@
                         _burnGround: true
                     });
                 }
+                if (f._mirrorDomain && f.owner) {
+                    var explodeRadius = (ecEnd.explosionRadius || 80);
+                    var explodeMult = ecEnd.explosionDamageMultiplier || 1.5;
+                    var boomDmg = calcDmg(f.owner, f.skillDef, ecEnd, explodeMult);
+                    var mirrorSt = ensureState(gameInstance);
+                    mirrorSt.summons = (mirrorSt.summons || []).filter(function (s) {
+                        if (s._mirrorDomainClone && s._mirrorDomainField === f && s.hp > 0) {
+                            (monsters || []).forEach(function (m) {
+                                if (!m || m.hp <= 0) return;
+                                if (Math.hypot(m.x - s.x, m.y - s.y) <= explodeRadius) {
+                                    applyDmg(f.owner, m, boomDmg, f.skillDef, gameInstance);
+                                }
+                            });
+                            return false;
+                        }
+                        return true;
+                    });
+                    floatText(gameInstance, f.x, f.y, '结界崩塌!', '#3344aa', 18);
+                }
                 return false;
             }
             if (f.followCaster && f.owner) { f.x = f.owner.x; f.y = f.owner.y; }
+
+            const ecField = f.entityConfig || {};
+            if (ecField.echoTrailIntervalMs && f.owner
+                && typeof window.updateVoidStormEchoTrail === 'function') {
+                window.updateVoidStormEchoTrail(f, gameInstance, monsters, now);
+            }
+            if (ecField.invincibleDuringField && f.owner) {
+                f.owner.invincibleUntil = Math.max(f.owner.invincibleUntil || 0, now + 200);
+            }
+            if (ecField.pullEnemiesIn && ecField.pullStrength) {
+                (monsters || []).forEach(m => {
+                    if (!m || m.hp <= 0) return;
+                    const d = Math.hypot(m.x - f.x, m.y - f.y);
+                    if (d > f.radius || d < 8) return;
+                    const pull = ecField.pullStrength * dt;
+                    m.x -= ((m.x - f.x) / d) * pull;
+                    m.y -= ((m.y - f.y) / d) * pull;
+                });
+            }
+            if (ecField.windBladeIntervalMs && f.owner) {
+                if (f._lastWindBlade == null) f._lastWindBlade = now;
+                if (now - f._lastWindBlade >= ecField.windBladeIntervalMs) {
+                    f._lastWindBlade = now;
+                    f._windBladeIndex = (f._windBladeIndex || 0) + 1;
+                    const totalBlades = Math.max(1, Math.ceil(
+                        (ecField.fieldDurationMs || 6000) / ecField.windBladeIntervalMs
+                    ));
+                    const evenAng = ((f._windBladeIndex - 1) % totalBlades) * (Math.PI * 2 / totalBlades);
+                    spawnWindBlades(f.owner, gameInstance, monsters, {
+                        count: 1,
+                        damageMultiplier: ecField.windBladeDamageMultiplier || 0.6,
+                        maxRange: f.radius * 1.2,
+                        speed: 780,
+                        angle: evenAng,
+                        originX: f.x,
+                        originY: f.y,
+                        homingToMark: ecField.homingToMarkedTarget !== false
+                    }, f.skillDef, now);
+                }
+            }
+
+            if (f.triggerType === 'arrow_rain') {
+                const ec = f.entityConfig || {};
+                const spawnTime = f.spawnTime || (f.expireTime - (ec.fieldDurationMs || 2000));
+                const elapsed = now - spawnTime;
+                const rainDur = ec.arrowRainDurationMs || 1200;
+                const total = ec.totalArrows || 24;
+                const pc = ec.projectileConfig || {};
+                const shouldSpawn = Math.min(total, Math.floor(total * Math.min(1, elapsed / Math.max(1, rainDur))));
+                while ((f._arrowsSpawned || 0) < shouldSpawn) {
+                    f._arrowsSpawned = (f._arrowsSpawned || 0) + 1;
+                    const ang = Math.random() * Math.PI * 2;
+                    const dist = Math.sqrt(Math.random()) * f.radius;
+                    const lx = f.x + Math.cos(ang) * dist;
+                    const ly = f.y + Math.sin(ang) * dist;
+                    const hitR = pc.collisionRadius || 14;
+                    const dmg = calcDmg(f.owner, f.skillDef, pc, pc.damageMultiplier);
+                    (monsters || []).forEach(m => {
+                        if (!m || m.hp <= 0) return;
+                        if (Math.hypot(m.x - lx, m.y - ly) <= hitR + (m.size || 20) * 0.5) {
+                            applyDmg(f.owner, m, dmg, f.skillDef, gameInstance);
+                        }
+                    });
+                    if (gameInstance && typeof gameInstance.triggerHitImpact === 'function') {
+                        gameInstance.triggerHitImpact(lx, ly, {
+                            skipSound: true, isRanged: true,
+                            sourceX: f.x, sourceY: f.y - 80
+                        });
+                    }
+                }
+                if (ec.enemySlowPercent) {
+                    (monsters || []).forEach(m => {
+                        if (!m || m.hp <= 0) return;
+                        if (Math.hypot(m.x - f.x, m.y - f.y) <= f.radius) {
+                            applyCcEffects(m, now, {
+                                enemySlowPercent: ec.enemySlowPercent,
+                                enemySlowMs: ec.enemySlowMs || 400
+                            }, gameInstance);
+                        }
+                    });
+                }
+                return true;
+            }
 
             if (f.triggerType === 'delayed_strike') {
                 if (!f.struck && now >= f.strikeTime) {
@@ -880,7 +3092,7 @@
                         if (!m || m.hp <= 0) return;
                         if (Math.hypot(m.x - f.x, m.y - f.y) <= f.radius) {
                             applyDmg(f.owner, m, f.damage, f.skillDef, gameInstance, f.statusOnHit);
-                            if (f.stunMs) m.frozenUntil = Math.max(m.frozenUntil || 0, now + f.stunMs);
+                            applyCcEffects(m, now, { stunMs: f.stunMs }, gameInstance, f.owner);
                         }
                     });
                     if (f.summonOnImpact && f.owner) {
@@ -907,6 +3119,13 @@
                 return true;
             }
 
+            if (f.triggerType === 'hunter_net') {
+                if (typeof window.tickHunterNetField === 'function') {
+                    window.tickHunterNetField(f, monsters, gameInstance, now);
+                }
+                return now < f.expireTime;
+            }
+
             if (f.triggerType === 'proximity_mine') {
                 if (!f.armed && now >= f.armTime) f.armed = true;
                 if (!f.armed) return true;
@@ -921,12 +3140,26 @@
                                 if (!m2 || m2.hp <= 0) return;
                                 if (Math.hypot(m2.x - f.x, m2.y - f.y) <= ot.explodeRadius) {
                                     applyDmg(f.owner, m2, f.damage, f.skillDef, gameInstance);
-                                    if (ot.freezeMs) m2.frozenUntil = Math.max(m2.frozenUntil || 0, now + ot.freezeMs);
                                     applyStatusFromConfig(f.owner, m2, f.skillDef, gameInstance, ot.statusOnHit);
+                                    applyCcEffects(m2, now, ot, gameInstance, f.owner);
                                 }
                             });
                         }
                         floatText(gameInstance, f.x, f.y, '触发!', '#88ddff');
+                        if (gameInstance && typeof gameInstance.triggerHitImpact === 'function') {
+                            gameInstance.triggerHitImpact(f.x, f.y, {
+                                isRanged: true,
+                                sourceX: f.owner ? f.owner.x : f.x,
+                                sourceY: f.owner ? f.owner.y : f.y
+                            });
+                        }
+                        if (gameInstance && typeof gameInstance.addEquipmentEffect === 'function') {
+                            gameInstance.addEquipmentEffect('freeze_ring', f.x, f.y, {
+                                radius: ot.explodeRadius || f.radius,
+                                duration: 520,
+                                delayMs: 0
+                            });
+                        }
                     }
                 });
                 return !triggered;
@@ -952,10 +3185,38 @@
                         });
                     }
                 } else {
+                    const ec = f.entityConfig || {};
+                    // 毒雾增伤：场内每个中毒敌人+damageAmp%
+                    let poisonAmpMult = 1;
+                    if (ec.damageAmpPerPoisonedEnemy && ec.damageAmpMax) {
+                        let poisonedCount = 0;
+                        (monsters || []).forEach(m => {
+                            if (m && m.hp > 0 && Math.hypot(m.x - f.x, m.y - f.y) <= f.radius
+                                && m.combatStatuses && m.combatStatuses.poison) poisonedCount++;
+                        });
+                        poisonAmpMult = 1 + Math.min(ec.damageAmpMax / 100,
+                            poisonedCount * (ec.damageAmpPerPoisonedEnemy / 100));
+                    }
                     (monsters || []).forEach(m => {
                         if (!m || m.hp <= 0) return;
                         if (Math.hypot(m.x - f.x, m.y - f.y) <= f.radius) {
-                            if (f.damage > 0) applyDmg(f.owner, m, f.damage, f.skillDef, gameInstance, f.statusOnTick);
+                            let tickDmg = f.damage;
+                            if (ec.damageEnemyPerTick != null && f.owner) {
+                                tickDmg = Math.max(1, Math.floor(baseAtk(f.owner) * ec.damageEnemyPerTick));
+                            }
+                            // 毒雾场内增伤
+                            if (poisonAmpMult !== 1) tickDmg = Math.floor(tickDmg * poisonAmpMult);
+                            // 疫病云雾：场内中毒伤害翻倍
+                            if (ec.poisonDamageMult && m.combatStatuses && m.combatStatuses.poison) {
+                                m.combatStatuses.poison.amplifyMult = ec.poisonDamageMult;
+                            }
+                            if (tickDmg > 0) applyDmg(f.owner, m, tickDmg, f.skillDef, gameInstance, f.statusOnTick);
+                            if (ec.enemySlowPercent) {
+                                applyCcEffects(m, now, {
+                                    enemySlowPercent: ec.enemySlowPercent,
+                                    enemySlowMs: ec.enemySlowMs || f.tickIntervalMs * 2 || 2000
+                                }, gameInstance);
+                            }
                             if (f.randomStatusOnTick && f.randomStatusOnTick.length) {
                                 const stype = f.randomStatusOnTick[Math.floor(Math.random() * f.randomStatusOnTick.length)];
                                 applyStatusFromConfig(f.owner, m, f.skillDef, gameInstance, [{ type: stype, durationMs: 4000 }]);
@@ -964,6 +3225,67 @@
                             }
                         }
                     });
+                    if (ec.grantShieldStacksPerTick && f.owner
+                        && typeof window.grantHolyShieldStacks === 'function') {
+                        if (Math.hypot(f.owner.x - f.x, f.owner.y - f.y) <= f.radius) {
+                            window.grantHolyShieldStacks(f.owner, ec.grantShieldStacksPerTick, {
+                                stackMax: ec.stackMax || 3,
+                                absorbPercentPerStack: ec.shieldPercentPerStack || 5
+                            });
+                        }
+                    }
+                    if (ec.allyDmgBonusPercent || ec.healAllyPerTick) {
+                        applyAllyFieldBuffs(f, ec, gameInstance, now);
+                    }
+                    if (ec.allyDmgBonusPerTick && f.owner) {
+                        const buffId = 'skill_' + f.skillDef.id + '_field_dmg';
+                        f.owner.buffs = f.owner.buffs || [];
+                        f.owner.buffs = f.owner.buffs.filter(b => b.id !== buffId);
+                        f.owner.buffs.push({
+                            name: f.skillDef.name + '·命运',
+                            id: buffId,
+                            expireTime: now + (f.tickIntervalMs || 1000) + 200,
+                            effects: { attackPercent: ec.allyDmgBonusPerTick },
+                            hudVisible: true
+                        });
+                        if (typeof f.owner.updateStats === 'function') f.owner.updateStats();
+                    }
+                    // 毒雾潜行：施法者在毒雾内获得潜行
+                    if (ec.stealthSelfInField && f.owner && f.owner.hp > 0) {
+                        var sxDist = Math.hypot(f.owner.x - f.x, f.owner.y - f.y);
+                        if (sxDist <= f.radius) {
+                            f.owner._stealthFromFieldUntil = now + 500;
+                            if (typeof window.grantStealthBuff === 'function') {
+                                window.grantStealthBuff(f.owner, 500, gameInstance);
+                            } else if (f.owner.buffs) {
+                                f.owner.buffs = f.owner.buffs.filter(function(b) { return b.id !== 'stealth_fld'; });
+                                f.owner.buffs.push({
+                                    name: '毒雾潜行', id: 'stealth_fld',
+                                    expireTime: now + 500,
+                                    stealth: true,
+                                    stealthNotBrokenByAttack: false
+                                });
+                            }
+                        }
+                    }
+                    // 疫病云雾击杀扩大：敌人在场内死亡时扩大半径
+                    if (ec.killExpandRadius && ec.killExpandRadius > 0) {
+                        var maxExpanded = ec.killExpandMaxRadius || 200;
+                        (monsters || []).forEach(function(mE) {
+                            if (!mE || mE.hp > 0) return;
+                            if (Math.hypot(mE.x - f.x, mE.y - f.y) <= f.radius) {
+                                if (!f._expandedKillIds) f._expandedKillIds = new Set();
+                                if (!f._expandedKillIds.has(mE)) {
+                                    f._expandedKillIds.add(mE);
+                                    var oldR = f.radius;
+                                    f.radius = Math.min(maxExpanded, f.radius + ec.killExpandRadius);
+                                    if (f.radius > oldR) {
+                                        floatText(gameInstance, f.x, f.y - 10, '云雾扩大!', '#44cc33', 13);
+                                    }
+                                }
+                            }
+                        });
+                    }
                 }
             }
             return true;
@@ -972,6 +3294,7 @@
         // Charges
         st.charges = st.charges.filter(ch => {
             if (!ch.active) return false;
+            const c = ch.ec && ch.ec.entityConfig ? ch.ec.entityConfig : {};
             const step = ch.speed * dt;
             ch.traveled += step;
             const nx = ch.player.x + Math.cos(ch.angle) * step;
@@ -979,23 +3302,52 @@
             const p = clampInRoom(gameInstance, nx, ny);
             ch.player.x = p.x;
             ch.player.y = p.y;
+            if (c.leaveConsecrationTrail) {
+                ch.trailDist = (ch.trailDist || 0) + step;
+                const trail = c.leaveConsecrationTrail;
+                if (ch.trailDist >= (trail.interval || 45)) {
+                    ch.trailDist = 0;
+                    spawnConsecrationField(st, ch.player, ch.skillDef, ch.player.x, ch.player.y, trail, now);
+                }
+            }
+            if (c.shieldOnAllyHit && gameInstance._skillEntities) {
+                (gameInstance._skillEntities.summons || []).forEach(s => {
+                    if (!s || s.owner !== ch.player || s.hp <= 0) return;
+                    if (Math.hypot(s.x - ch.player.x, s.y - ch.player.y) > ch.radius + 36) return;
+                    s._guardDrPercent = c.shieldOnAllyHit.drPercent || 15;
+                    s._guardShieldUntil = now + (c.shieldOnAllyHit.durationMs || 6000);
+                });
+            }
             let stopped = ch.traveled >= ch.maxDist;
-            const c = ch.ec && ch.ec.entityConfig ? ch.ec.entityConfig : {};
             (monsters || []).forEach(m => {
                 if (!m || m.hp <= 0 || ch.hitIds.has(m)) return;
                 if (Math.hypot(m.x - ch.player.x, m.y - ch.player.y) <= ch.radius + 15) {
+                    if (ch.stopOnFirstHit) {
+                        const dx = ch.player.x - m.x;
+                        const dy = ch.player.y - m.y;
+                        const dist = Math.hypot(dx, dy) || 1;
+                        const monR = (m.size || CONFIG.MONSTER_SIZE || 32) / 2;
+                        const stopDist = monR + ch.radius + 4;
+                        const stopX = m.x + (dx / dist) * stopDist;
+                        const stopY = m.y + (dy / dist) * stopDist;
+                        const clamped = clampInRoom(gameInstance, stopX, stopY);
+                        ch.player.x = clamped.x;
+                        ch.player.y = clamped.y;
+                        stopped = true;
+                        return;
+                    }
                     applyDmg(ch.player, m, ch.damage, ch.skillDef, gameInstance);
                     ch.hitIds.add(m);
                     const pathStun = ch.pathStunMs != null ? ch.pathStunMs : ch.stunMs;
-                    applyCcEffects(m, now, {
+                    const ccCfg = Object.assign({}, c, {
                         stunMs: pathStun,
-                        knockback: ch.knockback != null ? ch.knockback : c.knockback,
-                        knockbackAngle: ch.angle,
-                        knockup: ch.knockup
-                    }, gameInstance);
-                    if (ch.slowMult) {
-                        if (!m.slowEffects) m.slowEffects = [];
-                        m.slowEffects.push({ multiplier: ch.slowMult, expireTime: now + (ch.slowMs || 2000) });
+                        slowMult: ch.slowMult || c.slowMult,
+                        slowMs: ch.slowMs || c.slowMs,
+                        knockback: ch.knockback || c.knockback
+                    });
+                    applyCcEffects(m, now, ccCfg, gameInstance, ch.player);
+                    if (c.destroyMarkOnPath && typeof window.applySkillDestroyMarks === 'function') {
+                        window.applySkillDestroyMarks(ch.player, m, ch.skillDef, c.destroyMarkOnPath, gameInstance, { now });
                     }
                     if (ch.healOnHitMaxHpPercent > 0) {
                         const heal = Math.max(1, Math.floor(ch.player.maxHp * ch.healOnHitMaxHpPercent));
@@ -1011,7 +3363,6 @@
                             floatText(gameInstance, ch.player.x, ch.player.y - 36, `加速 ×${stacks}`, '#ffcc66');
                         }
                     }
-                    if (ch.stopOnFirstHit) stopped = true;
                 }
             });
             if (stopped) {
@@ -1025,6 +3376,16 @@
             gameInstance.player._chargeSuperArmor = false;
         }
 
+        if (typeof window.updateHolyLightFields === 'function') {
+            window.updateHolyLightFields(gameInstance, now);
+        }
+        if (typeof window.updateClassSkillTransformEffects === 'function') {
+            window.updateClassSkillTransformEffects(gameInstance, now);
+        }
+        if (typeof window.updateDestructionForm === 'function') {
+            window.updateDestructionForm(gameInstance, monsters, now);
+        }
+
         const p = gameInstance.player;
         if (p && p._skillCastBar && now >= p._skillCastBar.endTime) {
             p._skillCastBar = null;
@@ -1032,17 +3393,182 @@
         }
     };
 
-    function explodeAt(player, proj, x, y, monsters, g) {
-        if (!proj.explodeRadius) return;
-        (monsters || []).forEach(m => {
-            if (!m || m.hp <= 0) return;
-            if (Math.hypot(m.x - x, m.y - y) <= proj.explodeRadius) {
-                applyDmg(player, m, proj.damage, proj.skillDef, g);
-            }
-        });
-        if (g && typeof g.addEquipmentEffect === 'function') {
-            g.addEquipmentEffect('fire_explosion', x, y, { radius: proj.explodeRadius, duration: 400 });
+    function drawDeathReaperBolt(ctx, p, now) {
+        const ang = p.angle || 0;
+        const pulse = 0.88 + 0.12 * Math.sin((now || Date.now()) * 0.028);
+        const trail = p._reaperTrail || [];
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+
+        for (let i = 0; i < trail.length - 1; i++) {
+            const tp = trail[i];
+            const fade = (i + 1) / Math.max(1, trail.length);
+            ctx.globalAlpha = fade * 0.22;
+            ctx.strokeStyle = i % 2 ? '#ff0044' : '#220008';
+            ctx.lineWidth = 3 + fade * 4;
+            ctx.beginPath();
+            ctx.moveTo(tp.x, tp.y);
+            if (trail[i + 1]) ctx.lineTo(trail[i + 1].x, trail[i + 1].y);
+            ctx.stroke();
         }
+
+        ctx.translate(p.x, p.y);
+        ctx.rotate(ang);
+        const boltLen = 36 + pulse * 14;
+        const wingSpan = 14 + pulse * 6;
+
+        ctx.globalAlpha = 0.35;
+        ctx.fillStyle = '#110008';
+        ctx.beginPath();
+        ctx.moveTo(-boltLen * 0.55, -wingSpan);
+        ctx.quadraticCurveTo(-boltLen * 0.1, 0, -boltLen * 0.55, wingSpan);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.globalAlpha = 0.55;
+        const bg = ctx.createLinearGradient(-boltLen * 0.5, 0, boltLen * 0.65, 0);
+        bg.addColorStop(0, '#220008');
+        bg.addColorStop(0.45, '#ff0044');
+        bg.addColorStop(1, '#ffe8ee');
+        ctx.fillStyle = bg;
+        ctx.beginPath();
+        ctx.moveTo(boltLen * 0.72, 0);
+        ctx.lineTo(-boltLen * 0.35, -5.5);
+        ctx.lineTo(-boltLen * 0.15, 0);
+        ctx.lineTo(-boltLen * 0.35, 5.5);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = '#ffe8ee';
+        ctx.beginPath();
+        ctx.arc(boltLen * 0.58, 0, 6.5 * pulse, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#110008';
+        ctx.beginPath();
+        ctx.arc(boltLen * 0.52, -1.5, 2.2, 0, Math.PI * 2);
+        ctx.arc(boltLen * 0.64, -1.5, 2.2, 0, Math.PI * 2);
+        ctx.fillRect(boltLen * 0.56, 1.5, 2.4, 1.5);
+
+        ctx.globalAlpha = 0.75;
+        ctx.strokeStyle = '#ff6688';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-boltLen * 0.45, 0);
+        ctx.lineTo(boltLen * 0.85, 0);
+        ctx.stroke();
+
+        ctx.globalAlpha = 0.45;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-boltLen * 0.2, -wingSpan * 0.55);
+        ctx.lineTo(boltLen * 0.35, 0);
+        ctx.lineTo(-boltLen * 0.2, wingSpan * 0.55);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawPhantomBolt(ctx, p, now) {
+        const ang = p.angle || 0;
+        const pulse = 0.9 + 0.1 * Math.sin((now || Date.now()) * 0.03);
+        const trail = p._reaperTrail || p._phantomTrail || [];
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+
+        for (let i = 0; i < trail.length - 1; i++) {
+            const tp = trail[i];
+            const fade = (i + 1) / Math.max(1, trail.length);
+            ctx.globalAlpha = fade * 0.25;
+            ctx.strokeStyle = '#9944ff';
+            ctx.lineWidth = 2 + fade * 3;
+            ctx.beginPath();
+            ctx.moveTo(tp.x, tp.y);
+            if (trail[i + 1]) ctx.lineTo(trail[i + 1].x, trail[i + 1].y);
+            ctx.stroke();
+        }
+
+        ctx.translate(p.x, p.y);
+        ctx.rotate(ang);
+        const len = 22 + pulse * 8;
+
+        ctx.globalAlpha = 0.5;
+        const bg = ctx.createLinearGradient(-len * 0.4, 0, len * 0.6, 0);
+        bg.addColorStop(0, 'rgba(80,20,140,0)');
+        bg.addColorStop(0.35, '#9944ff');
+        bg.addColorStop(1, '#eeccff');
+        ctx.fillStyle = bg;
+        ctx.beginPath();
+        ctx.moveTo(len * 0.55, 0);
+        ctx.lineTo(-len * 0.35, -4);
+        ctx.lineTo(-len * 0.15, 0);
+        ctx.lineTo(-len * 0.35, 4);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.globalAlpha = 0.85;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(len * 0.42, 0, 4 * pulse, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#cc88ff';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-len * 0.3, 0);
+        ctx.lineTo(len * 0.55, 0);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawWindBladeProjectile(ctx, p, now) {
+        const len = Math.max(36, (p.radius || 30) * 1.8);
+        const traveled = p.traveled || 0;
+        const pulse = 0.88 + 0.12 * Math.sin((now + (p.spawnTime || 0)) / 90);
+        const col = p.color || '#9944ff';
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = 0.45 + Math.min(0.35, traveled / Math.max(1, p.maxRange || 400));
+        ctx.strokeStyle = col;
+        ctx.lineWidth = len * 0.22 * pulse;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.arc(len * 0.3, 0, len * 0.48, -0.5, 0.5);
+        ctx.stroke();
+        ctx.globalAlpha = 0.85;
+        ctx.strokeStyle = p._fromPhantomEcho ? '#eeccff' : '#aaffee';
+        ctx.lineWidth = Math.max(2, len * 0.08);
+        ctx.beginPath();
+        ctx.moveTo(-len * 0.15, 0);
+        ctx.lineTo(len * 0.55, 0);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawLightSpear(ctx, p) {
+        const len = Math.max(44, (p.radius || 14) * 3.2);
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+        const col = p.color || '#66ddff';
+        ctx.shadowColor = col;
+        ctx.shadowBlur = 16;
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.moveTo(len * 0.58, 0);
+        ctx.lineTo(-len * 0.38, -5);
+        ctx.lineTo(-len * 0.18, 0);
+        ctx.lineTo(-len * 0.38, 5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#e8ffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.globalAlpha = 0.55;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-len * 0.12, -2.5, len * 0.68, 5);
+        ctx.restore();
     }
 
     window.drawSkillEntities = function drawSkillEntities(ctx, gameInstance) {
@@ -1058,6 +3584,22 @@
                     ctx, p.x, p.y, p.angle, p.projectileSpriteId, Math.max(16, p.radius * 2)
                 );
             if (drawn) return;
+            if (p.visualVariant === 'light_spear') {
+                drawLightSpear(ctx, p);
+                return;
+            }
+            if (p.visualVariant === 'death_reaper_bolt') {
+                drawDeathReaperBolt(ctx, p, now);
+                return;
+            }
+            if (p.visualVariant === 'wind_blade') {
+                drawWindBladeProjectile(ctx, p, now);
+                return;
+            }
+            if (p.visualVariant === 'phantom_bolt') {
+                drawPhantomBolt(ctx, p, now);
+                return;
+            }
             ctx.save();
             ctx.fillStyle = p.color;
             ctx.shadowColor = p.color;
@@ -1072,15 +3614,105 @@
             ctx.restore();
         });
 
-        st.summons.forEach(s => {
+        const pl = gameInstance.player;
+        if (pl && typeof window.getHolyShieldStacks === 'function') {
+            const stacks = window.getHolyShieldStacks(pl);
+            if (stacks > 0) {
+                const baseR = (pl.size || 24) * 0.52;
+                ctx.save();
+                for (let i = 0; i < stacks; i++) {
+                    const phase = now / 380 + i * Math.PI * 2 / 3;
+                    ctx.strokeStyle = `rgba(102,221,255,${0.4 + i * 0.12})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(pl.x, pl.y, baseR + 3 + i * 5 + Math.sin(phase) * 2, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                ctx.fillStyle = '#e8faff';
+                ctx.font = 'bold 10px Courier New';
+                ctx.textAlign = 'center';
+                ctx.fillText('盾×' + stacks, pl.x, pl.y - baseR - 14);
+                ctx.restore();
+            }
+        }
+        if (pl && pl._holyLightField && now < pl._holyLightField.expireTime) {
+            const f = pl._holyLightField;
+            const pulse = 0.92 + Math.sin(now / 180) * 0.06;
             ctx.save();
+            ctx.globalAlpha = 0.22 + Math.sin(now / 320) * 0.06;
+            const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.radius * pulse);
+            g.addColorStop(0, 'rgba(180,240,255,0.35)');
+            g.addColorStop(0.55, 'rgba(68,200,255,0.18)');
+            g.addColorStop(1, 'rgba(40,120,180,0)');
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(f.x, f.y, f.radius * pulse, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(120,220,255,0.55)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([8, 6]);
+            ctx.beginPath();
+            ctx.arc(f.x, f.y, f.radius * pulse, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+        }
+
+        if (pl && typeof window.drawTricksterAnchorOverlays === 'function') {
+            window.drawTricksterAnchorOverlays(ctx, pl, now);
+        }
+
+        st.summons.forEach(s => {
+            if (s.unitId === 'decoy' && typeof window.drawTricksterDecoySummon === 'function') {
+                window.drawTricksterDecoySummon(ctx, s, now);
+                return;
+            }
+            if (s.isPhantomClone && typeof window.drawPhantomCloneSummon === 'function') {
+                window.drawPhantomCloneSummon(ctx, s, s.owner, Date.now());
+                return;
+            }
+            ctx.save();
+            const face = s.faceAngle != null ? s.faceAngle : 0;
+            const nowDraw = Date.now();
+            const windingUp = s._attackStrikeAt && !s._attackExecuted && nowDraw < s._attackStrikeAt;
+            const sx = s.x;
+            const sy = s.y;
+            const r = s.size * 0.5;
+
+            if (windingUp || (s._attackExecuted && s._attackBusyUntil && nowDraw < s._attackBusyUntil)) {
+                const ang = s._attackAngle != null ? s._attackAngle : face;
+                const t = windingUp
+                    ? Math.min(1, (nowDraw - (s._attackStrikeAt - 220)) / 220)
+                    : 1;
+                const arcR = r * (1.4 + t * 0.35);
+                ctx.strokeStyle = s.isGhost ? 'rgba(160,200,255,0.85)' : 'rgba(255,170,80,0.9)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(sx, sy, arcR, ang - 0.55, ang + 0.55);
+                ctx.stroke();
+                ctx.fillStyle = s.isGhost ? 'rgba(120,180,255,0.35)' : 'rgba(255,120,40,0.25)';
+                ctx.beginPath();
+                ctx.moveTo(sx, sy);
+                ctx.arc(sx, sy, arcR * 0.85, ang - 0.45, ang + 0.45);
+                ctx.closePath();
+                ctx.fill();
+            }
+
             ctx.fillStyle = s.color;
             ctx.beginPath();
-            ctx.arc(s.x, s.y, s.size * 0.5, 0, Math.PI * 2);
+            ctx.arc(sx, sy, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = s.isGhost ? '#aaccee' : '#664422';
+            ctx.beginPath();
+            ctx.arc(
+                sx + Math.cos(face) * r * 0.55,
+                sy + Math.sin(face) * r * 0.55,
+                r * 0.28, 0, Math.PI * 2
+            );
             ctx.fill();
             ctx.fillStyle = '#ff4444';
             const bw = s.size;
-            ctx.fillRect(s.x - bw / 2, s.y - s.size - 8, bw * (s.hp / s.maxHp), 4);
+            ctx.fillRect(sx - bw / 2, sy - s.size - 8, bw * (s.hp / s.maxHp), 4);
             ctx.restore();
         });
 
@@ -1105,19 +3737,113 @@
                 ctx.restore();
             } else if (!f.invisible) {
                 ctx.save();
-                ctx.fillStyle = f.color.replace(')', ',0.25)').replace('rgb', 'rgba').replace('#', '');
-                if (f.color.startsWith('#')) {
-                    ctx.fillStyle = f.color + '44';
+                if (f._consecrationGround) {
+                    const pulse = 0.9 + Math.sin(now / 200) * 0.08;
+                    ctx.globalAlpha = 0.28 + Math.sin(now / 350) * 0.06;
+                    const g2 = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.radius * pulse);
+                    if (f._ruinGround) {
+                        g2.addColorStop(0, 'rgba(255,120,60,0.5)');
+                        g2.addColorStop(0.5, 'rgba(180,40,20,0.28)');
+                        g2.addColorStop(1, 'rgba(80,10,5,0)');
+                        ctx.fillStyle = g2;
+                        ctx.beginPath();
+                        ctx.arc(f.x, f.y, f.radius * pulse, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = 'rgba(255,80,40,0.6)';
+                    } else {
+                        g2.addColorStop(0, 'rgba(255,240,180,0.45)');
+                        g2.addColorStop(0.5, 'rgba(120,220,255,0.22)');
+                        g2.addColorStop(1, 'rgba(40,100,160,0)');
+                        ctx.fillStyle = g2;
+                        ctx.beginPath();
+                        ctx.arc(f.x, f.y, f.radius * pulse, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = 'rgba(180,240,255,0.55)';
+                    }
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([6, 5]);
+                    ctx.beginPath();
+                    ctx.arc(f.x, f.y, f.radius * pulse, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                } else {
+                    ctx.fillStyle = f.color.startsWith('#') ? f.color + '44' : f.color;
+                    ctx.beginPath();
+                    ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+                    ctx.fill();
                 }
-                ctx.beginPath();
-                ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
-                ctx.fill();
                 ctx.restore();
             }
         });
 
         if (typeof window.drawBuildCombatHud === 'function') {
             window.drawBuildCombatHud(ctx, gameInstance);
+        }
+    };
+
+    /**
+     * 清除场景中持续存在的技能实体（召唤物、陷阱/场域、弹道等）
+     * 场景切换或技能实验场换职业时调用
+     */
+    window.clearPlayerSkillWorldEntities = function clearPlayerSkillWorldEntities(gameInstance, options) {
+        if (!gameInstance) return;
+        const opts = options || {};
+        const st = ensureState(gameInstance);
+        st.summons = [];
+        st.fields = [];
+        st.projectiles = [];
+        st.charges = [];
+        st.pendingInstants = [];
+
+        const player = gameInstance.player;
+        if (player) {
+            delete player._packAssaultUntil;
+            player._wolfPounceCd = {};
+            player.isDashing = false;
+            player._chargeSuperArmor = false;
+            player.dashGhosts = [];
+            player.dashBrightness = 0;
+            player.dashCompression = 0;
+            delete player._shadowRaidReturn;
+            delete player._pierceDash;
+            delete player._leapSlam;
+            delete player._backstepShot;
+            delete player._backstepVisualOffset;
+            delete player._leapSlamVisualOffset;
+            if (Array.isArray(player.buffs)) {
+                player.buffs = player.buffs.filter(b => {
+                    if (!b) return false;
+                    if (b.stealth) return false;
+                    if (b.id && String(b.id).startsWith('summon_bonus_')) return false;
+                    return true;
+                });
+            }
+        }
+        st.pendingShadowReturns = [];
+
+        if (opts.clearMarks !== false) {
+            let targets = [];
+            if (typeof gameInstance._getSkillMonsters === 'function') {
+                targets = gameInstance._getSkillMonsters() || [];
+            } else if (gameInstance.monsters) {
+                targets = gameInstance.monsters;
+            }
+            (targets || []).forEach(m => {
+                if (m && m._classSkillMark) delete m._classSkillMark;
+            });
+        }
+
+        if (typeof gameInstance.cancelClassSkillAim === 'function') {
+            gameInstance.cancelClassSkillAim();
+        }
+        if (typeof gameInstance.cancelWeaponSkillAim === 'function') {
+            gameInstance.cancelWeaponSkillAim();
+        }
+        if (gameInstance.player && typeof window.clearMarksmanPrecisionState === 'function') {
+            window.clearMarksmanPrecisionState(gameInstance.player);
+        }
+        if (gameInstance.player && typeof window.clearWindrunnerCombatState === 'function') {
+            window.clearWindrunnerCombatState(gameInstance.player);
         }
     };
 

@@ -161,13 +161,640 @@
 
     window.getResourceFamilyForClass = function getResourceFamilyForClass(classData) {
         if (!window.hasPlayerClass(classData)) return null;
+        const activeId = window.getActiveClassId && window.getActiveClassId(classData);
+        const activeDef = activeId && window.getClassDefinition
+            ? window.getClassDefinition(activeId) : null;
         const baseId = window.getPlayerBaseClassId(classData);
         const cc = window.CLASS_CONFIG;
         if (!cc || !cc.baseClasses || !cc.baseClasses[baseId]) return null;
-        const resType = cc.baseClasses[baseId].resource && cc.baseClasses[baseId].resource.type;
+        const resType = (activeDef && activeDef.resource && activeDef.resource.type)
+            || (cc.baseClasses[baseId].resource && cc.baseClasses[baseId].resource.type);
         const map = cfg() && cfg().resourceToFamily;
         return (map && map[resType]) || resType || 'rage';
     };
+
+    function getClassResourceConfig(classData) {
+        const activeId = window.getActiveClassId && window.getActiveClassId(classData);
+        const activeDef = activeId && window.getClassDefinition
+            ? window.getClassDefinition(activeId) : null;
+        if (activeDef && activeDef.resource) return activeDef.resource;
+        const baseId = window.getPlayerBaseClassId(classData);
+        const cc = window.CLASS_CONFIG;
+        if (cc && cc.baseClasses && cc.baseClasses[baseId]) {
+            return cc.baseClasses[baseId].resource || null;
+        }
+        return null;
+    }
+
+    /** 技能 VFX 配色族（骑士 holy / 狂战 fury / 守护者 guardian / 弓箭手三分支） */
+    const ARCHER_VFX_FAMILY = {
+        ranger: 'nature',
+        beastmaster: 'nature',
+        marksman: 'gold',
+        deadeye: 'gold',
+        windrunner: 'wind',
+        phantom: 'wind'
+    };
+
+    const MAGE_VFX_FAMILY = {
+        wizard: 'elemental_power',
+        archmage: 'elemental_power',
+        sage: 'chronos_sand',
+        oracle: 'chronos_sand',
+        warlock: 'soul_shard_v2',
+        necromancer: 'soul_shard_v2'
+    };
+
+    window.getSkillVfxFamilyForPlayer = function getSkillVfxFamilyForPlayer(player, skillDef) {
+        if (player && player.classData) {
+            const prog = window.getActiveClassProgressionId(player.classData);
+            if (prog) return prog;
+        }
+        if (skillDef && skillDef.classId) {
+            return skillDef.classId;
+        }
+        if (skillDef && skillDef.effectTags && skillDef.effectTags.includes('holy')) return 'paladin';
+        return window.getResourceFamilyForClass(player && player.classData) || 'warrior';
+    };
+
+    const WARRIOR_TREE_CLASS_IDS = new Set([
+        'warrior', 'knight', 'berserker', 'guardian', 'paladin', 'destroyer', 'temple_knight'
+    ]);
+
+    window.isWarriorTreeSkill = function isWarriorTreeSkill(skillDef, player) {
+        if (!skillDef) return false;
+        if (skillDef.classId && WARRIOR_TREE_CLASS_IDS.has(skillDef.classId)) return true;
+        if (player && player.classData && typeof window.getActiveClassProgressionId === 'function') {
+            const prog = window.getActiveClassProgressionId(player.classData);
+            if (prog && WARRIOR_TREE_CLASS_IDS.has(prog)) return true;
+        }
+        return false;
+    };
+
+    window.getEffectiveSkillWindupMs = function getEffectiveSkillWindupMs(player, skillDef, entityConfig) {
+        const c = entityConfig || {};
+        if (skillDef && (skillDef.slotType === 'basic' || skillDef.type === 'basic')) return 0;
+        if (window.isWarriorTreeSkill(skillDef, player)) return 0;
+        return c.windupMs || 0;
+    };
+
+    function isSkillTargetMonster(m) {
+        if (!m || m.hp <= 0) return false;
+        return true;
+    }
+
+    function isMonsterInImpactRadius(cx, cy, m, impactRadius) {
+        const monR = getMonsterRadius(m);
+        return Math.hypot(m.x - cx, m.y - cy) <= impactRadius + monR;
+    }
+
+    function countImpactHits(cx, cy, monsters, impactRadius) {
+        let n = 0;
+        (monsters || []).forEach(m => {
+            if (!isSkillTargetMonster(m)) return;
+            if (isMonsterInImpactRadius(cx, cy, m, impactRadius)) n++;
+        });
+        return n;
+    }
+
+    /**
+     * 跳劈专用落点：贴脸优先原地砸，否则计算命中所需的最短跃距
+     */
+    window.pickBestLeapSlamGroundPoint = function pickBestLeapSlamGroundPoint(player, monsters, leapRange, impactRadius) {
+        const px = player.x;
+        const py = player.y;
+        const maxLeap = leapRange || 200;
+        const aoeR = impactRadius || 90;
+        const valid = (monsters || []).filter(m => isSkillTargetMonster(m));
+        const facing = typeof player.angle === 'number' ? player.angle : 0;
+
+        if (valid.length === 0) {
+            return window.pickBestAoeGroundPoint(player, monsters, maxLeap, aoeR, { preferNearCaster: true });
+        }
+
+        const selfHits = countImpactHits(px, py, valid, aoeR);
+        if (selfHits > 0) {
+            return { x: px, y: py, hitCount: selfHits, leapDist: 0 };
+        }
+
+        const candidates = [];
+        const seen = new Set();
+        function addPt(cx, cy) {
+            const pt = clampGroundPointToCastRange(px, py, cx, cy, maxLeap);
+            const key = Math.round(pt.x) + ',' + Math.round(pt.y);
+            if (seen.has(key)) return;
+            seen.add(key);
+            candidates.push(pt);
+        }
+
+        addPt(px, py);
+        valid.forEach(m => {
+            addPt(m.x, m.y);
+            addPt((px + m.x) * 0.5, (py + m.y) * 0.5);
+            const d = Math.hypot(m.x - px, m.y - py);
+            if (d < 1) return;
+            const monR = getMonsterRadius(m);
+            const minLeap = Math.max(0, d - aoeR - monR);
+            if (minLeap <= maxLeap) {
+                const t = minLeap / d;
+                addPt(px + (m.x - px) * t, py + (m.y - py) * t);
+            }
+            for (const frac of [0.25, 0.45, 0.65, 0.85]) {
+                addPt(px + (m.x - px) * frac, py + (m.y - py) * frac);
+            }
+        });
+
+        let best = candidates[0];
+        let bestHits = -1;
+        let bestLeap = Infinity;
+        candidates.forEach(pt => {
+            const hits = countImpactHits(pt.x, pt.y, valid, aoeR);
+            const ld = Math.hypot(pt.x - px, pt.y - py);
+            if (hits > bestHits || (hits === bestHits && ld < bestLeap - 0.01)) {
+                bestHits = hits;
+                bestLeap = ld;
+                best = pt;
+            }
+        });
+
+        if (bestHits > 0) {
+            return { x: best.x, y: best.y, hitCount: bestHits, leapDist: bestLeap };
+        }
+
+        let nearest = null;
+        let nearestD = Infinity;
+        valid.forEach(m => {
+            const d = Math.hypot(m.x - px, m.y - py);
+            if (d < nearestD) {
+                nearestD = d;
+                nearest = m;
+            }
+        });
+        if (nearest) {
+            const monR = getMonsterRadius(nearest);
+            const minLeap = Math.max(0, nearestD - aoeR - monR);
+            if (minLeap <= maxLeap) {
+                const t = nearestD > 0 ? minLeap / nearestD : 0;
+                const pt = clampGroundPointToCastRange(
+                    px, py,
+                    px + (nearest.x - px) * t,
+                    py + (nearest.y - py) * t,
+                    maxLeap
+                );
+                return {
+                    x: pt.x, y: pt.y,
+                    hitCount: countImpactHits(pt.x, pt.y, valid, aoeR),
+                    leapDist: Math.hypot(pt.x - px, pt.y - py)
+                };
+            }
+            const pt = clampGroundPointToCastRange(px, py, nearest.x, nearest.y, maxLeap);
+            return {
+                x: pt.x, y: pt.y,
+                hitCount: countImpactHits(pt.x, pt.y, valid, aoeR),
+                leapDist: Math.hypot(pt.x - px, pt.y - py)
+            };
+        }
+
+        return {
+            x: px + Math.cos(facing) * maxLeap * 0.45,
+            y: py + Math.sin(facing) * maxLeap * 0.45,
+            hitCount: 0,
+            leapDist: maxLeap * 0.45
+        };
+    };
+
+    function countMonstersOnLine(px, py, aimAng, monsters, maxDist, halfWidth) {
+        let hits = 0;
+        let nearest = Infinity;
+        (monsters || []).forEach(m => {
+            if (!isSkillTargetMonster(m)) return;
+            const dx = m.x - px;
+            const dy = m.y - py;
+            const dist = Math.hypot(dx, dy);
+            if (dist > maxDist || dist < 1) return;
+            let diff = Math.atan2(dy, dx) - aimAng;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            if (Math.abs(diff) > Math.PI * 0.55) return;
+            const perp = Math.abs(dist * Math.sin(diff));
+            const monR = (m.size || m.radius || 32) / 2;
+            if (perp <= halfWidth + monR + 8) {
+                hits++;
+                nearest = Math.min(nearest, dist);
+            }
+        });
+        return { hits, nearest: nearest === Infinity ? maxDist : nearest };
+    }
+
+    function countMonstersInCone(px, py, aimAng, monsters, range, halfRad) {
+        let hits = 0;
+        let nearest = Infinity;
+        (monsters || []).forEach(m => {
+            if (!isSkillTargetMonster(m)) return;
+            const dx = m.x - px;
+            const dy = m.y - py;
+            const dist = Math.hypot(dx, dy);
+            if (dist > range || dist < 1) return;
+            let diff = Math.atan2(dy, dx) - aimAng;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            if (Math.abs(diff) <= halfRad) {
+                hits++;
+                nearest = Math.min(nearest, dist);
+            }
+        });
+        return { hits, nearest: nearest === Infinity ? range : nearest };
+    }
+
+    function pickNearestEnemyAngle(player, monsters, maxRange) {
+        const nearest = window.pickNearestSkillTarget(player, monsters, maxRange);
+        if (!nearest) return typeof player.angle === 'number' ? player.angle : 0;
+        return Math.atan2(nearest.y - player.y, nearest.x - player.x);
+    }
+
+    window.pickNearestEnemyAngle = pickNearestEnemyAngle;
+
+    function getMonsterRadius(m) {
+        return ((m && (m.size || m.radius)) || 32) / 2;
+    }
+
+    function countMonstersInRadius(cx, cy, monsters, radius, includeMonRadius) {
+        let n = 0;
+        (monsters || []).forEach(m => {
+            if (!isSkillTargetMonster(m)) return;
+            const monR = includeMonRadius ? getMonsterRadius(m) : 0;
+            if (Math.hypot(m.x - cx, m.y - cy) <= radius + monR) n++;
+        });
+        return n;
+    }
+
+    function clampGroundPointToCastRange(px, py, cx, cy, castRange) {
+        const dx = cx - px;
+        const dy = cy - py;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= castRange || dist < 1) return { x: cx, y: cy };
+        return { x: px + (dx / dist) * castRange, y: py + (dy / dist) * castRange };
+    }
+
+    /**
+     * 地面 AOE 最优落点：命中最多敌人（360°，不依赖面向）
+     * options.preferNearCaster — 跳劈类：优先原地/最短跃击落点
+     * options.includeMonRadius — 命中判定计入怪物体积
+     */
+    window.pickBestAoeGroundPoint = function pickBestAoeGroundPoint(player, monsters, castRange, aoeRadius, options) {
+        options = options || {};
+        const px = player.x;
+        const py = player.y;
+        const preferNear = !!options.preferNearCaster;
+        const includeMonR = options.includeMonRadius != null ? options.includeMonRadius : preferNear;
+        const facingWeight = options.facingWeight != null ? options.facingWeight : 0;
+        const facing = typeof player.angle === 'number' ? player.angle : 0;
+        const fx = Math.cos(facing);
+        const fy = Math.sin(facing);
+        const candidates = [];
+        const seen = new Set();
+
+        function addCandidate(cx, cy) {
+            const clamped = clampGroundPointToCastRange(px, py, cx, cy, castRange);
+            const key = Math.round(clamped.x) + ',' + Math.round(clamped.y);
+            if (seen.has(key)) return;
+            seen.add(key);
+            candidates.push(clamped);
+        }
+
+        function hitsAt(cx, cy) {
+            return countMonstersInRadius(cx, cy, monsters, aoeRadius, includeMonR);
+        }
+
+        function leapDist(c) {
+            return Math.hypot(c.x - px, c.y - py);
+        }
+
+        const valid = (monsters || []).filter(m => isSkillTargetMonster(m));
+
+        if (preferNear) {
+            addCandidate(px, py);
+        }
+
+        valid.forEach(m => addCandidate(m.x, m.y));
+
+        for (let i = 0; i < valid.length; i++) {
+            for (let j = i + 1; j < valid.length; j++) {
+                const a = valid[i];
+                const b = valid[j];
+                if (Math.hypot(a.x - b.x, a.y - b.y) > aoeRadius * 2.2) continue;
+                addCandidate((a.x + b.x) * 0.5, (a.y + b.y) * 0.5);
+            }
+        }
+
+        if (preferNear) {
+            valid.forEach(m => {
+                const d = Math.hypot(m.x - px, m.y - py);
+                if (d < 1) return;
+                const t = Math.min(1, (aoeRadius * 0.55) / d);
+                addCandidate(px + (m.x - px) * t, py + (m.y - py) * t);
+                addCandidate(px + (m.x - px) * 0.5, py + (m.y - py) * 0.5);
+            });
+        }
+
+        if (valid.length === 0) {
+            const fallback = clampGroundPointToCastRange(
+                px, py,
+                px + Math.cos(facing) * castRange * 0.65,
+                py + Math.sin(facing) * castRange * 0.65,
+                castRange
+            );
+            return { x: fallback.x, y: fallback.y, hitCount: 0, facingDot: 1 };
+        }
+
+        if (candidates.length === 0) {
+            const nearest = window.pickNearestSkillTarget(player, valid, castRange * 1.5);
+            if (nearest) {
+                const pt = clampGroundPointToCastRange(px, py, nearest.x, nearest.y, castRange);
+                return {
+                    x: pt.x, y: pt.y,
+                    hitCount: hitsAt(pt.x, pt.y),
+                    facingDot: 0,
+                    leapDist: leapDist(pt)
+                };
+            }
+        }
+
+        let best = candidates[0];
+        let bestHits = -1;
+        let bestFacing = -Infinity;
+        let bestLeap = Infinity;
+
+        candidates.forEach(c => {
+            const hits = hitsAt(c.x, c.y);
+            const dx = c.x - px;
+            const dy = c.y - py;
+            const dist = Math.hypot(dx, dy) || 1;
+            const facingDot = (dx / dist) * fx + (dy / dist) * fy;
+            const ld = leapDist(c);
+            const better = hits > bestHits
+                || (hits === bestHits && preferNear && ld < bestLeap - 0.5)
+                || (hits === bestHits && !preferNear && facingDot > bestFacing)
+                || (hits === bestHits && Math.abs(ld - bestLeap) < 0.5 && facingDot > bestFacing);
+            if (better) {
+                bestHits = hits;
+                bestFacing = facingDot;
+                bestLeap = ld;
+                best = c;
+            }
+        });
+
+        if (bestHits <= 0) {
+            const nearest = window.pickNearestSkillTarget(player, valid, castRange * 1.5);
+            if (nearest) {
+                if (preferNear) {
+                    const d = Math.hypot(nearest.x - px, nearest.y - py);
+                    const monR = getMonsterRadius(nearest);
+                    if (d <= aoeRadius + monR) {
+                        return { x: px, y: py, hitCount: hitsAt(px, py), facingDot: 0, leapDist: 0 };
+                    }
+                    const t = Math.min(1, Math.max(0.35, (aoeRadius * 0.65) / Math.max(d, 1)));
+                    const pt = clampGroundPointToCastRange(
+                        px, py,
+                        px + (nearest.x - px) * t,
+                        py + (nearest.y - py) * t,
+                        castRange
+                    );
+                    return {
+                        x: pt.x, y: pt.y,
+                        hitCount: hitsAt(pt.x, pt.y),
+                        facingDot: 0,
+                        leapDist: leapDist(pt)
+                    };
+                }
+                const pt = clampGroundPointToCastRange(px, py, nearest.x, nearest.y, castRange);
+                return {
+                    x: pt.x, y: pt.y,
+                    hitCount: hitsAt(pt.x, pt.y),
+                    facingDot: 0,
+                    leapDist: leapDist(pt)
+                };
+            }
+        }
+
+        return { x: best.x, y: best.y, hitCount: bestHits, facingDot: bestFacing, leapDist: bestLeap };
+    };
+
+    /** 直线位移/冲锋/裂波：360° 选线，命中最多敌人，同分优先最近 */
+    window.pickBestLineAngle = function pickBestLineAngle(player, monsters, distance, width) {
+        if (!player) return 0;
+        const px = player.x;
+        const py = player.y;
+        const maxDist = distance || 200;
+        const halfWidth = (width || 40) * 0.5;
+        const valid = (monsters || []).filter(m => isSkillTargetMonster(m));
+        if (valid.length === 0) return typeof player.angle === 'number' ? player.angle : 0;
+
+        const candAngles = [];
+        valid.forEach(m => candAngles.push(Math.atan2(m.y - py, m.x - px)));
+
+        let bestAng = candAngles[0];
+        let bestHits = -1;
+        let bestNearest = Infinity;
+
+        candAngles.forEach(aimAng => {
+            const { hits, nearest } = countMonstersOnLine(px, py, aimAng, monsters, maxDist, halfWidth);
+            if (hits > bestHits || (hits === bestHits && nearest < bestNearest)) {
+                bestHits = hits;
+                bestNearest = nearest;
+                bestAng = aimAng;
+            }
+        });
+
+        if (bestHits <= 0) return pickNearestEnemyAngle(player, monsters, maxDist);
+        return bestAng;
+    };
+
+    /** 锥形技能：360° 选朝向，覆盖最多敌人 */
+    window.pickBestConeAngle = function pickBestConeAngle(player, monsters, range, halfAngleDeg) {
+        if (!player) return 0;
+        const px = player.x;
+        const py = player.y;
+        const maxRange = range || 80;
+        const halfRad = (halfAngleDeg || 45) * Math.PI / 180;
+        const valid = (monsters || []).filter(m => isSkillTargetMonster(m));
+        if (valid.length === 0) return typeof player.angle === 'number' ? player.angle : 0;
+
+        const candAngles = [];
+        valid.forEach(m => candAngles.push(Math.atan2(m.y - py, m.x - px)));
+
+        let bestAng = candAngles[0];
+        let bestHits = -1;
+        let bestNearest = Infinity;
+
+        candAngles.forEach(aimAng => {
+            const { hits, nearest } = countMonstersInCone(px, py, aimAng, monsters, maxRange, halfRad);
+            if (hits > bestHits || (hits === bestHits && nearest < bestNearest)) {
+                bestHits = hits;
+                bestNearest = nearest;
+                bestAng = aimAng;
+            }
+        });
+
+        if (bestHits <= 0) return pickNearestEnemyAngle(player, monsters, maxRange);
+        return bestAng;
+    };
+
+    window.pickNearestSkillTarget = function pickNearestSkillTarget(player, monsters, range) {
+        if (!player) return null;
+        let best = null;
+        let bestD = Infinity;
+        (monsters || []).forEach(m => {
+            if (!isSkillTargetMonster(m)) return;
+            const ap = window.getCombatTargetAimPoint(m);
+            const d = Math.hypot(ap.x - player.x, ap.y - player.y);
+            if (d <= range && d < bestD) {
+                bestD = d;
+                best = m;
+            }
+        });
+        return best;
+    };
+
+    /** 战斗单位瞄准点（默认几何中心，供弓箭手等远程锁定） */
+    window.getCombatTargetAimPoint = function getCombatTargetAimPoint(monster) {
+        if (!monster) return null;
+        if (typeof monster.getCombatAimPoint === 'function') {
+            return monster.getCombatAimPoint();
+        }
+        return { x: monster.x, y: monster.y };
+    };
+
+    /**
+     * 弓箭手自动索敌：优先准星/面向扇形内敌人，瞄准点始终为敌人中心
+     */
+    window.pickArcherAutoLockTarget = function pickArcherAutoLockTarget(player, monsters, range, opts) {
+        if (!player) return null;
+        opts = opts || {};
+        const valid = [];
+        (monsters || []).forEach(m => {
+            if (!isSkillTargetMonster(m)) return;
+            const ap = window.getCombatTargetAimPoint(m);
+            const d = Math.hypot(ap.x - player.x, ap.y - player.y);
+            if (d <= range) valid.push(m);
+        });
+        if (!valid.length) return null;
+
+        if (opts.preferFacingCone && typeof player.angle === 'number') {
+            const halfCone = Math.PI / 4;
+            let best = null;
+            let bestD = Infinity;
+            valid.forEach(m => {
+                const ap = window.getCombatTargetAimPoint(m);
+                const dx = ap.x - player.x;
+                const dy = ap.y - player.y;
+                let diff = Math.atan2(dy, dx) - player.angle;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                if (Math.abs(diff) <= halfCone) {
+                    const d2 = dx * dx + dy * dy;
+                    if (d2 < bestD) { bestD = d2; best = m; }
+                }
+            });
+            if (best) return best;
+        }
+
+        if (typeof pickWeaponSkillLockTargetNearestToMouse === 'function' && opts.gameInstance) {
+            const mousePick = pickWeaponSkillLockTargetNearestToMouse(
+                monsters, player, range, opts.gameInstance
+            );
+            if (mousePick && valid.indexOf(mousePick) >= 0) return mousePick;
+        }
+        if (typeof pickWeaponSkillLockTarget === 'function' && opts.gameInstance) {
+            const conePick = pickWeaponSkillLockTarget(monsters, player, range, opts.gameInstance);
+            if (conePick && valid.indexOf(conePick) >= 0) return conePick;
+        }
+
+        let nearest = valid[0];
+        let nd = Infinity;
+        valid.forEach(m => {
+            const ap = window.getCombatTargetAimPoint(m);
+            const d = Math.hypot(ap.x - player.x, ap.y - player.y);
+            if (d < nd) { nd = d; nearest = m; }
+        });
+        return nearest;
+    };
+
+    window.snapPlayerAngleToCombatTarget = function snapPlayerAngleToCombatTarget(player, target) {
+        if (!player || !target) return;
+        const ap = window.getCombatTargetAimPoint(target);
+        if (!ap) return;
+        player.angle = Math.atan2(ap.y - player.y, ap.x - player.x);
+    };
+
+    /**
+     * 位移技能快捷施放：自动锁敌（参考神圣挑衅 pickBestAoeGroundPoint）
+     * @returns {{ groundPoint?, angle?, lockTarget? }|null}
+     */
+    window.buildAutoLockCastOptions = function buildAutoLockCastOptions(player, monsters, skillDef, profile, gameInstance) {
+        if (!player || !profile || profile.autoLockOnTap === false) return null;
+        const opts = {};
+        if (profile.mode === 'ground_aoe') {
+            const pick = profile.leapSlam && typeof window.pickBestLeapSlamGroundPoint === 'function'
+                ? window.pickBestLeapSlamGroundPoint(
+                    player, monsters,
+                    profile.castRange || 200,
+                    profile.aoeRadius || 80
+                )
+                : window.pickBestAoeGroundPoint(
+                    player, monsters,
+                    profile.castRange || 200,
+                    profile.aoeRadius || 80,
+                    {
+                        preferNearCaster: !!profile.leapSlam,
+                        includeMonRadius: !!profile.leapSlam
+                    }
+                );
+            opts.groundPoint = { x: pick.x, y: pick.y };
+        } else if (profile.mode === 'direction_line') {
+            opts.angle = window.pickBestLineAngle(
+                player, monsters,
+                profile.distance || profile.range || 200,
+                profile.width || 40
+            );
+        } else if (profile.mode === 'cone') {
+            opts.angle = window.pickBestConeAngle(
+                player, monsters,
+                profile.range || 80,
+                profile.halfAngleDeg || 45
+            );
+        } else if (profile.mode === 'target_lock') {
+            let target = null;
+            if (profile.bondAlly && typeof window.pickNearestAllyTarget === 'function' && gameInstance) {
+                target = window.pickNearestAllyTarget(
+                    player, gameInstance, profile.lockRange || 120
+                );
+            }
+            if (!target && typeof pickWeaponSkillLockTargetNearestToMouse === 'function' && gameInstance) {
+                target = pickWeaponSkillLockTargetNearestToMouse(
+                    monsters, player, profile.lockRange || 120, gameInstance
+                );
+            }
+            if (!target) {
+                target = window.pickNearestSkillTarget(player, monsters, profile.lockRange || 120);
+            }
+            if (!target && typeof window.pickArcherAutoLockTarget === 'function'
+                && skillDef && (skillDef.classId === 'archer' || skillDef.entityConfig && skillDef.entityConfig.lockTargetCenter)) {
+                target = window.pickArcherAutoLockTarget(player, monsters, profile.lockRange || 120, {
+                    gameInstance,
+                    preferFacingCone: false
+                });
+            }
+            if (target) opts.lockTarget = target;
+        }
+        return Object.keys(opts).length ? opts : null;
+    };
+
+    function markDisplacementProfile(profile) {
+        if (!profile) return profile;
+        if (profile.autoLockOnTap !== false) profile.autoLockOnTap = true;
+        return profile;
+    }
 
     window.getResourceFamilyMeta = function getResourceFamilyMeta(family) {
         const c = cfg();
@@ -194,10 +821,13 @@
             return;
         }
         const meta = window.getResourceFamilyMeta(family);
+        const resCfg = getClassResourceConfig(player.classData);
+        const max = (resCfg && resCfg.max != null) ? resCfg.max : meta.max;
         player.classResource = {
             family,
-            current: meta.max,
-            max: meta.max
+            current: max,
+            max,
+            reloadAccumMs: 0
         };
     };
 
@@ -241,12 +871,65 @@
             ? window.getSkillDefinition(skillDefOrId)
             : skillDefOrId;
         if (!def) return null;
-        return window.resolveEvolvedSkill(def, player.classData, player.level);
+        let resolved = window.resolveEvolvedSkill(def, player.classData, player.level);
+        if (typeof window.applyMarksmanSkillResourceOverrides === 'function') {
+            resolved = window.applyMarksmanSkillResourceOverrides(player, resolved);
+        }
+        if (typeof window.applyBeastmasterSkillDisplayOverrides === 'function') {
+            resolved = window.applyBeastmasterSkillDisplayOverrides(player, resolved);
+        }
+        if (typeof window.applyDeadeyeSkillOverrides === 'function') {
+            resolved = window.applyDeadeyeSkillOverrides(player, resolved);
+        }
+        if (typeof window.applyPhantomSkillOverrides === 'function') {
+            resolved = window.applyPhantomSkillOverrides(player, resolved);
+        }
+        if (typeof window.applyWizardSkillOverrides === 'function') {
+            resolved = window.applyWizardSkillOverrides(player, resolved);
+        }
+        if (typeof window.applyArchmageSkillOverrides === 'function') {
+            resolved = window.applyArchmageSkillOverrides(player, resolved);
+        }
+        return resolved;
     };
+
+    function enrichBasicClassSkill(player, basic) {
+        if (!basic) return null;
+        let out = Object.assign({}, basic);
+        if ((!out.entityType || !out.entityConfig) && typeof window.getSkillEntityConfig === 'function') {
+            const mapped = window.getSkillEntityConfig(out);
+            if (mapped) {
+                if (!out.entityType && mapped.entityType) out.entityType = mapped.entityType;
+                if (!out.entityConfig && mapped.entityConfig) {
+                    out.entityConfig = Object.assign({}, mapped.entityConfig);
+                }
+            }
+        }
+        if (typeof window.isAssassinTreePlayer === 'function' && window.isAssassinTreePlayer(player)
+            && typeof window.resolveAssassinBasicAttack === 'function') {
+            out = window.resolveAssassinBasicAttack(player, out);
+        }
+        return out;
+    }
 
     /** 当前职业普攻（basic 槽位）技能，已解析进化形态 */
     window.getPlayerBasicClassSkill = function getPlayerBasicClassSkill(player) {
         if (!player || !window.hasPlayerClass(player.classData)) return null;
+        const baseClass = window.getPlayerBaseClassId(player.classData);
+        if (baseClass === 'warrior') {
+            const warriorBasic = window.getSkillDefinition('warrior_basic');
+            if (warriorBasic) {
+                const prog = window.getActiveClassProgressionId(player.classData);
+                if (prog === 'knight' || prog === 'paladin') {
+                    return enrichBasicClassSkill(player, Object.assign({}, warriorBasic, {
+                        description: prog === 'paladin'
+                            ? '【圣骑士·三段圣斩】横斩/上挑/重劈，附圣光特效，每段产生8点神圣怒气。'
+                            : '【骑士·三段圣斩】横斩/上挑/重劈，附圣光特效，每段产生8点神圣怒气。'
+                    }));
+                }
+                return enrichBasicClassSkill(player, warriorBasic);
+            }
+        }
         const prog = window.getPlayerSkillProgression(player.classData);
         if (!prog || !prog.length) return null;
         const basicId = prog.find(id => {
@@ -255,8 +938,80 @@
         }) || prog[0];
         const def = window.getSkillDefinition(basicId);
         if (!def) return null;
-        return window.resolveEvolvedSkill(def, player.classData, player.level);
+        const basic = window.resolveEvolvedSkill(def, player.classData, player.level);
+        return enrichBasicClassSkill(player, basic);
     };
+
+    /**
+     * 获取普攻当前连击段位，并在一定窗口后自动重置
+     * @returns {{ step: number, chain: number, isFinisher: boolean }}
+     */
+    function getBasicComboStep(player, skillDef) {
+        const ec = (skillDef && skillDef.entityConfig) || {};
+        const chain = ec.comboChain || 1;
+        const windowMs = ec.comboChainWindowMs || 1800;
+        const now = Date.now();
+        if (player._basicComboStep == null || player._basicComboLastTime == null
+            || now - player._basicComboLastTime > windowMs) {
+            player._basicComboStep = 0;
+        }
+        const step = player._basicComboStep % chain;
+        player._basicComboLastTime = now;
+        player._basicComboStep = (step + 1) % chain;
+        return { step, chain, isFinisher: step === chain - 1 };
+    }
+
+    /**
+     * 将 comboStep 参数覆盖到技能定义的 entityConfig 副本上
+     * @returns {object} 新的技能定义副本（浅拷贝+entityConfig深拷贝）
+     */
+    function applyBasicComboOverrides(skillDef, step) {
+        const ec = skillDef.entityConfig || {};
+        const ov = {};
+
+        if (ec.comboStepDamage && ec.comboStepDamage[step] != null)
+            ov.damageMultiplier = ec.comboStepDamage[step];
+        if (ec.comboStepRange && ec.comboStepRange[step] != null)
+            ov.range = ec.comboStepRange[step];
+        if (ec.comboStepAngle && ec.comboStepAngle[step] != null) {
+            const fullAngle = ec.comboStepAngle[step];
+            ov.halfAngleDeg = fullAngle / 2;
+            // 360° ≈ 全圆 → 切换为 radial 形状（战士第3段重劈）
+            if (fullAngle >= 350) ov.shape = 'radial';
+        }
+        // 普攻不再应用 comboStepKnockback 击退
+        if (ec.comboStepProjectiles && ec.comboStepProjectiles[step] != null)
+            ov.projectileCount = ec.comboStepProjectiles[step];
+        if (ec.comboStepSpread && ec.comboStepSpread[step] != null)
+            ov.spreadAngleDeg = ec.comboStepSpread[step];
+        if (ec.comboStepPierce && ec.comboStepPierce[step] != null)
+            ov.pierceCount = ec.comboStepPierce[step];
+        if (ec.comboStepResourcePerHit && ec.comboStepResourcePerHit[step] != null)
+            ov.resourcePerHit = ec.comboStepResourcePerHit[step];
+        if (ec.comboStepProjectileStagger && ec.comboStepProjectileStagger[step] != null)
+            ov.projectileStaggerMs = ec.comboStepProjectileStagger[step];
+        if (ec.comboStepWindupMs && ec.comboStepWindupMs[step] != null)
+            ov.windupMs = ec.comboStepWindupMs[step];
+        if (ec.comboStepSpeed && ec.comboStepSpeed[step] != null)
+            ov.speed = ec.comboStepSpeed[step];
+        if (ec.comboStepExplosion && ec.comboStepExplosion[step] != null)
+            ov.explodeRadius = ec.comboStepExplosion[step];
+        if (ec.comboStepDash && ec.comboStepDash[step] != null && ec.comboStepDash[step] > 0)
+            ov._comboDash = ec.comboStepDash[step];
+        if (ec.comboStepDashBehind && ec.comboStepDashBehind[step]) {
+            ov._comboDashBehind = true;
+            ov.shape = 'pierce';
+            ov.pierceWidth = ec.pierceWidth || 28;
+        }
+
+        const newEc = Object.assign({}, ec, ov);
+        const chain = ec.comboChain || 1;
+        const newSkill = Object.assign({}, skillDef, { entityConfig: newEc });
+        newSkill._comboStep = step;
+        newSkill._comboChain = chain;
+        newSkill._comboDashBehind = !!ov._comboDashBehind;
+        return newSkill;
+    }
 
     /**
      * 普攻时释放职业 basic 实体技能（飞弹/扇形斩等）
@@ -264,11 +1019,88 @@
      */
     window.tryPerformClassBasicAttack = function tryPerformClassBasicAttack(player, monsters, gameInstance) {
         if (!player || !gameInstance) return false;
-        const basic = window.getPlayerBasicClassSkill(player);
+        if (typeof window.isDeadeyeSnipeActive === 'function' && window.isDeadeyeSnipeActive(player)) {
+            return false;
+        }
+        let basic = window.getPlayerBasicClassSkill(player);
         if (!basic || !basic.entityType || !basic.entityConfig) return false;
         if (typeof window.castSkillEntity !== 'function') return false;
+
+        const comboInfo = getBasicComboStep(player, basic);
+        const modified = applyBasicComboOverrides(basic, comboInfo.step);
+        // 暂存到 player 供 VFX / 资源等读取
+        player._lastBasicCombo = comboInfo;
         const now = Date.now();
-        return window.castSkillEntity(player, basic, gameInstance, monsters, now) !== false;
+        const ec = modified.entityConfig || {};
+        const range = ec.maxRange || modified.range || 450;
+        let castOptions = null;
+        let primaryTarget = null;
+        const isAssassinBasic = (modified.classId === 'assassin'
+            || (typeof window.isAssassinTreePlayer === 'function' && window.isAssassinTreePlayer(player)))
+            && (modified.slotType === 'basic' || modified.type === 'basic' || modified.id === 'assassin_basic');
+
+        if (isAssassinBasic && typeof window.pickNearestSkillTarget === 'function') {
+            let lockRange = Math.max(
+                ec.range || modified.range || 55,
+                ec.maxRange || 0,
+                modified.range || 0
+            );
+            if (ec.comboStepRange && ec.comboStepRange.length) {
+                lockRange = Math.max(lockRange, ...ec.comboStepRange);
+            }
+            lockRange += 48;
+            if (gameInstance && (gameInstance.currentScene === 'skill_lab'
+                || gameInstance.currentScene === 'training')) {
+                lockRange = Math.max(lockRange, 140);
+            }
+            primaryTarget = window.pickNearestSkillTarget(player, monsters, lockRange);
+            if (primaryTarget) {
+                if (typeof window.snapPlayerAngleToCombatTarget === 'function') {
+                    window.snapPlayerAngleToCombatTarget(player, primaryTarget);
+                }
+                castOptions = { lockTarget: primaryTarget };
+            }
+        } else if (typeof window.pickArcherAutoLockTarget === 'function'
+            && (modified.classId === 'archer' || ec.lockTargetCenter)) {
+            primaryTarget = window.pickArcherAutoLockTarget(player, monsters, range, {
+                gameInstance,
+                preferFacingCone: true
+            });
+            if (primaryTarget) {
+                if (typeof window.snapPlayerAngleToCombatTarget === 'function') {
+                    window.snapPlayerAngleToCombatTarget(player, primaryTarget);
+                }
+                castOptions = { lockTarget: primaryTarget };
+            }
+        }
+        const result = window.castSkillEntity(player, modified, gameInstance, monsters, now, castOptions);
+        /** 骗术师/幻术师：分身复读普攻 */
+        if (result !== false && result != null && typeof window.replicateSkillToClones === 'function') {
+            window.replicateSkillToClones(player, modified, gameInstance, monsters, now, castOptions);
+        }
+        if (result !== false && result != null) {
+            if (typeof window.playClassSkillVfx === 'function') {
+                if (!primaryTarget && typeof window.pickNearestSkillTarget === 'function') {
+                    const vfxRange = Math.max(ec.range || modified.range || 55, range);
+                    primaryTarget = window.pickNearestSkillTarget(player, monsters, vfxRange + 40);
+                }
+                window.playClassSkillVfx(player, modified, gameInstance, {
+                    comboStep: comboInfo.step,
+                    comboChain: comboInfo.chain,
+                    primaryTarget,
+                    hitTargets: primaryTarget ? [primaryTarget] : [],
+                    hit: true
+                });
+            }
+            if (comboInfo.chain > 1 && gameInstance && typeof gameInstance.addFloatingText === 'function') {
+                const hitNum = comboInfo.step + 1;
+                const color = comboInfo.isFinisher ? '#ffdd44' : '#ccddff';
+                gameInstance.addFloatingText(player.x, player.y - 32,
+                    hitNum + '/' + comboInfo.chain, color, 900, 16);
+            }
+            return true;
+        }
+        return false;
     };
 
     window.recordSkillComboCast = function recordSkillComboCast(player, skillDef) {
@@ -494,13 +1326,25 @@
 
     window.canAffordSkillCost = function canAffordSkillCost(player, skillDef) {
         if (!skillDef || !skillDef.resourceCost) return true;
+        let cost = skillDef.resourceCost;
+        if (typeof window.getWizardResourceCostMult === 'function') {
+            cost = Math.ceil(cost * window.getWizardResourceCostMult(player));
+        }
         const st = window.getPlayerResourceState(player);
-        return st.current >= skillDef.resourceCost;
+        return st.current >= cost;
     };
 
     window.spendSkillResource = function spendSkillResource(player, skillDef) {
         if (!player || !player.classResource || !skillDef || !skillDef.resourceCost) return;
-        player.classResource.current = Math.max(0, player.classResource.current - skillDef.resourceCost);
+        let cost = skillDef.resourceCost;
+        if (typeof window.getWizardResourceCostMult === 'function') {
+            cost = Math.ceil(cost * window.getWizardResourceCostMult(player));
+        }
+        player.classResource.current = Math.max(0, player.classResource.current - cost);
+        const meta = window.getResourceFamilyMeta(player.classResource.family);
+        if (meta.magazineReloadMs && player.classResource.current < player.classResource.max) {
+            player.classResource.reloadAccumMs = 0;
+        }
     };
 
     window.grantSkillResource = function grantSkillResource(player, amount) {
@@ -512,10 +1356,28 @@
         if (!player || !player.classResource) return;
         const meta = window.getResourceFamilyMeta(player.classResource.family);
         if (meta.regenPerSec) {
+            let regen = meta.regenPerSec;
+            if (typeof window.getWizardRegenMult === 'function') {
+                regen *= window.getWizardRegenMult(player);
+            }
             player.classResource.current = Math.min(
                 player.classResource.max,
-                player.classResource.current + meta.regenPerSec * dtSec
+                player.classResource.current + regen * dtSec
             );
+        }
+        if (meta.magazineReloadMs && player.classResource.current < player.classResource.max) {
+            const now = Date.now();
+            const reloadPaused = typeof window.isMarksmanAmmoReloadPaused === 'function'
+                && window.isMarksmanAmmoReloadPaused(player, now);
+            if (!reloadPaused) {
+                player.classResource.reloadAccumMs = (player.classResource.reloadAccumMs || 0) + dtSec * 1000;
+                if (player.classResource.reloadAccumMs >= meta.magazineReloadMs) {
+                    player.classResource.current = player.classResource.max;
+                    player.classResource.reloadAccumMs = 0;
+                }
+            }
+        } else if (meta.magazineReloadMs) {
+            player.classResource.reloadAccumMs = 0;
         }
         if (!inCombat && meta.outOfCombatDecay) {
             player.classResource.current = Math.max(0, player.classResource.current - meta.outOfCombatDecay * dtSec);
@@ -540,6 +1402,12 @@
         if (meta.onCrit) window.grantSkillResource(player, meta.onCrit);
     };
 
+    window.onPlayerKillResource = function onPlayerKillResource(player) {
+        if (!player || !player.classResource) return;
+        const meta = window.getResourceFamilyMeta(player.classResource.family);
+        if (meta.onKill) window.grantSkillResource(player, meta.onKill);
+    };
+
     window.getSkillCooldownRemaining = function getSkillCooldownRemaining(player, skillId) {
         if (!player || !player.skillCooldowns) return 0;
         const end = player.skillCooldowns[skillId] || 0;
@@ -550,6 +1418,30 @@
         if (!player || !skillDef) return;
         player.skillCooldowns = player.skillCooldowns || {};
         player.skillCooldowns[skillDef.id] = Date.now() + (skillDef.cooldownMs || 0);
+    };
+
+    window.reduceSkillCooldownByFactor = function reduceSkillCooldownByFactor(player, skillId, factor) {
+        if (!player || !skillId || factor == null) return;
+        player.skillCooldowns = player.skillCooldowns || {};
+        const end = player.skillCooldowns[skillId] || 0;
+        const rem = Math.max(0, end - Date.now());
+        if (rem <= 0) return;
+        player.skillCooldowns[skillId] = Date.now() + Math.floor(rem * factor);
+    };
+
+    window.reduceSkillCooldownMs = function reduceSkillCooldownMs(player, skillId, ms) {
+        if (!player || !skillId || !ms) return;
+        player.skillCooldowns = player.skillCooldowns || {};
+        const end = player.skillCooldowns[skillId] || 0;
+        if (end <= Date.now()) return;
+        player.skillCooldowns[skillId] = Math.max(Date.now(), end - ms);
+    };
+
+    window.reduceAllSkillCooldownsMs = function reduceAllSkillCooldownsMs(player, ms) {
+        if (!player || !ms || !player.skillHotbar) return;
+        player.skillHotbar.forEach(function (skillId) {
+            window.reduceSkillCooldownMs(player, skillId, ms);
+        });
     };
 
     window.tryEnhanceSkill = function tryEnhanceSkill(player, skillId) {
@@ -591,32 +1483,50 @@
         if (entityType === 'field' && c.targeted) {
             const castRange = def.range || 220;
             const aoeRadius = c.fieldRadius || (c.onTrigger && c.onTrigger.explodeRadius) || def.aoeRadius || 80;
-            return { mode: 'ground_aoe', castRange, aoeRadius };
+            return markDisplacementProfile({ mode: 'ground_aoe', castRange, aoeRadius });
         }
         if (entityType === 'charge') {
-            return {
+            return markDisplacementProfile({
                 mode: 'direction_line',
                 distance: c.maxDistance || 150,
                 width: (c.collisionRadius || 35) * 2
-            };
+            });
         }
         if (entityType === 'blink') {
             if (c.behindTarget && (c.range || def.range)) {
-                return { mode: 'target_lock', lockRange: c.range || def.range || 100 };
+                return markDisplacementProfile({
+                    mode: 'target_lock',
+                    lockRange: c.range || def.range || 100
+                });
             }
-            return {
+            return markDisplacementProfile({
                 mode: 'direction_line',
                 distance: c.distance || se.distance || 100,
                 width: 28
-            };
+            });
+        }
+        if (entityType === 'instant' && c.shape === 'fissure') {
+            return markDisplacementProfile({
+                mode: 'direction_line',
+                distance: c.range || def.range || 300,
+                width: (c.pierceWidth || 40) * 2
+            });
+        }
+        if (entityType === 'instant' && c.leapSlam && c.targeted) {
+            return markDisplacementProfile({
+                mode: 'ground_aoe',
+                castRange: c.leapRange || def.range || 200,
+                aoeRadius: c.range || def.aoeRadius || 110,
+                leapSlam: true
+            });
         }
         if (entityType === 'instant' && c.shape) {
             if (c.shape === 'cone') {
-                return {
+                return markDisplacementProfile({
                     mode: 'cone',
                     range: c.range || def.range || 80,
                     halfAngleDeg: c.halfAngleDeg || 45
-                };
+                });
             }
             if (c.shape === 'radial') {
                 return { mode: 'self_aoe', aoeRadius: c.range || def.aoeRadius || 80 };
@@ -629,7 +1539,12 @@
             const maxRange = c.maxRange || def.range || 400;
             const explode = c.explodeRadius || 0;
             if (explode > 0) {
-                return { mode: 'ground_aoe', castRange: maxRange, aoeRadius: explode };
+                return markDisplacementProfile({
+                    mode: 'ground_aoe',
+                    castRange: maxRange,
+                    aoeRadius: explode,
+                    autoLockOnTap: c.autoLockOnTap !== false
+                });
             }
             return {
                 mode: 'direction_line',
@@ -639,7 +1554,14 @@
         }
         if (isPrimary) {
             if (se.type === 'blink') {
-                return { mode: 'direction_line', distance: se.distance || 100, width: 24 };
+                return markDisplacementProfile({
+                    mode: 'direction_line',
+                    distance: se.distance || 100,
+                    width: 24
+                });
+            }
+            if (se.type === 'sacred_bond') {
+                return { mode: 'target_lock', lockRange: se.range || def.range || 200, bondAlly: true };
             }
             if (se.type === 'mark' || se.range) {
                 return { mode: 'target_lock', lockRange: se.range || def.range || 120 };
@@ -661,28 +1583,83 @@
         if (typeof window.applyBuildEquipmentSkillModifiers === 'function') {
             skillDef = window.applyBuildEquipmentSkillModifiers(player, skillDef);
         }
-        if (player.isDashing || player.isCastingSkill) return false;
-        if (player._skillCastBar && Date.now() < player._skillCastBar.endTime) return false;
         const now = Date.now();
+        if (player.isDashing || player.isCastingSkill) return false;
+        if (player._leapSlam || player._backstepShot) return false;
+        if (typeof window.isDeadeyeSkillSealed === 'function'
+            && window.isDeadeyeSkillSealed(player, skillDef, now)) {
+            if (gameInstance && typeof gameInstance.addFloatingText === 'function') {
+                gameInstance.addFloatingText(player.x, player.y, '狙击中无法使用', '#ff6666');
+            }
+            return false;
+        }
+        if (player._skillCastBar && now < player._skillCastBar.endTime) return false;
         if (player.dashEndTime && now - player.dashEndTime < 500) return false;
+        if (skillDef.id === 'phantom_echo_blade'
+            && typeof window.tryExecuteVoidStormArraySalvo === 'function'
+            && typeof window.isPlayerInVoidStorm === 'function'
+            && window.isPlayerInVoidStorm(player, now, gameInstance)) {
+            player.isCastingSkill = true;
+            try {
+                return window.tryExecuteVoidStormArraySalvo(
+                    player, monsters, skillDef, gameInstance, castOptions, now
+                );
+            } finally {
+                player.isCastingSkill = false;
+            }
+        }
         const cooldownKey = skillDef.evolutionPath && skillDef.evolutionPath.baseSkillId
             ? skillDef.evolutionPath.baseSkillId : skillDef.id;
-        if (window.getSkillCooldownRemaining(player, cooldownKey) > 0) return false;
-        if (!window.canAffordSkillCost(player, skillDef)) {
+        const stormFreeBlade = typeof window.isPhantomStormFreeWindBlade === 'function'
+            && window.isPhantomStormFreeWindBlade(player, skillDef, now, gameInstance);
+        const beastFreeCmd = typeof window.isBeastRampageFreeCommand === 'function'
+            && window.isBeastRampageFreeCommand(player, skillDef, now, gameInstance);
+        const packRoarFree = skillDef.id === 'pack_roar'
+            && typeof window.isPackRoarFreeMark === 'function'
+            && window.isPackRoarFreeMark(player);
+        const skipCost = stormFreeBlade || beastFreeCmd || packRoarFree;
+        if (!stormFreeBlade && !beastFreeCmd && window.getSkillCooldownRemaining(player, cooldownKey) > 0) return false;
+        if (!skipCost && !window.canAffordSkillCost(player, skillDef)) {
             if (gameInstance && typeof gameInstance.addFloatingText === 'function') {
                 gameInstance.addFloatingText(player.x, player.y, '资源不足', '#ff6666');
             }
             return false;
         }
 
+        const sePre = skillDef.skillEffect || {};
+        if (sePre.mode === 'primary' && sePre.type === 'invincible_field'
+            && typeof window.getHolyShieldStacks === 'function'
+            && window.getHolyShieldStacks(player) <= 0) {
+            if (gameInstance && typeof gameInstance.addFloatingText === 'function') {
+                gameInstance.addFloatingText(player.x, player.y - 20, '需要圣盾层数', '#ff6666');
+            }
+            return false;
+        }
+
         player.isCastingSkill = true;
         try {
-            window.spendSkillResource(player, skillDef);
+            if (!skipCost) {
+                window.spendSkillResource(player, skillDef);
+            }
             const cdDef = Object.assign({}, skillDef, {
                 id: skillDef.evolutionPath && skillDef.evolutionPath.baseSkillId
                     ? skillDef.evolutionPath.baseSkillId : skillDef.id
             });
-            window.setSkillCooldown(player, cdDef);
+            if (!stormFreeBlade && !beastFreeCmd) {
+                const skipCdNow = skillDef.id === 'breath_hold';
+                if (!skipCdNow) {
+                    window.setSkillCooldown(player, cdDef);
+                    if (player._nextSkillCdHalved) {
+                        window.reduceSkillCooldownByFactor(player, cdDef.id, 0.5);
+                        delete player._nextSkillCdHalved;
+                    }
+                }
+            } else if (stormFreeBlade && gameInstance && typeof gameInstance.addFloatingText === 'function') {
+                gameInstance.addFloatingText(player.x, player.y - 36, '风暴风刃!', '#88eeff', 700, 13);
+            } else if (beastFreeCmd && gameInstance && typeof gameInstance.addFloatingText === 'function') {
+                gameInstance.addFloatingText(player.x, player.y - 36, '万兽指令!', '#ffaa44', 700, 13);
+            }
+            if (packRoarFree) player._packRoarFreeMark = false;
             const activeCombo = window.recordSkillComboCast(player, skillDef);
 
             const hasEntity = skillDef.entityType && skillDef.entityConfig;
@@ -692,19 +1669,83 @@
                 && window.isHybridUtilitySkill(skillDef);
             const se = skillDef.skillEffect || {};
 
+            if (typeof window.applyAssassinSkillPrimary === 'function'
+                && window.applyAssassinSkillPrimary(player, skillDef, gameInstance, now, { monsters })) {
+                if (typeof window.playClassSkillVfx === 'function') {
+                    window.playClassSkillVfx(player, skillDef, gameInstance, {
+                        primaryTarget: castOptions && castOptions.lockTarget || null,
+                        hitTargets: [],
+                        hit: true
+                    });
+                }
+                if (gameInstance && typeof gameInstance.addFloatingText === 'function') {
+                    gameInstance.addFloatingText(player.x, player.y - 20, skillDef.name, '#aaddff');
+                }
+                return true;
+            }
+
             /** 实体化技能优先（弹丸/召唤/场域/瞬击/位移/冲撞） */
             if (hasEntity && typeof window.castSkillEntity === 'function') {
+                if (typeof window.prepareMarksmanPrecisionCast === 'function') {
+                    window.prepareMarksmanPrecisionCast(player, skillDef, gameInstance, now);
+                }
                 const entityOk = window.castSkillEntity(player, skillDef, gameInstance, monsters, now, castOptions);
+                /** 骗术师/幻术师：分身复读技能 */
+                if (entityOk !== false && typeof window.replicateSkillToClones === 'function') {
+                    window.replicateSkillToClones(player, skillDef, gameInstance, monsters, now, castOptions);
+                }
                 const skipEntityVfx = skillDef.entityType === 'instant' || skillDef.entityType === 'charge';
                 if (!skipEntityVfx && typeof window.playClassSkillVfx === 'function') {
+                    let vfxPrimary = castOptions && castOptions.lockTarget || null;
+                    if (!vfxPrimary && skillDef.classId === 'archer'
+                        && skillDef.entityType === 'projectile'
+                        && typeof window.pickArcherAutoLockTarget === 'function') {
+                        const ecVfx = skillDef.entityConfig || {};
+                        const vfxRange = ecVfx.maxRange || skillDef.range || 400;
+                        vfxPrimary = window.pickArcherAutoLockTarget(player, monsters, vfxRange, {
+                            gameInstance,
+                            preferFacingCone: skillDef.type === 'basic' || skillDef.slotType === 'basic'
+                        });
+                    }
                     window.playClassSkillVfx(player, skillDef, gameInstance, {
-                        primaryTarget: null,
-                        hitTargets: [],
-                        hit: entityOk !== false
+                        primaryTarget: vfxPrimary,
+                        hitTargets: vfxPrimary ? [vfxPrimary] : [],
+                        hit: entityOk !== false,
+                        groundPoint: castOptions && castOptions.groundPoint,
+                        blinkOriginX: player._lastBlinkOriginX,
+                        blinkOriginY: player._lastBlinkOriginY
                     });
+                }
+                if (isPrimary && typeof window.applyClassSkillPrimaryEffect === 'function') {
+                    window.applyClassSkillPrimaryEffect(player, skillDef, gameInstance, now, { monsters });
                 }
                 if (activeCombo && gameInstance && typeof gameInstance.addFloatingText === 'function') {
                     gameInstance.addFloatingText(player.x, player.y - 36, activeCombo.name || '连携!', '#ffdd44');
+                }
+                if (entityOk !== false && typeof window.onWizardSkillCastPhase === 'function') {
+                    window.onWizardSkillCastPhase(player, skillDef, gameInstance);
+                }
+                if (entityOk !== false && typeof window.onBaseMageSkillCastPhase === 'function') {
+                    window.onBaseMageSkillCastPhase(player, skillDef, gameInstance);
+                }
+                // 闪现场景相位切换：基础法师 blink(switchElementPhase) 或 巫师相位跃迁(phaseShift)
+                if (entityOk !== false && skillDef.entityConfig
+                    && (skillDef.entityConfig.switchElementPhase || skillDef.entityConfig.phaseShift)) {
+                    if (skillDef.entityConfig.switchElementPhase
+                        && typeof window.toggleBaseMagePhaseOnBlink === 'function') {
+                        window.toggleBaseMagePhaseOnBlink(player, gameInstance);
+                    }
+                    // phaseShift 型 blink 的相位切换由实体系统 in entity system: onWizardPhaseShiftComplete 统一处理
+                    if (skillDef.entityConfig.switchElementPhase
+                        && typeof window.toggleElementPhaseOnBlink === 'function') {
+                        window.toggleElementPhaseOnBlink(player, gameInstance);
+                    }
+                }
+                const castSkillId = skillDef.id;
+                const castBaseId = skillDef.evolutionPath && skillDef.evolutionPath.baseSkillId;
+                if (entityOk !== false && (castSkillId === 'backstep_shot' || castBaseId === 'backstep_shot')
+                    && typeof window.onMarksmanBackstepShotUsed === 'function') {
+                    window.onMarksmanBackstepShotUsed(player, gameInstance);
                 }
                 if (gameInstance && typeof gameInstance.addFloatingText === 'function') {
                     gameInstance.addFloatingText(player.x, player.y - 20, skillDef.name, '#aaddff');
@@ -714,16 +1755,31 @@
 
             if (isPrimary) {
                 const applied = typeof window.applyClassSkillPrimaryEffect === 'function'
-                    && window.applyClassSkillPrimaryEffect(player, skillDef, gameInstance, now, { monsters });
+                    && window.applyClassSkillPrimaryEffect(player, skillDef, gameInstance, now, {
+                        monsters,
+                        bondTarget: castOptions && castOptions.lockTarget
+                    });
                 const defensive = typeof window.isDefensiveClassSkill === 'function'
                     && window.isDefensiveClassSkill(skillDef);
-                if (typeof window.playClassSkillVfx === 'function') {
-                    window.playClassSkillVfx(player, skillDef, gameInstance, {
+                if (typeof window.playClassSkillVfx === 'function' && applied !== false) {
+                    const vfxCtx = {
                         primaryTarget: null,
                         hitTargets: [],
-                        hit: false,
+                        hit: applied !== false,
                         defensive
-                    });
+                    };
+                    if (se.type === 'invincible_field') {
+                        vfxCtx.holyDomain = true;
+                        vfxCtx.domainRadius = se.fieldRadius || skillDef.aoeRadius || 150;
+                    }
+                    if (se.type === 'destruction_form') {
+                        vfxCtx.destructionTransform = true;
+                        vfxCtx.aoeRadius = se.pulseRadius || skillDef.aoeRadius || 160;
+                    }
+                    window.playClassSkillVfx(player, skillDef, gameInstance, vfxCtx);
+                }
+                if (applied === false) {
+                    return false;
                 }
                 if (gameInstance && typeof gameInstance.addFloatingText === 'function') {
                     gameInstance.addFloatingText(player.x, player.y - 20, skillDef.name, defensive ? '#88ccff' : '#aaddff');
@@ -751,7 +1807,7 @@
             const dealSkillDamage = (m, rawDmg) => {
                 let dmg = rawDmg;
                 if (typeof window.getClassSkillMarkBonus === 'function') {
-                    const mark = window.getClassSkillMarkBonus(m);
+                    const mark = window.getClassSkillMarkBonus(m, skillDef);
                     dmg = Math.max(1, Math.floor(dmg * mark.mult));
                 }
                 if (typeof window.getCombatStatusDamageMultiplier === 'function') {
@@ -872,7 +1928,9 @@
             return hit || aoe > 0 || isHybrid
                 || (skillDef.effectTags && skillDef.effectTags.includes('buff'));
         } finally {
-            player.isCastingSkill = false;
+            if (!player._lifeDrainActive) {
+                player.isCastingSkill = false;
+            }
         }
     };
 

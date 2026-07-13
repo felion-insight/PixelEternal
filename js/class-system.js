@@ -266,12 +266,19 @@
         if (!player) return 0;
         const weapon = player.equipment && player.equipment.weapon;
         const wt = weapon && weapon.weaponType;
-        const resolved = window.resolveWeaponTypeFromLegacy(wt);
-        const isMagic = ['staff', 'book', 'orb', 'rune'].includes(resolved);
-        const base = isMagic ? (player.baseMagicAttack || 0) : (player.baseAttack || 0);
-        const classId = window.getActiveClassId(player.classData);
-        const aff = window.getWeaponAffinityMultiplier(classId, wt || resolved);
-        let atk = Math.max(1, Math.floor(base * aff));
+        let atk;
+        if (!weapon) {
+            // 无武器时：使用角色自身最优攻击属性，不需要武器亲和倍率
+            const best = Math.max(player.baseAttack || 0, player.baseMagicAttack || 0);
+            atk = Math.max(1, Math.floor(best));
+        } else {
+            const resolved = window.resolveWeaponTypeFromLegacy(wt);
+            const isMagic = ['staff', 'book', 'orb', 'rune'].includes(resolved);
+            const base = isMagic ? (player.baseMagicAttack || 0) : (player.baseAttack || 0);
+            const classId = window.getActiveClassId(player.classData);
+            const aff = window.getWeaponAffinityMultiplier(classId, wt || resolved);
+            atk = Math.max(1, Math.floor(base * aff));
+        }
         if (typeof window.getBloodBattleBonuses === 'function') {
             const bb = window.getBloodBattleBonuses(player);
             if (bb.attackPercent > 0) {

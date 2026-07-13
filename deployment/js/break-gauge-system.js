@@ -75,6 +75,9 @@
             if (typeof window.onBuildBreak === 'function') {
                 window.onBuildBreak(player);
             }
+            if (typeof window.onMonsterBreakGaugeBroken === 'function') {
+                window.onMonsterBreakGaugeBroken(monster, player, now);
+            }
         }
     };
 
@@ -92,7 +95,7 @@
 
     window.getStrikerDamageBonus = function getStrikerDamageBonus(player, monster) {
         const role = window.getPlayerBattleRole(player);
-        if (role !== 'striker') return 1;
+        if (role !== 'striker' && role !== 'breaker') return 1;
         if (monster && monster._breakVulnerable && monster._breakVulnerable.until > Date.now()) {
             return 1.5;
         }

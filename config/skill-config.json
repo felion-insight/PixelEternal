@@ -71,6 +71,12 @@
       "name": "能量",
       "max": 120,
       "regenPerSec": 12
+    },
+    "shadow_force": {
+      "name": "影之力",
+      "max": 100,
+      "regenPerSec": 0,
+      "onBasicAttack": 8
     }
   },
   "resourceToFamily": {
@@ -85,9 +91,11 @@
     "chronos_sand": "chronos_sand",
     "soul_shard": "soul_shard_v2",
     "energy": "energy",
-    "combo_point": "energy",
-    "illusion": "energy",
-    "poison_stack": "energy"
+    "shadow_force": "shadow_force",
+    "combo_point": "shadow_force",
+    "illusion": "shadow_force",
+    "poison_stack": "shadow_force",
+    "catalyst": "shadow_force"
   },
   "enhanceConfig": {
     "maxLevel": 5,
@@ -601,19 +609,19 @@
       "breakDamageMultiplier": 1,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【普攻】奥术飞弹 — 追踪飞弹，连续发射。第三发为强化飞弹（1.3x伤害+小爆炸）。每发产生8点法力。",
+      "description": "【普攻】奥术飞弹 — 追踪射线飞弹。无相位为紫色，灼热相位红色，霜寒相位蓝色。元素共振/觉醒时附带穿透溅射。",
       "entityType": "projectile",
       "entityConfig": {
-        "speed": 420,
+        "speed": 520,
         "maxRange": 500,
         "trajectory": "homing",
         "pierceCount": 0,
         "collisionRadius": 18,
         "hitEffect": "spark",
-        "windupMs": 100,
+        "windupMs": 0,
         "color": "#aa88ff",
         "comboChain": 3,
-        "comboStepDamage": [1.0, 1.0, 1.3],
+        "comboStepDamage": [1.0, 1.1, 1.4],
         "comboStepExplosion": [0, 0, 40],
         "resourcePerHit": 8
       }
@@ -628,8 +636,8 @@
       "type": "active",
       "category": "class",
       "resourceType": "mana",
-      "resourceCost": 20,
-      "cooldownMs": 2500,
+      "resourceCost": 15,
+      "cooldownMs": 2000,
       "damageMultiplier": 2.0,
       "range": 600,
       "aoeRadius": 0,
@@ -640,16 +648,16 @@
         "baseSkillId": "fireball",
         "slotType": "core1",
         "firstAdvancement": {
-          "wizard": { "newSkillId": "flame_bolt", "unlockLevel": 20 },
+          "wizard": { "newSkillId": "elemental_burst", "unlockLevel": 20 },
           "warlock": { "newSkillId": "agony_curse", "unlockLevel": 20 }
         },
         "secondAdvancement": {
-          "archmage": { "newSkillId": "lava_storm", "unlockLevel": 40 },
+          "archmage": { "newSkillId": "elemental_burst", "unlockLevel": 40 },
           "necromancer": { "newSkillId": "spreading_curse", "unlockLevel": 40 }
         }
       },
       "buildId": null,
-      "description": "【技能A·火球术】直线火球，命中爆炸（半径70），2.0x伤害，施加灼烧4s。使用后进入灼热相位。",
+      "description": "【技能A·火球术】直线火球，命中爆炸（半径70），2.0x伤害。命中施加1层灼烧(4s)，爆炸范围额外+1层。使用后进入灼热相位。",
       "entityType": "projectile",
       "entityConfig": {
         "speed": 420,
@@ -659,17 +667,18 @@
         "collisionRadius": 50,
         "hitEffect": "explode",
         "explodeRadius": 70,
-        "windupMs": 150,
+        "windupMs": 60,
         "damageMultiplier": 2.0,
         "color": "#ff6600",
         "elementTag": "fire",
-        "statusOnHit": [{ "type": "burn", "durationMs": 4000 }]
+        "statusOnHit": [{ "type": "burn", "durationMs": 4000, "stacks": 1 }],
+        "explodeStatusOnHit": [{ "type": "burn", "durationMs": 4000, "stacks": 1 }]
       }
     },
 
     "frost_nova": {
       "id": "frost_nova",
-      "name": "冰霜新星",
+      "name": "极寒之地",
       "classId": "mage",
       "unlockLevel": 6,
       "slotType": "core2",
@@ -677,33 +686,40 @@
       "category": "class",
       "resourceType": "mana",
       "resourceCost": 25,
-      "cooldownMs": 5000,
+      "cooldownMs": 4000,
       "damageMultiplier": 1.2,
-      "range": 100,
+      "range": 420,
       "aoeRadius": 100,
-      "effectTags": ["aoe", "cc", "frostbite"],
+      "effectTags": ["aoe", "cc", "frostbite", "field"],
       "statusEffects": [],
       "breakDamageMultiplier": 1.2,
       "evolutionPath": {
         "baseSkillId": "frost_nova",
         "slotType": "core2",
         "firstAdvancement": {
-          "wizard": { "newSkillId": "chain_lightning", "unlockLevel": 20 }
+          "wizard": { "newSkillId": "phase_shift", "unlockLevel": 20 }
         },
         "secondAdvancement": {
-          "archmage": { "newSkillId": "aurora_beam", "unlockLevel": 40 }
+          "archmage": { "newSkillId": "phase_shift", "unlockLevel": 40 }
         }
       },
       "buildId": null,
-      "description": "【技能B·冰霜新星】以自身为中心释放冰环（半径100），1.2x伤害，冻结周围敌人2s，施加冻伤。使用后进入霜寒相位。",
-      "entityType": "instant",
+      "description": "【技能B·极寒之地】鼠标指向地面放置冰冻区域（半径100，持续3s）。初始冻结1.5s+冻伤，区域内敌人减速30%。使用后进入霜寒相位。",
+      "entityType": "field",
       "entityConfig": {
-        "shape": "radial",
-        "range": 100,
+        "targeted": true,
+        "fieldRadius": 100,
+        "fieldDurationMs": 3000,
+        "initialBurst": true,
         "damageMultiplier": 1.2,
-        "freezeMs": 2000,
-        "windupMs": 150,
+        "freezeMs": 1500,
+        "windupMs": 60,
+        "tickIntervalMs": 500,
+        "triggerType": "periodic",
+        "enemySlowPercent": 30,
+        "enemySlowMs": 600,
         "elementTag": "frost",
+        "visualVariant": "frozen_ground",
         "statusOnHit": [{ "type": "frostbite", "durationMs": 4000 }],
         "color": "#88ccff"
       }
@@ -718,8 +734,8 @@
       "type": "active",
       "category": "class",
       "resourceType": "mana",
-      "resourceCost": 30,
-      "cooldownMs": 8000,
+      "resourceCost": 18,
+      "cooldownMs": 5000,
       "damageMultiplier": 1.0,
       "range": 120,
       "aoeRadius": 60,
@@ -737,14 +753,14 @@
         }
       },
       "buildId": null,
-      "description": "【技能C·闪现】瞬移到鼠标方向120码，起点和终点各释放奥术冲击（半径60，1.0x伤害）。切换元素相位。最多2层充能。",
+      "description": "【技能C·闪现】瞬移到鼠标方向120码，起点和终点各释放奥术冲击（半径60，1.0x伤害）。切换元素相位并释放相位脉冲，返还15法力。",
       "entityType": "blink",
       "entityConfig": {
         "distance": 120,
         "direction": "facing",
         "windupMs": 50,
         "invincibleMs": 150,
-        "maxCharges": 2,
+        "maxCharges": 1,
         "blastOnStartRadius": 60,
         "blastOnEndRadius": 60,
         "blastDamageMultiplier": 1.0,
@@ -773,16 +789,16 @@
         "baseSkillId": "elemental_storm",
         "slotType": "survival",
         "firstAdvancement": {
-          "wizard": { "newSkillId": "elemental_symphony", "unlockLevel": 20 },
+          "wizard": { "newSkillId": "elemental_awakening", "unlockLevel": 20 },
           "warlock": { "newSkillId": "dark_harvest", "unlockLevel": 20 }
         },
         "secondAdvancement": {
-          "archmage": { "newSkillId": "meteor", "unlockLevel": 40 },
+          "archmage": { "newSkillId": "elemental_awakening", "unlockLevel": 40 },
           "necromancer": { "newSkillId": "nether_gate", "unlockLevel": 40 }
         }
       },
       "buildId": null,
-      "description": "【终极·元素风暴】爆发元素能量！半径150冲击波+8s内所有技能冷却减半、消耗减半、伤害+30%。",
+      "description": "【终极·元素风暴】爆发元素能量！灼热相位：大范围灼烧爆发+击退；霜寒相位：强冻结+减速。",
       "entityType": "instant",
       "entityConfig": {
         "shape": "radial",
@@ -790,8 +806,9 @@
         "damageMultiplier": 1.0,
         "knockback": 40,
         "windupMs": 300,
+        "phaseVariant": true,
         "statusOnHit": [
-          { "type": "burn", "durationMs": 3000 },
+          { "type": "burn", "durationMs": 3000, "stacks": 1 },
           { "type": "frostbite", "durationMs": 3000 }
         ]
       },
@@ -809,13 +826,13 @@
 
     "assassin_basic": {
       "id": "assassin_basic",
-      "name": "暗影击",
+      "name": "影刃",
       "classId": "assassin",
       "unlockLevel": 1,
       "slotType": "basic",
       "type": "basic",
       "category": "class",
-      "resourceType": "energy",
+      "resourceType": "shadow_force",
       "resourceCost": 0,
       "cooldownMs": 450,
       "damageMultiplier": 1.0,
@@ -826,213 +843,219 @@
       "breakDamageMultiplier": 1,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【普攻】暗影击 — ①刺击（35°锥形）②横扫（50°锥形）③穿透突刺（穿透敌人并闪至其身后）。每段产生10点能量，叠加1连击点。",
+      "description": "【普攻·影刃】4段连击：刺击→横扫→回旋→终结穿刺。每段+8影之力，段4闪至身后。",
       "entityType": "instant",
       "entityConfig": {
         "shape": "cone",
-        "range": 55,
+        "range": 50,
         "halfAngleDeg": 35,
         "damageMultiplier": 1.0,
-        "windupMs": 0,
-        "comboChain": 3,
-        "comboStepDamage": [1.0, 1.1, 1.3],
-        "comboStepRange": [50, 55, 72],
-        "comboStepAngle": [35, 50, 30],
-        "comboStepDash": [0, 0, 35],
-        "comboStepDashBehind": [false, false, true],
+        "windupMs": 50,
+        "comboChain": 4,
+        "comboChainWindowMs": 2000,
+        "comboStepDamage": [1.0, 1.1, 1.2, 1.6],
+        "comboStepRange": [50, 55, 60, 65],
+        "comboStepAngle": [35, 50, 360, 30],
+        "comboStepDash": [0, 12, 0, 35],
+        "comboStepDashBehind": [false, false, false, true],
         "pierceWidth": 28,
-        "resourcePerHit": 10
+        "resourcePerHit": 8
       }
     },
 
-    "shadow_step": {
-      "id": "shadow_step",
-      "name": "暗影步",
+    "shadow_pierce": {
+      "id": "shadow_pierce",
+      "name": "暗影突刺",
       "classId": "assassin",
       "unlockLevel": 3,
       "slotType": "core1",
       "type": "active",
       "category": "class",
-      "resourceType": "energy",
-      "resourceCost": 15,
-      "cooldownMs": 2000,
+      "resourceType": "shadow_force",
+      "resourceCost": 20,
+      "cooldownMs": 3000,
       "damageMultiplier": 1.8,
-      "range": 120,
+      "range": 100,
       "aoeRadius": 0,
-      "effectTags": ["mobility", "burst"],
+      "effectTags": ["mobility", "burst", "positional"],
       "statusEffects": [],
-      "breakDamageMultiplier": 1,
+      "breakDamageMultiplier": 1.5,
       "evolutionPath": {
-        "baseSkillId": "shadow_step",
+        "baseSkillId": "shadow_pierce",
         "slotType": "core1",
         "firstAdvancement": {
           "shadowdancer": { "newSkillId": "backstab", "unlockLevel": 20 },
-          "venomancer": { "newSkillId": "venom_blade", "unlockLevel": 20 }
+          "trickster": { "newSkillId": "transposition", "unlockLevel": 20 },
+          "venomancer": { "newSkillId": "venom_sting", "unlockLevel": 20 }
         },
         "secondAdvancement": {
-          "nightblade": { "newSkillId": "shadow_assault", "unlockLevel": 40 },
-          "plaguebringer": { "newSkillId": "plague_blade", "unlockLevel": 40 }
+          "nightblade": { "newSkillId": "assassinate", "unlockLevel": 40 },
+          "illusionist": { "newSkillId": "phantom_reality", "unlockLevel": 40 },
+          "plaguebringer": { "newSkillId": "lethal_venom", "unlockLevel": 40 }
         }
       },
       "buildId": null,
-      "description": "【技能A·暗影步】瞬移到目标身后+下次普攻必暴击（2.0x伤害）。",
-      "entityType": "blink",
+      "description": "【技能A·暗影突刺】向前突刺穿透目标并闪至其身后，命中获得背刺姿态。",
+      "entityType": "charge",
       "entityConfig": {
-        "distance": 120,
-        "behindTarget": true,
-        "windupMs": 80,
-        "vanishMs": 80,
-        "bonusDamageMultiplier": 2.0,
-        "guaranteedCrit": true,
-        "range": 120
+        "speed": 900,
+        "maxDistance": 100,
+        "collisionRadius": 18,
+        "damageMultiplier": 1.8,
+        "pierceThrough": true,
+        "teleportBehindOnHit": true,
+        "behindDistance": 35,
+        "grantBackstabStance": { "durationMs": 3500, "angleDeg": 180 },
+        "windupMs": 60,
+        "superArmor": true
       }
     },
 
-    "smoke_bomb": {
-      "id": "smoke_bomb",
-      "name": "烟雾弹",
+    "shadow_vortex": {
+      "id": "shadow_vortex",
+      "name": "影涡",
       "classId": "assassin",
       "unlockLevel": 6,
       "slotType": "core2",
       "type": "active",
       "category": "class",
-      "resourceType": "energy",
-      "resourceCost": 25,
-      "cooldownMs": 6000,
-      "damageMultiplier": 0.4,
-      "range": 250,
-      "aoeRadius": 80,
-      "effectTags": ["utility", "defense"],
+      "resourceType": "shadow_force",
+      "resourceCost": 30,
+      "cooldownMs": 8000,
+      "damageMultiplier": 2.5,
+      "range": 70,
+      "aoeRadius": 85,
+      "effectTags": ["aoe", "control"],
       "statusEffects": [],
-      "breakDamageMultiplier": 1,
+      "breakDamageMultiplier": 1.2,
       "evolutionPath": {
-        "baseSkillId": "smoke_bomb",
+        "baseSkillId": "shadow_vortex",
         "slotType": "core2",
         "firstAdvancement": {
+          "shadowdancer": { "newSkillId": "shadow_raid", "unlockLevel": 20 },
           "trickster": { "newSkillId": "decoy", "unlockLevel": 20 },
-          "shadowdancer": { "newSkillId": "shadow_dash", "unlockLevel": 20 }
+          "venomancer": { "newSkillId": "poison_mist", "unlockLevel": 20 }
         },
         "secondAdvancement": {
-          "illusionist": { "newSkillId": "quintuple_illusion", "unlockLevel": 40 },
-          "nightblade": { "newSkillId": "night_slash", "unlockLevel": 40 }
+          "nightblade": { "newSkillId": "shadow_dance", "unlockLevel": 40 },
+          "illusionist": { "newSkillId": "mirror_domain", "unlockLevel": 40 },
+          "plaguebringer": { "newSkillId": "plague_cloud", "unlockLevel": 40 }
         }
       },
       "buildId": null,
-      "description": "【技能B·烟雾弹】投掷烟雾弹到目标位置（半径80），烟雾内敌人致盲（攻击落空），自身在烟雾内闪避+50%。烟雾持续6s。",
-      "entityType": "projectile",
+      "description": "【技能B·影涡】前方暗影漩涡三段打击+聚怪，全命中获得影之加速。",
+      "entityType": "instant",
       "entityConfig": {
-        "speed": 500,
-        "maxRange": 250,
-        "trajectory": "straight_toward_target",
-        "pierceCount": 0,
-        "collisionRadius": 20,
-        "damageMultiplier": 0.4,
-        "spawnFieldOnHit": {
-          "fieldRadius": 80,
-          "fieldDurationMs": 6000,
-          "tickIntervalMs": 1000,
-          "blindEnemies": true,
-          "dodgeBuffSelf": 50,
-          "color": "#555566"
-        },
-        "color": "#445566"
-      }
+        "type": "multi_strike",
+        "shape": "cone",
+        "range": 70,
+        "halfAngleDeg": 55,
+        "strikeCount": 3,
+        "strikeIntervalMs": 200,
+        "perStrikeDamage": 0.5,
+        "perStrikePull": 15,
+        "finalBurstDamage": 1.0,
+        "finalBurstRadius": 85,
+        "buffOnFullHit": { "attackSpeed": 20, "moveSpeed": 20, "durationMs": 3000 },
+        "windupMs": 100
+      },
+      "skillEffect": { "mode": "primary", "type": "multi_strike_vortex" }
     },
 
-    "poison_dagger": {
-      "id": "poison_dagger",
-      "name": "毒刃投掷",
+    "shadow_bind": {
+      "id": "shadow_bind",
+      "name": "影缚印记",
       "classId": "assassin",
       "unlockLevel": 10,
       "slotType": "team",
       "type": "active",
       "category": "class",
-      "resourceType": "energy",
-      "resourceCost": 20,
-      "cooldownMs": 8000,
-      "damageMultiplier": 0.5,
-      "range": 300,
+      "resourceType": "shadow_force",
+      "resourceCost": 25,
+      "cooldownMs": 12000,
+      "damageMultiplier": 0.4,
+      "range": 400,
       "aoeRadius": 0,
-      "effectTags": ["dot", "debuff"],
+      "effectTags": ["mark", "team"],
       "statusEffects": [],
       "breakDamageMultiplier": 1,
       "evolutionPath": {
-        "baseSkillId": "poison_dagger",
+        "baseSkillId": "shadow_bind",
         "slotType": "team",
         "firstAdvancement": {
-          "venomancer": { "newSkillId": "poison_mist", "unlockLevel": 20 },
-          "shadowdancer": { "newSkillId": "shadow_illusion", "unlockLevel": 20 }
+          "shadowdancer": { "newSkillId": "shadow_death_mark", "unlockLevel": 20 },
+          "trickster": { "newSkillId": "phantom_trick", "unlockLevel": 20 },
+          "venomancer": { "newSkillId": "contagion", "unlockLevel": 20 }
         },
         "secondAdvancement": {
-          "plaguebringer": { "newSkillId": "contagion", "unlockLevel": 40 },
-          "nightblade": { "newSkillId": "death_mark_assassin", "unlockLevel": 40 }
+          "nightblade": { "newSkillId": "death_sentence", "unlockLevel": 40 },
+          "illusionist": { "newSkillId": "shadow_feast", "unlockLevel": 40 },
+          "plaguebringer": { "newSkillId": "pandemic", "unlockLevel": 40 }
         }
       },
       "buildId": null,
-      "description": "【技能C·毒刃投掷】投掷3把毒匕首（扇形30°），每把0.5x伤害+施加2层中毒+施加易伤（承受伤害+10%，持续6s）。",
+      "description": "【技能C·影缚印记】投掷暗影飞镖标记目标，目标承受伤害+15%。",
       "entityType": "projectile",
       "entityConfig": {
-        "speed": 600,
-        "maxRange": 300,
-        "trajectory": "straight",
-        "projectileCount": 3,
-        "spreadAngleDeg": 30,
+        "speed": 750,
+        "maxRange": 400,
+        "trajectory": "homing",
         "pierceCount": 0,
-        "collisionRadius": 10,
-        "damageMultiplier": 0.5,
-        "statusOnHit": [
-          { "type": "poison", "durationMs": 4000, "stacks": 2 }
-        ],
-        "debuffDmgTakenPercent": 10,
-        "debuffDurationMs": 6000,
-        "color": "#55aa22"
-      }
+        "collisionRadius": 12,
+        "damageMultiplier": 0.4,
+        "markTarget": true,
+        "markDurationMs": 8000,
+        "markOwnerDamageBonus": 15,
+        "markTeamDamageBonus": 15,
+        "color": "#6644aa"
+      },
+      "skillEffect": { "mode": "primary", "type": "mark", "durationMs": 8000, "damageBonus": 15 }
     },
 
-    "assassination": {
-      "id": "assassination",
-      "name": "暗杀",
+    "midnight_raid": {
+      "id": "midnight_raid",
+      "name": "暗夜影袭",
       "classId": "assassin",
       "unlockLevel": 15,
       "slotType": "survival",
       "type": "active",
       "category": "class",
-      "resourceType": "energy",
+      "resourceType": "shadow_force",
       "resourceCost": 100,
       "cooldownMs": 50000,
-      "damageMultiplier": 7.5,
-      "range": 150,
-      "aoeRadius": 0,
-      "effectTags": ["ultimate", "burst"],
+      "damageMultiplier": 2.5,
+      "range": 100,
+      "aoeRadius": 100,
+      "effectTags": ["ultimate", "stealth", "burst"],
       "statusEffects": [],
       "breakDamageMultiplier": 3,
       "evolutionPath": {
-        "baseSkillId": "assassination",
+        "baseSkillId": "midnight_raid",
         "slotType": "survival",
         "firstAdvancement": {
           "shadowdancer": { "newSkillId": "nightfall", "unlockLevel": 20 },
           "trickster": { "newSkillId": "reality_shift", "unlockLevel": 20 },
-          "venomancer": { "newSkillId": "plague_outbreak", "unlockLevel": 20 }
+          "venomancer": { "newSkillId": "toxin_detonation", "unlockLevel": 20 }
         },
         "secondAdvancement": {
           "nightblade": { "newSkillId": "eternal_night", "unlockLevel": 40 },
-          "illusionist": { "newSkillId": "mirror_realm", "unlockLevel": 40 },
-          "plaguebringer": { "newSkillId": "apocalypse_plague", "unlockLevel": 40 }
+          "illusionist": { "newSkillId": "phantom_array", "unlockLevel": 40 },
+          "plaguebringer": { "newSkillId": "withering", "unlockLevel": 40 }
         }
       },
       "buildId": null,
-      "description": "【终极·暗杀】消耗所有连击点（最多5点），瞬移到目标身后致命一击：每连击点+1.5x伤害（5点=7.5x），释放后隐身3s。",
-      "entityType": "blink",
+      "description": "【终极·暗夜影袭】消耗全部影之力，隐身4s全方向背刺+40%伤害，结束终结斩。",
+      "entityType": "instant",
       "entityConfig": {
-        "distance": 150,
-        "behindTarget": true,
-        "windupMs": 100,
-        "bonusDamageMultiplier": 7.5,
-        "perComboPointMult": 1.5,
-        "maxComboPoints": 5,
-        "stealthAfterHit": 3000,
-        "range": 150
-      }
+        "stealthMs": 4000,
+        "moveSpeedBonus": 80,
+        "allAttacksBackstab": true,
+        "damageBonus": 40,
+        "finalSlashRadius": 100,
+        "finalSlashDamage": 2.5,
+        "windupMs": 50
+      },
+      "skillEffect": { "mode": "primary", "type": "midnight_raid", "stealthMs": 4000, "moveSpeedBonus": 80 }
     },
 
     "comment_first_warrior": "══════ 一转·战士分支 ══════",
@@ -2038,84 +2061,105 @@
 
     "comment_first_mage": "══════ 一转·法师分支 ══════",
 
-    "flame_bolt": {
-      "id": "flame_bolt",
-      "name": "烈焰弹",
+    "elemental_burst": {
+      "id": "elemental_burst",
+      "name": "元素爆发",
       "classId": "wizard",
       "unlockLevel": 20,
       "slotType": "core1",
       "type": "active",
       "category": "class",
       "resourceType": "elemental_power",
-      "resourceCost": 28,
-      "cooldownMs": 2500,
-      "damageMultiplier": 2.8,
-      "range": 700,
+      "resourceCost": 25,
+      "cooldownMs": 3000,
+      "damageMultiplier": 3.0,
+      "range": 500,
       "aoeRadius": 0,
-      "effectTags": ["aoe", "burn", "charged"],
+      "effectTags": ["aoe", "elemental", "phase"],
       "statusEffects": [],
-      "breakDamageMultiplier": 1,
+      "breakDamageMultiplier": 1.2,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【巫师·烈焰弹】蓄力1.2s后发射巨大火球，2.8x伤害，爆炸范围+50%，强化灼热相位（火伤+35%）。",
-      "entityType": "projectile",
+      "description": "【巫师·元素爆发】相位变换技能：灼热→烈焰风暴(引导)；极寒→极寒新星(放置)；过载→雷霆之怒(连锁)。满共鸣层时触发元素解放。",
+      "entityType": "instant",
       "entityConfig": {
-        "speed": 380,
-        "maxRange": 700,
-        "trajectory": "straight_toward_target",
-        "pierceCount": 0,
-        "collisionRadius": 70,
-        "hitEffect": "explode",
-        "explodeRadius": 105,
-        "windupMs": 1200,
-        "chargeRequired": true,
-        "damageMultiplier": 2.8,
-        "leaveBurnGroundMs": 4000,
-        "color": "#ff3300",
-        "elementTag": "fire",
-        "enhancedFirePhase": true,
-        "statusOnHit": [{ "type": "burn", "durationMs": 5000 }]
+        "wizardPhaseMorph": true,
+        "skipPhaseSwitch": true,
+        "color": "#ffaa44"
       }
     },
 
-    "chain_lightning": {
-      "id": "chain_lightning",
-      "name": "闪电链",
+    "phase_shift": {
+      "id": "phase_shift",
+      "name": "相位跃迁",
       "classId": "wizard",
       "unlockLevel": 20,
       "slotType": "core2",
       "type": "active",
       "category": "class",
       "resourceType": "elemental_power",
-      "resourceCost": 25,
-      "cooldownMs": 4000,
-      "damageMultiplier": 1.8,
-      "range": 250,
-      "aoeRadius": 0,
-      "effectTags": ["chain", "shock"],
+      "resourceCost": 20,
+      "cooldownMs": 5000,
+      "damageMultiplier": 1.2,
+      "range": 150,
+      "aoeRadius": 70,
+      "effectTags": ["mobility", "aoe", "phase"],
       "statusEffects": [],
       "breakDamageMultiplier": 1,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【巫师·闪电链】连锁闪电（最多5个目标），进入过载相位：电伤+25%，每命中1目标回复5元素能量。",
-      "entityType": "instant",
+      "description": "【巫师·相位跃迁】传送150码并顺时针切换相位。穿越路径造成0.8x旧相位伤害；落点火焰爆发/冻结+冰盾/感电+加速。2层充能。",
+      "entityType": "blink",
       "entityConfig": {
-        "shape": "chain",
-        "range": 250,
-        "chainCount": 5,
-        "chainDecay": 0.15,
-        "damageMultiplier": 1.8,
-        "overloadIfShocked": true,
-        "elementTag": "lightning",
-        "manaPerChainHit": 5,
-        "statusOnHit": [{ "type": "shock", "durationMs": 4000 }],
-        "color": "#44aaff"
+        "distance": 150,
+        "direction": "facing",
+        "windupMs": 80,
+        "invincibleMs": 200,
+        "maxCharges": 2,
+        "phaseShift": true,
+        "pathDamageMult": 0.8,
+        "landRadius": 70,
+        "skipPhaseSwitch": true,
+        "color": "#aa88ff"
       }
     },
 
-    "elemental_symphony": {
-      "id": "elemental_symphony",
-      "name": "元素协奏",
+    "resonance_field": {
+      "id": "resonance_field",
+      "name": "元素共鸣场",
+      "classId": "wizard",
+      "unlockLevel": 20,
+      "slotType": "team",
+      "type": "active",
+      "category": "class",
+      "resourceType": "elemental_power",
+      "resourceCost": 25,
+      "cooldownMs": 12000,
+      "damageMultiplier": 0.5,
+      "range": 420,
+      "aoeRadius": 120,
+      "effectTags": ["field", "team", "phase"],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "【巫师·元素共鸣场】放置元素场(6s)：灼热场+15%攻；冰封场+20%减伤；电弧场+25%攻速。",
+      "entityType": "field",
+      "entityConfig": {
+        "wizardPhaseMorph": true,
+        "targeted": true,
+        "fieldRadius": 120,
+        "fieldDurationMs": 6000,
+        "tickIntervalMs": 1000,
+        "triggerType": "periodic",
+        "skipPhaseSwitch": true,
+        "color": "#ffaa44"
+      }
+    },
+
+    "elemental_awakening": {
+      "id": "elemental_awakening",
+      "name": "元素觉醒",
       "classId": "wizard",
       "unlockLevel": 20,
       "slotType": "survival",
@@ -2125,36 +2169,37 @@
       "resourceCost": 100,
       "cooldownMs": 50000,
       "damageMultiplier": 1.5,
-      "range": 140,
-      "aoeRadius": 140,
-      "effectTags": ["ultimate", "elemental", "synergy"],
+      "range": 999,
+      "aoeRadius": 999,
+      "effectTags": ["ultimate", "elemental", "awakening"],
       "statusEffects": [],
       "breakDamageMultiplier": 1.5,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【巫师·元素协奏】消耗当前相位，触发2种元素共鸣并进入元素解放（6s全伤+50%、冷却-60%）。",
+      "description": "【巫师·元素觉醒】全屏冲击1.5x+刷新全部CD，进入6s觉醒：+40%全伤/-40%CD，所有技能三元素合一。",
       "entityType": "instant",
       "entityConfig": {
         "shape": "radial",
-        "range": 140,
+        "range": 999,
         "damageMultiplier": 1.5,
-        "knockback": 40,
-        "windupMs": 300,
-        "elementalSymphony": true,
+        "knockback": 50,
+        "windupMs": 200,
+        "wizardAwakening": true,
+        "skipPhaseSwitch": true,
         "statusOnHit": [
           { "type": "burn", "durationMs": 3000 },
           { "type": "frostbite", "durationMs": 3000 },
           { "type": "shock", "durationMs": 3000 }
         ],
-        "color": "#ffaa44"
+        "color": "#ffdd44"
       },
       "skillEffect": {
         "mode": "primary",
-        "type": "elemental_liberation",
-        "resonanceCount": 2,
-        "damageBonus": 50,
+        "type": "wizard_awakening",
+        "durationMs": 6000,
+        "damageBonus": 40,
         "cdReduction": 0.4,
-        "durationMs": 6000
+        "refreshCooldowns": true
       }
     },
 
@@ -2363,7 +2408,7 @@
 
     "shadow_arrow": {
       "id": "shadow_arrow",
-      "name": "暗影箭",
+      "name": "暗影连箭",
       "classId": "warlock",
       "unlockLevel": 20,
       "slotType": "basic",
@@ -2380,7 +2425,7 @@
       "breakDamageMultiplier": 1,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【术士·暗影箭】1.0x伤害。命中已有痛苦诅咒目标叠加1层；命中腐蚀目标1.3x伤害。",
+      "description": "【术士·暗影连箭】3连击：①暗影箭1.0x ②蚀箭+腐蚀4s ③痛苦箭1.4x穿透，诅咒目标+1碎片，腐蚀×1.5。",
       "entityType": "projectile",
       "entityConfig": {
         "speed": 480,
@@ -2392,7 +2437,17 @@
         "damageMultiplier": 1.0,
         "corruptionDamageMult": 1.3,
         "stackAgonyOnHit": 1,
-        "color": "#663399"
+        "color": "#663399",
+        "comboChain": 3,
+        "comboChainWindowMs": 2000,
+        "comboStepDamage": [1.0, 1.0, 1.4],
+        "comboStepSpeed": [480, 500, 550],
+        "comboStepPierce": [0, 0, 1],
+        "comboStepColor": ["#663399", "#552277", "#aa44ff"],
+        "comboStepStackAgony": [1, 1, 0],
+        "comboStepApplyCorruptionMs": [0, 4000, 0],
+        "comboStepCorruptionMult": [1.3, 1.3, 1.5],
+        "comboStepGrantShardOnCursed": [false, false, true]
       }
     },
 
@@ -2415,15 +2470,21 @@
       "breakDamageMultiplier": 1,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【术士·痛苦诅咒】叠加可叠层DOT（最多5层，0.15x魔攻/s）。",
+      "description": "【术士·痛苦诅咒】未满层叠DOT；满5层同键引爆：结算剩余DOT+范围爆炸+溅射2层诅咒（消耗1碎片）。",
       "entityType": "instant",
-      "entityConfig": { "shape": "single", "range": 400, "windupMs": 80 },
+      "entityConfig": { "shape": "single", "range": 400, "windupMs": 80, "needLockTarget": true },
       "skillEffect": {
         "mode": "primary",
         "type": "agony_curse",
         "maxStacks": 5,
         "durationMs": 8000,
-        "tickRatio": 0.15
+        "tickRatio": 0.15,
+        "detonateShardCost": 1,
+        "detonateExplosionRadius": 80,
+        "detonateExplosionMult": 1.5,
+        "detonateSplashStacks": 2,
+        "detonateKillRefund": 2,
+        "detonateShardPerStack": 0.2
       }
     },
 
@@ -2436,28 +2497,62 @@
       "type": "active",
       "category": "class",
       "resourceType": "soul_shard",
-      "resourceCost": 0,
+      "resourceCost": 1,
       "cooldownMs": 8000,
       "damageMultiplier": 0.3,
-      "range": 350,
+      "range": 400,
       "aoeRadius": 0,
-      "effectTags": ["dark", "channel", "heal"],
+      "effectTags": ["dark", "heal", "channel"],
       "statusEffects": [],
       "breakDamageMultiplier": 1,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【术士·生命汲取】引导3s：0.3x/s伤害+3%最大生命回复；腐蚀跳频×2；完成+2灵魂碎片。",
+      "description": "【术士·生命汲取】引导3s：每秒0.3x魔攻伤害+回复3%生命；引导期间腐蚀跳×2；完整引导+2碎片。",
       "entityType": "instant",
-      "entityConfig": { "shape": "single", "range": 350, "windupMs": 100 },
+      "entityConfig": { "shape": "single", "range": 400, "windupMs": 60, "needLockTarget": true },
       "skillEffect": {
         "mode": "primary",
         "type": "life_drain",
-        "durationMs": 3000,
-        "tickIntervalMs": 1000,
-        "damageRatio": 0.3,
-        "healPercentPerTick": 3,
-        "corruptionTickMult": 2,
-        "soulShardsOnComplete": 2
+        "channelDurationMs": 3000,
+        "channelTicks": 3,
+        "damageMult": 0.3,
+        "healPercent": 3,
+        "completeShardGrant": 2
+      }
+    },
+
+    "soul_link": {
+      "id": "soul_link",
+      "name": "灵魂链接",
+      "classId": "warlock",
+      "unlockLevel": 20,
+      "slotType": "core2",
+      "type": "active",
+      "category": "class",
+      "resourceType": "soul_shard",
+      "resourceCost": 0,
+      "cooldownMs": 8000,
+      "damageMultiplier": 0,
+      "range": 500,
+      "aoeRadius": 0,
+      "effectTags": ["dark", "heal", "mark"],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "【已废弃·灵魂链接】请使用生命汲取。",
+      "entityType": "instant",
+      "entityConfig": { "shape": "single", "range": 500, "windupMs": 60, "needLockTarget": true },
+      "skillEffect": {
+        "mode": "primary",
+        "type": "soul_link",
+        "durationMs": 8000,
+        "lifestealPercent": 30,
+        "shardPerDotTick": 1,
+        "deathShardGrant": 3,
+        "harvestBonusMult": 1.5,
+        "soulBurnLifestealPercent": 50,
+        "soulBurnShardPerTick": 2
       }
     },
 
@@ -2471,29 +2566,77 @@
       "category": "class",
       "resourceType": "soul_shard",
       "resourceCost": 2,
-      "cooldownMs": 5000,
+      "cooldownMs": 12000,
       "damageMultiplier": 0,
       "range": 100,
       "aoeRadius": 0,
-      "effectTags": ["summon", "undead"],
+      "effectTags": ["summon", "undead", "dark"],
       "statusEffects": [],
       "breakDamageMultiplier": 1,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【术士·召唤骷髅战士】消耗2灵魂碎片，召唤1骷髅战士（最多3），继承40%属性。",
+      "description": "【术士·骷髅战士】消耗2碎片召唤骷髅战士（最多3只），攻击叠诅咒，对腐蚀目标+30%伤害。",
       "entityType": "summon",
       "entityConfig": {
         "summonUnitId": "skeleton_warrior",
         "spawnOffset": 45,
-        "durationMs": 25000,
+        "durationMs": 30000,
         "maxCount": 3,
-        "inheritStats": { "hp": 0.35, "attack": 0.4, "defense": 0.12 },
+        "useMagicAttack": true,
+        "inheritStats": { "hp": 0.4, "attack": 0.4, "defense": 0.15 },
         "aiType": "melee_chase",
-        "attackIntervalMs": 1100,
+        "attackIntervalMs": 900,
         "size": 22,
-        "color": "#bbbb88",
-        "syncBasicAttack": true,
-        "dotBonusDamageRatio": 0.2
+        "color": "#bbbbaa",
+        "preferCursedTarget": true,
+        "agonyStacksOnHit": 1,
+        "soulBurnAgonyStacksOnHit": 2,
+        "isSkeletonWarrior": true,
+        "isUndead": true
+      }
+    },
+
+    "shadow_fiend": {
+      "id": "shadow_fiend",
+      "name": "召唤暗影魔",
+      "classId": "warlock",
+      "unlockLevel": 20,
+      "slotType": "team",
+      "type": "active",
+      "category": "class",
+      "resourceType": "soul_shard",
+      "resourceCost": 2,
+      "cooldownMs": 12000,
+      "damageMultiplier": 0,
+      "range": 100,
+      "aoeRadius": 0,
+      "effectTags": ["summon", "undead", "dark"],
+      "statusEffects": [],
+      "breakDamageMultiplier": 1,
+      "evolutionPath": null,
+      "buildId": null,
+      "description": "【已废弃·暗影魔】请使用召唤骷髅战士。",
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "shadow_fiend",
+        "spawnOffset": 45,
+        "durationMs": 10000,
+        "maxCount": 2,
+        "useMagicAttack": true,
+        "inheritStats": { "hp": 0.35, "attack": 0.5, "defense": 0.12 },
+        "aiType": "melee_chase",
+        "attackIntervalMs": 800,
+        "size": 24,
+        "color": "#442266",
+        "preferCursedTarget": true,
+        "agonyStacksOnHit": 1,
+        "soulBurnAgonyStacksOnHit": 2,
+        "deathExplosionRadius": 60,
+        "deathExplosionMult": 1.0,
+        "deathCurseStacks": 1,
+        "deathCorruptionMs": 4000,
+        "deathShardGrant": 1,
+        "isShadowFiend": true
       }
     },
 
@@ -2507,23 +2650,37 @@
       "category": "class",
       "resourceType": "soul_shard",
       "resourceCost": 0,
-      "cooldownMs": 25000,
+      "cooldownMs": 30000,
       "damageMultiplier": 0,
-      "range": 120,
-      "aoeRadius": 100,
+      "range": 400,
+      "aoeRadius": 120,
       "effectTags": ["ultimate", "dark", "dot"],
       "statusEffects": [],
       "breakDamageMultiplier": 1,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【术士·暗黑丰收】消耗全部灵魂碎片：每片结算3s DOT伤害+半径100施加1层痛苦诅咒。",
-      "entityType": "instant",
-      "entityConfig": { "shape": "radial", "range": 100, "windupMs": 200, "color": "#442266" },
+      "description": "【术士·暗黑丰收】指向放置暗黑漩涡：消耗全部碎片，每片结算2s DOT+诅咒+腐蚀8s；≥5片额外诅咒爆炸。",
+      "entityType": "field",
+      "entityConfig": {
+        "targeted": true,
+        "fieldRadius": 120,
+        "delayMs": 400,
+        "fieldDurationMs": 600,
+        "triggerType": "delayed_strike",
+        "darkHarvest": true,
+        "dotSettlePerShard": 2,
+        "corruptionMs": 8000,
+        "bonusExplosionMinShards": 5,
+        "bonusExplosionRadiusMult": 0.5,
+        "windupMs": 120,
+        "color": "#442266"
+      },
       "skillEffect": {
         "mode": "primary",
         "type": "dark_harvest",
-        "dotSettleSeconds": 3,
-        "curseRadius": 100
+        "dotSettlePerShard": 2,
+        "corruptionMs": 8000,
+        "harvestSoulBurnMult": 1.5
       }
     },
 
@@ -2749,62 +2906,71 @@
       "slotType": "core1",
       "type": "active",
       "category": "class",
-      "resourceType": "energy",
-      "resourceCost": 20,
-      "cooldownMs": 2000,
-      "damageMultiplier": 2.8,
-      "range": 65,
+      "resourceType": "shadow_force",
+      "resourceCost": 25,
+      "cooldownMs": 2500,
+      "damageMultiplier": 3.0,
+      "range": 70,
       "aoeRadius": 0,
       "effectTags": ["burst", "positional"],
       "statusEffects": [],
-      "breakDamageMultiplier": 2,
+      "breakDamageMultiplier": 2.5,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【影舞者·背刺】仅可从背后使用，2.8x伤害+必暴击，命中额外+1连击点。核心爆发技能。",
+      "description": "【影舞者·背刺】仅可从背后使用，3.0x伤害+必暴击，命中+1连击点（暴击额外+1）。",
       "entityType": "instant",
       "entityConfig": {
         "shape": "single",
-        "range": 65,
+        "range": 70,
         "requiresBehind": true,
-        "damageMultiplier": 2.8,
+        "behindAngleDeg": 135,
+        "damageMultiplier": 3.0,
+        "backstabBonusDmg": 50,
+        "guaranteedCritOnBackstab": true,
         "guaranteedCrit": true,
-        "breakDamageMultiplier": 2,
+        "breakDamageMultiplier": 2.5,
         "comboPointOnHit": 1,
+        "comboPointOnCrit": 1,
+        "consumeAllComboPoints": true,
+        "perComboPointMult": 0.30,
         "windupMs": 80
       }
     },
 
-    "shadow_dash": {
-      "id": "shadow_dash",
+    "shadow_raid": {
+      "id": "shadow_raid",
       "name": "影袭",
       "classId": "shadowdancer",
       "unlockLevel": 20,
       "slotType": "core2",
       "type": "active",
       "category": "class",
-      "resourceType": "energy",
-      "resourceCost": 22,
-      "cooldownMs": 4000,
-      "damageMultiplier": 1.5,
+      "resourceType": "shadow_force",
+      "resourceCost": 25,
+      "cooldownMs": 4500,
+      "damageMultiplier": 2.4,
       "range": 140,
       "aoeRadius": 0,
       "effectTags": ["mobility", "burst", "return"],
       "statusEffects": [],
-      "breakDamageMultiplier": 1.2,
+      "breakDamageMultiplier": 1.5,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【影舞者·影袭】快速冲刺穿过目标造成伤害+留下暗影轨迹，0.5s内可再次按技能返回起点（再次造成伤害）。",
+      "description": "【影舞者·影袭】冲刺穿过目标，0.5s内可返回再次造成伤害，返回后背刺角度扩至180°。",
       "entityType": "charge",
       "entityConfig": {
-        "speed": 700,
-        "maxDistance": 140,
-        "collisionRadius": 25,
-        "damageMultiplier": 1.2,
-        "stopOnFirstHit": true,
+        "speed": 750,
+        "maxDistance": 110,
+        "collisionRadius": 22,
+        "damageMultiplier": 1.65,
+        "guaranteedCrit": true,
+        "stopOnFirstHit": false,
         "superArmor": true,
         "dashThrough": true,
-        "returnWindowMs": 500,
-        "returnDamageMultiplier": 1.2
+        "returnWindowMs": 600,
+        "returnDamageMultiplier": 1.65,
+        "autoReturnMs": 220,
+        "grantBackstabStance": { "durationMs": 3500, "angleDeg": 180 }
       }
     },
 
@@ -2852,36 +3018,396 @@
       "slotType": "survival",
       "type": "active",
       "category": "class",
-      "resourceType": "energy",
+      "resourceType": "shadow_force",
       "resourceCost": 100,
       "cooldownMs": 50000,
       "damageMultiplier": 3.0,
-      "range": 120,
-      "aoeRadius": 120,
+      "range": 130,
+      "aoeRadius": 130,
       "effectTags": ["ultimate", "stealth", "burst"],
       "statusEffects": [],
       "breakDamageMultiplier": 2,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【影舞者·暗夜降临】全屏变暗4s：自身隐身+移速+100%，每次攻击3x伤害。期间击杀重置影袭冷却。结束时释放终结斩。",
-      "entityType": "instant",
+      "description": "【影舞者·暗夜降临】创造黑暗领域5s：隐身+移速+100%+全方向背刺+30%伤害。",
+      "entityType": "field",
       "entityConfig": {
-        "shape": "radial",
-        "range": 120,
-        "damageMultiplier": 1.5,
-        "stunMs": 1000,
-        "windupMs": 200,
-        "color": "#110022"
+        "fieldRadius": 130,
+        "fieldDurationMs": 5000,
+        "targeted": false
       },
       "skillEffect": {
         "mode": "primary",
-        "type": "stealth_burst",
-        "stealthMs": 4000,
+        "type": "nightfall_field",
+        "durationMs": 5000,
         "moveSpeedBonus": 100,
-        "damageMultiplier": 3.0,
-        "resetDashOnKill": true,
-        "finalSlashMultiplier": 2.0
+        "damageMultiplier": 1.3,
+        "fieldRadius": 130
       }
+    },
+
+    "assassinate": {
+      "id": "assassinate",
+      "name": "暗杀",
+      "classId": "nightblade",
+      "unlockLevel": 40,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 35,
+      "cooldownMs": 3000,
+      "damageMultiplier": 5.0,
+      "range": 70,
+      "effectTags": ["burst", "execute", "positional"],
+      "breakDamageMultiplier": 4,
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "single", "range": 70, "requiresBehind": true, "behindAngleDeg": 180,
+        "damageMultiplier": 5.0, "guaranteedCrit": true, "executeThreshold": 0.30,
+        "executeBossThreshold": 0.30, "executeMultiplier": 3.0,
+        "nonExecuteComboPoints": 3, "consumeAllComboPoints": true, "perComboPointMult": 0.30,
+        "backstabBonusDmg": 50,
+        "windupMs": 120, "windupSuperArmor": true
+      }
+    },
+    "shadow_dance": {
+      "id": "shadow_dance",
+      "name": "影舞",
+      "classId": "nightblade",
+      "unlockLevel": 40,
+      "slotType": "core2",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 30,
+      "cooldownMs": 5000,
+      "damageMultiplier": 5.7,
+      "range": 130,
+      "effectTags": ["mobility", "burst"],
+      "breakDamageMultiplier": 2,
+      "entityType": "charge",
+      "entityConfig": {
+        "type": "shadow_dance", "dashCount": 3, "dashRange": 130,
+        "dashDamage": [1.5, 1.875, 2.34], "dashIntervalMs": 150,
+        "dashInvincibilityMs": 200, "superArmor": true
+      }
+    },
+    "shadow_death_mark": {
+      "id": "shadow_death_mark",
+      "name": "死印",
+      "classId": "shadowdancer",
+      "unlockLevel": 20,
+      "slotType": "team",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 30,
+      "cooldownMs": 15000,
+      "damageMultiplier": 0.5,
+      "range": 400,
+      "effectTags": ["mark", "debuff"],
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 750, "maxRange": 400, "trajectory": "homing", "damageMultiplier": 0.5,
+        "markTarget": true, "markDurationMs": 10000, "markOwnerDamageBonus": 25,
+        "markCritBonus": 10, "markCritDmgBonus": 15, "color": "#7733aa"
+      },
+      "skillEffect": { "mode": "primary", "type": "mark", "durationMs": 10000, "damageBonus": 25, "markId": "death_mark" }
+    },
+    "death_sentence": {
+      "id": "death_sentence",
+      "name": "死神宣告",
+      "classId": "nightblade",
+      "unlockLevel": 40,
+      "slotType": "team",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 30,
+      "cooldownMs": 15000,
+      "damageMultiplier": 0.5,
+      "range": 400,
+      "effectTags": ["mark", "execute"],
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 750, "maxRange": 400, "trajectory": "homing", "damageMultiplier": 0.5,
+        "markTarget": true, "markDurationMs": 12000, "markOwnerDamageBonus": 25,
+        "deathSentenceThreshold": 0.30, "deathSentenceDamageBonus": 40, "color": "#330066"
+      },
+      "skillEffect": { "mode": "primary", "type": "mark", "durationMs": 12000, "damageBonus": 25, "markId": "death_mark", "deathSentence": true }
+    },
+    "eternal_night": {
+      "id": "eternal_night",
+      "name": "永夜",
+      "classId": "nightblade",
+      "unlockLevel": 40,
+      "slotType": "survival",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 100,
+      "cooldownMs": 50000,
+      "damageMultiplier": 5.0,
+      "range": 999,
+      "aoeRadius": 999,
+      "effectTags": ["ultimate", "stealth"],
+      "entityType": "field",
+      "entityConfig": {
+        "fieldRadius": 130,
+        "fieldDurationMs": 6000,
+        "finalSlashRadius": 150,
+        "finalSlashDamage": 5.0,
+        "executeThreshold": 0.25
+      },
+      "skillEffect": { "mode": "primary", "type": "nightfall_field", "durationMs": 6000, "moveSpeedBonus": 100, "damageMultiplier": 1.4, "fieldRadius": 130, "finalSlashDamage": 5.0 }
+    },
+    "transposition": {
+      "id": "transposition",
+      "name": "引渡",
+      "classId": "trickster",
+      "unlockLevel": 20,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 20,
+      "cooldownMs": 1000,
+      "damageMultiplier": 1.2,
+      "range": 80,
+      "effectTags": ["mobility", "field"],
+      "description": "【骗术师·引渡】放置影之锚点（上限3个，持续8s）。攒满3个后再次施放：按A←B←C逆序三段瞬移，路径上敌人受伤，最后三角区域内终结伤害。首锚20影之力，后续免费。",
+      "entityType": "instant",
+      "entityConfig": {
+        "placeAnchor": true, "anchorMaxCount": 3, "anchorDurationMs": 8000,
+        "teleportBurstRadius": 80, "teleportBurstDamage": 1.2
+      },
+      "skillEffect": { "mode": "primary", "type": "transposition" }
+    },
+    "phantom_reality": {
+      "id": "phantom_reality",
+      "name": "虚实",
+      "classId": "illusionist",
+      "unlockLevel": 40,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 20,
+      "cooldownMs": 1000,
+      "damageMultiplier": 1.5,
+      "range": 80,
+      "effectTags": ["mobility", "clone"],
+      "description": "【幻术师·虚实】锚点上限提升至5个。瞬移时所有锚点同时引爆（各1.5x伤害），锚点距离<150px伤害叠加（最高×2.5）。瞬移后在目的地生成2个强力分身（继承60%攻击）。",
+      "entityType": "instant",
+      "entityConfig": {
+        "placeAnchor": true, "anchorMaxCount": 5, "anchorDurationMs": 12000,
+        "teleportBurstRadius": 80, "teleportBurstDamage": 1.5, "spawnClonesOnTeleport": 2
+      },
+      "skillEffect": { "mode": "primary", "type": "phantom_reality" }
+    },
+    "mirror_domain": {
+      "id": "mirror_domain",
+      "name": "镜影结界",
+      "classId": "illusionist",
+      "unlockLevel": 40,
+      "slotType": "core2",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 30,
+      "cooldownMs": 10000,
+      "damageMultiplier": 0,
+      "range": 120,
+      "aoeRadius": 120,
+      "effectTags": ["field", "summon"],
+      "description": "【幻术师·镜影结界】创造镜影结界（半径120，持续10s）。结界内生成3个影分身自动复制你的攻击（各50%伤害）。分身受伤-40%。进出结界可重置替身CD（10s冷却）。结界消失时全部分身爆炸。",
+      "entityType": "field",
+      "entityConfig": {
+        "fieldRadius": 120, "fieldDurationMs": 10000, "spawnMirrorClones": 3,
+        "mirrorCloneDamageRatio": 0.5, "cloneDamageReduction": 40, "explodeAllOnExpire": true,
+        "explosionRadius": 80, "explosionDamageMultiplier": 1.5,
+        "resetDecoyOnEnter": true, "resetDecoyInternalCD": 10000
+      }
+    },
+    "phantom_trick": {
+      "id": "phantom_trick",
+      "name": "幻影戏法",
+      "classId": "trickster",
+      "unlockLevel": 20,
+      "slotType": "team",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 35,
+      "cooldownMs": 20000,
+      "damageMultiplier": 0,
+      "range": 200,
+      "effectTags": ["summon", "support"],
+      "description": "【骗术师·幻影戏法】为目标召唤影之分身（持续10s，继承40%伤害）。分身受到的伤害50%转移至施法者。替身技能CD重置。",
+      "entityType": "summon",
+      "entityConfig": {
+        "summonUnitId": "shadow_clone", "durationMs": 10000, "inheritStats": { "hp": 0.3, "attack": 0.4 },
+        "aiType": "mirror_owner", "damageTransferPercent": 50
+      }
+    },
+    "shadow_feast": {
+      "id": "shadow_feast",
+      "name": "影之盛宴",
+      "classId": "illusionist",
+      "unlockLevel": 40,
+      "slotType": "team",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 50,
+      "cooldownMs": 30000,
+      "damageMultiplier": 0,
+      "range": 300,
+      "effectTags": ["summon", "team"],
+      "description": "【幻术师·影之盛宴】全体队友获得影之分身（持续8s，继承40%伤害）。若在镜影结界内施放，分身继承提升至60%，结界内敌人受伤+25%。",
+      "entityType": "instant",
+      "entityConfig": { "cloneAllAllies": true, "cloneDurationMs": 8000, "cloneAttackRatio": 0.4 }
+    },
+    "phantom_array": {
+      "id": "phantom_array",
+      "name": "千影幻阵",
+      "classId": "illusionist",
+      "unlockLevel": 40,
+      "slotType": "survival",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 100,
+      "cooldownMs": 50000,
+      "damageMultiplier": 12.0,
+      "range": 250,
+      "aoeRadius": 250,
+      "effectTags": ["ultimate", "clone", "burst"],
+      "description": "【幻术师·千影幻阵】围绕目标召唤6个影之分身组成环形杀阵，所有分身向中心冲刺造成毁灭打击（总计12x伤害）。施放后分身留在场上（持续6s，继承60%攻击）。",
+      "entityType": "instant",
+      "entityConfig": { "cloneCount": 6, "ringRadius": 250, "dashDamage": 2.0 },
+      "skillEffect": { "mode": "primary", "type": "phantom_array" }
+    },
+    "venom_sting": {
+      "id": "venom_sting",
+      "name": "毒刺",
+      "classId": "venomancer",
+      "unlockLevel": 20,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 22,
+      "cooldownMs": 2500,
+      "damageMultiplier": 1.2,
+      "range": 60,
+      "effectTags": ["dot", "poison"],
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "cone", "range": 60, "halfAngleDeg": 40, "damageMultiplier": 1.2,
+        "statusOnHit": [{ "type": "poison", "durationMs": 5000, "stacks": 3 }],
+        "debuffPoisonDmgTaken": 15, "grantCatalyst": 2, "windupMs": 60
+      }
+    },
+    "lethal_venom": {
+      "id": "lethal_venom",
+      "name": "致命毒液",
+      "classId": "plaguebringer",
+      "unlockLevel": 40,
+      "slotType": "core1",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 22,
+      "cooldownMs": 2500,
+      "damageMultiplier": 1.8,
+      "range": 60,
+      "effectTags": ["dot", "poison"],
+      "entityType": "instant",
+      "entityConfig": {
+        "shape": "cone", "range": 60, "halfAngleDeg": 40, "damageMultiplier": 1.8,
+        "statusOnHit": [{ "type": "poison", "durationMs": 5000, "stacks": 5 }],
+        "debuffPoisonDmgTaken": 25, "grantCatalyst": 3, "hpPercentBonus": 8, "windupMs": 60
+      }
+    },
+    "plague_cloud": {
+      "id": "plague_cloud",
+      "name": "疫病云雾",
+      "classId": "plaguebringer",
+      "unlockLevel": 40,
+      "slotType": "core2",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 28,
+      "cooldownMs": 10000,
+      "damageMultiplier": 0,
+      "range": 400,
+      "aoeRadius": 110,
+      "effectTags": ["field", "dot"],
+      "entityType": "field",
+      "entityConfig": {
+        "fieldRadius": 110, "fieldDurationMs": 10000, "tickIntervalMs": 1000,
+        "targeted": true, "statusOnTick": [{ "type": "poison", "durationMs": 4000, "stacks": 1 }],
+        "enemySlowPercent": 40, "poisonDamageMult": 2.0, "killExpandRadius": 20,
+        "killExpandMaxRadius": 200, "damageAmpPerPoisonedEnemy": 10, "damageAmpMax": 50,
+        "stealthSelfInField": true, "grantCatalystPerTick": 1, "color": "#228800"
+      }
+    },
+    "pandemic": {
+      "id": "pandemic",
+      "name": "瘟疫传播",
+      "classId": "plaguebringer",
+      "unlockLevel": 40,
+      "slotType": "team",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 30,
+      "cooldownMs": 12000,
+      "damageMultiplier": 0,
+      "range": 120,
+      "effectTags": ["dot", "spread"],
+      "entityType": "instant",
+      "entityConfig": { "spreadRadius": 120, "spreadTargetCount": 6, "chainSpreadStacks": 2 },
+      "skillEffect": { "mode": "primary", "type": "contagion" }
+    },
+    "toxin_detonation": {
+      "id": "toxin_detonation",
+      "name": "毒素引爆",
+      "classId": "venomancer",
+      "unlockLevel": 20,
+      "slotType": "survival",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 100,
+      "cooldownMs": 50000,
+      "damageMultiplier": 15.0,
+      "range": 999,
+      "effectTags": ["ultimate", "dot"],
+      "entityType": "instant",
+      "entityConfig": { "type": "poison_detonation", "globalDetonate": true, "damagePerStack": 1.5, "antiPoisonMs": 3000 },
+      "skillEffect": { "mode": "primary", "type": "poison_detonation" }
+    },
+    "withering": {
+      "id": "withering",
+      "name": "凋零",
+      "classId": "plaguebringer",
+      "unlockLevel": 40,
+      "slotType": "survival",
+      "type": "active",
+      "category": "class",
+      "resourceType": "shadow_force",
+      "resourceCost": 100,
+      "cooldownMs": 50000,
+      "damageMultiplier": 25.0,
+      "range": 999,
+      "effectTags": ["ultimate", "dot", "execute"],
+      "entityType": "instant",
+      "entityConfig": { "type": "poison_detonation", "globalDetonate": true, "damagePerStack": 2.5, "retainPoisonPercent": 50 },
+      "skillEffect": { "mode": "primary", "type": "poison_detonation" }
     },
 
     "decoy": {
@@ -2892,7 +3418,7 @@
       "slotType": "core2",
       "type": "active",
       "category": "class",
-      "resourceType": "energy",
+      "resourceType": "shadow_force",
       "resourceCost": 25,
       "cooldownMs": 6000,
       "damageMultiplier": 0.6,
@@ -2903,7 +3429,7 @@
       "breakDamageMultiplier": 1,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【骗术师·替身】原地留下替身（持续8s，嘲讽周围敌人），自身隐身3s。替身被摧毁时爆炸（半径80，1.5x伤害）。",
+      "description": "【骗术师·替身】原地留下替身分身（持续8s，嘲讽130px内敌人），自身隐身3s（破隐一击+40%伤害）。场上存在替身时，受击50%概率转移给替身。替身被摧毁时爆炸（半径80，1.5x伤害），恢复20影之力+1s无敌，下一个技能CD减半。",
       "entityType": "summon",
       "entityConfig": {
         "summonUnitId": "decoy",
@@ -2924,35 +3450,27 @@
 
     "reality_shift": {
       "id": "reality_shift",
-      "name": "虚实转换",
+      "name": "虚实交错",
       "classId": "trickster",
       "unlockLevel": 20,
       "slotType": "survival",
       "type": "active",
       "category": "class",
-      "resourceType": "energy",
+      "resourceType": "shadow_force",
       "resourceCost": 100,
       "cooldownMs": 50000,
-      "damageMultiplier": 2.0,
+      "damageMultiplier": 0,
       "range": 150,
-      "aoeRadius": 150,
-      "effectTags": ["ultimate", "clone", "confusion"],
-      "statusEffects": [],
-      "breakDamageMultiplier": 1.5,
-      "evolutionPath": null,
-      "buildId": null,
-      "description": "【骗术师·虚实转换】制造全场所有敌人的幻影复制品（每个敌人1个），复制品攻击其本体持续10s。复制品继承30%属性。",
+      "aoeRadius": 0,
+      "effectTags": ["blink", "clone", "survival"],
+      "description": "【骗术师·虚实交错】瞬间闪现150px，在目的地制造2个影之分身（持续8s），自身获得0.5s无敌。分身会主动追击附近敌人。",
       "entityType": "instant",
       "entityConfig": {
-        "shape": "radial",
-        "range": 150,
-        "damageMultiplier": 2.0,
-        "knockback": 30,
-        "windupMs": 300,
-        "cloneAllEnemies": true,
-        "cloneStatInheritPercent": 30,
-        "cloneDurationMs": 10000,
-        "color": "#bbaaff"
+        "blinkDistance": 150,
+        "spawnClones": 2,
+        "cloneDurationMs": 8000,
+        "cloneAttackInherit": 0.5,
+        "invincibleMs": 500
       }
     },
 
@@ -4546,7 +5064,7 @@
       "breakDamageMultiplier": 1,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【死灵法师·死亡缠绕】穿透3目标1.2x；每穿透DOT目标下一发+20%伤害（可叠）。",
+      "description": "【死灵法师·死亡缠绕】穿透3目标1.2x；穿透DOT目标叠伤+20%。命中诅咒目标：10%×层数产碎片，叠死者共鸣(5层后下次收割免费×1.5)。",
       "entityType": "projectile",
       "entityConfig": {
         "speed": 520,
@@ -4580,7 +5098,7 @@
       "breakDamageMultiplier": 1,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【死灵法师·传染诅咒】施加痛苦诅咒+腐蚀；目标死亡时DOT扩散至半径150（50%效果）。",
+      "description": "【死灵法师·传染诅咒】施加痛苦诅咒+腐蚀；目标死亡时DOT扩散。扩散命中已有诅咒目标时回馈碎片(最多3)。",
       "entityType": "instant",
       "entityConfig": { "shape": "single", "range": 400, "windupMs": 100 },
       "skillEffect": {
@@ -4610,7 +5128,7 @@
       "breakDamageMultiplier": 1,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【死灵法师·灵魂收割】引爆全部DOT：诅咒每层1.0x魔攻，腐蚀回5%生命，每种DOT返1灵魂碎片。",
+      "description": "【死灵法师·灵魂收割】引爆DOT返碎片。死者共鸣5层时：消耗0碎片，伤害×1.5，用后清零共鸣。",
       "entityType": "instant",
       "entityConfig": { "shape": "single", "range": 350, "windupMs": 80 },
       "skillEffect": {
@@ -4641,7 +5159,7 @@
       "breakDamageMultiplier": 1,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【死灵法师·亡灵军团】消耗全部灵魂碎片随机召唤亡灵（最多6）。",
+      "description": "【死灵法师·亡灵军团】消耗最多3碎片随机召唤亡灵(最多6)。亡灵攻击DOT目标10%产碎片(骨龙在场+5%)。",
       "entityType": "summon",
       "entityConfig": {
         "undeadLegion": true,
@@ -4670,7 +5188,7 @@
       "type": "active",
       "category": "class",
       "resourceType": "soul_shard",
-      "resourceCost": 3,
+      "resourceCost": 2,
       "cooldownMs": 90000,
       "damageMultiplier": 0,
       "range": 120,
@@ -4680,7 +5198,7 @@
       "breakDamageMultiplier": 2.0,
       "evolutionPath": null,
       "buildId": null,
-      "description": "【死灵法师·冥界之门】8s门域：每秒腐蚀+亡灵无敌攻速+50%；关闭时引爆门内DOT 200%剩余伤害。",
+      "description": "【死灵法师·冥界之门】8s门域：腐蚀+亡灵无敌攻速+50%；门内DOT产碎片几率×2；关闭引爆DOT。",
       "entityType": "field",
       "entityConfig": {
         "fieldRadius": 120,
@@ -4690,6 +5208,7 @@
         "corruptionPerTick": 1,
         "undeadBuffAsPercent": 50,
         "closeDotSettleRatio": 2.0,
+        "dotShardChanceMult": 2,
         "color": "#440066"
       }
     },
@@ -4725,6 +5244,9 @@
         "guaranteedCrit": true,
         "breakDamageMultiplier": 2.5,
         "comboPointOnHit": 2,
+        "consumeAllComboPoints": true,
+        "perComboPointMult": 0.30,
+        "backstabBonusDmg": 50,
         "windupMs": 80,
         "chainOnKill": 3,
         "chainRange": 75
@@ -4806,47 +5328,6 @@
         "markExplosionPerStack": 2.0,
         "grantComboPointOnExplosion": 1,
         "damageMirrorRatio": 0.6
-      }
-    },
-
-    "eternal_night": {
-      "id": "eternal_night",
-      "name": "永夜",
-      "classId": "nightblade",
-      "unlockLevel": 40,
-      "slotType": "survival",
-      "type": "active",
-      "category": "class",
-      "resourceType": "energy",
-      "resourceCost": 100,
-      "cooldownMs": 50000,
-      "damageMultiplier": 4.0,
-      "range": 150,
-      "aoeRadius": 150,
-      "effectTags": ["ultimate", "stealth", "burst"],
-      "statusEffects": [],
-      "breakDamageMultiplier": 3.0,
-      "evolutionPath": null,
-      "buildId": null,
-      "description": "【夜刃·永夜】全屏变暗6s：自身永久隐身+移速+120%，每次攻击4x伤害。击杀重置影袭冷却。结束时释放终结暗夜斩（5x伤害+斩杀HP<25%非Boss）。",
-      "entityType": "instant",
-      "entityConfig": {
-        "shape": "radial",
-        "range": 150,
-        "damageMultiplier": 2.0,
-        "stunMs": 1200,
-        "windupMs": 250,
-        "color": "#000022"
-      },
-      "skillEffect": {
-        "mode": "primary",
-        "type": "eternal_night",
-        "stealthMs": 6000,
-        "moveSpeedBonus": 120,
-        "damageMultiplier": 4.0,
-        "resetDashOnKill": true,
-        "finalSlashMultiplier": 5.0,
-        "finalExecuteThreshold": 25
       }
     },
 
@@ -5055,7 +5536,7 @@
       "mage_basic", "fireball", "frost_nova", "blink", "elemental_storm"
     ],
     "assassin": [
-      "assassin_basic", "shadow_step", "smoke_bomb", "poison_dagger", "assassination"
+      "assassin_basic", "shadow_pierce", "shadow_vortex", "shadow_bind", "midnight_raid"
     ],
     "knight": [
       "warrior_basic", "holy_shield_slam", "holy_ground", "holy_taunt", "holy_bastion"
@@ -5076,7 +5557,7 @@
       "archer_basic", "wind_step", "wind_blade", "wind_mark", "phantom_storm"
     ],
     "wizard": [
-      "mage_basic", "flame_bolt", "chain_lightning", "blink", "elemental_symphony"
+      "mage_basic", "elemental_burst", "phase_shift", "resonance_field", "elemental_awakening"
     ],
     "sage": [
       "timely_shot", "foresight_shield", "purify_time", "chrono_aura", "sacred_rewind"
@@ -5085,13 +5566,13 @@
       "shadow_arrow", "agony_curse", "life_drain", "summon_skeleton_warrior", "dark_harvest"
     ],
     "shadowdancer": [
-      "assassin_basic", "backstab", "shadow_dash", "shadow_illusion", "nightfall"
+      "assassin_basic", "backstab", "shadow_raid", "shadow_death_mark", "nightfall"
     ],
     "trickster": [
-      "assassin_basic", "shadow_step", "decoy", "poison_dagger", "reality_shift"
+      "assassin_basic", "transposition", "decoy", "phantom_trick", "reality_shift"
     ],
     "venomancer": [
-      "assassin_basic", "venom_blade", "smoke_bomb", "poison_mist", "plague_outbreak"
+      "assassin_basic", "venom_sting", "poison_mist", "contagion", "toxin_detonation"
     ],
     "paladin": [
       "warrior_basic", "judgment_shield", "judgment_ground", "sacred_provocation", "angel_descends"
@@ -5112,7 +5593,7 @@
       "archer_basic", "phantom_clone", "phantom_echo_blade", "phantom_mark", "void_storm"
     ],
     "archmage": [
-      "mage_basic", "lava_storm", "aurora_beam", "blink", "meteor"
+      "mage_basic", "elemental_burst", "phase_shift", "resonance_field", "elemental_awakening"
     ],
     "oracle": [
       "timely_shot_plus", "time_field", "fate_weave", "fate_reversal", "time_rewind"
@@ -5121,13 +5602,13 @@
       "death_coil", "spreading_curse", "soul_harvest", "undead_legion", "nether_gate"
     ],
     "nightblade": [
-      "assassin_basic", "shadow_assault", "night_slash", "death_mark_assassin", "eternal_night"
+      "assassin_basic", "assassinate", "shadow_dance", "death_sentence", "eternal_night"
     ],
     "illusionist": [
-      "assassin_basic", "shadow_step", "quintuple_illusion", "poison_dagger", "mirror_realm"
+      "assassin_basic", "phantom_reality", "mirror_domain", "shadow_feast", "phantom_array"
     ],
     "plaguebringer": [
-      "assassin_basic", "plague_blade", "smoke_bomb", "contagion", "apocalypse_plague"
+      "assassin_basic", "lethal_venom", "plague_cloud", "pandemic", "withering"
     ]
   }
 }

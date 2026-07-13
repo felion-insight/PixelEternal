@@ -1,973 +1,973 @@
 {
-  "equipment": {
-    "瀚海星冕": "helmets/eq_helmet_c468b72f.png",
-    "陷阵重护腿": "legs/eq_legs_a2c581dc.png",
-    "蛮力之源": "necklaces/eq_necklace_fa1b89e0.png",
-    "永恒星辰": "rings/eq_ring_b6eac9a6.png",
-    "钢扣皮带": "belts/eq_belt_d3347deb.png",
-    "银河轨迹": "legs/eq_legs_818869e8.png",
-    "雄狮板甲": "chests/eq_chest_6bd3688e.png",
-    "轰鸣雷冠": "helmets/eq_helmet_39d53aae.png",
-    "逆鳞屠龙锋": "weapons/eq_weapon_a0631ddd.png",
-    "铁卫护腿": "legs/eq_legs_6a0561e7.png",
-    "古遗青铜环": "necklaces/eq_necklace_475a1e4a.png",
-    "苦行者长衫": "chests/eq_chest_6953b0b6.png",
-    "绝尘霜盔": "helmets/eq_helmet_92082c58.png",
-    "壁垒腰带": "belts/eq_belt_b62e93d4.png",
-    "坠星裁决": "weapons/eq_weapon_7ca5813b.png",
-    "奔雷束缚": "belts/eq_belt_054deb4f.png",
-    "创世法则": "rings/eq_ring_d0e46837.png",
-    "律法圣带": "legs/eq_legs_593b91a2.png",
-    "神威头盔": "helmets/eq_helmet_6c90f3db.png",
-    "坚毅铁盔": "helmets/eq_helmet_a3cbec89.png",
-    "龙筋护腿": "legs/eq_legs_f9cbdcfb.png",
-    "烬灭红莲": "necklaces/eq_necklace_d3c3e7d4.png",
-    "霜纹裙甲": "legs/eq_legs_945fcce2.png",
-    "莹彻晶盔": "helmets/eq_helmet_8ac2ebc0.png",
-    "熔岩重铠": "chests/eq_chest_1bc9ed4a.png",
-    "众神冠冕": "helmets/eq_helmet_abdfcfc4.png",
-    "霜魂凝视": "rings/eq_ring_0786be12.png",
-    "月影流光": "necklaces/eq_necklace_a26df86b.png",
-    "流银护胫": "legs/eq_legs_ef9f99ae.png",
-    "炎魔之瞳": "rings/eq_ring_40776345.png",
-    "霜冻之触": "belts/eq_belt_46146993.png",
-    "兽纹皮裤": "legs/eq_legs_bdd635b5.png",
-    "诸神眷顾": "necklaces/eq_necklace_6c371296.png",
-    "逆鳞龙铠": "chests/eq_chest_fd797068.png",
-    "琉璃晶胫": "legs/eq_legs_d9605fc7.png",
-    "炽炎之环": "belts/eq_belt_147701b6.png",
-    "极地永冻": "necklaces/eq_necklace_bf88c531.png",
-    "璀璨星图": "necklaces/eq_necklace_a7d7a7fb.png",
-    "古朴青铜盔": "helmets/eq_helmet_4eec5fbf.png",
-    "永恒战甲": "chests/eq_chest_e1e7531c.png",
-    "剔透晶靴": "boots/eq_boots_7cdf3e7b.png",
-    "灵能谐振": "rings/eq_ring_2239b203.png",
-    "旅人草鞋": "boots/eq_boots_fcf945b0.png",
-    "劫火焚伤": "weapons/eq_weapon_fc2dac5a.png",
-    "惊雷破晓": "weapons/eq_weapon_0d2f8219.png",
-    "咏咒师长袍": "chests/eq_chest_afc31358.png",
-    "逐月银芒剑": "weapons/eq_weapon_a2ca698b.png",
-    "猎手皮帽": "helmets/eq_helmet_3f37e830.png",
-    "斑驳青铜铠": "chests/eq_chest_6ce5ca96.png",
-    "极星护佑": "chests/eq_chest_c9f224df.png",
-    "游侠布裤": "legs/eq_legs_dbd808f3.png",
-    "黄铜勋章": "necklaces/eq_necklace_b55a636c.png",
-    "辉光秘银刃": "weapons/eq_weapon_2f076d62.png",
-    "迅影之触": "rings/eq_ring_a1d24c5d.png",
-    "凝霜远行": "boots/eq_boots_8df21aa6.png",
-    "荆棘皮甲": "chests/eq_chest_3a714e03.png",
-    "银翼束带": "belts/eq_belt_d341904d.png",
-    "龙息之握": "rings/eq_ring_1df9e142.png",
-    "金权戒律": "rings/eq_ring_cdcaadc0.png",
-    "编织腰带": "belts/eq_belt_6e6bb548.png",
-    "龙心垂饰": "necklaces/eq_necklace_e435adb3.png",
-    "骁勇钢盔": "helmets/eq_helmet_70de35af.png",
-    "裂空雷纹": "necklaces/eq_necklace_a41c96bb.png",
-    "混沌之刃": "weapons/eq_weapon_be2f890c.png",
-    "迅雷闪步": "boots/eq_boots_168a30d6.png",
-    "烁光银靴": "boots/eq_boots_927cb551.png",
-    "青铜甲带": "belts/eq_belt_65974a35.png",
-    "沉重青铜卫": "legs/eq_legs_363f0198.png",
-    "远古龙刃": "weapons/eq_weapon_f5c08a17.png",
-    "天庭之束": "belts/eq_belt_8256e023.png",
-    "淬火精钢剑": "weapons/eq_weapon_dbcbb1a2.png",
-    "坚固青铜靴": "boots/eq_boots_22eab70d.png",
-    "细密锁子甲": "chests/eq_chest_d115f45d.png",
-    "秘法晶髓": "necklaces/eq_necklace_36f71480.png",
-    "灰烬护足": "legs/eq_legs_40986b45.png",
-    "黄金契约": "necklaces/eq_necklace_86e723d7.png",
-    "锋锐骑士长剑": "weapons/eq_weapon_b92f82c8.png",
-    "铜制扳指": "rings/eq_ring_640da929.png",
-    "龙革腰带": "belts/eq_belt_cf030ae2.png",
-    "岁月青铜": "rings/eq_ring_c3d11214.png",
-    "踏火余烬": "boots/eq_boots_d3d9c7aa.png",
-    "晶曜寒锋": "weapons/eq_weapon_7d4af15f.png",
-    "征战铁靴": "boots/eq_boots_30c1fcb1.png",
-    "秘银战甲": "chests/eq_chest_77399362.png",
-    "晶化内衬甲": "chests/eq_chest_af8c266f.png",
-    "精钢长剑": "weapons/eq_weapon_fe088b46.png",
-    "鸣霜青铜剑": "weapons/eq_weapon_63891d92.png",
-    "星轨漫步": "boots/eq_boots_b4071d28.png",
-    "狂雷怒吼": "rings/eq_ring_9c2ea200.png",
-    "龙踏云靴": "boots/eq_boots_7f59099a.png",
-    "占星秘法帽": "helmets/eq_helmet_c9d7503f.png",
-    "皎月银冠": "helmets/eq_helmet_447e7f53.png",
-    "永恒神威": "chests/eq_chest_2bc87bd7.png",
-    "逐神之迹": "boots/eq_boots_6a7aeea4.png",
-    "圣耀·断罪": "weapons/eq_weapon_a070d0fc.png",
-    "龙鳞护甲": "chests/eq_chest_00771eee.png",
-    "晶纹饰带": "belts/eq_belt_43d8ec6e.png",
-    "辉光银铠": "chests/eq_chest_721d46e5.png",
-    "凛冬之拥": "weapons/eq_weapon_09814a06.png",
-    "凛风冰衣": "chests/eq_chest_379be0ae.png",
-    "硬革皮靴": "boots/eq_boots_2a0232cd.png",
-    "疾雷腿甲": "legs/eq_legs_f4e3cf0a.png",
-    "炽焰重盔": "helmets/eq_helmet_e8b8c49e.png",
-    "铁质束腰": "belts/eq_belt_7e0beda1.png",
-    "猎豹疾靴": "boots/eq_boots_4cd0426b.png",
-    "秘银私语": "rings/eq_ring_b700f34e.png",
-    "龙息战盔": "helmets/eq_helmet_e20669c0.png",
-    "纯银吊坠": "necklaces/eq_necklace_83114350.png",
-    "斑驳铁剑": "weapons/eq_weapon_567b511a.png",
-    "孤星寒芒": "rings/eq_ring_f9d87558.png",
-    "电光战袍": "chests/eq_chest_46035ead.png",
-    "幽冥绝影刃": "weapons/eq_weapon_f12875f5.png",
-    "星界纽带": "belts/eq_belt_4393cc6c.png",
-    "魔法水晶剑": "weapons/eq_weapon_05018c59.png",
-    "猎风短弓": "weapons/eq_weapon_05ad6f31.png",
-    "幽影弩": "weapons/eq_weapon_df51c5bb.png",
-    "曦光长弓": "weapons/eq_weapon_6e6d4100.png",
-    "穿云破月": "weapons/eq_weapon_6450d725.png",
-    "永夜·星坠": "weapons/eq_weapon_076c565d.png",
-    "渊隙凡·残锋": "deep_equipment/deep_abyss_rift_q01_2233f9b4.png",
-    "渊隙凡·穿云": "deep_equipment/deep_abyss_rift_q01_1eb81c79.png",
-    "渊隙凡·低语": "deep_equipment/deep_abyss_rift_q01_f83f87bb.png",
-    "渊隙凡·壁垒": "deep_equipment/deep_abyss_rift_q01_ecdcdae4.png",
-    "渊隙凡·荆棘": "deep_equipment/deep_abyss_rift_q01_f3955dc3.png",
-    "渊隙凡·行靴": "deep_equipment/deep_abyss_rift_q01_31fa4847.png",
-    "渊隙凡·法链": "deep_equipment/deep_abyss_rift_q01_4bae08db.png",
-    "渊隙凡·迅环": "deep_equipment/deep_abyss_rift_q01_6247dce0.png",
-    "渊隙凡·金缰": "deep_equipment/deep_abyss_rift_q01_010b7d7a.png",
-    "渊隙良·裂刃": "deep_equipment/deep_abyss_rift_q02_29e2ad15.png",
-    "渊隙良·破穹": "deep_equipment/deep_abyss_rift_q02_1f5860a8.png",
-    "渊隙良·寂声": "deep_equipment/deep_abyss_rift_q02_d2d5b30b.png",
-    "渊隙良·铁垣": "deep_equipment/deep_abyss_rift_q02_905a168a.png",
-    "渊隙良·棘胫": "deep_equipment/deep_abyss_rift_q02_0e94b2ec.png",
-    "渊隙良·疾踪": "deep_equipment/deep_abyss_rift_q02_1042ea04.png",
-    "渊隙良·咒络": "deep_equipment/deep_abyss_rift_q02_4b46df31.png",
-    "渊隙良·缚印": "deep_equipment/deep_abyss_rift_q02_ed525e1c.png",
-    "渊隙良·财束": "deep_equipment/deep_abyss_rift_q02_20fdfe90.png",
-    "渊隙湛·断潮": "deep_equipment/deep_abyss_rift_q03_040d252f.png",
-    "渊隙湛·逐星": "deep_equipment/deep_abyss_rift_q03_85a3ffdd.png",
-    "渊隙湛·闭识": "deep_equipment/deep_abyss_rift_q03_c3c9f778.png",
-    "渊隙湛·重铠": "deep_equipment/deep_abyss_rift_q03_8beee4c1.png",
-    "渊隙湛·刺行": "deep_equipment/deep_abyss_rift_q03_f3144665.png",
-    "渊隙湛·虚步": "deep_equipment/deep_abyss_rift_q03_6dc8cc23.png",
-    "渊隙湛·秘坠": "deep_equipment/deep_abyss_rift_q03_db4597fa.png",
-    "渊隙湛·漩指": "deep_equipment/deep_abyss_rift_q03_6530f4fb.png",
-    "渊隙湛·税络": "deep_equipment/deep_abyss_rift_q03_b375b9d6.png",
-    "渊隙炽·烬刃": "deep_equipment/deep_abyss_rift_q04_f72c6a1d.png",
-    "渊隙炽·坠虹": "deep_equipment/deep_abyss_rift_q04_6af666c1.png",
-    "渊隙炽·默印": "deep_equipment/deep_abyss_rift_q04_404c4897.png",
-    "渊隙炽·渊衬": "deep_equipment/deep_abyss_rift_q04_b23a5d2e.png",
-    "渊隙炽·缠胫": "deep_equipment/deep_abyss_rift_q04_c76b0fb2.png",
-    "渊隙炽·掠影": "deep_equipment/deep_abyss_rift_q04_5605b1aa.png",
-    "渊隙炽·涡涌": "deep_equipment/deep_abyss_rift_q04_afa281cb.png",
-    "渊隙炽·律戒": "deep_equipment/deep_abyss_rift_q04_52c4f7d7.png",
-    "渊隙炽·爵带": "deep_equipment/deep_abyss_rift_q04_7cd5e1d2.png",
-    "渊隙曜·墟斩": "deep_equipment/deep_abyss_rift_q05_dba4c184.png",
-    "渊隙曜·凌弦": "deep_equipment/deep_abyss_rift_q05_4fc8e135.png",
-    "渊隙曜·封觉": "deep_equipment/deep_abyss_rift_q05_0d085195.png",
-    "渊隙曜·墟甲": "deep_equipment/deep_abyss_rift_q05_c39d1ef7.png",
-    "渊隙曜·棘络": "deep_equipment/deep_abyss_rift_q05_171cfeb3.png",
-    "渊隙曜·踏痕": "deep_equipment/deep_abyss_rift_q05_19df5132.png",
-    "渊隙曜·泉印": "deep_equipment/deep_abyss_rift_q05_bd19bb69.png",
-    "渊隙曜·契环": "deep_equipment/deep_abyss_rift_q05_728ff370.png",
-    "渊隙曜·禄缠": "deep_equipment/deep_abyss_rift_q05_46ddd499.png",
-    "虚印凡·虚斫": "deep_equipment/deep_spectral_sigil_q01_fb506b87.png",
-    "虚印凡·虚矢": "deep_equipment/deep_spectral_sigil_q01_1abdfafe.png",
-    "虚印凡·虚冠": "deep_equipment/deep_spectral_sigil_q01_5b64cce5.png",
-    "虚印凡·虚铠": "deep_equipment/deep_spectral_sigil_q01_4a38a35a.png",
-    "虚印凡·虚胫": "deep_equipment/deep_spectral_sigil_q01_8c65a330.png",
-    "虚印凡·虚踪": "deep_equipment/deep_spectral_sigil_q01_7b4fc65a.png",
-    "虚印凡·虚链": "deep_equipment/deep_spectral_sigil_q01_ac4937dd.png",
-    "虚印凡·虚环": "deep_equipment/deep_spectral_sigil_q01_479609ee.png",
-    "虚印凡·虚缰": "deep_equipment/deep_spectral_sigil_q01_23aa0379.png",
-    "虚印良·印刻": "deep_equipment/deep_spectral_sigil_q02_8d520fb7.png",
-    "虚印良·印弓": "deep_equipment/deep_spectral_sigil_q02_c05fec7a.png",
-    "虚印良·印翎": "deep_equipment/deep_spectral_sigil_q02_6249f410.png",
-    "虚印良·印垣": "deep_equipment/deep_spectral_sigil_q02_02425693.png",
-    "虚印良·印棘": "deep_equipment/deep_spectral_sigil_q02_8b02dcf4.png",
-    "虚印良·印步": "deep_equipment/deep_spectral_sigil_q02_339f91c4.png",
-    "虚印良·印坠": "deep_equipment/deep_spectral_sigil_q02_bc6d51aa.png",
-    "虚印良·印戒": "deep_equipment/deep_spectral_sigil_q02_6763556c.png",
-    "虚印良·印束": "deep_equipment/deep_spectral_sigil_q02_6f415585.png",
-    "虚印湛·脉裂": "deep_equipment/deep_spectral_sigil_q03_9df782df.png",
-    "虚印湛·脉弦": "deep_equipment/deep_spectral_sigil_q03_b06ffe03.png",
-    "虚印湛·脉识": "deep_equipment/deep_spectral_sigil_q03_52dd0d28.png",
-    "虚印湛·脉甲": "deep_equipment/deep_spectral_sigil_q03_90397a30.png",
-    "虚印湛·脉行": "deep_equipment/deep_spectral_sigil_q03_c344dfff.png",
-    "虚印湛·脉影": "deep_equipment/deep_spectral_sigil_q03_0f244d07.png",
-    "虚印湛·脉涌": "deep_equipment/deep_spectral_sigil_q03_06172750.png",
-    "虚印湛·脉指": "deep_equipment/deep_spectral_sigil_q03_7d5dd782.png",
-    "虚印湛·脉络": "deep_equipment/deep_spectral_sigil_q03_6697d291.png",
-    "虚印炽·终纹": "deep_equipment/deep_spectral_sigil_q04_672bc540.png",
-    "虚印炽·终矢": "deep_equipment/deep_spectral_sigil_q04_3c0217e6.png",
-    "虚印炽·终默": "deep_equipment/deep_spectral_sigil_q04_00153706.png",
-    "虚印炽·终壁": "deep_equipment/deep_spectral_sigil_q04_fbc328dc.png",
-    "虚印炽·终刺": "deep_equipment/deep_spectral_sigil_q04_45cf6140.png",
-    "虚印炽·终踏": "deep_equipment/deep_spectral_sigil_q04_551fa94a.png",
-    "虚印炽·终咒": "deep_equipment/deep_spectral_sigil_q04_ba2bfc9a.png",
-    "虚印炽·终缚": "deep_equipment/deep_spectral_sigil_q04_9ff9fdc6.png",
-    "虚印炽·终财": "deep_equipment/deep_spectral_sigil_q04_146b2b33.png",
-    "虚印曜·归芒": "deep_equipment/deep_spectral_sigil_q05_6d992c47.png",
-    "虚印曜·归羽": "deep_equipment/deep_spectral_sigil_q05_5c57b491.png",
-    "虚印曜·归息": "deep_equipment/deep_spectral_sigil_q05_b6a7c011.png",
-    "虚印曜·归障": "deep_equipment/deep_spectral_sigil_q05_8cceed1a.png",
-    "虚印曜·归棘": "deep_equipment/deep_spectral_sigil_q05_8577040f.png",
-    "虚印曜·归痕": "deep_equipment/deep_spectral_sigil_q05_c8e2c761.png",
-    "虚印曜·归泉": "deep_equipment/deep_spectral_sigil_q05_36a5434e.png",
-    "虚印曜·归契": "deep_equipment/deep_spectral_sigil_q05_85f9b2d1.png",
-    "虚印曜·归禄": "deep_equipment/deep_spectral_sigil_q05_b23d062a.png",
-    "腐噬凡·腐刃": "deep_equipment/deep_rot_devour_q01_f4f6616a.png",
-    "腐噬凡·腐弦": "deep_equipment/deep_rot_devour_q01_6cbffb3e.png",
-    "腐噬凡·腐冠": "deep_equipment/deep_rot_devour_q01_19bd2991.png",
-    "腐噬凡·腐铠": "deep_equipment/deep_rot_devour_q01_c36b1733.png",
-    "腐噬凡·腐胫": "deep_equipment/deep_rot_devour_q01_87e1d936.png",
-    "腐噬凡·腐踪": "deep_equipment/deep_rot_devour_q01_6293b10c.png",
-    "腐噬凡·腐链": "deep_equipment/deep_rot_devour_q01_6a1ce1fa.png",
-    "腐噬凡·腐环": "deep_equipment/deep_rot_devour_q01_cb64cd9c.png",
-    "腐噬凡·腐缰": "deep_equipment/deep_rot_devour_q01_ef343823.png",
-    "腐噬良·噬纹": "deep_equipment/deep_rot_devour_q02_a2bdbf6e.png",
-    "腐噬良·噬矢": "deep_equipment/deep_rot_devour_q02_71794eee.png",
-    "腐噬良·噬识": "deep_equipment/deep_rot_devour_q02_c0761ebf.png",
-    "腐噬良·噬垣": "deep_equipment/deep_rot_devour_q02_5ce272eb.png",
-    "腐噬良·噬棘": "deep_equipment/deep_rot_devour_q02_6d1fe632.png",
-    "腐噬良·噬步": "deep_equipment/deep_rot_devour_q02_5ffbf35b.png",
-    "腐噬良·噬坠": "deep_equipment/deep_rot_devour_q02_2ac9166a.png",
-    "腐噬良·噬戒": "deep_equipment/deep_rot_devour_q02_850b7fe4.png",
-    "腐噬良·噬束": "deep_equipment/deep_rot_devour_q02_9b07b099.png",
-    "腐噬湛·裂脉": "deep_equipment/deep_rot_devour_q03_57f5cdd7.png",
-    "腐噬湛·裂羽": "deep_equipment/deep_rot_devour_q03_a5869ed5.png",
-    "腐噬湛·裂默": "deep_equipment/deep_rot_devour_q03_4e086ae7.png",
-    "腐噬湛·裂甲": "deep_equipment/deep_rot_devour_q03_09da0ce2.png",
-    "腐噬湛·裂行": "deep_equipment/deep_rot_devour_q03_4360680b.png",
-    "腐噬湛·裂影": "deep_equipment/deep_rot_devour_q03_88674710.png",
-    "腐噬湛·裂涌": "deep_equipment/deep_rot_devour_q03_c80263fe.png",
-    "腐噬湛·裂指": "deep_equipment/deep_rot_devour_q03_b9eb4a62.png",
-    "腐噬湛·缠络": "deep_equipment/deep_rot_devour_q03_3f2a51e9.png",
-    "腐噬炽·黯锋": "deep_equipment/deep_rot_devour_q04_95c44d5d.png",
-    "腐噬炽·黯弓": "deep_equipment/deep_rot_devour_q04_b89f9a78.png",
-    "腐噬炽·黯翎": "deep_equipment/deep_rot_devour_q04_178db01b.png",
-    "腐噬炽·黯壁": "deep_equipment/deep_rot_devour_q04_101abbe9.png",
-    "腐噬炽·黯刺": "deep_equipment/deep_rot_devour_q04_bccff563.png",
-    "腐噬炽·黯踏": "deep_equipment/deep_rot_devour_q04_8b8bf37c.png",
-    "腐噬炽·黯咒": "deep_equipment/deep_rot_devour_q04_c0a0d75f.png",
-    "腐噬炽·黯缚": "deep_equipment/deep_rot_devour_q04_1dfb1a36.png",
-    "腐噬炽·黯财": "deep_equipment/deep_rot_devour_q04_199be7ab.png",
-    "腐噬曜·吞芒": "deep_equipment/deep_rot_devour_q05_0729ebd3.png",
-    "腐噬曜·吞弦": "deep_equipment/deep_rot_devour_q05_0661dcbf.png",
-    "腐噬曜·吞息": "deep_equipment/deep_rot_devour_q05_ac3cc107.png",
-    "腐噬曜·吞障": "deep_equipment/deep_rot_devour_q05_6045cb69.png",
-    "腐噬曜·吞棘": "deep_equipment/deep_rot_devour_q05_ce987d1e.png",
-    "腐噬曜·吞痕": "deep_equipment/deep_rot_devour_q05_45c80c96.png",
-    "腐噬曜·吞泉": "deep_equipment/deep_rot_devour_q05_15018008.png",
-    "腐噬曜·吞契": "deep_equipment/deep_rot_devour_q05_f08fcdc8.png",
-    "腐噬曜·吞禄": "deep_equipment/deep_rot_devour_q05_2c90958a.png",
-    "黑曜凡·黑刃": "deep_equipment/deep_obsidian_q01_3a216e4f.png",
-    "黑曜凡·黑矢": "deep_equipment/deep_obsidian_q01_b2e756d9.png",
-    "黑曜凡·黑冠": "deep_equipment/deep_obsidian_q01_1aa617c6.png",
-    "黑曜凡·黑铠": "deep_equipment/deep_obsidian_q01_c4db2d28.png",
-    "黑曜凡·黑胫": "deep_equipment/deep_obsidian_q01_9825cb5d.png",
-    "黑曜凡·黑踪": "deep_equipment/deep_obsidian_q01_31688b40.png",
-    "黑曜凡·黑链": "deep_equipment/deep_obsidian_q01_0908632f.png",
-    "黑曜凡·黑环": "deep_equipment/deep_obsidian_q01_e8067f1f.png",
-    "黑曜凡·黑缰": "deep_equipment/deep_obsidian_q01_d5f1c8e4.png",
-    "黑曜良·曜痕": "deep_equipment/deep_obsidian_q02_7f342e97.png",
-    "黑曜良·曜弓": "deep_equipment/deep_obsidian_q02_0979e561.png",
-    "黑曜良·曜翎": "deep_equipment/deep_obsidian_q02_e9079dad.png",
-    "黑曜良·曜垣": "deep_equipment/deep_obsidian_q02_2bfc4fe8.png",
-    "黑曜良·曜棘": "deep_equipment/deep_obsidian_q02_2db61ee1.png",
-    "黑曜良·曜步": "deep_equipment/deep_obsidian_q02_dc698dc5.png",
-    "黑曜良·曜坠": "deep_equipment/deep_obsidian_q02_aceddb28.png",
-    "黑曜良·曜戒": "deep_equipment/deep_obsidian_q02_e5b03768.png",
-    "黑曜良·曜束": "deep_equipment/deep_obsidian_q02_978fc9cf.png",
-    "黑曜湛·渊斩": "deep_equipment/deep_obsidian_q03_1c863111.png",
-    "黑曜湛·渊弦": "deep_equipment/deep_obsidian_q03_03788058.png",
-    "黑曜湛·渊识": "deep_equipment/deep_obsidian_q03_609b2bb3.png",
-    "黑曜湛·渊甲": "deep_equipment/deep_obsidian_q03_87d5711e.png",
-    "黑曜湛·渊行": "deep_equipment/deep_obsidian_q03_e330fd68.png",
-    "黑曜湛·渊影": "deep_equipment/deep_obsidian_q03_232b7ea6.png",
-    "黑曜湛·渊涌": "deep_equipment/deep_obsidian_q03_5266a5a5.png",
-    "黑曜湛·渊指": "deep_equipment/deep_obsidian_q03_d499ecd9.png",
-    "黑曜湛·渊络": "deep_equipment/deep_obsidian_q03_4850be8c.png",
-    "黑曜炽·锢锋": "deep_equipment/deep_obsidian_q04_d6b6d031.png",
-    "黑曜炽·锢羽": "deep_equipment/deep_obsidian_q04_39ac46b1.png",
-    "黑曜炽·锢默": "deep_equipment/deep_obsidian_q04_13c9721c.png",
-    "黑曜炽·锢壁": "deep_equipment/deep_obsidian_q04_facf55fe.png",
-    "黑曜炽·锢刺": "deep_equipment/deep_obsidian_q04_4b466190.png",
-    "黑曜炽·锢踏": "deep_equipment/deep_obsidian_q04_f80c1b41.png",
-    "黑曜炽·锢咒": "deep_equipment/deep_obsidian_q04_4abe5e85.png",
-    "黑曜炽·锢缚": "deep_equipment/deep_obsidian_q04_dcd5c1a8.png",
-    "黑曜炽·锢财": "deep_equipment/deep_obsidian_q04_3ec86b01.png",
-    "黑曜曜·壁纹": "deep_equipment/deep_obsidian_q05_9a34c6b1.png",
-    "黑曜曜·壁矢": "deep_equipment/deep_obsidian_q05_c0726d91.png",
-    "黑曜曜·壁息": "deep_equipment/deep_obsidian_q05_2f794216.png",
-    "黑曜曜·壁障": "deep_equipment/deep_obsidian_q05_ac8c82b7.png",
-    "黑曜曜·壁棘": "deep_equipment/deep_obsidian_q05_3a6e51b1.png",
-    "黑曜曜·壁痕": "deep_equipment/deep_obsidian_q05_a60b3f2b.png",
-    "黑曜曜·壁泉": "deep_equipment/deep_obsidian_q05_c024bb72.png",
-    "黑曜曜·壁契": "deep_equipment/deep_obsidian_q05_7f09a04a.png",
-    "黑曜曜·壁禄": "deep_equipment/deep_obsidian_q05_25eef7be.png",
-    "终幕凡·终刃": "deep_equipment/deep_final_curtain_q01_880eab2f.png",
-    "终幕凡·终弦": "deep_equipment/deep_final_curtain_q01_7ca0aefa.png",
-    "终幕凡·终冠": "deep_equipment/deep_final_curtain_q01_4fd08ebb.png",
-    "终幕凡·终铠": "deep_equipment/deep_final_curtain_q01_55adfea3.png",
-    "终幕凡·终胫": "deep_equipment/deep_final_curtain_q01_48db3715.png",
-    "终幕凡·终踪": "deep_equipment/deep_final_curtain_q01_c14656e7.png",
-    "终幕凡·终链": "deep_equipment/deep_final_curtain_q01_3c46ebd5.png",
-    "终幕凡·终环": "deep_equipment/deep_final_curtain_q01_79721369.png",
-    "终幕凡·终缰": "deep_equipment/deep_final_curtain_q01_329797d5.png",
-    "终幕良·幕痕": "deep_equipment/deep_final_curtain_q02_404aafd9.png",
-    "终幕良·幕矢": "deep_equipment/deep_final_curtain_q02_e77311ae.png",
-    "终幕良·幕翎": "deep_equipment/deep_final_curtain_q02_743ca3a6.png",
-    "终幕良·幕垣": "deep_equipment/deep_final_curtain_q02_bc4bfcb2.png",
-    "终幕良·幕棘": "deep_equipment/deep_final_curtain_q02_46691f19.png",
-    "终幕良·幕步": "deep_equipment/deep_final_curtain_q02_3c6cdb4b.png",
-    "终幕良·幕坠": "deep_equipment/deep_final_curtain_q02_7fdfa225.png",
-    "终幕良·幕戒": "deep_equipment/deep_final_curtain_q02_6c3e5f8a.png",
-    "终幕良·幕束": "deep_equipment/deep_final_curtain_q02_5caacf13.png",
-    "终幕湛·誓纹": "deep_equipment/deep_final_curtain_q03_9e01393f.png",
-    "终幕湛·誓弓": "deep_equipment/deep_final_curtain_q03_0f0a3d36.png",
-    "终幕湛·誓识": "deep_equipment/deep_final_curtain_q03_8cfe2e8b.png",
-    "终幕湛·誓甲": "deep_equipment/deep_final_curtain_q03_9654bf82.png",
-    "终幕湛·誓行": "deep_equipment/deep_final_curtain_q03_f7122fcd.png",
-    "终幕湛·誓影": "deep_equipment/deep_final_curtain_q03_ade7c0de.png",
-    "终幕湛·誓涌": "deep_equipment/deep_final_curtain_q03_2e2db29d.png",
-    "终幕湛·誓指": "deep_equipment/deep_final_curtain_q03_432503d7.png",
-    "终幕湛·誓络": "deep_equipment/deep_final_curtain_q03_803fcecc.png",
-    "终幕炽·星斩": "deep_equipment/deep_final_curtain_q04_7c5c6e81.png",
-    "终幕炽·星羽": "deep_equipment/deep_final_curtain_q04_c9635a1b.png",
-    "终幕炽·星默": "deep_equipment/deep_final_curtain_q04_4345d484.png",
-    "终幕炽·星壁": "deep_equipment/deep_final_curtain_q04_2ac6a1dc.png",
-    "终幕炽·星刺": "deep_equipment/deep_final_curtain_q04_8d961dfd.png",
-    "终幕炽·星踏": "deep_equipment/deep_final_curtain_q04_ff6c5f39.png",
-    "终幕炽·星咒": "deep_equipment/deep_final_curtain_q04_855e4f71.png",
-    "终幕炽·星缚": "deep_equipment/deep_final_curtain_q04_4bb9463a.png",
-    "终幕炽·星财": "deep_equipment/deep_final_curtain_q04_ed77a2df.png",
-    "终幕曜·墟络": "deep_equipment/deep_final_curtain_q05_ddeeab02.png",
-    "终幕曜·墟弦": "deep_equipment/deep_final_curtain_q05_705b8775.png",
-    "终幕曜·墟息": "deep_equipment/deep_final_curtain_q05_d57c3bef.png",
-    "终幕曜·墟障": "deep_equipment/deep_final_curtain_q05_8a0844bc.png",
-    "终幕曜·墟棘": "deep_equipment/deep_final_curtain_q05_43512ad8.png",
-    "终幕曜·墟痕": "deep_equipment/deep_final_curtain_q05_8535e755.png",
-    "终幕曜·墟泉": "deep_equipment/deep_final_curtain_q05_43ae4111.png",
-    "终幕曜·墟契": "deep_equipment/deep_final_curtain_q05_3f8f3c33.png",
-    "终幕曜·墟禄": "deep_equipment/deep_final_curtain_q05_c76fcd1f.png",
-    "星骸凡·星刃": "deep_equipment/deep_star_wreck_q01_63c34a3b.png",
-    "星骸凡·星矢": "deep_equipment/deep_star_wreck_q01_0669216d.png",
-    "星骸凡·星冠": "deep_equipment/deep_star_wreck_q01_c708dc2e.png",
-    "星骸凡·星铠": "deep_equipment/deep_star_wreck_q01_d4bfba7f.png",
-    "星骸凡·星胫": "deep_equipment/deep_star_wreck_q01_b32409b6.png",
-    "星骸凡·星踪": "deep_equipment/deep_star_wreck_q01_beb646c1.png",
-    "星骸凡·星链": "deep_equipment/deep_star_wreck_q01_b656418e.png",
-    "星骸凡·星环": "deep_equipment/deep_star_wreck_q01_2da2a4e3.png",
-    "星骸凡·星缰": "deep_equipment/deep_star_wreck_q01_8667df47.png",
-    "星骸良·骸纹": "deep_equipment/deep_star_wreck_q02_729f6ad1.png",
-    "星骸良·骸弓": "deep_equipment/deep_star_wreck_q02_e0a67aee.png",
-    "星骸良·骸翎": "deep_equipment/deep_star_wreck_q02_32816a72.png",
-    "星骸良·骸垣": "deep_equipment/deep_star_wreck_q02_54650d7f.png",
-    "星骸良·骸棘": "deep_equipment/deep_star_wreck_q02_55012541.png",
-    "星骸良·骸步": "deep_equipment/deep_star_wreck_q02_04616b59.png",
-    "星骸良·骸坠": "deep_equipment/deep_star_wreck_q02_937dd680.png",
-    "星骸良·骸戒": "deep_equipment/deep_star_wreck_q02_2a46f8be.png",
-    "星骸良·骸束": "deep_equipment/deep_star_wreck_q02_69c452b1.png",
-    "星骸湛·链痕": "deep_equipment/deep_star_wreck_q03_42dd6f63.png",
-    "星骸湛·链羽": "deep_equipment/deep_star_wreck_q03_56ddc623.png",
-    "星骸湛·链识": "deep_equipment/deep_star_wreck_q03_20227aac.png",
-    "星骸湛·链甲": "deep_equipment/deep_star_wreck_q03_b08d0b08.png",
-    "星骸湛·链行": "deep_equipment/deep_star_wreck_q03_21b267cc.png",
-    "星骸湛·链影": "deep_equipment/deep_star_wreck_q03_a4bf4706.png",
-    "星骸湛·链涌": "deep_equipment/deep_star_wreck_q03_b536dd47.png",
-    "星骸湛·链指": "deep_equipment/deep_star_wreck_q03_3bbfb278.png",
-    "星骸湛·链络": "deep_equipment/deep_star_wreck_q03_cee89f86.png",
-    "星骸炽·裂络": "deep_equipment/deep_star_wreck_q04_713e8b52.png",
-    "星骸炽·裂弦": "deep_equipment/deep_star_wreck_q04_30e0e051.png",
-    "星骸炽·隙默": "deep_equipment/deep_star_wreck_q04_dd500102.png",
-    "星骸炽·裂壁": "deep_equipment/deep_star_wreck_q04_a6de2bc7.png",
-    "星骸炽·裂刺": "deep_equipment/deep_star_wreck_q04_d6806395.png",
-    "星骸炽·裂踏": "deep_equipment/deep_star_wreck_q04_ee4dccc2.png",
-    "星骸炽·裂咒": "deep_equipment/deep_star_wreck_q04_2612f466.png",
-    "星骸炽·裂缚": "deep_equipment/deep_star_wreck_q04_4eb5123d.png",
-    "星骸炽·裂财": "deep_equipment/deep_star_wreck_q04_893e562b.png",
-    "星骸曜·陨芒": "deep_equipment/deep_star_wreck_q05_91cf101e.png",
-    "星骸曜·陨矢": "deep_equipment/deep_star_wreck_q05_fb0cd89f.png",
-    "星骸曜·陨息": "deep_equipment/deep_star_wreck_q05_ed49d2ca.png",
-    "星骸曜·陨障": "deep_equipment/deep_star_wreck_q05_2e74fb36.png",
-    "星骸曜·陨棘": "deep_equipment/deep_star_wreck_q05_74e45755.png",
-    "星骸曜·陨痕": "deep_equipment/deep_star_wreck_q05_f9381993.png",
-    "星骸曜·陨泉": "deep_equipment/deep_star_wreck_q05_58f3e04f.png",
-    "星骸曜·陨契": "deep_equipment/deep_star_wreck_q05_6761ad88.png",
-    "星骸曜·陨禄": "deep_equipment/deep_star_wreck_q05_8f6f0c01.png",
-    "裂点凡·裂锋": "deep_equipment/deep_fracture_node_q01_e34f936b.png",
-    "裂点凡·裂弓": "deep_equipment/deep_fracture_node_q01_f0138985.png",
-    "裂点凡·裂冠": "deep_equipment/deep_fracture_node_q01_437ff6d6.png",
-    "裂点凡·裂铠": "deep_equipment/deep_fracture_node_q01_3cda1d19.png",
-    "裂点凡·裂胫": "deep_equipment/deep_fracture_node_q01_a9e04fe1.png",
-    "裂点凡·裂踪": "deep_equipment/deep_fracture_node_q01_fa04fd6d.png",
-    "裂点凡·裂链": "deep_equipment/deep_fracture_node_q01_f6cea645.png",
-    "裂点凡·裂环": "deep_equipment/deep_fracture_node_q01_db7ad75f.png",
-    "裂点凡·裂缰": "deep_equipment/deep_fracture_node_q01_1cc0aeca.png",
-    "裂点良·点芒": "deep_equipment/deep_fracture_node_q02_e59f47e3.png",
-    "裂点良·点羽": "deep_equipment/deep_fracture_node_q02_648ed5ba.png",
-    "裂点良·点翎": "deep_equipment/deep_fracture_node_q02_4564ad0f.png",
-    "裂点良·点垣": "deep_equipment/deep_fracture_node_q02_e014fa6e.png",
-    "裂点良·点棘": "deep_equipment/deep_fracture_node_q02_3e07859f.png",
-    "裂点良·点步": "deep_equipment/deep_fracture_node_q02_9edf78d1.png",
-    "裂点良·点坠": "deep_equipment/deep_fracture_node_q02_5c4f0404.png",
-    "裂点良·点戒": "deep_equipment/deep_fracture_node_q02_660c59bd.png",
-    "裂点良·点束": "deep_equipment/deep_fracture_node_q02_895cf0b2.png",
-    "裂点湛·隙纹": "deep_equipment/deep_fracture_node_q03_aacf880c.png",
-    "裂点湛·隙矢": "deep_equipment/deep_fracture_node_q03_d0c7ff40.png",
-    "裂点湛·隙识": "deep_equipment/deep_fracture_node_q03_16eeb54b.png",
-    "裂点湛·隙甲": "deep_equipment/deep_fracture_node_q03_f72c177c.png",
-    "裂点湛·隙行": "deep_equipment/deep_fracture_node_q03_3b1676b6.png",
-    "裂点湛·隙影": "deep_equipment/deep_fracture_node_q03_9c2f7e6e.png",
-    "裂点湛·隙涌": "deep_equipment/deep_fracture_node_q03_8c417554.png",
-    "裂点湛·隙指": "deep_equipment/deep_fracture_node_q03_d5086588.png",
-    "裂点湛·隙络": "deep_equipment/deep_fracture_node_q03_7cdef91d.png",
-    "裂点炽·穿痕": "deep_equipment/deep_fracture_node_q04_51cbea31.png",
-    "裂点炽·穿弦": "deep_equipment/deep_fracture_node_q04_2d5a2461.png",
-    "裂点炽·穿默": "deep_equipment/deep_fracture_node_q04_33f2d555.png",
-    "裂点炽·穿壁": "deep_equipment/deep_fracture_node_q04_eb659bd1.png",
-    "裂点炽·穿刺": "deep_equipment/deep_fracture_node_q04_c3f09ae0.png",
-    "裂点炽·穿踏": "deep_equipment/deep_fracture_node_q04_768976f7.png",
-    "裂点炽·穿咒": "deep_equipment/deep_fracture_node_q04_532c9f23.png",
-    "裂点炽·穿缚": "deep_equipment/deep_fracture_node_q04_9632eae1.png",
-    "裂点炽·穿财": "deep_equipment/deep_fracture_node_q04_27353b35.png",
-    "裂点曜·断络": "deep_equipment/deep_fracture_node_q05_89b4d69c.png",
-    "裂点曜·断羽": "deep_equipment/deep_fracture_node_q05_f38a9277.png",
-    "裂点曜·断息": "deep_equipment/deep_fracture_node_q05_971a6ab5.png",
-    "裂点曜·断障": "deep_equipment/deep_fracture_node_q05_adef4916.png",
-    "裂点曜·断棘": "deep_equipment/deep_fracture_node_q05_d7978c98.png",
-    "裂点曜·断痕": "deep_equipment/deep_fracture_node_q05_249bb9d0.png",
-    "裂点曜·断泉": "deep_equipment/deep_fracture_node_q05_15d75f7c.png",
-    "裂点曜·断契": "deep_equipment/deep_fracture_node_q05_f220743f.png",
-    "裂点曜·断禄": "deep_equipment/deep_fracture_node_q05_80a5215e.png",
-    "终焉凡·殒刃": "deep_equipment/deep_terminus_q01_34a35401.png",
-    "终焉凡·殒弓": "deep_equipment/deep_terminus_q01_c13191f4.png",
-    "终焉凡·殒冠": "deep_equipment/deep_terminus_q01_b9da6149.png",
-    "终焉凡·殒铠": "deep_equipment/deep_terminus_q01_e9b823c6.png",
-    "终焉凡·殒胫": "deep_equipment/deep_terminus_q01_856e9a84.png",
-    "终焉凡·殒踪": "deep_equipment/deep_terminus_q01_4c044679.png",
-    "终焉凡·殒链": "deep_equipment/deep_terminus_q01_dfed9ad8.png",
-    "终焉凡·殒环": "deep_equipment/deep_terminus_q01_45267ef1.png",
-    "终焉凡·殒缰": "deep_equipment/deep_terminus_q01_4eb13296.png",
-    "终焉良·焉痕": "deep_equipment/deep_terminus_q02_3c5f5dfb.png",
-    "终焉良·焉矢": "deep_equipment/deep_terminus_q02_aed9ed22.png",
-    "终焉良·焉翎": "deep_equipment/deep_terminus_q02_0eeb2ceb.png",
-    "终焉良·焉垣": "deep_equipment/deep_terminus_q02_5ccd199a.png",
-    "终焉良·焉棘": "deep_equipment/deep_terminus_q02_d94295e0.png",
-    "终焉良·焉步": "deep_equipment/deep_terminus_q02_efaf6113.png",
-    "终焉良·焉坠": "deep_equipment/deep_terminus_q02_edba9904.png",
-    "终焉良·焉戒": "deep_equipment/deep_terminus_q02_3145c9b0.png",
-    "终焉良·焉束": "deep_equipment/deep_terminus_q02_f37a00e9.png",
-    "终焉湛·终络": "deep_equipment/deep_terminus_q03_e1c905d1.png",
-    "终焉湛·终羽": "deep_equipment/deep_terminus_q03_1316bd3d.png",
-    "终焉湛·终识": "deep_equipment/deep_terminus_q03_79770ee4.png",
-    "终焉湛·终甲": "deep_equipment/deep_terminus_q03_d67ea0e0.png",
-    "终焉湛·终行": "deep_equipment/deep_terminus_q03_a9a4a990.png",
-    "终焉湛·终影": "deep_equipment/deep_terminus_q03_a64d471d.png",
-    "终焉湛·终涌": "deep_equipment/deep_terminus_q03_1cceb42a.png",
-    "终焉湛·终指": "deep_equipment/deep_terminus_q03_2b4e3d59.png",
-    "终焉湛·殁络": "deep_equipment/deep_terminus_q03_4bc89a19.png",
-    "终焉炽·归殁": "deep_equipment/deep_terminus_q04_e0726c2e.png",
-    "终焉炽·归弦": "deep_equipment/deep_terminus_q04_3e7e6129.png",
-    "终焉炽·归默": "deep_equipment/deep_terminus_q04_84a91f57.png",
-    "终焉炽·归壁": "deep_equipment/deep_terminus_q04_d37e0593.png",
-    "终焉炽·归刺": "deep_equipment/deep_terminus_q04_09eea37a.png",
-    "终焉炽·归踏": "deep_equipment/deep_terminus_q04_db078a60.png",
-    "终焉炽·归咒": "deep_equipment/deep_terminus_q04_c0af893e.png",
-    "终焉炽·归缚": "deep_equipment/deep_terminus_q04_efc96ac1.png",
-    "终焉炽·归财": "deep_equipment/deep_terminus_q04_22b59cb9.png",
-    "终焉曜·墟殒": "deep_equipment/deep_terminus_q05_1e1ad1ce.png",
-    "终焉曜·墟弓": "deep_equipment/deep_terminus_q05_75ca7631.png",
-    "终焉曜·墟翎": "deep_equipment/deep_terminus_q05_86f83983.png",
-    "终焉曜·墟铠": "deep_equipment/deep_terminus_q05_1b04f979.png",
-    "终焉曜·墟胫": "deep_equipment/deep_terminus_q05_ed5a7330.png",
-    "终焉曜·墟踪": "deep_equipment/deep_terminus_q05_3bc470e7.png",
-    "终焉曜·墟链": "deep_equipment/deep_terminus_q05_1ffc1c84.png",
-    "终焉曜·墟环": "deep_equipment/deep_terminus_q05_1a426286.png",
-    "终焉曜·墟缰": "deep_equipment/deep_terminus_q05_82d9f591.png"
-  },
-  "building": {
-    "tower_entrance": "tile_tower_entrance.png",
-    "blacksmith": "tile_blacksmith.png",
-    "shop": "tile_shop.png",
-    "training_ground": "tile_training_ground.png",
-    "class_master": "tile_tower_entrance.png",
-    "skill_trainer": "tile_training_ground.png",
-    "enchanter": "tile_shop.png",
-    "jeweler": "tile_blacksmith.png",
-    "chronicle_stone": "tile_tower_entrance.png",
-    "awakening_gate": "tile_tower_entrance.png",
-    "material_realm": "tile_training_ground.png"
-  },
-  "room_entity": {
-    "treasure_chest": "tile_treasure_chest.png",
-    "rest_campfire": "tile_rest_campfire.png",
-    "rest_medkit": "tile_rest_medkit.png",
-    "rest_fountain": "tile_rest_fountain.png",
-    "rest_altar": "tile_rest_altar.png"
-  },
-  "portal": {
-    "exit": "tile_portal_exit.png",
-    "next": "tile_portal_next.png",
-    "return_town": "tile_portal_return_town.png",
-    "fight": "tile_portal_fight.png",
-    "exit_dungeon": "tile_portal_exit_dungeon.png"
-  },
-  "floor": {
-    "town": "tile_town_floor.png",
-    "tower": "tile_tower_floor_new.png",
-    "training": "tile_training_floor.png",
-    "dungeon": "tile_dungeon_floor.png",
-    "dungeon_cave": "tile_dungeon_floor_cave.png",
-    "dungeon_forest": "tile_dungeon_floor_forest.png",
-    "dungeon_void": "tile_dungeon_floor_void.png",
-    "dungeon_volcano": "tile_dungeon_floor_volcano.png"
-  },
-  "monster": {
-    "boss_20": {
-      "image": "boss_20.png",
-      "scale": 5.21
+    "equipment": {
+        "\u701a\u6d77\u661f\u5195": "71d14a95-09ce-4c30-8ab8-56c9a89ca501.png",
+        "\u9677\u9635\u91cd\u62a4\u817f": "efaa651b-bc6b-4789-ab06-35ba2167954a.png",
+        "\u86ee\u529b\u4e4b\u6e90": "ab71ec53-a232-41b0-87ba-5a1cc9fc2a44.png",
+        "\u6c38\u6052\u661f\u8fb0": "6e8bd89d-7f51-4acf-b1e5-3b22ef1c9ac6.png",
+        "\u94a2\u6263\u76ae\u5e26": "ebd398f3-6106-47ce-8c07-73ff64e926de.png",
+        "\u94f6\u6cb3\u8f68\u8ff9": "a25cdc50-741e-4085-9dad-242bd8516b4e.png",
+        "\u96c4\u72ee\u677f\u7532": "7eca416c-14f2-49a8-a772-be89216de57f.png",
+        "\u8f70\u9e23\u96f7\u51a0": "922df985-6f02-4c64-b005-0699039132b6.png",
+        "\u9006\u9cde\u5c60\u9f99\u950b": "7b5c96e2-8179-49bc-9772-69196eb1db4e.png",
+        "\u94c1\u536b\u62a4\u817f": "25bbd442-cf8a-4d8e-b5c7-8c7e9021a35c.png",
+        "\u53e4\u9057\u9752\u94dc\u73af": "806958cd-a841-4063-bd18-aa4c93f9094b.png",
+        "\u82e6\u884c\u8005\u957f\u886b": "9108845d-bc28-4317-8a6c-bb423684fa6c.png",
+        "\u7edd\u5c18\u971c\u76d4": "45e91110-85a5-4313-aa64-37b81fbe60ff.png",
+        "\u58c1\u5792\u8170\u5e26": "792a6b26-bd07-43b8-b2c4-bb029a19bb9f.png",
+        "\u5760\u661f\u88c1\u51b3": "888c7e5e-1061-44b9-8a5b-a5fa9632b2a6.png",
+        "\u5954\u96f7\u675f\u7f1a": "4b0a44b1-b31a-4011-a0c3-46e533a6ad24.png",
+        "\u521b\u4e16\u6cd5\u5219": "2a93f87f-03fe-4914-9a75-bb56234169e1.png",
+        "\u5f8b\u6cd5\u5723\u5e26": "70974d03-f2c4-4b3c-ac07-d3153da5071b.png",
+        "\u795e\u5a01\u5934\u76d4": "5c1003a2-2a33-479f-b7dd-8bdb8dce5449.png",
+        "\u575a\u6bc5\u94c1\u76d4": "aa466b33-4846-4bb9-a12f-0152b4c4a559.png",
+        "\u9f99\u7b4b\u62a4\u817f": "78571b8b-6271-4c60-b28c-ec4331993a89.png",
+        "\u70ec\u706d\u7ea2\u83b2": "69bfbf96-863d-4113-83c1-ca1a055c6d50.png",
+        "\u971c\u7eb9\u88d9\u7532": "3923351e-0883-4a1c-a926-e17df1d3cf13.png",
+        "\u83b9\u5f7b\u6676\u76d4": "73c3becc-c83e-47a9-823a-444eee9266aa.png",
+        "\u7194\u5ca9\u91cd\u94e0": "3c965525-80e8-48f1-8ac5-e9769dbaf74e.png",
+        "\u4f17\u795e\u51a0\u5195": "624c0f55-fbaa-4f09-908b-c8ea787420a6.png",
+        "\u971c\u9b42\u51dd\u89c6": "0d914cbb-ae1d-46bc-aa1d-87226a3a8036.png",
+        "\u6708\u5f71\u6d41\u5149": "7fed0dfc-8bbb-4374-8c58-e5f12fdea4d0.png",
+        "\u6d41\u94f6\u62a4\u80eb": "ab0232c9-8176-43bb-a573-91b5576c3cb4.png",
+        "\u708e\u9b54\u4e4b\u77b3": "5482cf21-daec-4829-8673-5f85bf894a89.png",
+        "\u971c\u51bb\u4e4b\u89e6": "d84df397-688a-4840-9497-b3b5b48917fe.png",
+        "\u517d\u7eb9\u76ae\u88e4": "22b2ca29-7a17-4054-834d-195306d2ac05.png",
+        "\u8bf8\u795e\u7737\u987e": "ed98d11a-0a8b-4448-a3bb-181fe509ad09.png",
+        "\u9006\u9cde\u9f99\u94e0": "3f19c417-68a3-4a56-a8dc-1d3e62e89dea.png",
+        "\u7409\u7483\u6676\u80eb": "02caa09a-3fcc-497e-9216-9c87a27af35a.png",
+        "\u70bd\u708e\u4e4b\u73af": "dc16600a-7841-4588-9487-6ff279095469.png",
+        "\u6781\u5730\u6c38\u51bb": "8d5a67db-011a-48cb-9d2a-7c5a117005dd.png",
+        "\u7480\u74a8\u661f\u56fe": "e6f32ebe-2fb5-4afe-9dac-8ff776594ded.png",
+        "\u53e4\u6734\u9752\u94dc\u76d4": "b19e9cba-7f07-4e8b-8f0e-7e2570956220.png",
+        "\u6c38\u6052\u6218\u7532": "79089451-ca42-48b0-b96e-f61ea528361c.png",
+        "\u5254\u900f\u6676\u9774": "be49d6a8-a22d-42d9-9ff3-1f7cc6226e7c.png",
+        "\u7075\u80fd\u8c10\u632f": "ada0d7ba-968c-4d91-97ec-e1dafba18389.png",
+        "\u65c5\u4eba\u8349\u978b": "c49927a2-e89c-41db-89cb-d58f5d9ee939.png",
+        "\u52ab\u706b\u711a\u4f24": "6aee9bb0-d091-42e2-a9e2-957722c333f5.png",
+        "\u60ca\u96f7\u7834\u6653": "8a71af02-a68c-4ffb-9451-4a9800c3a4b5.png",
+        "\u548f\u5492\u5e08\u957f\u888d": "1e4379cb-bb74-4c6f-9275-50bab475ce04.png",
+        "\u9010\u6708\u94f6\u8292\u5251": "95afe253-5375-4f5a-8ac8-664030ea0ca8.png",
+        "\u730e\u624b\u76ae\u5e3d": "839fc165-9c98-4cec-ba97-a4a9e4f33e56.png",
+        "\u6591\u9a73\u9752\u94dc\u94e0": "c0b60f3f-2b3b-4c40-801d-9212f8052d13.png",
+        "\u6781\u661f\u62a4\u4f51": "7336588f-fb36-43c1-affd-db05922f6c7b.png",
+        "\u6e38\u4fa0\u5e03\u88e4": "56154560-857d-44c2-ad6d-9417ecc5aa0e.png",
+        "\u9ec4\u94dc\u52cb\u7ae0": "47070aa7-a55b-46e2-89f7-f622b9bf57b4.png",
+        "\u8f89\u5149\u79d8\u94f6\u5203": "532e252a-89e7-4797-9f79-1f75640b4aa3.png",
+        "\u8fc5\u5f71\u4e4b\u89e6": "910d47dc-1371-476c-bb78-e8682379ca0f.png",
+        "\u51dd\u971c\u8fdc\u884c": "d5b7848a-8bc0-4742-942a-2b4bbb985ad0.png",
+        "\u8346\u68d8\u76ae\u7532": "1a2733bc-fb02-4647-94e6-bcd176e0126a.png",
+        "\u94f6\u7ffc\u675f\u5e26": "c2038d0c-6841-47ee-8623-d05637692e23.png",
+        "\u9f99\u606f\u4e4b\u63e1": "5e34884f-0258-4cc8-8d78-740ea893c22c.png",
+        "\u91d1\u6743\u6212\u5f8b": "508401f9-021d-4cd5-8b45-62be829d9a1b.png",
+        "\u7f16\u7ec7\u8170\u5e26": "9e0cdc3d-1221-40ad-8b22-7360b48dd54e.png",
+        "\u9f99\u5fc3\u5782\u9970": "95d506e7-ece4-4b21-b245-becb1ad814f7.png",
+        "\u9a81\u52c7\u94a2\u76d4": "77bd473b-899d-47da-bfa8-6486684cb986.png",
+        "\u88c2\u7a7a\u96f7\u7eb9": "acb48756-0eb0-4da8-acd7-f1524ebec442.png",
+        "\u6df7\u6c8c\u4e4b\u5203": "633e061f-83fc-4725-a654-cef3ab89ad80.png",
+        "\u8fc5\u96f7\u95ea\u6b65": "6318dc36-c897-4e21-b6d3-fc6279fe2b08.png",
+        "\u70c1\u5149\u94f6\u9774": "58e33d0e-9467-45af-9c86-847f27e60f42.png",
+        "\u9752\u94dc\u7532\u5e26": "235dd6e3-71ba-4f60-aedf-76e2991a681b.png",
+        "\u6c89\u91cd\u9752\u94dc\u536b": "4894d12a-0c6f-472a-b391-f1b7eb6593b1.png",
+        "\u8fdc\u53e4\u9f99\u5203": "a29e15df-16e5-485f-899f-ca60a423d00f.png",
+        "\u5929\u5ead\u4e4b\u675f": "c9465ef7-b1bc-4b83-afb3-4fed0cdbce32.png",
+        "\u6dec\u706b\u7cbe\u94a2\u5251": "edd8484f-5f54-4dfe-abaa-b8732ec2da4c.png",
+        "\u575a\u56fa\u9752\u94dc\u9774": "5122ec7c-3d00-4c68-a19b-dd3f1c960d58.png",
+        "\u7ec6\u5bc6\u9501\u5b50\u7532": "a3dfa472-623a-49eb-9209-9bb427f163e6.png",
+        "\u79d8\u6cd5\u6676\u9ad3": "75a3e05f-2094-405e-a228-e596694dd29f.png",
+        "\u7070\u70ec\u62a4\u8db3": "677fe351-c893-4df1-9540-217d74d8380c.png",
+        "\u9ec4\u91d1\u5951\u7ea6": "ace0a54c-5e1d-4ac2-be0e-d56d6b1a6912.png",
+        "\u950b\u9510\u9a91\u58eb\u957f\u5251": "17e23f8f-cdd3-45eb-be8b-7c5edc05c3b8.png",
+        "\u94dc\u5236\u6273\u6307": "0d7f0618-a596-496b-aa9d-3e361430ca1e.png",
+        "\u9f99\u9769\u8170\u5e26": "c28c6258-4049-442c-a384-42edece84a5e.png",
+        "\u5c81\u6708\u9752\u94dc": "f937f058-1548-443a-9006-bc386c1efa2b.png",
+        "\u8e0f\u706b\u4f59\u70ec": "1ab33f2c-5ff7-4c54-a53a-ace456da705d.png",
+        "\u6676\u66dc\u5bd2\u950b": "379d6c87-0482-46d3-973f-d4b17495eabf.png",
+        "\u5f81\u6218\u94c1\u9774": "c2fdf5fb-6eac-44fb-98fc-6b410978e86a.png",
+        "\u79d8\u94f6\u6218\u7532": "6b646c64-361c-4125-b95b-fa5967705b74.png",
+        "\u6676\u5316\u5185\u886c\u7532": "9a125d0b-fdb5-4e3a-95f7-b68670d184aa.png",
+        "\u7cbe\u94a2\u957f\u5251": "19ec1a4c-aa9d-4c04-810a-db79e473faa3.png",
+        "\u9e23\u971c\u9752\u94dc\u5251": "722fc315-0c14-4b3b-ab10-6ee7f400980a.png",
+        "\u661f\u8f68\u6f2b\u6b65": "f252ebc3-6c3e-4df9-98c3-04441a59e331.png",
+        "\u72c2\u96f7\u6012\u543c": "7b17735f-d0de-4f1e-94a1-016781bca66d.png",
+        "\u9f99\u8e0f\u4e91\u9774": "3ea58471-940e-4e9c-9207-547b4097abd2.png",
+        "\u5360\u661f\u79d8\u6cd5\u5e3d": "bc7744e9-676d-415b-b30f-40cb5fc0727d.png",
+        "\u768e\u6708\u94f6\u51a0": "2be6a83c-4f0c-4e31-a40f-523d0650f40f.png",
+        "\u6c38\u6052\u795e\u5a01": "24093536-08b7-4881-90d4-0abbc65624f9.png",
+        "\u9010\u795e\u4e4b\u8ff9": "d0c2a842-7b8e-4bf6-87ae-3adf0eb7095f.png",
+        "\u5723\u8000\u00b7\u65ad\u7f6a": "6ff282d3-552d-46ec-b5fb-173c70666a97.png",
+        "\u9f99\u9cde\u62a4\u7532": "d57f1dbc-33b8-4915-a79a-0acabe39fd5e.png",
+        "\u6676\u7eb9\u9970\u5e26": "3cd59717-7167-4e6a-92f5-16475968f6bc.png",
+        "\u8f89\u5149\u94f6\u94e0": "6780d0ff-4878-4a74-a628-678a6f6e249b.png",
+        "\u51db\u51ac\u4e4b\u62e5": "15b9df9f-d9db-4edb-b99c-16c6454c5642.png",
+        "\u51db\u98ce\u51b0\u8863": "e37db07f-f064-4c84-b907-e452adc66423.png",
+        "\u786c\u9769\u76ae\u9774": "168dc72b-7139-4813-bc72-8ec824c6fac3.png",
+        "\u75be\u96f7\u817f\u7532": "99f9c372-22d9-4973-bc45-33e1172e0243.png",
+        "\u70bd\u7130\u91cd\u76d4": "1a5681e1-34cb-45d8-8583-b0e0c241e4ce.png",
+        "\u94c1\u8d28\u675f\u8170": "2ed7b582-1bcd-450a-883e-08ad9fc7a8c6.png",
+        "\u730e\u8c79\u75be\u9774": "dbbd911e-a83f-4240-a004-4e0cd4d14ee2.png",
+        "\u79d8\u94f6\u79c1\u8bed": "b686a8bc-5dc3-4e87-a946-4c57681cd38b.png",
+        "\u9f99\u606f\u6218\u76d4": "eb5e2c41-2258-4ac2-ae1a-2b3458b00013.png",
+        "\u7eaf\u94f6\u540a\u5760": "0d5ec805-2b8f-4abc-b763-ac54913e7599.png",
+        "\u6591\u9a73\u94c1\u5251": "667ba5de-84d2-4ce6-b6e8-cc1ca8616681.png",
+        "\u5b64\u661f\u5bd2\u8292": "74191920-e060-427a-96cf-14a3cd7337b1.png",
+        "\u7535\u5149\u6218\u888d": "1678339c-2e61-48fb-a804-8759ce5ac5aa.png",
+        "\u5e7d\u51a5\u7edd\u5f71\u5203": "abe296b5-7f4b-4d10-888f-7f7195fdaccb.png",
+        "\u661f\u754c\u7ebd\u5e26": "eb008318-2b73-47b0-811f-dbcc09a6308e.png",
+        "\u9b54\u6cd5\u6c34\u6676\u5251": "22af0a9b-a762-42b3-ab65-d0a9be4f9833.png",
+        "\u730e\u98ce\u77ed\u5f13": "8cc469ec-0fb4-41fe-b29b-6beb38673aff.png",
+        "\u5e7d\u5f71\u5f29": "b93db314-a92e-40b7-9baf-e8d1378b2146.png",
+        "\u66e6\u5149\u957f\u5f13": "af3cb3c1-6647-446f-a2a0-72c94ddb92d7.png",
+        "\u7a7f\u4e91\u7834\u6708": "8da4078f-76e7-49ff-9c63-0ab9087bcd05.png",
+        "\u6c38\u591c\u00b7\u661f\u5760": "9f1d9d05-8335-4cbe-af6e-235f744f050e.png",
+        "\u6e0a\u9699\u51e1\u00b7\u6b8b\u950b": "1c03099c-f109-4c31-9f25-eeb94ed3c64d.png",
+        "\u6e0a\u9699\u51e1\u00b7\u7a7f\u4e91": "6a2e7926-34f5-47aa-86f6-e1af3e8008f9.png",
+        "\u6e0a\u9699\u51e1\u00b7\u4f4e\u8bed": "ffac8c7a-3d12-4dbf-aa9b-3be390ff4ecb.png",
+        "\u6e0a\u9699\u51e1\u00b7\u58c1\u5792": "66a713d5-a0de-471d-9da7-105f8b2648b8.png",
+        "\u6e0a\u9699\u51e1\u00b7\u8346\u68d8": "6c088740-c622-4d2c-8a72-669c2ff3d154.png",
+        "\u6e0a\u9699\u51e1\u00b7\u884c\u9774": "13517e64-8459-4264-b35c-77534644727e.png",
+        "\u6e0a\u9699\u51e1\u00b7\u6cd5\u94fe": "5f6e8ceb-f79f-425e-a1ac-c72e315e4757.png",
+        "\u6e0a\u9699\u51e1\u00b7\u8fc5\u73af": "7bcecea4-8839-42ad-bbb6-443dbd38aa0c.png",
+        "\u6e0a\u9699\u51e1\u00b7\u91d1\u7f30": "9c42089f-14fd-431f-9317-65af1f9197bb.png",
+        "\u6e0a\u9699\u826f\u00b7\u88c2\u5203": "d0501acf-2d2e-4a4c-a531-28c5cbb83df6.png",
+        "\u6e0a\u9699\u826f\u00b7\u7834\u7a79": "b1103d63-23ea-4395-b16e-2800be1b8c55.png",
+        "\u6e0a\u9699\u826f\u00b7\u5bc2\u58f0": "43cca143-997a-4164-9874-36de6b89e426.png",
+        "\u6e0a\u9699\u826f\u00b7\u94c1\u57a3": "e7175191-a8d9-4445-b453-6e8aa0ff6b48.png",
+        "\u6e0a\u9699\u826f\u00b7\u68d8\u80eb": "b036510b-f0d1-4c1a-9c51-031e7effc8f5.png",
+        "\u6e0a\u9699\u826f\u00b7\u75be\u8e2a": "30d5e806-485f-4873-88da-27b083723016.png",
+        "\u6e0a\u9699\u826f\u00b7\u5492\u7edc": "0304af45-adf4-4d69-8894-5cc9ad07f3a1.png",
+        "\u6e0a\u9699\u826f\u00b7\u7f1a\u5370": "be4cad26-cde2-4a1e-bbc9-97fc1ac975f2.png",
+        "\u6e0a\u9699\u826f\u00b7\u8d22\u675f": "4adf1bfd-64f8-47c0-a043-6aac520b9406.png",
+        "\u6e0a\u9699\u6e5b\u00b7\u65ad\u6f6e": "f9b25548-7858-40a6-b68c-4fab99be3a47.png",
+        "\u6e0a\u9699\u6e5b\u00b7\u9010\u661f": "146798a3-f352-4560-89a3-ceb51818eef0.png",
+        "\u6e0a\u9699\u6e5b\u00b7\u95ed\u8bc6": "d88a50c1-3178-4775-9da7-21efab6ff1cc.png",
+        "\u6e0a\u9699\u6e5b\u00b7\u91cd\u94e0": "b9c846a9-93ee-42d3-9127-16880c6073ff.png",
+        "\u6e0a\u9699\u6e5b\u00b7\u523a\u884c": "b8ed76f3-0c5a-44bd-831c-23a6e465760a.png",
+        "\u6e0a\u9699\u6e5b\u00b7\u865a\u6b65": "73b9afe3-e8e1-4c68-9c63-de3ecacb5dc2.png",
+        "\u6e0a\u9699\u6e5b\u00b7\u79d8\u5760": "baa81b43-82bf-463f-8380-574aca71d07b.png",
+        "\u6e0a\u9699\u6e5b\u00b7\u6f29\u6307": "242a8013-82dd-4c83-8f15-b12b9b4302de.png",
+        "\u6e0a\u9699\u6e5b\u00b7\u7a0e\u7edc": "b1dbfc13-ce3c-48e6-8677-a24ff4ef9456.png",
+        "\u6e0a\u9699\u70bd\u00b7\u70ec\u5203": "6c542cb4-8f4c-4ca8-b721-1a38a6707883.png",
+        "\u6e0a\u9699\u70bd\u00b7\u5760\u8679": "ce21f8b6-89ba-44fc-91f5-6cbf3397f23b.png",
+        "\u6e0a\u9699\u70bd\u00b7\u9ed8\u5370": "c05d1500-f9cb-4a76-a658-3c221c9467ed.png",
+        "\u6e0a\u9699\u70bd\u00b7\u6e0a\u886c": "975a6e26-22c7-41a0-9a5f-18f4c284331d.png",
+        "\u6e0a\u9699\u70bd\u00b7\u7f20\u80eb": "7c6cf74e-0f89-464b-87e7-0571159366cf.png",
+        "\u6e0a\u9699\u70bd\u00b7\u63a0\u5f71": "485918f5-eb83-4ee4-9616-b6fa07c4890c.png",
+        "\u6e0a\u9699\u70bd\u00b7\u6da1\u6d8c": "07b8bb2c-95c9-4514-b94f-1533676f90b6.png",
+        "\u6e0a\u9699\u70bd\u00b7\u5f8b\u6212": "a7278275-87a1-44e6-8a83-bc4952edb403.png",
+        "\u6e0a\u9699\u70bd\u00b7\u7235\u5e26": "674710a3-e81f-42b6-926f-30ea26cb456d.png",
+        "\u6e0a\u9699\u66dc\u00b7\u589f\u65a9": "2bc85a49-d1d7-42fa-bd35-eac89bbfe96a.png",
+        "\u6e0a\u9699\u66dc\u00b7\u51cc\u5f26": "205e9d99-c1f4-4fb3-8ab8-2b2f867d707e.png",
+        "\u6e0a\u9699\u66dc\u00b7\u5c01\u89c9": "e03bae99-b14d-4d66-af94-3d6f67d1ce36.png",
+        "\u6e0a\u9699\u66dc\u00b7\u589f\u7532": "46073b85-5fad-45c8-9b38-d327cf34b04d.png",
+        "\u6e0a\u9699\u66dc\u00b7\u68d8\u7edc": "6e4c59b1-cf5d-4865-bdcd-6e179cd681eb.png",
+        "\u6e0a\u9699\u66dc\u00b7\u8e0f\u75d5": "6a0eed30-6643-4036-adf5-193c68eb3ba1.png",
+        "\u6e0a\u9699\u66dc\u00b7\u6cc9\u5370": "7698ad39-ae70-4025-9dc0-f2a6d333bc62.png",
+        "\u6e0a\u9699\u66dc\u00b7\u5951\u73af": "c186fa51-84df-449b-978d-57ad634dcfc6.png",
+        "\u6e0a\u9699\u66dc\u00b7\u7984\u7f20": "347d18e8-a657-4a60-aba1-844ce328539a.png",
+        "\u865a\u5370\u51e1\u00b7\u865a\u65ab": "e20da2ea-de0b-4d58-9f4e-855ad24daa0a.png",
+        "\u865a\u5370\u51e1\u00b7\u865a\u77e2": "4368bdb8-3615-42fc-98fc-634f4d1aa49a.png",
+        "\u865a\u5370\u51e1\u00b7\u865a\u51a0": "31d7f0ff-e485-4a8e-b1ff-5275c3f2a738.png",
+        "\u865a\u5370\u51e1\u00b7\u865a\u94e0": "12d3b6ef-5818-42a9-9e10-ee77d3ef73b5.png",
+        "\u865a\u5370\u51e1\u00b7\u865a\u80eb": "77d5c19b-5a2c-4b08-bb25-2c3e935ec482.png",
+        "\u865a\u5370\u51e1\u00b7\u865a\u8e2a": "46936ef1-0239-4eee-98c0-87c76cf8ca0a.png",
+        "\u865a\u5370\u51e1\u00b7\u865a\u94fe": "a999317d-7b1f-42a4-9c64-3adb760cc4ba.png",
+        "\u865a\u5370\u51e1\u00b7\u865a\u73af": "19adf6df-238a-4700-85c0-c0da63b1d10d.png",
+        "\u865a\u5370\u51e1\u00b7\u865a\u7f30": "0543d06e-348b-40c0-96fb-d43ce8d3cd90.png",
+        "\u865a\u5370\u826f\u00b7\u5370\u523b": "e99ca88f-d743-4997-b4ee-e6c4d5a2ede5.png",
+        "\u865a\u5370\u826f\u00b7\u5370\u5f13": "fd372946-23e0-4c15-aedc-da17a83184c5.png",
+        "\u865a\u5370\u826f\u00b7\u5370\u7fce": "7f01d206-e88b-4830-a158-424edbc24d2c.png",
+        "\u865a\u5370\u826f\u00b7\u5370\u57a3": "07ac1a2b-ca3f-4fcb-9b01-60ed233f897b.png",
+        "\u865a\u5370\u826f\u00b7\u5370\u68d8": "5ae14585-dc76-464e-9f35-f81a551889ed.png",
+        "\u865a\u5370\u826f\u00b7\u5370\u6b65": "6971bfcf-3978-4ada-8ff9-f855423e1024.png",
+        "\u865a\u5370\u826f\u00b7\u5370\u5760": "6967102e-bfce-4f40-b3dc-b6cbe74ee950.png",
+        "\u865a\u5370\u826f\u00b7\u5370\u6212": "1783044f-7a98-4fa2-819a-817b32650f47.png",
+        "\u865a\u5370\u826f\u00b7\u5370\u675f": "9a496d3f-a0d5-4e76-b420-eac81e2da1e5.png",
+        "\u865a\u5370\u6e5b\u00b7\u8109\u88c2": "614b7c53-fbe5-46a2-b955-8a05249c5fe9.png",
+        "\u865a\u5370\u6e5b\u00b7\u8109\u5f26": "71804f60-3930-45c5-a152-2d3f998ab072.png",
+        "\u865a\u5370\u6e5b\u00b7\u8109\u8bc6": "d6f51180-0fe2-4b87-b2b6-60634f610ccf.png",
+        "\u865a\u5370\u6e5b\u00b7\u8109\u7532": "cda1882f-6a0c-4e78-b01f-98dcfa60c81a.png",
+        "\u865a\u5370\u6e5b\u00b7\u8109\u884c": "ed9b12fd-ff0a-4272-9e09-1eaae320eca9.png",
+        "\u865a\u5370\u6e5b\u00b7\u8109\u5f71": "8459c4d7-a452-4221-aea7-dcb718220699.png",
+        "\u865a\u5370\u6e5b\u00b7\u8109\u6d8c": "44838107-0928-4180-b5c2-fd579c91ed27.png",
+        "\u865a\u5370\u6e5b\u00b7\u8109\u6307": "84a63d1d-8836-4463-9ee8-10d70f026efe.png",
+        "\u865a\u5370\u6e5b\u00b7\u8109\u7edc": "22609102-4f83-4383-bebb-1a3d86d04a49.png",
+        "\u865a\u5370\u70bd\u00b7\u7ec8\u7eb9": "98484a68-7321-44c9-a4ce-6c50d8896f7a.png",
+        "\u865a\u5370\u70bd\u00b7\u7ec8\u77e2": "ca0ee202-eca5-40f3-97b3-b63b9a37c902.png",
+        "\u865a\u5370\u70bd\u00b7\u7ec8\u9ed8": "1b74a6b9-d46b-49a0-ab31-bd37d59e4369.png",
+        "\u865a\u5370\u70bd\u00b7\u7ec8\u58c1": "0d7d5ecb-06ac-4e6f-a91e-af8f54d56c4b.png",
+        "\u865a\u5370\u70bd\u00b7\u7ec8\u523a": "8b9f4aae-3d34-4125-9d65-afac5233a6d9.png",
+        "\u865a\u5370\u70bd\u00b7\u7ec8\u8e0f": "0532953a-57eb-4d59-ba97-f77c6aaa1329.png",
+        "\u865a\u5370\u70bd\u00b7\u7ec8\u5492": "11ab0c8d-0a56-47c1-b1fd-5ff2786e0555.png",
+        "\u865a\u5370\u70bd\u00b7\u7ec8\u7f1a": "5c1de5cf-fce3-499e-bbfd-317edbdc0688.png",
+        "\u865a\u5370\u70bd\u00b7\u7ec8\u8d22": "7481c937-65f0-4743-910d-e45f9101baea.png",
+        "\u865a\u5370\u66dc\u00b7\u5f52\u8292": "196ebba1-807f-4b1d-ae52-63eac4126fe6.png",
+        "\u865a\u5370\u66dc\u00b7\u5f52\u7fbd": "6cb365df-bc1e-41fe-80d9-29eb7c8fec87.png",
+        "\u865a\u5370\u66dc\u00b7\u5f52\u606f": "42478cfd-5bf0-498d-81d6-cae9a16175e7.png",
+        "\u865a\u5370\u66dc\u00b7\u5f52\u969c": "caee7202-431a-4d47-b5ae-9145ff34b23f.png",
+        "\u865a\u5370\u66dc\u00b7\u5f52\u68d8": "5ca19f18-bc7c-4df7-a15f-19dc048ddd48.png",
+        "\u865a\u5370\u66dc\u00b7\u5f52\u75d5": "a139bc91-9cf8-4e5e-a923-c0460a802eb9.png",
+        "\u865a\u5370\u66dc\u00b7\u5f52\u6cc9": "55fd6ab5-8bbe-4e5f-a70b-5ae2318f13b2.png",
+        "\u865a\u5370\u66dc\u00b7\u5f52\u5951": "020e3798-09df-4593-9123-226672715c94.png",
+        "\u865a\u5370\u66dc\u00b7\u5f52\u7984": "2813a2d9-aabb-44fb-a182-38e59a41c0c8.png",
+        "\u8150\u566c\u51e1\u00b7\u8150\u5203": "94580cfd-cbc0-4a70-928a-263c58615d7a.png",
+        "\u8150\u566c\u51e1\u00b7\u8150\u5f26": "b961ed7d-dc85-4e79-ac4d-3e057d80a71e.png",
+        "\u8150\u566c\u51e1\u00b7\u8150\u51a0": "7d3f7cac-c79f-480f-90ac-b1d4c57e1048.png",
+        "\u8150\u566c\u51e1\u00b7\u8150\u94e0": "3342caf0-fbe0-440c-9a35-f85d7af1f8fc.png",
+        "\u8150\u566c\u51e1\u00b7\u8150\u80eb": "b0f13f1f-a72b-41ac-917f-540b0b225e6a.png",
+        "\u8150\u566c\u51e1\u00b7\u8150\u8e2a": "a72c4822-feb9-4a53-a24a-351f0809587d.png",
+        "\u8150\u566c\u51e1\u00b7\u8150\u94fe": "e0a89d98-f714-4c84-b494-5cca2cb5ce8d.png",
+        "\u8150\u566c\u51e1\u00b7\u8150\u73af": "a34acf23-d636-4809-b6da-f41b265c0ecb.png",
+        "\u8150\u566c\u51e1\u00b7\u8150\u7f30": "3dc85fe8-dfef-496c-ba5c-87eebfaa480c.png",
+        "\u8150\u566c\u826f\u00b7\u566c\u7eb9": "e3816727-bf2f-452f-83b2-c3c30df4df8c.png",
+        "\u8150\u566c\u826f\u00b7\u566c\u77e2": "ef5dfc7b-96f0-421c-be70-66c1549b2f53.png",
+        "\u8150\u566c\u826f\u00b7\u566c\u8bc6": "347c7a4f-bfec-4346-8314-d20f6096f42b.png",
+        "\u8150\u566c\u826f\u00b7\u566c\u57a3": "5ed9cfa6-d791-4746-ab57-b6c7c8b67768.png",
+        "\u8150\u566c\u826f\u00b7\u566c\u68d8": "7564608a-83c6-467d-a10a-ad8cc726b846.png",
+        "\u8150\u566c\u826f\u00b7\u566c\u6b65": "9be796a2-da83-4e88-8c18-f27f1237ccb2.png",
+        "\u8150\u566c\u826f\u00b7\u566c\u5760": "4846c69d-be49-49c0-b62c-5cb109165758.png",
+        "\u8150\u566c\u826f\u00b7\u566c\u6212": "342b37a2-3871-40a4-bfe0-3abbfa32b844.png",
+        "\u8150\u566c\u826f\u00b7\u566c\u675f": "d939ee23-f502-47b7-9d95-b765ae83069b.png",
+        "\u8150\u566c\u6e5b\u00b7\u88c2\u8109": "b2246259-34e2-4e1b-aa19-a77e64a76c31.png",
+        "\u8150\u566c\u6e5b\u00b7\u88c2\u7fbd": "63a94dca-a84b-41eb-a500-f2c6633d09e0.png",
+        "\u8150\u566c\u6e5b\u00b7\u88c2\u9ed8": "a1046d5a-474b-4062-9904-1925790f2d83.png",
+        "\u8150\u566c\u6e5b\u00b7\u88c2\u7532": "ddbc3c94-a608-431d-a6c5-07a3516bcc20.png",
+        "\u8150\u566c\u6e5b\u00b7\u88c2\u884c": "4fec53f5-0f7d-47f0-b21c-bb169f11288b.png",
+        "\u8150\u566c\u6e5b\u00b7\u88c2\u5f71": "0c1e8ec6-8d0f-4899-80b5-6a1d06d2b2db.png",
+        "\u8150\u566c\u6e5b\u00b7\u88c2\u6d8c": "4202a0b1-3dcd-4b2a-9e4a-2bb94dd7b1ff.png",
+        "\u8150\u566c\u6e5b\u00b7\u88c2\u6307": "e0a9ec15-7c7e-4ddf-bfb2-a8fe0bab9123.png",
+        "\u8150\u566c\u6e5b\u00b7\u7f20\u7edc": "6ee7572b-1bd9-4081-978f-2ce73dd4f92c.png",
+        "\u8150\u566c\u70bd\u00b7\u9eef\u950b": "b4e0c7c0-0b17-44a0-87f5-eb3dd5eac4ce.png",
+        "\u8150\u566c\u70bd\u00b7\u9eef\u5f13": "0ea837b7-7564-4d5a-aeb3-fc946b535b48.png",
+        "\u8150\u566c\u70bd\u00b7\u9eef\u7fce": "8b66ca48-9547-4ec4-9217-a462964f6f01.png",
+        "\u8150\u566c\u70bd\u00b7\u9eef\u58c1": "21fd83eb-f82e-48e8-9969-56593fbdf19d.png",
+        "\u8150\u566c\u70bd\u00b7\u9eef\u523a": "29a8fa95-e344-4c0f-b310-579b049660ab.png",
+        "\u8150\u566c\u70bd\u00b7\u9eef\u8e0f": "ace93329-eefd-4feb-9ddd-5c92c1996c4d.png",
+        "\u8150\u566c\u70bd\u00b7\u9eef\u5492": "dc0203d6-63fe-4f74-a3a0-890811369748.png",
+        "\u8150\u566c\u70bd\u00b7\u9eef\u7f1a": "7643b503-8b51-4e6f-a645-bf3e368d8010.png",
+        "\u8150\u566c\u70bd\u00b7\u9eef\u8d22": "3bb5c36e-291a-4303-afaf-6ac6c9f726e6.png",
+        "\u8150\u566c\u66dc\u00b7\u541e\u8292": "f06e1c36-51a8-4fb8-b5e2-924156488221.png",
+        "\u8150\u566c\u66dc\u00b7\u541e\u5f26": "d7822bff-a357-4a91-a746-c662ea74f52b.png",
+        "\u8150\u566c\u66dc\u00b7\u541e\u606f": "c8847822-0bec-498f-aa33-7d26a7cea2c2.png",
+        "\u8150\u566c\u66dc\u00b7\u541e\u969c": "00aba5f2-7ade-4315-99b5-a205514e4dd3.png",
+        "\u8150\u566c\u66dc\u00b7\u541e\u68d8": "2c7ba31c-1ca7-4c52-8638-66fb8e3c6be2.png",
+        "\u8150\u566c\u66dc\u00b7\u541e\u75d5": "e65d91c4-58ba-4136-b292-423c9bbd4432.png",
+        "\u8150\u566c\u66dc\u00b7\u541e\u6cc9": "1d1465bb-d83d-4484-8771-bda12055aed8.png",
+        "\u8150\u566c\u66dc\u00b7\u541e\u5951": "dc7bcf2e-2cc7-457b-9204-26f7b6f9db87.png",
+        "\u8150\u566c\u66dc\u00b7\u541e\u7984": "98833a09-0724-48b6-959f-3b1968e1a211.png",
+        "\u9ed1\u66dc\u51e1\u00b7\u9ed1\u5203": "1ce24a80-2aa1-4c51-b2a4-16d96fb93732.png",
+        "\u9ed1\u66dc\u51e1\u00b7\u9ed1\u77e2": "147dc860-ddd4-4f5f-90ad-ba9da4416cb6.png",
+        "\u9ed1\u66dc\u51e1\u00b7\u9ed1\u51a0": "9473a337-61aa-460d-bacc-1806893feae9.png",
+        "\u9ed1\u66dc\u51e1\u00b7\u9ed1\u94e0": "2892a6ff-bba4-47a6-a697-bfa8f03f35b4.png",
+        "\u9ed1\u66dc\u51e1\u00b7\u9ed1\u80eb": "f89fd6ea-d885-42e5-b7f2-de8254f8adb1.png",
+        "\u9ed1\u66dc\u51e1\u00b7\u9ed1\u8e2a": "a776fa00-21aa-4039-81fb-c16a124017bd.png",
+        "\u9ed1\u66dc\u51e1\u00b7\u9ed1\u94fe": "c96526da-fe22-481e-8be7-266ef8f98e9b.png",
+        "\u9ed1\u66dc\u51e1\u00b7\u9ed1\u73af": "a770253e-b9cb-4581-875e-0840ada6ba8d.png",
+        "\u9ed1\u66dc\u51e1\u00b7\u9ed1\u7f30": "598ba00d-ebbf-402e-bb5c-8affb2f3ec14.png",
+        "\u9ed1\u66dc\u826f\u00b7\u66dc\u75d5": "9fb5908e-9a21-464f-afef-9f2d14271ec3.png",
+        "\u9ed1\u66dc\u826f\u00b7\u66dc\u5f13": "9c07d18a-f69f-4c8e-a775-7c226e6e9f9a.png",
+        "\u9ed1\u66dc\u826f\u00b7\u66dc\u7fce": "865b29e7-a338-40f0-92ec-f5d844a675f2.png",
+        "\u9ed1\u66dc\u826f\u00b7\u66dc\u57a3": "a3f1cec6-0608-44ac-a582-a00aba17b0a7.png",
+        "\u9ed1\u66dc\u826f\u00b7\u66dc\u68d8": "d114b836-2ea6-4093-884b-3b7fe0a2908f.png",
+        "\u9ed1\u66dc\u826f\u00b7\u66dc\u6b65": "d3a66720-958e-4fb5-bbd6-33fecab35797.png",
+        "\u9ed1\u66dc\u826f\u00b7\u66dc\u5760": "87187285-f1fa-46f5-a9cd-8d01d69a9149.png",
+        "\u9ed1\u66dc\u826f\u00b7\u66dc\u6212": "2370c686-53b0-47b3-89a0-b6add7e869c8.png",
+        "\u9ed1\u66dc\u826f\u00b7\u66dc\u675f": "f165e8e9-7681-45db-a1b6-03c5a67925be.png",
+        "\u9ed1\u66dc\u6e5b\u00b7\u6e0a\u65a9": "282764a0-849f-43a3-9be2-afe196cea344.png",
+        "\u9ed1\u66dc\u6e5b\u00b7\u6e0a\u5f26": "80ccc84a-2e4b-44fe-b184-f4aea0e265e2.png",
+        "\u9ed1\u66dc\u6e5b\u00b7\u6e0a\u8bc6": "b80a0de0-52f4-4152-bebd-d19a80d7caf9.png",
+        "\u9ed1\u66dc\u6e5b\u00b7\u6e0a\u7532": "907e2dec-387e-462a-b3d3-e584806bd39a.png",
+        "\u9ed1\u66dc\u6e5b\u00b7\u6e0a\u884c": "008971f6-2e95-4610-b3d7-8ed2b2a0311c.png",
+        "\u9ed1\u66dc\u6e5b\u00b7\u6e0a\u5f71": "72e84e6c-ccec-4cf1-bba8-c7bd77bad1a8.png",
+        "\u9ed1\u66dc\u6e5b\u00b7\u6e0a\u6d8c": "0f88f3aa-fa98-4d7e-8357-5deb34cc9607.png",
+        "\u9ed1\u66dc\u6e5b\u00b7\u6e0a\u6307": "53b420b8-23d3-41f1-9d6a-57e84ded404d.png",
+        "\u9ed1\u66dc\u6e5b\u00b7\u6e0a\u7edc": "21396853-439c-45bb-9e10-626807bbb3ee.png",
+        "\u9ed1\u66dc\u70bd\u00b7\u9522\u950b": "62e613da-8f26-4b75-a703-0c2a041bc382.png",
+        "\u9ed1\u66dc\u70bd\u00b7\u9522\u7fbd": "96e1381b-8f17-4f17-b8a9-703934a40d42.png",
+        "\u9ed1\u66dc\u70bd\u00b7\u9522\u9ed8": "a16aea16-fab2-46e1-9696-7066ce1ade8c.png",
+        "\u9ed1\u66dc\u70bd\u00b7\u9522\u58c1": "cb1c87f7-1e6e-4003-8f4f-7df1a0f4d830.png",
+        "\u9ed1\u66dc\u70bd\u00b7\u9522\u523a": "d3ceec10-f61c-4b83-b88b-0fbc674649e5.png",
+        "\u9ed1\u66dc\u70bd\u00b7\u9522\u8e0f": "44af9492-9d8c-4080-9c6e-2159e49a4565.png",
+        "\u9ed1\u66dc\u70bd\u00b7\u9522\u5492": "cbde41e0-e8e4-4ca4-ac0d-4e9e6f9741dc.png",
+        "\u9ed1\u66dc\u70bd\u00b7\u9522\u7f1a": "60d63d04-f4a6-44cd-af2a-adc865ee7e1e.png",
+        "\u9ed1\u66dc\u70bd\u00b7\u9522\u8d22": "bfd8b677-452a-4864-b844-7166ad9ad299.png",
+        "\u9ed1\u66dc\u66dc\u00b7\u58c1\u7eb9": "0bfb00be-52f1-4e24-b46f-7bbc1e3402cc.png",
+        "\u9ed1\u66dc\u66dc\u00b7\u58c1\u77e2": "b69de751-a677-47ea-af37-988b4a1e0135.png",
+        "\u9ed1\u66dc\u66dc\u00b7\u58c1\u606f": "bf1668ba-c252-481c-bdcd-5860b398724a.png",
+        "\u9ed1\u66dc\u66dc\u00b7\u58c1\u969c": "c1d1793c-d908-4a63-a645-ed952ac0a2a9.png",
+        "\u9ed1\u66dc\u66dc\u00b7\u58c1\u68d8": "192da622-03db-4de2-a7aa-7e2cdcc835bc.png",
+        "\u9ed1\u66dc\u66dc\u00b7\u58c1\u75d5": "e7bfb811-add1-493e-ab50-1d0dfed5035c.png",
+        "\u9ed1\u66dc\u66dc\u00b7\u58c1\u6cc9": "22a7b727-286c-465b-83d9-2f1d8f389ce9.png",
+        "\u9ed1\u66dc\u66dc\u00b7\u58c1\u5951": "6227638f-7346-41fc-9215-c132a4abc265.png",
+        "\u9ed1\u66dc\u66dc\u00b7\u58c1\u7984": "5cf45010-257d-494a-a55b-5c9a00d6aa4b.png",
+        "\u7ec8\u5e55\u51e1\u00b7\u7ec8\u5203": "d6d61075-90d0-43e1-a63e-7071922b6ec2.png",
+        "\u7ec8\u5e55\u51e1\u00b7\u7ec8\u5f26": "f9f181fd-d8bb-4129-985c-91acf4d49e3e.png",
+        "\u7ec8\u5e55\u51e1\u00b7\u7ec8\u51a0": "d938a838-ae46-429b-ab34-611b2cec8a00.png",
+        "\u7ec8\u5e55\u51e1\u00b7\u7ec8\u94e0": "21ca0308-265f-47ea-b3c4-602464b70e15.png",
+        "\u7ec8\u5e55\u51e1\u00b7\u7ec8\u80eb": "ef709457-b9f3-4266-af6d-b0c0018c44cd.png",
+        "\u7ec8\u5e55\u51e1\u00b7\u7ec8\u8e2a": "254d9418-f78d-4ef9-8fa3-37f9cbfce965.png",
+        "\u7ec8\u5e55\u51e1\u00b7\u7ec8\u94fe": "14f8fbb2-c4e4-4299-8bf7-842dad536535.png",
+        "\u7ec8\u5e55\u51e1\u00b7\u7ec8\u73af": "c6158fc7-77e5-40e9-aada-2466934e3aa1.png",
+        "\u7ec8\u5e55\u51e1\u00b7\u7ec8\u7f30": "08046239-f2ce-4740-9f9b-09acb3dd7868.png",
+        "\u7ec8\u5e55\u826f\u00b7\u5e55\u75d5": "ff47a347-afde-4f53-a481-605a6e6f0d8f.png",
+        "\u7ec8\u5e55\u826f\u00b7\u5e55\u77e2": "39237a46-e8ef-4991-aa15-9033331b5519.png",
+        "\u7ec8\u5e55\u826f\u00b7\u5e55\u7fce": "2d122ca4-c093-431f-a8fc-f4a25af01151.png",
+        "\u7ec8\u5e55\u826f\u00b7\u5e55\u57a3": "0bb8c6b0-4b49-4ab0-a470-0c8181393c12.png",
+        "\u7ec8\u5e55\u826f\u00b7\u5e55\u68d8": "1512619e-6e3f-44ea-9cf7-2e76176a0e4b.png",
+        "\u7ec8\u5e55\u826f\u00b7\u5e55\u6b65": "e8c86f9f-99c1-442e-825e-4c221a8e1913.png",
+        "\u7ec8\u5e55\u826f\u00b7\u5e55\u5760": "d10a2694-a7e1-45f0-b6ac-8d4ca7d867ff.png",
+        "\u7ec8\u5e55\u826f\u00b7\u5e55\u6212": "05ac9e15-e948-440b-ab00-d2a4d8f4fbcd.png",
+        "\u7ec8\u5e55\u826f\u00b7\u5e55\u675f": "a5587737-0dec-4708-a8c8-f0fdea621581.png",
+        "\u7ec8\u5e55\u6e5b\u00b7\u8a93\u7eb9": "a0b4f4fe-2000-43a0-9542-9a5707d9589d.png",
+        "\u7ec8\u5e55\u6e5b\u00b7\u8a93\u5f13": "638ed67e-4c98-4d09-afc6-d1d7fef1b314.png",
+        "\u7ec8\u5e55\u6e5b\u00b7\u8a93\u8bc6": "bea77fbb-72bd-442e-a743-2c17724020ca.png",
+        "\u7ec8\u5e55\u6e5b\u00b7\u8a93\u7532": "f5b0284b-e3bd-4261-acc9-4752bcaebfa5.png",
+        "\u7ec8\u5e55\u6e5b\u00b7\u8a93\u884c": "834e2139-1e56-466d-8f88-16563b562e64.png",
+        "\u7ec8\u5e55\u6e5b\u00b7\u8a93\u5f71": "53ec5bd0-fd7a-4ab1-a5c4-828591698383.png",
+        "\u7ec8\u5e55\u6e5b\u00b7\u8a93\u6d8c": "08af0354-2ebd-4711-8eef-6424b4ae4671.png",
+        "\u7ec8\u5e55\u6e5b\u00b7\u8a93\u6307": "ed328fe3-bc99-40aa-8e39-effcf4990772.png",
+        "\u7ec8\u5e55\u6e5b\u00b7\u8a93\u7edc": "8079aaeb-a739-4b5b-a307-a4257fb5c7fb.png",
+        "\u7ec8\u5e55\u70bd\u00b7\u661f\u65a9": "96fd0c0d-cc16-4103-8dca-729e3c3ca6c2.png",
+        "\u7ec8\u5e55\u70bd\u00b7\u661f\u7fbd": "9e193850-ea1b-4e53-a96a-a8e3a15f2fe4.png",
+        "\u7ec8\u5e55\u70bd\u00b7\u661f\u9ed8": "be92b93a-192a-4f70-b1c6-b2a70ea6a2dd.png",
+        "\u7ec8\u5e55\u70bd\u00b7\u661f\u58c1": "cc712985-e8b5-4847-a7fb-cb3e6c3e72e7.png",
+        "\u7ec8\u5e55\u70bd\u00b7\u661f\u523a": "07d3f0cc-caaa-4430-afac-94f7634d721f.png",
+        "\u7ec8\u5e55\u70bd\u00b7\u661f\u8e0f": "90cf5458-82e6-460e-8c8b-63bfeef13865.png",
+        "\u7ec8\u5e55\u70bd\u00b7\u661f\u5492": "ff1e0ced-feac-4564-9460-ed43bb85c25c.png",
+        "\u7ec8\u5e55\u70bd\u00b7\u661f\u7f1a": "c0db9ace-6d3a-437c-8814-9d2686df0ff8.png",
+        "\u7ec8\u5e55\u70bd\u00b7\u661f\u8d22": "981c2d9c-3ace-4978-a864-3e292e696b9b.png",
+        "\u7ec8\u5e55\u66dc\u00b7\u589f\u7edc": "74948710-bc9b-4936-b744-c6c20f5c928d.png",
+        "\u7ec8\u5e55\u66dc\u00b7\u589f\u5f26": "7e82e6fa-deb1-4ae1-b834-d7f94d3b9870.png",
+        "\u7ec8\u5e55\u66dc\u00b7\u589f\u606f": "f1e732d4-8a3d-4c92-b5ac-d0380fcbe35e.png",
+        "\u7ec8\u5e55\u66dc\u00b7\u589f\u969c": "4e34990b-f9b9-47bd-95bf-47523fbe6fed.png",
+        "\u7ec8\u5e55\u66dc\u00b7\u589f\u68d8": "edd4ced3-f533-420c-bcd2-69e115fa5fd4.png",
+        "\u7ec8\u5e55\u66dc\u00b7\u589f\u75d5": "caec8101-5010-4b16-89cd-34b0fb769546.png",
+        "\u7ec8\u5e55\u66dc\u00b7\u589f\u6cc9": "ebb9a418-4036-459b-b175-d87db63eeb05.png",
+        "\u7ec8\u5e55\u66dc\u00b7\u589f\u5951": "4a4c2770-3612-4303-8a5d-5cff03d04460.png",
+        "\u7ec8\u5e55\u66dc\u00b7\u589f\u7984": "0281fcab-75c7-4915-8468-9db6bbe09375.png",
+        "\u661f\u9ab8\u51e1\u00b7\u661f\u5203": "d3a7cb25-0d57-43ee-b077-c1bda5c04a45.png",
+        "\u661f\u9ab8\u51e1\u00b7\u661f\u77e2": "844046cb-59b2-41cc-a5ce-22ace174835c.png",
+        "\u661f\u9ab8\u51e1\u00b7\u661f\u51a0": "e736f9db-b3e7-42c6-b7a3-c5a9a91cd75d.png",
+        "\u661f\u9ab8\u51e1\u00b7\u661f\u94e0": "a11c8ad6-feca-43f1-8ef1-86e83dcdf945.png",
+        "\u661f\u9ab8\u51e1\u00b7\u661f\u80eb": "e4e49a4a-35ec-4483-9321-c41d50dc662b.png",
+        "\u661f\u9ab8\u51e1\u00b7\u661f\u8e2a": "ea3cbc2b-c445-4310-96ac-1edc79b53a3f.png",
+        "\u661f\u9ab8\u51e1\u00b7\u661f\u94fe": "7fb42633-75a7-4045-918d-a4414546da3f.png",
+        "\u661f\u9ab8\u51e1\u00b7\u661f\u73af": "1dfbfb46-80ce-4bc7-ba94-4bb4706c39ef.png",
+        "\u661f\u9ab8\u51e1\u00b7\u661f\u7f30": "15817a04-16bf-4e3d-a78b-9e193b29ea03.png",
+        "\u661f\u9ab8\u826f\u00b7\u9ab8\u7eb9": "5eeb5bf7-39e4-432e-b0d0-f3bb15273c45.png",
+        "\u661f\u9ab8\u826f\u00b7\u9ab8\u5f13": "d5faa89a-e021-4fb7-a9a3-a85e9bced0d8.png",
+        "\u661f\u9ab8\u826f\u00b7\u9ab8\u7fce": "dd091916-c3f2-41ac-9f02-5d32df4ff96c.png",
+        "\u661f\u9ab8\u826f\u00b7\u9ab8\u57a3": "aa4be6ce-bc02-41f3-af0a-4fc3aad0ec7b.png",
+        "\u661f\u9ab8\u826f\u00b7\u9ab8\u68d8": "1e6db446-3e5c-408e-9809-6f2fee3be253.png",
+        "\u661f\u9ab8\u826f\u00b7\u9ab8\u6b65": "badd3cca-a0ab-4480-9946-417244171262.png",
+        "\u661f\u9ab8\u826f\u00b7\u9ab8\u5760": "442c3dc7-98be-40cb-9e61-afddd6c4d0f4.png",
+        "\u661f\u9ab8\u826f\u00b7\u9ab8\u6212": "b5444604-1d10-4dd7-abc7-be7e19c6dc18.png",
+        "\u661f\u9ab8\u826f\u00b7\u9ab8\u675f": "2ade16c6-5a66-4cbb-bebe-fc27dd3112db.png",
+        "\u661f\u9ab8\u6e5b\u00b7\u94fe\u75d5": "01575e89-32e3-436b-b936-ab9df2e95a54.png",
+        "\u661f\u9ab8\u6e5b\u00b7\u94fe\u7fbd": "e8f958a8-293d-4687-84f0-149910e5e00c.png",
+        "\u661f\u9ab8\u6e5b\u00b7\u94fe\u8bc6": "2fe20401-8365-4f40-b269-b4e923fea751.png",
+        "\u661f\u9ab8\u6e5b\u00b7\u94fe\u7532": "fe6eb22b-f6bd-418e-9b83-c43f516a2b1a.png",
+        "\u661f\u9ab8\u6e5b\u00b7\u94fe\u884c": "0f32cce1-7b95-4831-abbe-285bc416bd4b.png",
+        "\u661f\u9ab8\u6e5b\u00b7\u94fe\u5f71": "d3a010db-59df-452f-b5f2-c3c6884769a0.png",
+        "\u661f\u9ab8\u6e5b\u00b7\u94fe\u6d8c": "92215250-e00c-4d85-aee1-390af1cb1e3b.png",
+        "\u661f\u9ab8\u6e5b\u00b7\u94fe\u6307": "ecdbdb02-88d6-4d5d-a203-dab428ad4fc5.png",
+        "\u661f\u9ab8\u6e5b\u00b7\u94fe\u7edc": "bc051636-0a1f-454f-89ce-ac93f1ccb201.png",
+        "\u661f\u9ab8\u70bd\u00b7\u88c2\u7edc": "db7b8fba-e561-4566-8d1e-ed5430807990.png",
+        "\u661f\u9ab8\u70bd\u00b7\u88c2\u5f26": "4b1c6dac-ba52-48ef-80cb-9453243157a8.png",
+        "\u661f\u9ab8\u70bd\u00b7\u9699\u9ed8": "d382c5f6-315c-477c-b8eb-704416962521.png",
+        "\u661f\u9ab8\u70bd\u00b7\u88c2\u58c1": "4709059a-4d9d-4ed1-937c-0a88f2545e4f.png",
+        "\u661f\u9ab8\u70bd\u00b7\u88c2\u523a": "7c2fae2b-f746-4f48-bdaa-2d3daa2b910f.png",
+        "\u661f\u9ab8\u70bd\u00b7\u88c2\u8e0f": "abd2c92d-b1fa-442a-94dc-3116e8330343.png",
+        "\u661f\u9ab8\u70bd\u00b7\u88c2\u5492": "7fe213ff-eccc-49b0-a41e-54758cc83022.png",
+        "\u661f\u9ab8\u70bd\u00b7\u88c2\u7f1a": "e22d1200-d7e5-4f1a-8cb9-d5660ea0bc6b.png",
+        "\u661f\u9ab8\u70bd\u00b7\u88c2\u8d22": "6bed1776-100b-49f9-b736-499e6d478fd2.png",
+        "\u661f\u9ab8\u66dc\u00b7\u9668\u8292": "48454bd2-f672-428f-9a80-3ac3654595d7.png",
+        "\u661f\u9ab8\u66dc\u00b7\u9668\u77e2": "66c06893-1b6e-4568-812f-da4c761f4fff.png",
+        "\u661f\u9ab8\u66dc\u00b7\u9668\u606f": "67631bad-f5cd-4f88-b594-f006347cfdbf.png",
+        "\u661f\u9ab8\u66dc\u00b7\u9668\u969c": "37de931b-18da-444d-8752-d4e15d14fcaa.png",
+        "\u661f\u9ab8\u66dc\u00b7\u9668\u68d8": "6b9cb418-6b5a-4fe4-894e-29139ecbccf8.png",
+        "\u661f\u9ab8\u66dc\u00b7\u9668\u75d5": "6699dbd3-a56d-4665-b144-310ccc1a3720.png",
+        "\u661f\u9ab8\u66dc\u00b7\u9668\u6cc9": "58aadac3-eee4-48b5-bb72-0c996aeaa4d9.png",
+        "\u661f\u9ab8\u66dc\u00b7\u9668\u5951": "7eb20cc9-7f3f-4223-bbe0-a1654790db07.png",
+        "\u661f\u9ab8\u66dc\u00b7\u9668\u7984": "d61950e0-9246-4294-8db6-606d5507face.png",
+        "\u88c2\u70b9\u51e1\u00b7\u88c2\u950b": "f89a3137-66d5-46b5-a03e-d58f042436d0.png",
+        "\u88c2\u70b9\u51e1\u00b7\u88c2\u5f13": "41c620be-00f6-4406-8c5d-6f4b24db62cd.png",
+        "\u88c2\u70b9\u51e1\u00b7\u88c2\u51a0": "eec53589-2dad-4000-9187-3eca892444e6.png",
+        "\u88c2\u70b9\u51e1\u00b7\u88c2\u94e0": "a635141a-45e9-43f8-ae23-5a436cc08fc1.png",
+        "\u88c2\u70b9\u51e1\u00b7\u88c2\u80eb": "a9f0b58c-4a37-4d51-862c-c3090990281f.png",
+        "\u88c2\u70b9\u51e1\u00b7\u88c2\u8e2a": "03f0c4cd-e89a-4c17-840a-ba2babfba15c.png",
+        "\u88c2\u70b9\u51e1\u00b7\u88c2\u94fe": "15bb2b2c-7430-4e88-b8aa-8a66bf2081b0.png",
+        "\u88c2\u70b9\u51e1\u00b7\u88c2\u73af": "41e54f45-bc33-4f21-af0b-755059f2e03a.png",
+        "\u88c2\u70b9\u51e1\u00b7\u88c2\u7f30": "079e7836-3d96-431f-a307-96fafb21e5c2.png",
+        "\u88c2\u70b9\u826f\u00b7\u70b9\u8292": "67ffa957-7dcd-4f3a-9450-52874b246a43.png",
+        "\u88c2\u70b9\u826f\u00b7\u70b9\u7fbd": "0a67f262-acae-4d05-8718-f3f0edfaa90e.png",
+        "\u88c2\u70b9\u826f\u00b7\u70b9\u7fce": "a5e4eef0-7bc5-4ec2-af2c-79de1681582a.png",
+        "\u88c2\u70b9\u826f\u00b7\u70b9\u57a3": "5b658d38-8894-4604-896c-e2d6a82f5701.png",
+        "\u88c2\u70b9\u826f\u00b7\u70b9\u68d8": "8ded4d06-7bfb-45f4-b88f-47cd550fed82.png",
+        "\u88c2\u70b9\u826f\u00b7\u70b9\u6b65": "69c35917-db9f-4ca8-a3a9-2359d1b25923.png",
+        "\u88c2\u70b9\u826f\u00b7\u70b9\u5760": "be39bdfb-6546-49dc-b334-ff331dc20cc1.png",
+        "\u88c2\u70b9\u826f\u00b7\u70b9\u6212": "baf02e18-a8d7-458a-9530-b0ce02b82a6c.png",
+        "\u88c2\u70b9\u826f\u00b7\u70b9\u675f": "17a7ada7-7c80-4e67-a13d-a08614b2b479.png",
+        "\u88c2\u70b9\u6e5b\u00b7\u9699\u7eb9": "331b9cd8-11aa-429a-be20-706b24ddc463.png",
+        "\u88c2\u70b9\u6e5b\u00b7\u9699\u77e2": "4dba02a9-ec7e-4679-ab9f-a623a719d890.png",
+        "\u88c2\u70b9\u6e5b\u00b7\u9699\u8bc6": "45fb0f71-8c15-490d-bcb5-e0f0fc8d77bc.png",
+        "\u88c2\u70b9\u6e5b\u00b7\u9699\u7532": "4348e935-2f3b-47da-87f4-1384afaff629.png",
+        "\u88c2\u70b9\u6e5b\u00b7\u9699\u884c": "da5a1320-b97c-4812-80ce-a149974a15d8.png",
+        "\u88c2\u70b9\u6e5b\u00b7\u9699\u5f71": "502a6cde-a8a9-46d8-a902-40bdf450901a.png",
+        "\u88c2\u70b9\u6e5b\u00b7\u9699\u6d8c": "dac40777-f630-4379-8e9f-125f72f7187e.png",
+        "\u88c2\u70b9\u6e5b\u00b7\u9699\u6307": "b7f5f8d8-a38b-4b50-8482-fd2cf62e588b.png",
+        "\u88c2\u70b9\u6e5b\u00b7\u9699\u7edc": "ce098348-a46c-4a37-a86c-ec18d6f3f7ca.png",
+        "\u88c2\u70b9\u70bd\u00b7\u7a7f\u75d5": "e750c4ac-a446-4390-9266-515d4d4438df.png",
+        "\u88c2\u70b9\u70bd\u00b7\u7a7f\u5f26": "f6a9eee0-a989-44f1-ab8b-a5c79b27a338.png",
+        "\u88c2\u70b9\u70bd\u00b7\u7a7f\u9ed8": "fb2c0cf0-9112-48af-a452-25996dac52b4.png",
+        "\u88c2\u70b9\u70bd\u00b7\u7a7f\u58c1": "50271971-b7f6-435a-9c3e-b65ad7f4c7a1.png",
+        "\u88c2\u70b9\u70bd\u00b7\u7a7f\u523a": "9302d62d-e673-4d3e-8e08-95caf46dfc90.png",
+        "\u88c2\u70b9\u70bd\u00b7\u7a7f\u8e0f": "78cb0908-e42a-4bec-9893-c9a11945b4e8.png",
+        "\u88c2\u70b9\u70bd\u00b7\u7a7f\u5492": "149e6381-d8c6-4973-819e-2af858444306.png",
+        "\u88c2\u70b9\u70bd\u00b7\u7a7f\u7f1a": "40c63b89-c0d1-4d27-acc8-aacddc49eb80.png",
+        "\u88c2\u70b9\u70bd\u00b7\u7a7f\u8d22": "871d2f7a-fc89-4836-8918-24391a76f439.png",
+        "\u88c2\u70b9\u66dc\u00b7\u65ad\u7edc": "7d563a24-6e89-4330-8972-c17ae689090c.png",
+        "\u88c2\u70b9\u66dc\u00b7\u65ad\u7fbd": "d958f477-6954-4f77-a0f7-563d620acbc0.png",
+        "\u88c2\u70b9\u66dc\u00b7\u65ad\u606f": "15c1eb51-27ab-4b3f-bbd3-fdd7b34b8a92.png",
+        "\u88c2\u70b9\u66dc\u00b7\u65ad\u969c": "859ee482-a700-4e40-bbbc-bc0b6d57d51c.png",
+        "\u88c2\u70b9\u66dc\u00b7\u65ad\u68d8": "4dbb870b-3aab-46a4-88f4-01f5512397fa.png",
+        "\u88c2\u70b9\u66dc\u00b7\u65ad\u75d5": "c1a47480-744a-4295-866e-34dd2cd8a2f4.png",
+        "\u88c2\u70b9\u66dc\u00b7\u65ad\u6cc9": "7d2c6c16-e8de-4ea8-8158-7421c20ab3bd.png",
+        "\u88c2\u70b9\u66dc\u00b7\u65ad\u5951": "d85333eb-d02c-4c40-bbf8-a2f7d8a1158c.png",
+        "\u88c2\u70b9\u66dc\u00b7\u65ad\u7984": "2b65ba81-4b94-4c7c-8fd5-99fce67e8789.png",
+        "\u7ec8\u7109\u51e1\u00b7\u6b92\u5203": "81efb7d4-b20f-403a-9087-4298e7be6a13.png",
+        "\u7ec8\u7109\u51e1\u00b7\u6b92\u5f13": "ef1b156c-37c3-4994-8793-ffa8b7ef280c.png",
+        "\u7ec8\u7109\u51e1\u00b7\u6b92\u51a0": "b79158a8-a78a-4573-b71f-326b3860ba1d.png",
+        "\u7ec8\u7109\u51e1\u00b7\u6b92\u94e0": "ba600697-a45c-4147-b32a-ea60cdf5f3fd.png",
+        "\u7ec8\u7109\u51e1\u00b7\u6b92\u80eb": "428835e3-7558-423c-9c31-633e9fb346e4.png",
+        "\u7ec8\u7109\u51e1\u00b7\u6b92\u8e2a": "4ba20f37-b1c1-4103-9f07-34675f365de3.png",
+        "\u7ec8\u7109\u51e1\u00b7\u6b92\u94fe": "14b9fd1c-00de-4592-b996-69895dd27be0.png",
+        "\u7ec8\u7109\u51e1\u00b7\u6b92\u73af": "cd23276c-4544-4bcd-b544-1a5a47a2edb0.png",
+        "\u7ec8\u7109\u51e1\u00b7\u6b92\u7f30": "d72126c0-bd23-4463-9736-176d5132e3e7.png",
+        "\u7ec8\u7109\u826f\u00b7\u7109\u75d5": "02c43be0-acc0-4c9c-91bf-188e737dceb6.png",
+        "\u7ec8\u7109\u826f\u00b7\u7109\u77e2": "09794a2a-a8e7-499a-9091-11fcced47f4a.png",
+        "\u7ec8\u7109\u826f\u00b7\u7109\u7fce": "77ffd2e4-1fdc-49ae-b899-7cbf836ec659.png",
+        "\u7ec8\u7109\u826f\u00b7\u7109\u57a3": "f36f5dae-201a-4bbd-9bbf-49daeda723b7.png",
+        "\u7ec8\u7109\u826f\u00b7\u7109\u68d8": "9599f933-ebff-4180-a77e-31264d7d63a7.png",
+        "\u7ec8\u7109\u826f\u00b7\u7109\u6b65": "cc263c34-6732-46ae-bc88-9022e755571f.png",
+        "\u7ec8\u7109\u826f\u00b7\u7109\u5760": "b3d7804e-6542-40c9-be24-b0593732fd33.png",
+        "\u7ec8\u7109\u826f\u00b7\u7109\u6212": "c5e93222-2c5b-4f1a-bbb1-d08387025bb8.png",
+        "\u7ec8\u7109\u826f\u00b7\u7109\u675f": "0503a967-b952-42da-a829-e8ff87eec47c.png",
+        "\u7ec8\u7109\u6e5b\u00b7\u7ec8\u7edc": "00df39c5-9bb7-4395-b681-3f3becb88022.png",
+        "\u7ec8\u7109\u6e5b\u00b7\u7ec8\u7fbd": "2f005c98-c3e4-43f5-8b8b-c9ce1b0e6b45.png",
+        "\u7ec8\u7109\u6e5b\u00b7\u7ec8\u8bc6": "19c54a48-c442-4521-87ca-814bcfd8262b.png",
+        "\u7ec8\u7109\u6e5b\u00b7\u7ec8\u7532": "5e7ccc53-89f9-4afc-ad8e-5dc19fcd3a19.png",
+        "\u7ec8\u7109\u6e5b\u00b7\u7ec8\u884c": "0c5d3213-c7d0-4bc5-b76e-7fdbed309aff.png",
+        "\u7ec8\u7109\u6e5b\u00b7\u7ec8\u5f71": "089bf829-94a4-4b4a-9e40-c1e72b0ecd0e.png",
+        "\u7ec8\u7109\u6e5b\u00b7\u7ec8\u6d8c": "145d7568-a05e-4b45-8e54-d8c66c635c57.png",
+        "\u7ec8\u7109\u6e5b\u00b7\u7ec8\u6307": "09c3dde8-8097-4b0b-a7f1-73c1c840b45d.png",
+        "\u7ec8\u7109\u6e5b\u00b7\u6b81\u7edc": "de136573-124b-4c3c-966c-5a8ec330072b.png",
+        "\u7ec8\u7109\u70bd\u00b7\u5f52\u6b81": "e46085be-0435-4e1c-acf0-31819a7546d4.png",
+        "\u7ec8\u7109\u70bd\u00b7\u5f52\u5f26": "4e61da1b-5fe5-4032-9993-e0e91379f727.png",
+        "\u7ec8\u7109\u70bd\u00b7\u5f52\u9ed8": "251fc5a2-8e22-4427-8ed5-550e1c217101.png",
+        "\u7ec8\u7109\u70bd\u00b7\u5f52\u58c1": "d5cc2dd3-00f4-45d3-8de0-cf4c67e56f6f.png",
+        "\u7ec8\u7109\u70bd\u00b7\u5f52\u523a": "40b88379-0482-4339-81ce-e301d5331ef9.png",
+        "\u7ec8\u7109\u70bd\u00b7\u5f52\u8e0f": "70fef65f-17f9-4d6c-906a-ae1f5d9eaf93.png",
+        "\u7ec8\u7109\u70bd\u00b7\u5f52\u5492": "35cd196b-9eee-47fd-9c66-fa1ca8f75395.png",
+        "\u7ec8\u7109\u70bd\u00b7\u5f52\u7f1a": "99fef174-1abf-4852-bee6-306ff9ceabee.png",
+        "\u7ec8\u7109\u70bd\u00b7\u5f52\u8d22": "be1de8fb-960b-4c69-94f9-0ba887ff873a.png",
+        "\u7ec8\u7109\u66dc\u00b7\u589f\u6b92": "7154e0b3-1719-4809-a979-c15ec6b9a2ad.png",
+        "\u7ec8\u7109\u66dc\u00b7\u589f\u5f13": "adcda89a-5bb4-48be-b6ab-9971be62a10e.png",
+        "\u7ec8\u7109\u66dc\u00b7\u589f\u7fce": "13581727-15bc-4565-9585-4c80dd2f6c61.png",
+        "\u7ec8\u7109\u66dc\u00b7\u589f\u94e0": "ba149a79-5f80-4622-b0c9-bb8644a185a8.png",
+        "\u7ec8\u7109\u66dc\u00b7\u589f\u80eb": "dfd18587-6cda-48e4-94fd-2e8cec450268.png",
+        "\u7ec8\u7109\u66dc\u00b7\u589f\u8e2a": "0a5f8364-1238-44b5-8dae-15226752d880.png",
+        "\u7ec8\u7109\u66dc\u00b7\u589f\u94fe": "698c2277-27ad-4a8b-9724-1faf3d1350d2.png",
+        "\u7ec8\u7109\u66dc\u00b7\u589f\u73af": "ae650a23-b2bb-47bc-9466-4ebd132f2bea.png",
+        "\u7ec8\u7109\u66dc\u00b7\u589f\u7f30": "165829f1-5c02-421e-b53a-288e50715826.png"
+    },
+    "building": {
+        "tower_entrance": "87e2de07-ea77-46fd-bb95-2c92181e8b7c.png",
+        "blacksmith": "51342a85-dc46-4a05-a19e-6589849092e5.png",
+        "shop": "97773853-538f-450d-ae2b-78851d402fdf.png",
+        "training_ground": "7290c656-de6a-442d-a774-93d8557c1085.png",
+        "class_master": "f09727e4-699f-4b49-9bc3-35198a34164f.png",
+        "skill_trainer": "8ea77ee7-4db5-48b4-a4c1-54a3d013ac63.png",
+        "enchanter": "81df5b4f-a93b-4bb7-acef-97100341e3d2.png",
+        "jeweler": "537ed2a8-271a-4e93-b149-8cbb72a119c7.png",
+        "chronicle_stone": "96fccb82-6de0-42c3-b3cd-8543084bc636.png",
+        "awakening_gate": "62a49693-ab8a-488e-959a-0648064ddf91.png",
+        "material_realm": "eaa0940a-37df-44b4-a29a-d8002a9ba61a.png"
+    },
+    "room_entity": {
+        "treasure_chest": "6c7e2dac-3ce0-4319-b110-4c850c77a7a9.png",
+        "rest_campfire": "268269e5-c163-48a0-951d-c2570f1a0370.png",
+        "rest_medkit": "19902740-4914-4547-9e54-2181786edaf8.png",
+        "rest_fountain": "9f50183b-51d4-4793-b1cd-2147d5df2654.png",
+        "rest_altar": "b2a806bd-b21f-4343-94e8-b6d55e3d0597.png"
+    },
+    "portal": {
+        "exit": "cb1e9ce8-1a24-4c4e-8ba4-1ae307e5bea6.png",
+        "next": "e037f702-c370-44c5-a392-8aa37a9d43f6.png",
+        "return_town": "tile_portal_return_town.png",
+        "fight": "3f225ee8-bc85-48f0-bed9-e5f3c19d169d.png",
+        "exit_dungeon": "d6a8e4ba-e881-49ea-8001-096dd80d3b61.png"
+    },
+    "floor": {
+        "town": "05e5141b-9340-45e4-b818-bc0cd514cc8b.png",
+        "tower": "210eb8d0-605f-48bc-96c1-c31a0f47cbc4.png",
+        "training": "5288ab72-64df-4016-a14d-674dae625826.png",
+        "dungeon": "4aaa7624-9beb-48e9-81ba-c5dc8bbb7ee2.png",
+        "dungeon_cave": "49bc197e-fa80-4ca0-822f-f21bd92ffa80.png",
+        "dungeon_forest": "b744e528-3f1b-4b43-950a-be8bd55ec312.png",
+        "dungeon_void": "5278575d-6a9c-4a70-8c62-45c2e478938d.png",
+        "dungeon_volcano": "ab502db4-c75a-4227-ade7-d005c5d480ab.png"
+    },
+    "monster": {
+        "boss_20": {
+            "image": "adf13412-44fd-4682-bf07-920dc6d7cc00.png",
+            "scale": 5.21
+        },
+        "boss_40": {
+            "image": "0d439c6c-edad-434e-879e-3593ba4ffe48.png",
+            "scale": 5.42
+        },
+        "boss_60": {
+            "image": "a4a2aee7-18e4-4135-a2a2-6031f922b74a.png",
+            "scale": 5.62
+        },
+        "boss_80": {
+            "image": "dbff6387-7cda-4b6b-b773-0361a16e5a6f.png",
+            "scale": 5.83
+        },
+        "boss_100": {
+            "image": "7e9e4307-96a6-48a8-99d4-83756a3ebc5a.png",
+            "scale": 6.04
+        },
+        "boss_120": {
+            "image": "fb275b9a-77c8-4f31-88a4-050ad93cef7a.png",
+            "scale": 6.25
+        },
+        "boss_140": {
+            "image": "2d6555ea-3524-4cf7-b51e-d629ffc53c07.png",
+            "scale": 6.46
+        },
+        "boss_160": {
+            "image": "926d3cc9-cb6d-463b-8d74-2eaf3c2167b4.png",
+            "scale": 6.67
+        },
+        "boss_180": {
+            "image": "1a19fdbf-1b96-4150-a0b0-c28f065e4f48.png",
+            "scale": 6.88
+        },
+        "boss_200": {
+            "image": "37b41b2d-05e6-4bdb-b3fd-1cc1f640dfa0.png",
+            "scale": 7.08
+        },
+        "boss_220": {
+            "image": "367470c9-527e-4501-a0ba-15ece1a329b8.png",
+            "scale": 7.29
+        },
+        "boss_240": {
+            "image": "4c659e33-478c-43a9-be12-8b9e518ade99.png",
+            "scale": 7.5
+        },
+        "acidStalker": {
+            "image": "9848a7e2-94eb-45e8-8094-95f2ae84755b.png",
+            "scale": 2.5
+        },
+        "apostateFallenKnight": {
+            "image": "f60faceb-91a6-4f9e-84db-1b62a55f745d.png",
+            "scale": 3.0
+        },
+        "bastionBallista": {
+            "image": "0ccc6c4f-5140-402f-808f-54c22befee3c.png",
+            "scale": 1.3
+        },
+        "bloodLeechMass": {
+            "image": "0146a585-e898-4e5e-bd24-b9e4f07223a9.png",
+            "scale": 2.5
+        },
+        "circlePriest": {
+            "image": "760e0e6d-d430-40a3-bdb2-aed077b72cb3.png",
+            "scale": 2.5
+        },
+        "clockworkSlasher": {
+            "image": "83549e50-ca48-4d11-9901-b72d9f27e1a5.png",
+            "scale": 2.0
+        },
+        "crystalColossus": {
+            "image": "bb1d93ea-3b64-4f83-8b69-91226ef83250.png",
+            "scale": 3.0
+        },
+        "crystalColossus_elite": {
+            "image": "762f4f3b-66b1-4596-a634-3912a96ee096.png",
+            "scale": 3.0
+        },
+        "deepTowerMarshal": {
+            "image": "4f52b441-86fd-4611-815a-0d2a6115b201.png",
+            "scale": 3.5
+        },
+        "demon": {
+            "image": "097fba6f-edf2-48dc-8991-442200e14cd3.png",
+            "scale": 2.5
+        },
+        "demonAbyssWarden": {
+            "image": "d4a2784a-26ba-4d8d-a0c5-074fe8db6ea3.png",
+            "scale": 3.0
+        },
+        "demonAbyss_elite": {
+            "image": "8e58c777-c83a-4a87-b7d9-54b4dd6b5b27.png",
+            "scale": 2.5
+        },
+        "demonArchmage": {
+            "image": "4e142540-aa47-4bd8-8f78-82b0dc3806c3.png",
+            "scale": 3.0
+        },
+        "demonAshSeer": {
+            "image": "9edfbc70-b27c-4479-9c22-b641470a1737.png",
+            "scale": 2.5
+        },
+        "demonBoss": {
+            "image": "f64cc510-ab22-438a-b21b-4d31f2613694.png",
+            "scale": 5.0
+        },
+        "demonBoss_elite": {
+            "image": "a0a4bbaf-7b02-4685-b82e-5aa302d0eae3.png",
+            "scale": 5.0
+        },
+        "demonCorruptionMarshal": {
+            "image": "fad804ac-ba6d-4b9e-bb9a-c94450902239.png",
+            "scale": 3.5
+        },
+        "demonEntropySage": {
+            "image": "bcfc0ed9-f2b9-4cfa-98e8-95d6ac237467.png",
+            "scale": 2.5
+        },
+        "demonFinalKeeper": {
+            "image": "0d9bcfbe-d3b4-40ff-ae67-910e2758ec0a.png",
+            "scale": 5.5
+        },
+        "demonGeneral": {
+            "image": "94cad93f-4ed0-4dab-a38d-b00a32903130.png",
+            "scale": 3.5
+        },
+        "demonGuardian": {
+            "image": "e8f8daae-3eb6-468c-be44-aea94a470318.png",
+            "scale": 3.0
+        },
+        "demonImp": {
+            "image": "c759db77-d776-49c0-89f3-df1f433a85cf.png",
+            "scale": 1.5
+        },
+        "demonImp_elite": {
+            "image": "a1a8cd1d-3137-4979-a18e-fca173aa3a10.png",
+            "scale": 1.5
+        },
+        "demonNullKnight": {
+            "image": "e06ceec4-0353-45e0-8a4a-d7e37a0bbc64.png",
+            "scale": 3.0
+        },
+        "demonOverlord": {
+            "image": "323576f3-7398-4c49-895e-b1c2be871eac.png",
+            "scale": 6.0
+        },
+        "demonPrince": {
+            "image": "b235018c-2f1b-4347-ba6f-7cb3982476a9.png",
+            "scale": 3.8
+        },
+        "demonSorcerer": {
+            "image": "23367167-f63e-40de-b256-5ad31112805e.png",
+            "scale": 2.5
+        },
+        "demonSoulRift": {
+            "image": "4f4b03b4-5f60-4cce-96da-1ee54e924828.png",
+            "scale": 1.5
+        },
+        "demonStarVoidMage": {
+            "image": "861decd4-b483-4cdc-b1db-e3283c5f04db.png",
+            "scale": 3.0
+        },
+        "demonTitan": {
+            "image": "9f584754-1741-4bbd-88cc-6decd43d99b4.png",
+            "scale": 5.5
+        },
+        "demonTyrant_elite": {
+            "image": "1a6d754d-82ed-428d-aac8-85a9945c804f.png",
+            "scale": 5.0
+        },
+        "demonVoidRunner": {
+            "image": "569c5f5d-88b2-41e4-96b3-1a2fd5dfec60.png",
+            "scale": 2.5
+        },
+        "demonVoid_elite": {
+            "image": "810b5fb7-4e9e-4beb-aaf9-7340d52329d3.png",
+            "scale": 1.5
+        },
+        "demon_elite": {
+            "image": "73dcd259-28c3-433d-bb42-7b142eb66fe1.png",
+            "scale": 2.5
+        },
+        "frostHound": {
+            "image": "8b0265d2-bf79-4ecb-9532-0a99371be2d4.png",
+            "scale": 1.5
+        },
+        "galeWisp": {
+            "image": "c6e52df7-1815-43df-b816-581da73de9bb.png",
+            "scale": 1.5
+        },
+        "goblin": {
+            "image": "0e4f15c7-a607-4dbb-882a-489c66548c83.png",
+            "scale": 1.2
+        },
+        "goblinChief": {
+            "image": "afe2abab-b644-4fd9-a563-a4485bec7b7b.png",
+            "scale": 1.6
+        },
+        "goblinScout": {
+            "image": "15457129-0c2f-4333-b413-10d9f4c4ea5b.png",
+            "scale": 1.1
+        },
+        "goblinShaman": {
+            "image": "1595126c-9754-48ab-b7ac-07a0f717f130.png",
+            "scale": 1.1
+        },
+        "goblinShaman_elite": {
+            "image": "16756a70-25bd-46a1-a6b6-5b03655e475c.png",
+            "scale": 1.1
+        },
+        "goblinWarrior": {
+            "image": "beef47ac-0423-4ab8-a5fc-434bc0b17b56.png",
+            "scale": 1.3
+        },
+        "goblinWarrior_elite": {
+            "image": "4c282acc-e84e-4713-b0fc-73b19116ff6e.png",
+            "scale": 1.3
+        },
+        "goblin_elite": {
+            "image": "a72f2a09-f982-4564-a610-751464e69d5c.png",
+            "scale": 1.2
+        },
+        "goldGlareThief": {
+            "image": "0057d9d7-1ba5-4aeb-83af-04a75cbc50cc.png",
+            "scale": 1.1
+        },
+        "hollowPilgrim": {
+            "image": "2fa850db-df02-4af6-b965-8e2884fc74ee.png",
+            "scale": 1.5
+        },
+        "mirrorPhantom": {
+            "image": "949c9cc5-a958-4c29-935a-7a5ed0c3e404.png",
+            "scale": 1.5
+        },
+        "obsidianGargoyle": {
+            "image": "7dbc9144-c81c-464b-8ce0-32e50f2d7470.png",
+            "scale": 2.5
+        },
+        "orc": {
+            "image": "cbecefa7-b3bf-437d-8041-f5357a44ff60.png",
+            "scale": 2.2
+        },
+        "orcBerserker": {
+            "image": "0a3e68eb-cae3-4d03-b48d-4e87600dd2a3.png",
+            "scale": 2.0
+        },
+        "orcShaman": {
+            "image": "498b3166-03e4-4f2d-a264-1b86f3c83d39.png",
+            "scale": 2.1
+        },
+        "orcWarlord": {
+            "image": "f6dedd35-c253-4c58-bae9-b9125ad13437.png",
+            "scale": 3.5
+        },
+        "orcWarlord_elite": {
+            "image": "2b893101-b924-4ba0-a818-e922a6668758.png",
+            "scale": 3.5
+        },
+        "orcWarrior": {
+            "image": "1bcbc6cb-8b81-464e-90e9-622a2a1ce308.png",
+            "scale": 2.3
+        },
+        "orcWarrior_elite": {
+            "image": "b78250fd-86dc-4d90-918c-aee5ed542a1d.png",
+            "scale": 2.3
+        },
+        "plateFiendSoldier": {
+            "image": "ba656eda-9ac5-4df6-a8e2-d50a644da355.png",
+            "scale": 3.0
+        },
+        "riftAssassin": {
+            "image": "df17e44a-3713-4ab6-814f-6a9ebe50a30c.png",
+            "scale": 1.5
+        },
+        "rustChainShade": {
+            "image": "a570d45f-8e7a-4bf8-aa9d-fd5a8c9bdadc.png",
+            "scale": 2.0
+        },
+        "rustChain_elite": {
+            "image": "94f18401-7469-4b5b-b6b0-01e7a335dcea.png",
+            "scale": 2.0
+        },
+        "silentZealot": {
+            "image": "20ad983e-022f-410b-8fda-e6f7ccd1a787.png",
+            "scale": 2.5
+        },
+        "skeleton": {
+            "image": "644f4509-f2c2-41bd-ad88-b8eb95ec0f85.png",
+            "scale": 1.5
+        },
+        "skeletonArcher": {
+            "image": "749ea250-0a52-4f7e-8855-1763f9a9f034.png",
+            "scale": 1.3
+        },
+        "skeletonKnight": {
+            "image": "f8d00eb3-9d5a-4f9f-bffc-bfb9eed9d195.png",
+            "scale": 2.0
+        },
+        "skeletonKnight_elite": {
+            "image": "0ea551b9-3597-4b91-a0f4-ea695e1f4284.png",
+            "scale": 2.0
+        },
+        "skeletonLord": {
+            "image": "5652f9ae-b3a5-478a-8bcf-83304bb2cf7e.png",
+            "scale": 2.5
+        },
+        "skeletonMage": {
+            "image": "19e42723-8295-4222-ba46-70545b67f888.png",
+            "scale": 1.2
+        },
+        "skeletonMage_elite": {
+            "image": "6c8d2a90-b8ec-4849-b4d8-f9fea808d876.png",
+            "scale": 1.2
+        },
+        "sporeHorror_elite": {
+            "image": "f2f6ef77-5819-4566-aa8a-f1549a6aa63e.png",
+            "scale": 2.5
+        },
+        "sporeMatriarch": {
+            "image": "89ad97c7-4001-4341-94bb-67e5b145df3e.png",
+            "scale": 2.5
+        },
+        "twinVesselLeft": {
+            "image": "f1dcf23e-bbfa-416d-bd15-9b951956e0ba.png",
+            "scale": 1.5
+        },
+        "twinVesselRight": {
+            "image": "7b856fb3-1127-4766-b56e-acce436b9378.png",
+            "scale": 1.5
+        },
+        "voltBatSwarm": {
+            "image": "cd9855bc-20d7-4b35-8841-09e089c2801c.png",
+            "scale": 1.5
+        }
     },
-    "boss_40": {
-      "image": "boss_40.png",
-      "scale": 5.42
-    },
-    "boss_60": {
-      "image": "boss_60.png",
-      "scale": 5.62
-    },
-    "boss_80": {
-      "image": "boss_80.png",
-      "scale": 5.83
-    },
-    "boss_100": {
-      "image": "boss_100.png",
-      "scale": 6.04
-    },
-    "boss_120": {
-      "image": "boss_120.png",
-      "scale": 6.25
-    },
-    "boss_140": {
-      "image": "boss_140.png",
-      "scale": 6.46
-    },
-    "boss_160": {
-      "image": "boss_160.png",
-      "scale": 6.67
-    },
-    "boss_180": {
-      "image": "boss_180.png",
-      "scale": 6.88
-    },
-    "boss_200": {
-      "image": "boss_200.png",
-      "scale": 7.08
-    },
-    "boss_220": {
-      "image": "boss_220.png",
-      "scale": 7.29
-    },
-    "boss_240": {
-      "image": "boss_240.png",
-      "scale": 7.5
-    },
-    "acidStalker": {
-      "image": "monster_acid_stalker.png",
-      "scale": 2.5
-    },
-    "apostateFallenKnight": {
-      "image": "monster_apostate_fallen_knight.png",
-      "scale": 3.0
-    },
-    "bastionBallista": {
-      "image": "monster_bastion_ballista.png",
-      "scale": 1.3
-    },
-    "bloodLeechMass": {
-      "image": "monster_blood_leech_mass.png",
-      "scale": 2.5
-    },
-    "circlePriest": {
-      "image": "monster_circle_priest.png",
-      "scale": 2.5
-    },
-    "clockworkSlasher": {
-      "image": "monster_clockwork_slasher.png",
-      "scale": 2.0
-    },
-    "crystalColossus": {
-      "image": "monster_crystal_colossus.png",
-      "scale": 3.0
-    },
-    "crystalColossus_elite": {
-      "image": "monster_crystal_colossus_elite.png",
-      "scale": 3.0
-    },
-    "deepTowerMarshal": {
-      "image": "monster_deep_tower_marshal.png",
-      "scale": 3.5
-    },
-    "demon": {
-      "image": "monster_demon.png",
-      "scale": 2.5
-    },
-    "demonAbyssWarden": {
-      "image": "monster_demon_abyss_warden.png",
-      "scale": 3.0
-    },
-    "demonAbyss_elite": {
-      "image": "monster_demon_abyss_elite.png",
-      "scale": 2.5
-    },
-    "demonArchmage": {
-      "image": "monster_demon_archmage.png",
-      "scale": 3.0
-    },
-    "demonAshSeer": {
-      "image": "monster_demon_ash_seer.png",
-      "scale": 2.5
-    },
-    "demonBoss": {
-      "image": "monster_demon_boss.png",
-      "scale": 5.0
-    },
-    "demonBoss_elite": {
-      "image": "monster_demon_boss_elite.png",
-      "scale": 5.0
-    },
-    "demonCorruptionMarshal": {
-      "image": "monster_demon_corruption_marshal.png",
-      "scale": 3.5
-    },
-    "demonEntropySage": {
-      "image": "monster_demon_entropy_sage.png",
-      "scale": 2.5
-    },
-    "demonFinalKeeper": {
-      "image": "monster_demon_final_keeper.png",
-      "scale": 5.5
-    },
-    "demonGeneral": {
-      "image": "monster_demon_general.png",
-      "scale": 3.5
-    },
-    "demonGuardian": {
-      "image": "monster_demon_guardian.png",
-      "scale": 3.0
-    },
-    "demonImp": {
-      "image": "monster_demon_imp.png",
-      "scale": 1.5
-    },
-    "demonImp_elite": {
-      "image": "monster_demon_imp_elite.png",
-      "scale": 1.5
-    },
-    "demonNullKnight": {
-      "image": "monster_demon_null_knight.png",
-      "scale": 3.0
-    },
-    "demonOverlord": {
-      "image": "monster_demon_overlord.png",
-      "scale": 6.0
-    },
-    "demonPrince": {
-      "image": "monster_demon_prince.png",
-      "scale": 3.8
-    },
-    "demonSorcerer": {
-      "image": "monster_demon_sorcerer.png",
-      "scale": 2.5
-    },
-    "demonSoulRift": {
-      "image": "monster_demon_soul_rift.png",
-      "scale": 1.5
-    },
-    "demonStarVoidMage": {
-      "image": "monster_demon_star_void_mage.png",
-      "scale": 3.0
-    },
-    "demonTitan": {
-      "image": "monster_demon_titan.png",
-      "scale": 5.5
-    },
-    "demonTyrant_elite": {
-      "image": "monster_demon_tyrant_elite.png",
-      "scale": 5.0
-    },
-    "demonVoidRunner": {
-      "image": "monster_demon_void_runner.png",
-      "scale": 2.5
-    },
-    "demonVoid_elite": {
-      "image": "monster_demon_void_elite.png",
-      "scale": 1.5
-    },
-    "demon_elite": {
-      "image": "monster_demon_elite.png",
-      "scale": 2.5
-    },
-    "frostHound": {
-      "image": "monster_frost_hound.png",
-      "scale": 1.5
-    },
-    "galeWisp": {
-      "image": "monster_gale_wisp.png",
-      "scale": 1.5
-    },
-    "goblin": {
-      "image": "monster_goblin.png",
-      "scale": 1.2
-    },
-    "goblinChief": {
-      "image": "monster_goblin_chief.png",
-      "scale": 1.6
-    },
-    "goblinScout": {
-      "image": "monster_goblin_scout.png",
-      "scale": 1.1
-    },
-    "goblinShaman": {
-      "image": "monster_goblin_shaman.png",
-      "scale": 1.1
-    },
-    "goblinShaman_elite": {
-      "image": "monster_goblin_shaman_elite.png",
-      "scale": 1.1
-    },
-    "goblinWarrior": {
-      "image": "monster_goblin_warrior.png",
-      "scale": 1.3
-    },
-    "goblinWarrior_elite": {
-      "image": "monster_goblin_warrior_elite.png",
-      "scale": 1.3
-    },
-    "goblin_elite": {
-      "image": "monster_goblin_elite.png",
-      "scale": 1.2
-    },
-    "goldGlareThief": {
-      "image": "monster_gold_glare_thief.png",
-      "scale": 1.1
-    },
-    "hollowPilgrim": {
-      "image": "monster_hollow_pilgrim.png",
-      "scale": 1.5
-    },
-    "mirrorPhantom": {
-      "image": "monster_mirror_phantom.png",
-      "scale": 1.5
-    },
-    "obsidianGargoyle": {
-      "image": "monster_obsidian_gargoyle.png",
-      "scale": 2.5
-    },
-    "orc": {
-      "image": "monster_orc.png",
-      "scale": 2.2
-    },
-    "orcBerserker": {
-      "image": "monster_orc_berserker.png",
-      "scale": 2.0
-    },
-    "orcShaman": {
-      "image": "monster_orc_shaman.png",
-      "scale": 2.1
-    },
-    "orcWarlord": {
-      "image": "monster_orc_warlord.png",
-      "scale": 3.5
-    },
-    "orcWarlord_elite": {
-      "image": "monster_orc_warlord_elite.png",
-      "scale": 3.5
-    },
-    "orcWarrior": {
-      "image": "monster_orc_warrior.png",
-      "scale": 2.3
-    },
-    "orcWarrior_elite": {
-      "image": "monster_orc_warrior_elite.png",
-      "scale": 2.3
-    },
-    "plateFiendSoldier": {
-      "image": "monster_plate_fiend_soldier.png",
-      "scale": 3.0
-    },
-    "riftAssassin": {
-      "image": "monster_rift_assassin.png",
-      "scale": 1.5
-    },
-    "rustChainShade": {
-      "image": "monster_rust_chain_shade.png",
-      "scale": 2.0
-    },
-    "rustChain_elite": {
-      "image": "monster_rust_chain_elite.png",
-      "scale": 2.0
-    },
-    "silentZealot": {
-      "image": "monster_silent_zealot.png",
-      "scale": 2.5
-    },
-    "skeleton": {
-      "image": "monster_skeleton.png",
-      "scale": 1.5
-    },
-    "skeletonArcher": {
-      "image": "monster_skeleton_archer.png",
-      "scale": 1.3
-    },
-    "skeletonKnight": {
-      "image": "monster_skeleton_knight.png",
-      "scale": 2.0
-    },
-    "skeletonKnight_elite": {
-      "image": "monster_skeleton_knight_elite.png",
-      "scale": 2.0
-    },
-    "skeletonLord": {
-      "image": "monster_skeleton_lord.png",
-      "scale": 2.5
-    },
-    "skeletonMage": {
-      "image": "monster_skeleton_mage.png",
-      "scale": 1.2
-    },
-    "skeletonMage_elite": {
-      "image": "monster_skeleton_mage_elite.png",
-      "scale": 1.2
-    },
-    "sporeHorror_elite": {
-      "image": "monster_spore_horror_elite.png",
-      "scale": 2.5
-    },
-    "sporeMatriarch": {
-      "image": "monster_spore_matriarch.png",
-      "scale": 2.5
-    },
-    "twinVesselLeft": {
-      "image": "monster_twin_vessel_left.png",
-      "scale": 1.5
-    },
-    "twinVesselRight": {
-      "image": "monster_twin_vessel_right.png",
-      "scale": 1.5
-    },
-    "voltBatSwarm": {
-      "image": "monster_volt_bat_swarm.png",
-      "scale": 1.5
-    }
-  },
-  "player": {
     "player": {
-      "image": "player.gif",
-      "scale": 1.5
+        "player": {
+            "image": "5864a397-b479-475d-81d4-2fc361763b76.gif",
+            "scale": 1.5
+        }
+    },
+    "skill_icons": {
+        "\u5d29\u5c71\u51fb": "3afb1f73-e5cb-494c-a625-f3d8df886697.png",
+        "\u94f6\u8292\u8d2f\u523a": "b1cb8ae7-d083-413e-a5aa-3ef01c26c270.png",
+        "\u8d64\u708e\u65a9": "9d698f16-4791-47c7-8178-6f9dd7da8ec8.png",
+        "\u5e7d\u51a5\u95ea\u88ad": "48395a77-5626-4278-a4b6-06043ba4ec51.png",
+        "\u51db\u51ac\u523a": "a2e4535d-23da-400d-9ddf-81790882440e.png",
+        "\u9e23\u96f7\u88c1\u51b3": "af342ea5-6316-470e-af80-0f01a9b7866b.png",
+        "\u94f6\u6708\u5f27\u5149": "fe8b4849-955b-448f-82f3-3b5a080b646c.png",
+        "\u971c\u534e\u788e\u706d": "de7033cf-9ec7-414a-87f9-779187bd4533.png",
+        "\u9f99\u708e\u6f29\u6da1": "9972ddb0-67b7-46ba-89a3-eae9f083c20f.png",
+        "\u70ec\u706d\u5929\u706b": "7b56d37e-aa90-4c2c-baae-93ea9e46dbf2.png",
+        "\u6c38\u51bb\u65b0\u661f": "649d2b2b-ca4b-44ca-9d73-e96460a738aa.png",
+        "\u795e\u88c1": "8e02a6ea-d694-4858-a782-e364640f7e84.png",
+        "\u4e07\u94a7\u96f7\u72f1": "5b11f65a-9560-494f-af36-01c961811ef9.png",
+        "\u661f\u5760\u5ba1\u5224": "3470f7ce-8c73-499f-a81f-d95f3275e298.png",
+        "\u94a2\u9b42\u5d29\u51fb": "11861b3b-bfb7-41d4-a532-973aade2c932.png",
+        "\u9b54\u6676\u7efd\u88c2": "7b8975f1-5704-45fb-8eaf-05325c2023e7.png",
+        "\u53e4\u9f99\u5410\u606f": "513d6f25-3c05-4f16-b5ab-aa819650be3e.png",
+        "\u865a\u7a7a\u5d29\u89e3": "7eb7c4f4-9ee1-4780-845a-447c02d91fa1.png",
+        "\u7834\u52bf\u4e00\u51fb": "1ec28f9f-1c37-4647-b939-7c1b6e321aba.png",
+        "\u6218\u610f\u8ff8\u53d1": "23b724ad-9ab7-4d50-855e-e1f558d49e72.png",
+        "\u95ea\u9706": "987d00a9-da4e-486d-bd2b-cb9d4900120f.png",
+        "\u708e\u72f1\u98ce\u66b4": "7bf5bccf-6b43-40ad-ad6e-4a25ea2b0fea.png",
+        "\u5929\u8c34": "50fb52ee-c2de-41c4-806b-de21d6f3cb4c.png",
+        "\u8ffd\u98ce\u7bad": "c5d149b0-f355-4b34-9c2a-b3ddb7456d64.png",
+        "\u6697\u5f71\u8d2f\u7a7f": "693eb008-12d2-488a-905c-57427b845a63.png",
+        "\u7834\u6653\u4e4b\u77e2": "4610a218-3740-4ec9-bdd7-4327fc657977.png",
+        "\u8d2f\u6708\u8fde\u73e0": "ad8fbe2c-425b-4892-ad7b-0ad98b78f5c1.png",
+        "\u661f\u9668": "550319e7-617b-40b6-a5b0-efca76f03093.png"
+    },
+    "consumable": {
+        "blueprint": "f5dc8516-19e0-43cc-acb1-b43e6f09fdc4.png"
+    },
+    "sounds": {
+        "burn": {
+            "file": "3f2b7249-f5d5-4199-8c05-842f33aa7cb6.mp3",
+            "volume": 0.3
+        },
+        "treasure": {
+            "file": "50a37ff4-fdf5-4f10-935d-93ecfedd812a.mp3",
+            "volume": 0.6
+        },
+        "craft": {
+            "file": "03c4b57a-5dd2-4d33-a824-386a4c789dea.mp3",
+            "volume": 0.6
+        },
+        "death": {
+            "file": "3f00ac92-a0f7-4339-8867-fbec7f683c49.mp3",
+            "volume": 0.7
+        },
+        "shock": {
+            "file": "cff515bb-fc66-4d45-9f8c-416d7076376c.mp3",
+            "volume": 0.4
+        },
+        "equip": {
+            "file": "88c5601a-c5dc-4493-8187-f0f31b3e55c4.mp3",
+            "volume": 0.5
+        },
+        "freeze": {
+            "file": "e48a4323-0d13-4d52-9d7b-5e3bc6b7a03a.mp3",
+            "volume": 0.4
+        },
+        "heal": {
+            "file": "2a2c3b30-45c0-4b50-a1bd-37fd801e5fba.mp3",
+            "volume": 0.4
+        },
+        "hit": {
+            "file": "f8f1c6f6-97f0-4dc6-8c1d-83d78250c8c4.mp3",
+            "volume": 0.3
+        },
+        "levelup": {
+            "file": "eb294d56-7f2d-4bc6-aecb-867aa562d8ef.mp3",
+            "volume": 0.7
+        },
+        "purchase": {
+            "file": "2a28880f-e6d0-4097-82bb-7aa73d286fbc.mp3",
+            "volume": 0.5
+        },
+        "star": {
+            "file": "e6a91f7f-6990-4290-badc-6f8d9491437c.mp3",
+            "volume": 0.5
+        },
+        "dash": {
+            "file": "c824d84a-fc93-44d7-b792-82a8ed3bc164.mp3",
+            "volume": 0.6
+        },
+        "swing": {
+            "file": "a94ceca0-26ef-4ebe-a7d8-1cabc1bc0e08.mp3",
+            "volume": 0.4
+        },
+        "teleport": {
+            "file": "3c359dc8-2e88-4923-9a61-7b40ec1b0e19.mp3",
+            "volume": 0.5
+        },
+        "walk": {
+            "file": "b7aba237-eebe-47dc-acb3-c9ead1f7e30e.mp3",
+            "volume": 0.3
+        }
+    },
+    "bgm": {
+        "town": {
+            "file": "f9bbd37d-d9c3-409d-9e32-d458b11b75f0.mp3",
+            "volume": 0.5
+        },
+        "battle": {
+            "file": "799a577c-3dd9-423d-82b0-b9b791beacab.mp3",
+            "volume": 0.5
+        }
     }
-  },
-  "skill_icons": {
-    "崩山击": "skill_icons/skill_d7cacaad.png",
-    "银芒贯刺": "skill_icons/skill_69dd3c47.png",
-    "赤炎斩": "skill_icons/skill_1ca45fe1.png",
-    "幽冥闪袭": "skill_icons/skill_c4214f54.png",
-    "凛冬刺": "skill_icons/skill_f790ca62.png",
-    "鸣雷裁决": "skill_icons/skill_e679ab5a.png",
-    "银月弧光": "skill_icons/skill_3bb20e4a.png",
-    "霜华碎灭": "skill_icons/skill_050ec4d6.png",
-    "龙炎漩涡": "skill_icons/skill_d8e488f2.png",
-    "烬灭天火": "skill_icons/skill_46f672f5.png",
-    "永冻新星": "skill_icons/skill_c3d0b698.png",
-    "神裁": "skill_icons/skill_8fe8076a.png",
-    "万钧雷狱": "skill_icons/skill_15032416.png",
-    "星坠审判": "skill_icons/skill_8cfae7a4.png",
-    "钢魂崩击": "skill_icons/skill_116dcefa.png",
-    "魔晶绽裂": "skill_icons/skill_86a2ce02.png",
-    "古龙吐息": "skill_icons/skill_fedcb769.png",
-    "虚空崩解": "skill_icons/skill_8722e361.png",
-    "破势一击": "skill_icons/skill_37eac84a.png",
-    "战意迸发": "skill_icons/skill_a081d154.png",
-    "闪霆": "skill_icons/skill_a5c6f6f4.png",
-    "炎狱风暴": "skill_icons/skill_8f3dbc4c.png",
-    "天谴": "skill_icons/skill_7e5c7356.png",
-    "追风箭": "skill_icons/skill_c1f955b8.png",
-    "暗影贯穿": "skill_icons/skill_af909446.png",
-    "破晓之矢": "skill_icons/skill_12f1081a.png",
-    "贯月连珠": "skill_icons/skill_294b409d.png",
-    "星陨": "skill_icons/skill_5b69e312.png"
-  },
-  "consumable": {
-    "blueprint": "blueprint.png"
-  },
-  "sounds": {
-    "burn": {
-      "file": "sound_burn.mp3",
-      "volume": 0.3
-    },
-    "treasure": {
-      "file": "sound_treasure.mp3",
-      "volume": 0.6
-    },
-    "craft": {
-      "file": "sound_craft.mp3",
-      "volume": 0.6
-    },
-    "death": {
-      "file": "sound_death.mp3",
-      "volume": 0.7
-    },
-    "shock": {
-      "file": "sound_shock.mp3",
-      "volume": 0.4
-    },
-    "equip": {
-      "file": "sound_equip.mp3",
-      "volume": 0.5
-    },
-    "freeze": {
-      "file": "sound_freeze.mp3",
-      "volume": 0.4
-    },
-    "heal": {
-      "file": "sound_heal.mp3",
-      "volume": 0.4
-    },
-    "hit": {
-      "file": "sound_hit.mp3",
-      "volume": 0.3
-    },
-    "levelup": {
-      "file": "sound_levelup.mp3",
-      "volume": 0.7
-    },
-    "purchase": {
-      "file": "sound_purchase.mp3",
-      "volume": 0.5
-    },
-    "star": {
-      "file": "sound_star.mp3",
-      "volume": 0.5
-    },
-    "dash": {
-      "file": "sound_dash.mp3",
-      "volume": 0.6
-    },
-    "swing": {
-      "file": "sound_swing.mp3",
-      "volume": 0.4
-    },
-    "teleport": {
-      "file": "sound_teleport.mp3",
-      "volume": 0.5
-    },
-    "walk": {
-      "file": "sound_walk.mp3",
-      "volume": 0.3
-    }
-  },
-  "bgm": {
-    "town": {
-      "file": "bgm_town.mp3",
-      "volume": 0.5
-    },
-    "battle": {
-      "file": "bgm_battle.mp3",
-      "volume": 0.5
-    }
-  }
 }

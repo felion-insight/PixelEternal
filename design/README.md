@@ -13,6 +13,22 @@
 | 5 | [dungeon-and-progression.md](./dungeon-and-progression.md) | 副本体系(日常/周常/深渊/裂隙/远古遗迹)/强化+20系统/装备突破觉醒/徽记/回路/材料体系 | ✅ |
 | 6 | [equipment-class-adaptation.md](./equipment-class-adaptation.md) | 装备适配第一版（已被第3篇取代，存档参考） | 📦 |
 
+## 职业重做文档
+
+各二转/一转职业的重做设计与实现计划，位于 [`class-rework/`](./class-rework/)：
+
+| 文档 | 职业/主题 | 状态 |
+|------|-----------|------|
+| [design-warrior-rework.md](./class-rework/design-warrior-rework.md) | 战士系（骑士/狂战士/守护者） | 📝 |
+| [design-marksman-rework.md](./class-rework/design-marksman-rework.md) | 射手（Marksman） | 📝 |
+| [design-deadeye-rework.md](./class-rework/design-deadeye-rework.md) | 神射手（Deadeye） | 📝 |
+| [design-phantom-rework.md](./class-rework/design-phantom-rework.md) | 幻影（Phantom） | 📝 |
+| [design-beastmaster-rework.md](./class-rework/design-beastmaster-rework.md) | 兽王（Beastmaster） | 📝 |
+| [design-mage-rework.md](./class-rework/design-mage-rework.md) | 法师系（Mage/Wizard/Warlock） | 📝 |
+| [design-wizard-rework.md](./class-rework/design-wizard-rework.md) | 巫师（Wizard） | 📝 |
+| [design-warlock-rework.md](./class-rework/design-warlock-rework.md) | 术士（Warlock） | 📝 |
+| [design-mage-implementation-plan.md](./class-rework/design-mage-implementation-plan.md) | 法师系实现计划 | 🚧 |
+
 ## 阅读顺序建议
 
 ```

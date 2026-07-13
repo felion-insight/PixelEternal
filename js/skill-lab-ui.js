@@ -36,16 +36,6 @@
 
     window.applySkillLabPlayerConfig = function applySkillLabPlayerConfig(player, classData, level) {
         if (!player || !classData || !classData.baseClass) return false;
-        const gi = player.gameInstance;
-        if (gi && typeof window.clearPlayerSkillWorldEntities === 'function') {
-            window.clearPlayerSkillWorldEntities(gi);
-        }
-        if (typeof window.clearMarksmanPrecisionState === 'function') {
-            window.clearMarksmanPrecisionState(player);
-        }
-        if (typeof window.clearWindrunnerCombatState === 'function') {
-            window.clearWindrunnerCombatState(player);
-        }
         player.classData = window.normalizeClassData(classData);
         player.level = Math.max(1, Math.min(999, level | 0));
         player.skillCooldowns = {};
@@ -57,6 +47,16 @@
             window.initPlayerSkillHotbar(player);
         }
         if (typeof player.updateStats === 'function') player.updateStats();
+        player.isCastingSkill = false;
+        player._skillCastBar = null;
+        const g = player.gameInstance;
+        if (g && g.currentScene === SCENE_TYPES.SKILL_LAB) {
+            if (typeof g.resetSkillLabCombatState === 'function') g.resetSkillLabCombatState();
+        } else if (typeof window.initAssassinShadowState === 'function'
+            && typeof window.isAssassinTreePlayer === 'function'
+            && window.isAssassinTreePlayer(player)) {
+            window.initAssassinShadowState(player);
+        }
         return true;
     };
 
@@ -105,6 +105,13 @@
 
             const clearBtn = document.getElementById('skill-lab-clear-dummies');
             if (clearBtn) clearBtn.addEventListener('click', () => this.clearDummies());
+
+            const resetStatsBtn = document.getElementById('skill-lab-reset-stats-btn');
+            if (resetStatsBtn) resetStatsBtn.addEventListener('click', () => {
+                if (this.game && typeof this.game.resetAllSkillLabBattleStats === 'function') {
+                    this.game.resetAllSkillLabBattleStats();
+                }
+            });
         }
 
         populateClassSelect() {
@@ -353,8 +360,8 @@
             const chasePlayer = chaseEl ? chaseEl.checked : false;
             const invincible = invEl ? invEl.checked : true;
 
-            const angle = Math.random() * Math.PI * 2;
-            const dist = 80 + Math.random() * 40;
+            const angle = typeof g.player.angle === 'number' ? g.player.angle : 0;
+            const dist = 48 + Math.random() * 12;
             g.skillLabScene.addDummy(
                 g.player.x + Math.cos(angle) * dist,
                 g.player.y + Math.sin(angle) * dist,

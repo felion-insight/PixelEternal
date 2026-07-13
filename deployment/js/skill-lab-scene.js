@@ -17,6 +17,9 @@ class SkillLabScene {
 
     addDummy(x, y, options = {}) {
         const dummy = new TrainingDummy(x, y, options);
+        if (this.gameInstance && dummy.gameInstance == null) {
+            dummy.gameInstance = this.gameInstance;
+        }
         this.dummies.push(dummy);
         return dummy;
     }
@@ -101,8 +104,13 @@ class SkillLabScene {
         ctx.textAlign = 'center';
         ctx.fillText('返回', this.exitPortal.x, this.exitPortal.y + 5);
 
+        const player = this.gameInstance?.player;
         this.dummies.forEach(dummy => {
             if (dummy instanceof MonsterTrainingDummy && !dummy.invincible && dummy.hp <= 0) return;
+            // 绘制背刺有效区指示（刺客职业可见）
+            if (player && typeof window.drawCombatantBackstabZone === 'function') {
+                window.drawCombatantBackstabZone(ctx, dummy, player);
+            }
             dummy.draw(ctx);
         });
     }

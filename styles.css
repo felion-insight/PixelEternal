@@ -3587,9 +3587,11 @@ body.pe-hide-dev-panels #dev-codex-panel {
 #bottom-left-bars #class-resource-fill[data-family="elemental_power"] { background: linear-gradient(90deg, #aa4400, #ff6622); }
 #bottom-left-bars #class-resource-fill[data-family="chronos_sand"] { background: linear-gradient(90deg, #6644aa, #cc88ff); }
 #bottom-left-bars #class-resource-fill[data-family="soul_shard_v2"] { background: linear-gradient(90deg, #331144, #8844cc); }
+#bottom-left-bars #class-resource-fill[data-family="shadow_force"] { background: linear-gradient(90deg, #331155, #8844cc); }
 #bottom-left-bars #class-resource-text[data-family="elemental_power"] { color: #ff8844; }
 #bottom-left-bars #class-resource-text[data-family="chronos_sand"] { color: #cc99ff; }
 #bottom-left-bars #class-resource-text[data-family="soul_shard_v2"] { color: #bb88ee; }
+#bottom-left-bars #class-resource-text[data-family="shadow_force"] { color: #bb88ff; }
 #bottom-left-bars #class-resource-fill[data-family="energy"] { background: linear-gradient(90deg, #6622aa, #aa44ff); }
 #bottom-left-bars #class-resource-text[data-family="nature"] { color: #66ee55; }
 #bottom-left-bars #class-resource-text[data-family="ammo"] { color: #ffcc44; }
@@ -3605,6 +3607,125 @@ body.pe-hide-dev-panels #dev-codex-panel {
 .element-phase-indicator[data-phase="frost"],
 .element-phase-indicator[data-phase="arctic"] { color: #88ccff; }
 .element-phase-indicator[data-phase="overload"] { color: #44aaff; }
+
+.archmage-bridge-row {
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+    padding-left: 2px;
+}
+.archmage-fusion-hint {
+    font-size: 10px;
+    font-family: 'Courier New', monospace;
+    color: #cc88ff;
+    min-width: 52px;
+    white-space: nowrap;
+}
+.archmage-fusion-hint.ready {
+    color: #ffdd44;
+    text-shadow: 0 0 6px rgba(255, 220, 80, 0.6);
+}
+.archmage-bridge-bar-wrap {
+    flex: 1;
+    height: 5px;
+    background: rgba(40, 30, 60, 0.85);
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid rgba(153, 68, 255, 0.35);
+}
+.archmage-bridge-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #9944ff, #ff6622);
+    transition: width 0.08s linear;
+}
+.archmage-bridge-fill.sanctuary {
+    background: linear-gradient(90deg, #44aaff, #ffdd44);
+}
+
+.surge-stack-row {
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+    padding-left: 2px;
+}
+.surge-stack-label {
+    font-size: 11px;
+    font-family: 'Courier New', monospace;
+    color: #998877;
+    min-width: 28px;
+}
+.surge-stack-dots {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+.surge-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid #665544;
+    background: #332822;
+    opacity: 0.45;
+    transition: opacity 0.15s, box-shadow 0.15s;
+}
+.surge-dot.active {
+    opacity: 1;
+    border-color: #aa8866;
+    background: #cc8844;
+    box-shadow: 0 0 6px rgba(255, 170, 80, 0.5);
+}
+.surge-dot.active.tier-gold {
+    border-color: #ffdd44;
+    background: #ffcc22;
+    box-shadow: 0 0 8px rgba(255, 220, 80, 0.7);
+    animation: surge-pulse 0.9s ease-in-out infinite;
+}
+.surge-awakening-timer {
+    font-size: 10px;
+    font-family: 'Courier New', monospace;
+    color: #ffdd44;
+    margin-left: 4px;
+}
+@keyframes surge-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+
+.warlock-soul-row,
+.undead-legion-row,
+.death-resonance-row {
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+    padding-left: 2px;
+}
+.warlock-counter-label {
+    font-size: 11px;
+    font-family: 'Courier New', monospace;
+    min-width: 28px;
+}
+.soul-shard-counter {
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    color: #aa66ff;
+    letter-spacing: 1px;
+}
+.undead-legion-counter {
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    color: #aaaacc;
+}
+.death-resonance-counter {
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    color: #ff88ee;
+    letter-spacing: 1px;
+}
+.death-resonance-counter.resonance-full {
+    color: #ff44ff;
+    text-shadow: 0 0 6px rgba(255, 68, 255, 0.6);
+}
 
 .precision-stack-row {
     align-items: center;

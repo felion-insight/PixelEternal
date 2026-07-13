@@ -1523,6 +1523,29 @@ class Monster {
             dmg *= this._apostateStance.blessingDamageTakenMult;
         }
         dmg = Math.max(0, dmg);
+        if (this.combatStatuses && this.combatStatuses.shock && dmg > 0 && !this._skipShockSplash) {
+            const shockInst = this.combatStatuses.shock;
+            if (shockInst.until > now) {
+                let splashRatio = 0.3;
+                const splashRadius = 60;
+                const owner = shockInst.owner;
+                if (owner && typeof window.getElementalMasteryBonuses === 'function') {
+                    const mb = window.getElementalMasteryBonuses(owner);
+                    if (mb && mb.shockSplashMult > 1) splashRatio *= mb.shockSplashMult;
+                }
+                const splashDmg = Math.max(1, Math.floor(dmg * splashRatio));
+                const g = this.gameInstance;
+                if (g && typeof g.getCurrentSceneTargets === 'function') {
+                    g.getCurrentSceneTargets().forEach(m => {
+                        if (!m || m === this || m.hp <= 0) return;
+                        if (Math.hypot(m.x - this.x, m.y - this.y) > splashRadius + (m.size || 20) * 0.5) return;
+                        m._skipShockSplash = true;
+                        m.takeDamage(splashDmg);
+                        m._skipShockSplash = false;
+                    });
+                }
+            }
+        }
         if (this._twinSoulShared) {
             const P = this._twinSoulShared;
             if (P.rewardsClaimed) return false;
@@ -1914,6 +1937,12 @@ class Monster {
                 ctx.restore();
             }
         }
+
+        if (typeof window.drawMonsterCombatOverlays === 'function') {
+            window.drawMonsterCombatOverlays(ctx, this, now);
+        } else if (typeof window.drawClassSkillMarkOverlay === 'function') {
+            window.drawClassSkillMarkOverlay(ctx, this, now);
+        }
     }
 }
 
@@ -2301,7 +2330,9 @@ class TrainingDummy {
         
         this.createdTime = Date.now();
         this.speed = CONFIG.MONSTER_SPEED;
-        this.angle = 0;
+        this.facingAngle = options.facingAngle != null ? options.facingAngle : 0;
+        this.angle = this.facingAngle;
+        this.gameInstance = options.gameInstance || null;
         
         // 加速度系统
         this.vx = 0; // X方向速度
@@ -2360,12 +2391,11 @@ class TrainingDummy {
                 // 更新位置
                 this.x += this.vx;
                 this.y += this.vy;
+                this._syncFacingFromVelocity();
             } else if (distance > CONFIG.MONSTER_ATTACK_RANGE) {
-                // 在追击范围内但不在攻击范围内，追击玩家
-                // 计算目标方向
-                this.angle = Math.atan2(dy, dx);
-                const targetVx = Math.cos(this.angle) * this.maxSpeed;
-                const targetVy = Math.sin(this.angle) * this.maxSpeed;
+                // 在追击范围内但不在攻击范围内，追击玩家（移动方向更新面向，不锁定盯玩家）
+                const targetVx = Math.cos(Math.atan2(dy, dx)) * this.maxSpeed;
+                const targetVy = Math.sin(Math.atan2(dy, dx)) * this.maxSpeed;
                 
                 // 应用加速度
                 this.vx += (targetVx - this.vx) * this.acceleration;
@@ -2382,6 +2412,7 @@ class TrainingDummy {
                 // 更新位置
                 this.x += this.vx;
                 this.y += this.vy;
+                this._syncFacingFromVelocity();
             } else {
                 // 在攻击范围内，停止移动（准备攻击）
                 // 应用摩擦力减速
@@ -2391,6 +2422,7 @@ class TrainingDummy {
                 // 更新位置
                 this.x += this.vx;
                 this.y += this.vy;
+                this._syncFacingFromVelocity();
             }
         } else {
             // 未发现玩家，应用摩擦力减速
@@ -2400,6 +2432,17 @@ class TrainingDummy {
             // 更新位置
             this.x += this.vx;
             this.y += this.vy;
+            this._syncFacingFromVelocity();
+        }
+    }
+
+    _syncFacingFromVelocity() {
+        const spd = Math.hypot(this.vx || 0, this.vy || 0);
+        if (spd > 0.25) {
+            this.facingAngle = Math.atan2(this.vy, this.vx);
+            this.angle = this.facingAngle;
+        } else if (typeof this.facingAngle === 'number') {
+            this.angle = this.facingAngle;
         }
     }
     
@@ -2421,6 +2464,24 @@ class TrainingDummy {
         this.damageHistory = this.damageHistory.filter(record => 
             now - record.time <= this.dpsWindow
         );
+        
+        // 战斗统计：按伤害来源分类
+        this._battleStats = this._battleStats || { basic: { hits: 0, damage: 0 }, skills: {} };
+        const source = this._pendingDamageSource;
+        if (source === 'basic') {
+            this._battleStats.basic.hits++;
+            this._battleStats.basic.damage += amount;
+        } else if (source && source.startsWith('skill:')) {
+            const skillId = source.substring(6);
+            const s = this._battleStats.skills[skillId] || (this._battleStats.skills[skillId] = { hits: 0, damage: 0 });
+            s.hits++;
+            s.damage += amount;
+        } else if (source === 'dot') {
+            const dot = this._battleStats.dot || (this._battleStats.dot = { hits: 0, damage: 0 });
+            dot.hits++;
+            dot.damage += amount;
+        }
+        this._pendingDamageSource = null;
         
         // 如果无敌，hp始终保持满值
         if (this.invincible) {
@@ -2506,6 +2567,12 @@ class TrainingDummy {
                 this.statusEffects.burning = [];
             }
         }
+
+        if (typeof window.tickMonsterCombatStatuses === 'function') {
+            const g = this.gameInstance
+                || (typeof window.game !== 'undefined' ? window.game : null);
+            window.tickMonsterCombatStatuses(this, g);
+        }
     }
     
     /**
@@ -2571,6 +2638,20 @@ class TrainingDummy {
                     remaining: Math.ceil(maxRemaining / 1000)
                 });
             }
+        }
+
+        if (typeof window.getMonsterActiveDotEntries === 'function') {
+            window.getMonsterActiveDotEntries(this, now).forEach(entry => {
+                if (!entry || entry.until <= now) return;
+                let name = entry.label || entry.id;
+                if (entry.id === 'poison') name = '中毒×' + (entry.stacks || 1);
+                else if (entry.stacks > 1) name = name + '×' + entry.stacks;
+                effects.push({
+                    name,
+                    color: entry.color || '#ffff00',
+                    remaining: Math.ceil((entry.until - now) / 1000)
+                });
+            });
         }
         
         return effects;
@@ -2653,6 +2734,11 @@ class TrainingDummy {
             ctx.arc(this.x, this.y, this.size / 2 + 4, 0, Math.PI * 2);
             ctx.stroke();
         }
+
+        // 绘制战斗状态覆盖层（中毒层数、灼烧、腐蚀等）
+        if (typeof window.drawMonsterCombatOverlays === 'function') {
+            window.drawMonsterCombatOverlays(ctx, this, now);
+        }
     }
 }
 
@@ -2679,6 +2765,8 @@ class MonsterTrainingDummy extends Monster {
             this.maxHp = 999999;
             this.hp = this.maxHp;
         }
+        this.facingAngle = options.facingAngle != null ? options.facingAngle : (this.angle || 0);
+        this.angle = this.facingAngle;
     }
     
     /**
@@ -2687,6 +2775,17 @@ class MonsterTrainingDummy extends Monster {
     update(player) {
         if (!this.chasePlayer) return;
         super.update(player);
+        this._syncTrainingDummyFacing();
+    }
+
+    _syncTrainingDummyFacing() {
+        const spd = Math.hypot(this.vx || 0, this.vy || 0);
+        if (spd > 0.25) {
+            this.facingAngle = Math.atan2(this.vy, this.vx);
+        } else if (typeof this.facingAngle !== 'number') {
+            this.facingAngle = typeof this.angle === 'number' ? this.angle : 0;
+        }
+        this.angle = this.facingAngle;
     }
     
     /**
@@ -2706,6 +2805,24 @@ class MonsterTrainingDummy extends Monster {
         this.damageHistory = this.damageHistory.filter(record => 
             now - record.time <= this.dpsWindow
         );
+        
+        // 战斗统计：按伤害来源分类
+        this._battleStats = this._battleStats || { basic: { hits: 0, damage: 0 }, skills: {} };
+        const source = this._pendingDamageSource;
+        if (source === 'basic') {
+            this._battleStats.basic.hits++;
+            this._battleStats.basic.damage += amount;
+        } else if (source && source.startsWith('skill:')) {
+            const skillId = source.substring(6);
+            const s = this._battleStats.skills[skillId] || (this._battleStats.skills[skillId] = { hits: 0, damage: 0 });
+            s.hits++;
+            s.damage += amount;
+        } else if (source === 'dot') {
+            const dot = this._battleStats.dot || (this._battleStats.dot = { hits: 0, damage: 0 });
+            dot.hits++;
+            dot.damage += amount;
+        }
+        this._pendingDamageSource = null;
         
         // 如果无敌，hp始终保持满值
         if (this.invincible) {
@@ -2959,6 +3076,9 @@ class TrainingGroundScene {
      */
     addDummy(x, y, options = {}) {
         const dummy = new TrainingDummy(x, y, options);
+        if (this.gameInstance && dummy.gameInstance == null) {
+            dummy.gameInstance = this.gameInstance;
+        }
         this.dummies.push(dummy);
         return dummy;
     }
@@ -3072,8 +3192,13 @@ class TrainingGroundScene {
         ctx.fillText('返回', this.exitPortal.x, this.exitPortal.y + 5);
         
         // 绘制所有训练桩（不绘制已死亡的非无敌怪物型假人）
+        const player = this.gameInstance?.player;
         this.dummies.forEach(dummy => {
             if (dummy instanceof MonsterTrainingDummy && !dummy.invincible && dummy.hp <= 0) return;
+            // 绘制背刺有效区指示（刺客职业可见）
+            if (player && typeof window.drawCombatantBackstabZone === 'function') {
+                window.drawCombatantBackstabZone(ctx, dummy, player);
+            }
             dummy.draw(ctx);
         });
     }
@@ -4712,6 +4837,10 @@ class Player {
 
     move(dx, dy) {
         try {
+            if (this._pierceDash && typeof window.updatePlayerPierceDash === 'function') {
+                window.updatePlayerPierceDash(this, Date.now());
+                return;
+            }
             // 更新走路音效状态
             const isMoving = (dx !== 0 || dy !== 0) && !this.isDashing;
             if (this.gameInstance && this.gameInstance.soundManager) {
@@ -4719,6 +4848,13 @@ class Player {
             }
             
             if (this.isDashing) {
+                const skillCharges = this.gameInstance && this.gameInstance._skillEntities
+                    && this.gameInstance._skillEntities.charges;
+                if (skillCharges && skillCharges.some(ch => ch.active && ch.player === this)) {
+                    this.vx = 0;
+                    this.vy = 0;
+                    return;
+                }
                 // 冲刺时直接设置速度（不使用加速度）
                 this.vx = this.dashDirection.x * CONFIG.PLAYER_DASH_SPEED;
                 this.vy = this.dashDirection.y * CONFIG.PLAYER_DASH_SPEED;
@@ -6088,6 +6224,9 @@ class Player {
             if (this.isDashing) {
                 return false;
             }
+            if (this._pierceDash) {
+                return false;
+            }
             
             // 如果冲刺结束后0.5秒内，不能攻击
             const now = Date.now();
@@ -6160,6 +6299,9 @@ class Player {
                 damage = setEffectResult.damage || damage;
                 if (setEffectResult.damageType && setEffectResult.damageType !== 'physical') damageType = setEffectResult.damageType;
                 damage = applyDeepExposeDamageBonus(nearest, damage);
+                if (nearest instanceof TrainingDummy || nearest instanceof MonsterTrainingDummy) {
+                    nearest._pendingDamageSource = 'basic';
+                }
                 const killed = nearest.takeDamage(damage);
                 if (this._ebOnHitHeal > 0 && damage > 0) {
                     this.heal(this._ebOnHitHeal, { playSound: false });
@@ -6183,7 +6325,8 @@ class Player {
                             target: nearest,
                             sourceX: this.x,
                             sourceY: this.y,
-                            skipSound: true
+                            skipSound: true,
+                            skipEnemyKnock: true
                         });
                     }
                 }
@@ -6249,6 +6392,9 @@ class Player {
                 }
                 
                 damage = applyDeepExposeDamageBonus(monster, damage);
+                if (isDummy) {
+                    monster._pendingDamageSource = 'basic';
+                }
                 const killed = monster.takeDamage(damage);
                 if (!isDummy && damage > 0) this.applyLifeStealFromHit(Math.floor(damage));
                 if (!isDummy && this._ebOnHitHeal > 0 && damage > 0) {
@@ -6261,7 +6407,8 @@ class Player {
                         target: monster,
                         sourceX: this.x,
                         sourceY: this.y,
-                        skipSound: true
+                        skipSound: true,
+                        skipEnemyKnock: true
                     });
                 }
                 
@@ -6445,6 +6592,20 @@ class Player {
             
             // 扣血
             this.hp -= actualDamage;
+            if (this.hp <= 0 && typeof window.applyParadoxMinimumHp === 'function') {
+                if (window.applyParadoxMinimumHp(this, this)) {
+                    this.hurtUntil = Date.now() + 500;
+                    if (this.gameInstance && actualDamage > 0) {
+                        const direction = Math.random() < 0.5 ? 'left' : 'right';
+                        this.gameInstance.addFloatingText(
+                            this.x, this.y, Math.floor(actualDamage).toString(),
+                            isCrit ? '#ff0000' : '#ff6666', 1500, isCrit ? 24 : 20, true, direction
+                        );
+                        this.gameInstance.addFloatingText(this.x, this.y - 22, '悖论!', '#cc88ff', 1200, 14, true);
+                    }
+                    return false;
+                }
+            }
             if (attacker && actualDamage > 0 && typeof window.applyPlayerDefenseSkillOnHit === 'function') {
                 window.applyPlayerDefenseSkillOnHit(this, attacker);
             }
@@ -9409,6 +9570,7 @@ class Player {
         damage = applyDeepExposeDamageBonus(monster, damage);
         const isDummy = monster instanceof TrainingDummy || monster instanceof MonsterTrainingDummy;
         if (isDummy) {
+            monster._pendingDamageSource = monster._pendingDamageSource || 'skill:equipment_effect';
             monster.takeDamage(damage);
             return;
         }

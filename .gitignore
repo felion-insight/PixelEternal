@@ -3,6 +3,7 @@
 tools/.env
 
 # Python
+__pycache__/
 tools/__pycache__/
 *.pyc
 

@@ -5,7 +5,8 @@ import json
 import glob
 
 # 清理旧的部署文件夹
-os.system('rm -rf deployment')
+if os.path.exists('deployment'):
+    shutil.rmtree('deployment')
 
 # 创建部署文件夹结构
 os.makedirs('deployment/asset', exist_ok=True)
@@ -32,7 +33,7 @@ def copy_asset_file(source_path, asset_name):
 
 print('开始处理资源文件...')
 # 处理 mappings.json
-with open('config/mappings.json', 'r') as f:
+with open('config/mappings.json', 'r', encoding='utf-8') as f:
     mappings = json.load(f)
     mappings_deployment = mappings.copy()
     
@@ -94,7 +95,7 @@ with open('config/mappings.json', 'r') as f:
                         mappings_deployment[key][subkey] = new_filename
     
     # 保存处理后的 mappings.json
-    with open('deployment/config/mappings.json', 'w') as f:
+    with open('deployment/config/mappings.json', 'w', encoding='utf-8') as f:
         json.dump(mappings_deployment, f, indent=4)
     print('mappings.json 已处理并保存到 deployment/config/')
 

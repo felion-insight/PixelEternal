@@ -504,13 +504,18 @@
       "entityType": "field",
       "entityConfig": {
         "fieldRadius": 80,
-        "tickIntervalMs": 500,
-        "fieldDurationMs": 6000,
+        "tickIntervalMs": 1000,
+        "fieldDurationMs": 8000,
         "followCaster": false,
-        "targeted": false,
-        "spawnAtCaster": true,
+        "targeted": true,
+        "spawnAtCaster": false,
         "damageMultiplier": 0.3,
         "statusOnTick": [{ "type": "poison", "durationMs": 4000, "stacks": 1 }],
+        "enemySlowPercent": 20,
+        "damageAmpPerPoisonedEnemy": 10,
+        "damageAmpMax": 50,
+        "grantCatalystPerTick": 1,
+        "stealthSelfInField": true,
         "color": "#55aa44"
       }
     },
@@ -853,15 +858,15 @@
     "nether_gate": {
       "entityType": "field",
       "entityConfig": {
-        "triggerType": "delayed_strike",
-        "fieldRadius": 100,
-        "delayMs": 1500,
+        "fieldRadius": 120,
+        "fieldDurationMs": 8000,
         "targeted": true,
-        "spawnAtCaster": false,
-        "damageMultiplier": 2.5,
-        "statusOnHit": [{ "type": "dark_erosion", "durationMs": 6000 }],
-        "summonOnImpact": { "unitId": "skeleton_minion", "count": 3, "durationMs": 20000 },
-        "color": "#442266"
+        "netherGate": true,
+        "corruptionPerTick": 1,
+        "undeadBuffAsPercent": 50,
+        "closeDotSettleRatio": 2.0,
+        "dotShardChanceMult": 2.0,
+        "color": "#440066"
       }
     },
     "nightfall": {

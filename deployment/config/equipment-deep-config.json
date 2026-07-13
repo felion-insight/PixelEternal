@@ -4,7 +4,7 @@
       "slot": "weapon",
       "name": "渊隙凡·残锋",
       "level": 25,
-      "quality": "common",
+      "quality": "normal",
       "weaponType": "melee",
       "attack": 84,
       "critRate": 28,
@@ -15,7 +15,7 @@
       "slot": "weapon",
       "name": "渊隙凡·穿云",
       "level": 25,
-      "quality": "common",
+      "quality": "normal",
       "weaponType": "ranged",
       "attack": 78,
       "critRate": 30,
@@ -26,16 +26,16 @@
       "slot": "helmet",
       "name": "渊隙凡·低语",
       "level": 25,
-      "quality": "common",
+      "quality": "normal",
       "health": 230,
       "defense": 42,
       "damageReduction": 2
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "渊隙凡·壁垒",
       "level": 25,
-      "quality": "common",
+      "quality": "normal",
       "health": 400,
       "defense": 58,
       "damageReduction": 3
@@ -44,25 +44,25 @@
       "slot": "legs",
       "name": "渊隙凡·荆棘",
       "level": 25,
-      "quality": "common",
+      "quality": "normal",
       "health": 320,
       "defense": 50,
       "thorn": 5
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "渊隙凡·行靴",
       "level": 25,
-      "quality": "common",
+      "quality": "normal",
       "health": 210,
       "defense": 38,
       "moveSpeed": 4
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "渊隙凡·法链",
       "level": 25,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 5,
       "attackSpeed": 6,
       "skillHaste": 5
@@ -71,7 +71,7 @@
       "slot": "ring",
       "name": "渊隙凡·迅环",
       "level": 25,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 6,
       "attackSpeed": 6,
       "skillHaste": 4
@@ -80,7 +80,7 @@
       "slot": "belt",
       "name": "渊隙凡·金缰",
       "level": 25,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 4,
       "attackSpeed": 4,
       "moveSpeed": 3,
@@ -90,7 +90,7 @@
       "slot": "weapon",
       "name": "渊隙良·裂刃",
       "level": 25,
-      "quality": "rare",
+      "quality": "magic",
       "weaponType": "melee",
       "attack": 94,
       "critRate": 29,
@@ -101,7 +101,7 @@
       "slot": "weapon",
       "name": "渊隙良·破穹",
       "level": 25,
-      "quality": "rare",
+      "quality": "magic",
       "weaponType": "ranged",
       "attack": 87,
       "critRate": 31,
@@ -112,16 +112,16 @@
       "slot": "helmet",
       "name": "渊隙良·寂声",
       "level": 25,
-      "quality": "rare",
+      "quality": "magic",
       "health": 257,
       "defense": 47,
       "damageReduction": 2
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "渊隙良·铁垣",
       "level": 25,
-      "quality": "rare",
+      "quality": "magic",
       "health": 448,
       "defense": 64,
       "damageReduction": 3
@@ -130,25 +130,25 @@
       "slot": "legs",
       "name": "渊隙良·棘胫",
       "level": 25,
-      "quality": "rare",
+      "quality": "magic",
       "health": 358,
       "defense": 56,
       "thorn": 5
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "渊隙良·疾踪",
       "level": 25,
-      "quality": "rare",
+      "quality": "magic",
       "health": 235,
       "defense": 42,
       "moveSpeed": 4
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "渊隙良·咒络",
       "level": 25,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 5,
       "attackSpeed": 6,
       "skillHaste": 5
@@ -157,7 +157,7 @@
       "slot": "ring",
       "name": "渊隙良·缚印",
       "level": 25,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 6,
       "attackSpeed": 6,
       "skillHaste": 4
@@ -166,7 +166,7 @@
       "slot": "belt",
       "name": "渊隙良·财束",
       "level": 25,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 4,
       "attackSpeed": 4,
       "moveSpeed": 3,
@@ -176,7 +176,7 @@
       "slot": "weapon",
       "name": "渊隙湛·断潮",
       "level": 25,
-      "quality": "fine",
+      "quality": "magic",
       "weaponType": "melee",
       "attack": 105,
       "critRate": 29,
@@ -187,7 +187,7 @@
       "slot": "weapon",
       "name": "渊隙湛·逐星",
       "level": 25,
-      "quality": "fine",
+      "quality": "magic",
       "weaponType": "ranged",
       "attack": 98,
       "critRate": 31,
@@ -198,16 +198,16 @@
       "slot": "helmet",
       "name": "渊隙湛·闭识",
       "level": 25,
-      "quality": "fine",
+      "quality": "magic",
       "health": 289,
       "defense": 52,
       "damageReduction": 2
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "渊隙湛·重铠",
       "level": 25,
-      "quality": "fine",
+      "quality": "magic",
       "health": 504,
       "defense": 73,
       "damageReduction": 3
@@ -216,25 +216,25 @@
       "slot": "legs",
       "name": "渊隙湛·刺行",
       "level": 25,
-      "quality": "fine",
+      "quality": "magic",
       "health": 403,
       "defense": 63,
       "thorn": 5
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "渊隙湛·虚步",
       "level": 25,
-      "quality": "fine",
+      "quality": "magic",
       "health": 264,
       "defense": 47,
       "moveSpeed": 4
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "渊隙湛·秘坠",
       "level": 25,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 5,
       "attackSpeed": 6,
       "skillHaste": 5
@@ -243,7 +243,7 @@
       "slot": "ring",
       "name": "渊隙湛·漩指",
       "level": 25,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 6,
       "attackSpeed": 6,
       "skillHaste": 4
@@ -252,7 +252,7 @@
       "slot": "belt",
       "name": "渊隙湛·税络",
       "level": 25,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 4,
       "attackSpeed": 4,
       "moveSpeed": 3,
@@ -290,7 +290,7 @@
       "damageReduction": 2
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "渊隙炽·渊衬",
       "level": 25,
       "quality": "epic",
@@ -308,7 +308,7 @@
       "thorn": 5
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "渊隙炽·掠影",
       "level": 25,
       "quality": "epic",
@@ -317,7 +317,7 @@
       "moveSpeed": 4
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "渊隙炽·涡涌",
       "level": 25,
       "quality": "epic",
@@ -376,7 +376,7 @@
       "damageReduction": 2
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "渊隙曜·墟甲",
       "level": 25,
       "quality": "legendary",
@@ -394,7 +394,7 @@
       "thorn": 6
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "渊隙曜·踏痕",
       "level": 25,
       "quality": "legendary",
@@ -403,7 +403,7 @@
       "moveSpeed": 4
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "渊隙曜·泉印",
       "level": 25,
       "quality": "legendary",
@@ -434,7 +434,7 @@
       "slot": "weapon",
       "name": "虚印凡·虚斫",
       "level": 30,
-      "quality": "common",
+      "quality": "normal",
       "weaponType": "melee",
       "attack": 81,
       "critRate": 32,
@@ -445,7 +445,7 @@
       "slot": "weapon",
       "name": "虚印凡·虚矢",
       "level": 30,
-      "quality": "common",
+      "quality": "normal",
       "weaponType": "ranged",
       "attack": 76,
       "critRate": 34,
@@ -456,16 +456,16 @@
       "slot": "helmet",
       "name": "虚印凡·虚冠",
       "level": 30,
-      "quality": "common",
+      "quality": "normal",
       "health": 226,
       "defense": 40,
       "damageReduction": 3
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "虚印凡·虚铠",
       "level": 30,
-      "quality": "common",
+      "quality": "normal",
       "health": 395,
       "defense": 56,
       "damageReduction": 4
@@ -474,25 +474,25 @@
       "slot": "legs",
       "name": "虚印凡·虚胫",
       "level": 30,
-      "quality": "common",
+      "quality": "normal",
       "health": 315,
       "defense": 48,
       "thorn": 6
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "虚印凡·虚踪",
       "level": 30,
-      "quality": "common",
+      "quality": "normal",
       "health": 207,
       "defense": 36,
       "moveSpeed": 5
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "虚印凡·虚链",
       "level": 30,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 5,
       "attackSpeed": 6,
       "skillHaste": 6
@@ -501,7 +501,7 @@
       "slot": "ring",
       "name": "虚印凡·虚环",
       "level": 30,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 6,
       "attackSpeed": 6,
       "skillHaste": 5
@@ -510,7 +510,7 @@
       "slot": "belt",
       "name": "虚印凡·虚缰",
       "level": 30,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 4,
       "attackSpeed": 4,
       "moveSpeed": 4,
@@ -520,7 +520,7 @@
       "slot": "weapon",
       "name": "虚印良·印刻",
       "level": 30,
-      "quality": "rare",
+      "quality": "magic",
       "weaponType": "melee",
       "attack": 91,
       "critRate": 33,
@@ -531,7 +531,7 @@
       "slot": "weapon",
       "name": "虚印良·印弓",
       "level": 30,
-      "quality": "rare",
+      "quality": "magic",
       "weaponType": "ranged",
       "attack": 85,
       "critRate": 35,
@@ -542,16 +542,16 @@
       "slot": "helmet",
       "name": "虚印良·印翎",
       "level": 30,
-      "quality": "rare",
+      "quality": "magic",
       "health": 252,
       "defense": 45,
       "damageReduction": 3
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "虚印良·印垣",
       "level": 30,
-      "quality": "rare",
+      "quality": "magic",
       "health": 439,
       "defense": 63,
       "damageReduction": 4
@@ -560,25 +560,25 @@
       "slot": "legs",
       "name": "虚印良·印棘",
       "level": 30,
-      "quality": "rare",
+      "quality": "magic",
       "health": 351,
       "defense": 54,
       "thorn": 6
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "虚印良·印步",
       "level": 30,
-      "quality": "rare",
+      "quality": "magic",
       "health": 230,
       "defense": 41,
       "moveSpeed": 5
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "虚印良·印坠",
       "level": 30,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 5,
       "attackSpeed": 6,
       "skillHaste": 6
@@ -587,7 +587,7 @@
       "slot": "ring",
       "name": "虚印良·印戒",
       "level": 30,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 6,
       "attackSpeed": 6,
       "skillHaste": 5
@@ -596,7 +596,7 @@
       "slot": "belt",
       "name": "虚印良·印束",
       "level": 30,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 4,
       "attackSpeed": 4,
       "moveSpeed": 4,
@@ -606,7 +606,7 @@
       "slot": "weapon",
       "name": "虚印湛·脉裂",
       "level": 30,
-      "quality": "fine",
+      "quality": "magic",
       "weaponType": "melee",
       "attack": 102,
       "critRate": 34,
@@ -617,7 +617,7 @@
       "slot": "weapon",
       "name": "虚印湛·脉弦",
       "level": 30,
-      "quality": "fine",
+      "quality": "magic",
       "weaponType": "ranged",
       "attack": 96,
       "critRate": 36,
@@ -628,16 +628,16 @@
       "slot": "helmet",
       "name": "虚印湛·脉识",
       "level": 30,
-      "quality": "fine",
+      "quality": "magic",
       "health": 284,
       "defense": 50,
       "damageReduction": 3
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "虚印湛·脉甲",
       "level": 30,
-      "quality": "fine",
+      "quality": "magic",
       "health": 496,
       "defense": 71,
       "damageReduction": 4
@@ -646,25 +646,25 @@
       "slot": "legs",
       "name": "虚印湛·脉行",
       "level": 30,
-      "quality": "fine",
+      "quality": "magic",
       "health": 396,
       "defense": 61,
       "thorn": 6
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "虚印湛·脉影",
       "level": 30,
-      "quality": "fine",
+      "quality": "magic",
       "health": 259,
       "defense": 46,
       "moveSpeed": 5
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "虚印湛·脉涌",
       "level": 30,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 5,
       "attackSpeed": 6,
       "skillHaste": 6
@@ -673,7 +673,7 @@
       "slot": "ring",
       "name": "虚印湛·脉指",
       "level": 30,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 6,
       "attackSpeed": 6,
       "skillHaste": 5
@@ -682,7 +682,7 @@
       "slot": "belt",
       "name": "虚印湛·脉络",
       "level": 30,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 4,
       "attackSpeed": 4,
       "moveSpeed": 4,
@@ -720,7 +720,7 @@
       "damageReduction": 3
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "虚印炽·终壁",
       "level": 30,
       "quality": "epic",
@@ -738,7 +738,7 @@
       "thorn": 6
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "虚印炽·终踏",
       "level": 30,
       "quality": "epic",
@@ -747,7 +747,7 @@
       "moveSpeed": 5
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "虚印炽·终咒",
       "level": 30,
       "quality": "epic",
@@ -806,7 +806,7 @@
       "damageReduction": 3
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "虚印曜·归障",
       "level": 30,
       "quality": "legendary",
@@ -824,7 +824,7 @@
       "thorn": 6
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "虚印曜·归痕",
       "level": 30,
       "quality": "legendary",
@@ -833,7 +833,7 @@
       "moveSpeed": 5
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "虚印曜·归泉",
       "level": 30,
       "quality": "legendary",
@@ -864,7 +864,7 @@
       "slot": "weapon",
       "name": "腐噬凡·腐刃",
       "level": 35,
-      "quality": "common",
+      "quality": "normal",
       "weaponType": "melee",
       "attack": 79,
       "critRate": 38,
@@ -875,7 +875,7 @@
       "slot": "weapon",
       "name": "腐噬凡·腐弦",
       "level": 35,
-      "quality": "common",
+      "quality": "normal",
       "weaponType": "ranged",
       "attack": 73,
       "critRate": 41,
@@ -886,16 +886,16 @@
       "slot": "helmet",
       "name": "腐噬凡·腐冠",
       "level": 35,
-      "quality": "common",
+      "quality": "normal",
       "health": 217,
       "defense": 38,
       "damageReduction": 3
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "腐噬凡·腐铠",
       "level": 35,
-      "quality": "common",
+      "quality": "normal",
       "health": 379,
       "defense": 55,
       "damageReduction": 4
@@ -904,25 +904,25 @@
       "slot": "legs",
       "name": "腐噬凡·腐胫",
       "level": 35,
-      "quality": "common",
+      "quality": "normal",
       "health": 303,
       "defense": 46,
       "thorn": 7
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "腐噬凡·腐踪",
       "level": 35,
-      "quality": "common",
+      "quality": "normal",
       "health": 199,
       "defense": 35,
       "moveSpeed": 5
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "腐噬凡·腐链",
       "level": 35,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 5,
       "attackSpeed": 6,
       "skillHaste": 7
@@ -931,7 +931,7 @@
       "slot": "ring",
       "name": "腐噬凡·腐环",
       "level": 35,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 6,
       "attackSpeed": 6,
       "skillHaste": 6
@@ -940,7 +940,7 @@
       "slot": "belt",
       "name": "腐噬凡·腐缰",
       "level": 35,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 4,
       "attackSpeed": 4,
       "moveSpeed": 4,
@@ -950,7 +950,7 @@
       "slot": "weapon",
       "name": "腐噬良·噬纹",
       "level": 35,
-      "quality": "rare",
+      "quality": "magic",
       "weaponType": "melee",
       "attack": 90,
       "critRate": 38,
@@ -961,7 +961,7 @@
       "slot": "weapon",
       "name": "腐噬良·噬矢",
       "level": 35,
-      "quality": "rare",
+      "quality": "magic",
       "weaponType": "ranged",
       "attack": 83,
       "critRate": 41,
@@ -972,16 +972,16 @@
       "slot": "helmet",
       "name": "腐噬良·噬识",
       "level": 35,
-      "quality": "rare",
+      "quality": "magic",
       "health": 247,
       "defense": 44,
       "damageReduction": 3
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "腐噬良·噬垣",
       "level": 35,
-      "quality": "rare",
+      "quality": "magic",
       "health": 431,
       "defense": 62,
       "damageReduction": 4
@@ -990,25 +990,25 @@
       "slot": "legs",
       "name": "腐噬良·噬棘",
       "level": 35,
-      "quality": "rare",
+      "quality": "magic",
       "health": 345,
       "defense": 53,
       "thorn": 7
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "腐噬良·噬步",
       "level": 35,
-      "quality": "rare",
+      "quality": "magic",
       "health": 226,
       "defense": 40,
       "moveSpeed": 5
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "腐噬良·噬坠",
       "level": 35,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 5,
       "attackSpeed": 6,
       "skillHaste": 7
@@ -1017,7 +1017,7 @@
       "slot": "ring",
       "name": "腐噬良·噬戒",
       "level": 35,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 6,
       "attackSpeed": 6,
       "skillHaste": 6
@@ -1026,7 +1026,7 @@
       "slot": "belt",
       "name": "腐噬良·噬束",
       "level": 35,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 4,
       "attackSpeed": 4,
       "moveSpeed": 4,
@@ -1036,7 +1036,7 @@
       "slot": "weapon",
       "name": "腐噬湛·裂脉",
       "level": 35,
-      "quality": "fine",
+      "quality": "magic",
       "weaponType": "melee",
       "attack": 98,
       "critRate": 39,
@@ -1047,7 +1047,7 @@
       "slot": "weapon",
       "name": "腐噬湛·裂羽",
       "level": 35,
-      "quality": "fine",
+      "quality": "magic",
       "weaponType": "ranged",
       "attack": 91,
       "critRate": 42,
@@ -1058,16 +1058,16 @@
       "slot": "helmet",
       "name": "腐噬湛·裂默",
       "level": 35,
-      "quality": "fine",
+      "quality": "magic",
       "health": 269,
       "defense": 48,
       "damageReduction": 3
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "腐噬湛·裂甲",
       "level": 35,
-      "quality": "fine",
+      "quality": "magic",
       "health": 469,
       "defense": 68,
       "damageReduction": 4
@@ -1076,25 +1076,25 @@
       "slot": "legs",
       "name": "腐噬湛·裂行",
       "level": 35,
-      "quality": "fine",
+      "quality": "magic",
       "health": 375,
       "defense": 58,
       "thorn": 7
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "腐噬湛·裂影",
       "level": 35,
-      "quality": "fine",
+      "quality": "magic",
       "health": 246,
       "defense": 44,
       "moveSpeed": 5
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "腐噬湛·裂涌",
       "level": 35,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 5,
       "attackSpeed": 6,
       "skillHaste": 7
@@ -1103,7 +1103,7 @@
       "slot": "ring",
       "name": "腐噬湛·裂指",
       "level": 35,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 6,
       "attackSpeed": 6,
       "skillHaste": 6
@@ -1112,7 +1112,7 @@
       "slot": "belt",
       "name": "腐噬湛·缠络",
       "level": 35,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 4,
       "attackSpeed": 4,
       "moveSpeed": 4,
@@ -1150,7 +1150,7 @@
       "damageReduction": 3
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "腐噬炽·黯壁",
       "level": 35,
       "quality": "epic",
@@ -1168,7 +1168,7 @@
       "thorn": 7
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "腐噬炽·黯踏",
       "level": 35,
       "quality": "epic",
@@ -1177,7 +1177,7 @@
       "moveSpeed": 5
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "腐噬炽·黯咒",
       "level": 35,
       "quality": "epic",
@@ -1236,7 +1236,7 @@
       "damageReduction": 3
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "腐噬曜·吞障",
       "level": 35,
       "quality": "legendary",
@@ -1254,7 +1254,7 @@
       "thorn": 7
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "腐噬曜·吞痕",
       "level": 35,
       "quality": "legendary",
@@ -1263,7 +1263,7 @@
       "moveSpeed": 5
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "腐噬曜·吞泉",
       "level": 35,
       "quality": "legendary",
@@ -1294,7 +1294,7 @@
       "slot": "weapon",
       "name": "黑曜凡·黑刃",
       "level": 40,
-      "quality": "common",
+      "quality": "normal",
       "weaponType": "melee",
       "attack": 76,
       "critRate": 43,
@@ -1305,7 +1305,7 @@
       "slot": "weapon",
       "name": "黑曜凡·黑矢",
       "level": 40,
-      "quality": "common",
+      "quality": "normal",
       "weaponType": "ranged",
       "attack": 71,
       "critRate": 46,
@@ -1316,16 +1316,16 @@
       "slot": "helmet",
       "name": "黑曜凡·黑冠",
       "level": 40,
-      "quality": "common",
+      "quality": "normal",
       "health": 210,
       "defense": 37,
       "damageReduction": 4
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "黑曜凡·黑铠",
       "level": 40,
-      "quality": "common",
+      "quality": "normal",
       "health": 367,
       "defense": 52,
       "damageReduction": 5
@@ -1334,25 +1334,25 @@
       "slot": "legs",
       "name": "黑曜凡·黑胫",
       "level": 40,
-      "quality": "common",
+      "quality": "normal",
       "health": 293,
       "defense": 45,
       "thorn": 8
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "黑曜凡·黑踪",
       "level": 40,
-      "quality": "common",
+      "quality": "normal",
       "health": 192,
       "defense": 34,
       "moveSpeed": 6
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "黑曜凡·黑链",
       "level": 40,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 6,
       "attackSpeed": 7,
       "skillHaste": 9
@@ -1361,7 +1361,7 @@
       "slot": "ring",
       "name": "黑曜凡·黑环",
       "level": 40,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 7,
       "attackSpeed": 7,
       "skillHaste": 7
@@ -1370,7 +1370,7 @@
       "slot": "belt",
       "name": "黑曜凡·黑缰",
       "level": 40,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 4,
       "attackSpeed": 4,
       "moveSpeed": 5,
@@ -1380,7 +1380,7 @@
       "slot": "weapon",
       "name": "黑曜良·曜痕",
       "level": 40,
-      "quality": "rare",
+      "quality": "magic",
       "weaponType": "melee",
       "attack": 87,
       "critRate": 44,
@@ -1391,7 +1391,7 @@
       "slot": "weapon",
       "name": "黑曜良·曜弓",
       "level": 40,
-      "quality": "rare",
+      "quality": "magic",
       "weaponType": "ranged",
       "attack": 80,
       "critRate": 47,
@@ -1402,16 +1402,16 @@
       "slot": "helmet",
       "name": "黑曜良·曜翎",
       "level": 40,
-      "quality": "rare",
+      "quality": "magic",
       "health": 239,
       "defense": 42,
       "damageReduction": 4
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "黑曜良·曜垣",
       "level": 40,
-      "quality": "rare",
+      "quality": "magic",
       "health": 417,
       "defense": 59,
       "damageReduction": 5
@@ -1420,25 +1420,25 @@
       "slot": "legs",
       "name": "黑曜良·曜棘",
       "level": 40,
-      "quality": "rare",
+      "quality": "magic",
       "health": 333,
       "defense": 52,
       "thorn": 8
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "黑曜良·曜步",
       "level": 40,
-      "quality": "rare",
+      "quality": "magic",
       "health": 218,
       "defense": 38,
       "moveSpeed": 6
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "黑曜良·曜坠",
       "level": 40,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 6,
       "attackSpeed": 7,
       "skillHaste": 9
@@ -1447,7 +1447,7 @@
       "slot": "ring",
       "name": "黑曜良·曜戒",
       "level": 40,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 7,
       "attackSpeed": 7,
       "skillHaste": 7
@@ -1456,7 +1456,7 @@
       "slot": "belt",
       "name": "黑曜良·曜束",
       "level": 40,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 4,
       "attackSpeed": 4,
       "moveSpeed": 5,
@@ -1466,7 +1466,7 @@
       "slot": "weapon",
       "name": "黑曜湛·渊斩",
       "level": 40,
-      "quality": "fine",
+      "quality": "magic",
       "weaponType": "melee",
       "attack": 97,
       "critRate": 45,
@@ -1477,7 +1477,7 @@
       "slot": "weapon",
       "name": "黑曜湛·渊弦",
       "level": 40,
-      "quality": "fine",
+      "quality": "magic",
       "weaponType": "ranged",
       "attack": 90,
       "critRate": 47,
@@ -1488,16 +1488,16 @@
       "slot": "helmet",
       "name": "黑曜湛·渊识",
       "level": 40,
-      "quality": "fine",
+      "quality": "magic",
       "health": 267,
       "defense": 47,
       "damageReduction": 4
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "黑曜湛·渊甲",
       "level": 40,
-      "quality": "fine",
+      "quality": "magic",
       "health": 467,
       "defense": 66,
       "damageReduction": 5
@@ -1506,25 +1506,25 @@
       "slot": "legs",
       "name": "黑曜湛·渊行",
       "level": 40,
-      "quality": "fine",
+      "quality": "magic",
       "health": 373,
       "defense": 58,
       "thorn": 8
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "黑曜湛·渊影",
       "level": 40,
-      "quality": "fine",
+      "quality": "magic",
       "health": 244,
       "defense": 43,
       "moveSpeed": 6
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "黑曜湛·渊涌",
       "level": 40,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 6,
       "attackSpeed": 7,
       "skillHaste": 9
@@ -1533,7 +1533,7 @@
       "slot": "ring",
       "name": "黑曜湛·渊指",
       "level": 40,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 7,
       "attackSpeed": 7,
       "skillHaste": 7
@@ -1542,7 +1542,7 @@
       "slot": "belt",
       "name": "黑曜湛·渊络",
       "level": 40,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 4,
       "attackSpeed": 4,
       "moveSpeed": 5,
@@ -1580,7 +1580,7 @@
       "damageReduction": 4
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "黑曜炽·锢壁",
       "level": 40,
       "quality": "epic",
@@ -1598,7 +1598,7 @@
       "thorn": 8
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "黑曜炽·锢踏",
       "level": 40,
       "quality": "epic",
@@ -1607,7 +1607,7 @@
       "moveSpeed": 6
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "黑曜炽·锢咒",
       "level": 40,
       "quality": "epic",
@@ -1666,7 +1666,7 @@
       "damageReduction": 4
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "黑曜曜·壁障",
       "level": 40,
       "quality": "legendary",
@@ -1684,7 +1684,7 @@
       "thorn": 8
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "黑曜曜·壁痕",
       "level": 40,
       "quality": "legendary",
@@ -1693,7 +1693,7 @@
       "moveSpeed": 6
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "黑曜曜·壁泉",
       "level": 40,
       "quality": "legendary",
@@ -1724,7 +1724,7 @@
       "slot": "weapon",
       "name": "终幕凡·终刃",
       "level": 45,
-      "quality": "common",
+      "quality": "normal",
       "weaponType": "melee",
       "attack": 86,
       "critRate": 49,
@@ -1735,7 +1735,7 @@
       "slot": "weapon",
       "name": "终幕凡·终弦",
       "level": 45,
-      "quality": "common",
+      "quality": "normal",
       "weaponType": "ranged",
       "attack": 80,
       "critRate": 51,
@@ -1746,16 +1746,16 @@
       "slot": "helmet",
       "name": "终幕凡·终冠",
       "level": 45,
-      "quality": "common",
+      "quality": "normal",
       "health": 239,
       "defense": 42,
       "damageReduction": 4
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "终幕凡·终铠",
       "level": 45,
-      "quality": "common",
+      "quality": "normal",
       "health": 415,
       "defense": 59,
       "damageReduction": 5
@@ -1764,25 +1764,25 @@
       "slot": "legs",
       "name": "终幕凡·终胫",
       "level": 45,
-      "quality": "common",
+      "quality": "normal",
       "health": 332,
       "defense": 51,
       "thorn": 9
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "终幕凡·终踪",
       "level": 45,
-      "quality": "common",
+      "quality": "normal",
       "health": 218,
       "defense": 39,
       "moveSpeed": 6
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "终幕凡·终链",
       "level": 45,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 6,
       "attackSpeed": 7,
       "skillHaste": 10
@@ -1791,7 +1791,7 @@
       "slot": "ring",
       "name": "终幕凡·终环",
       "level": 45,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 7,
       "attackSpeed": 7,
       "skillHaste": 8
@@ -1800,7 +1800,7 @@
       "slot": "belt",
       "name": "终幕凡·终缰",
       "level": 45,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 4,
       "attackSpeed": 4,
       "moveSpeed": 5,
@@ -1810,7 +1810,7 @@
       "slot": "weapon",
       "name": "终幕良·幕痕",
       "level": 45,
-      "quality": "rare",
+      "quality": "magic",
       "weaponType": "melee",
       "attack": 98,
       "critRate": 50,
@@ -1821,7 +1821,7 @@
       "slot": "weapon",
       "name": "终幕良·幕矢",
       "level": 45,
-      "quality": "rare",
+      "quality": "magic",
       "weaponType": "ranged",
       "attack": 91,
       "critRate": 52,
@@ -1832,16 +1832,16 @@
       "slot": "helmet",
       "name": "终幕良·幕翎",
       "level": 45,
-      "quality": "rare",
+      "quality": "magic",
       "health": 271,
       "defense": 48,
       "damageReduction": 4
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "终幕良·幕垣",
       "level": 45,
-      "quality": "rare",
+      "quality": "magic",
       "health": 472,
       "defense": 68,
       "damageReduction": 5
@@ -1850,25 +1850,25 @@
       "slot": "legs",
       "name": "终幕良·幕棘",
       "level": 45,
-      "quality": "rare",
+      "quality": "magic",
       "health": 377,
       "defense": 58,
       "thorn": 9
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "终幕良·幕步",
       "level": 45,
-      "quality": "rare",
+      "quality": "magic",
       "health": 247,
       "defense": 44,
       "moveSpeed": 6
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "终幕良·幕坠",
       "level": 45,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 6,
       "attackSpeed": 7,
       "skillHaste": 10
@@ -1877,7 +1877,7 @@
       "slot": "ring",
       "name": "终幕良·幕戒",
       "level": 45,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 7,
       "attackSpeed": 7,
       "skillHaste": 8
@@ -1886,7 +1886,7 @@
       "slot": "belt",
       "name": "终幕良·幕束",
       "level": 45,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 4,
       "attackSpeed": 4,
       "moveSpeed": 5,
@@ -1896,7 +1896,7 @@
       "slot": "weapon",
       "name": "终幕湛·誓纹",
       "level": 45,
-      "quality": "fine",
+      "quality": "magic",
       "weaponType": "melee",
       "attack": 109,
       "critRate": 50,
@@ -1907,7 +1907,7 @@
       "slot": "weapon",
       "name": "终幕湛·誓弓",
       "level": 45,
-      "quality": "fine",
+      "quality": "magic",
       "weaponType": "ranged",
       "attack": 102,
       "critRate": 53,
@@ -1918,16 +1918,16 @@
       "slot": "helmet",
       "name": "终幕湛·誓识",
       "level": 45,
-      "quality": "fine",
+      "quality": "magic",
       "health": 303,
       "defense": 54,
       "damageReduction": 4
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "终幕湛·誓甲",
       "level": 45,
-      "quality": "fine",
+      "quality": "magic",
       "health": 528,
       "defense": 76,
       "damageReduction": 5
@@ -1936,25 +1936,25 @@
       "slot": "legs",
       "name": "终幕湛·誓行",
       "level": 45,
-      "quality": "fine",
+      "quality": "magic",
       "health": 422,
       "defense": 65,
       "thorn": 9
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "终幕湛·誓影",
       "level": 45,
-      "quality": "fine",
+      "quality": "magic",
       "health": 277,
       "defense": 49,
       "moveSpeed": 6
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "终幕湛·誓涌",
       "level": 45,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 6,
       "attackSpeed": 7,
       "skillHaste": 10
@@ -1963,7 +1963,7 @@
       "slot": "ring",
       "name": "终幕湛·誓指",
       "level": 45,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 7,
       "attackSpeed": 7,
       "skillHaste": 8
@@ -1972,7 +1972,7 @@
       "slot": "belt",
       "name": "终幕湛·誓络",
       "level": 45,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 4,
       "attackSpeed": 4,
       "moveSpeed": 5,
@@ -2010,7 +2010,7 @@
       "damageReduction": 4
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "终幕炽·星壁",
       "level": 45,
       "quality": "epic",
@@ -2028,7 +2028,7 @@
       "thorn": 9
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "终幕炽·星踏",
       "level": 45,
       "quality": "epic",
@@ -2037,7 +2037,7 @@
       "moveSpeed": 6
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "终幕炽·星咒",
       "level": 45,
       "quality": "epic",
@@ -2096,7 +2096,7 @@
       "damageReduction": 4
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "终幕曜·墟障",
       "level": 45,
       "quality": "legendary",
@@ -2114,7 +2114,7 @@
       "thorn": 9
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "终幕曜·墟痕",
       "level": 45,
       "quality": "legendary",
@@ -2123,7 +2123,7 @@
       "moveSpeed": 6
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "终幕曜·墟泉",
       "level": 45,
       "quality": "legendary",
@@ -2154,7 +2154,7 @@
       "slot": "weapon",
       "name": "星骸凡·星刃",
       "level": 50,
-      "quality": "common",
+      "quality": "normal",
       "weaponType": "melee",
       "attack": 82,
       "critRate": 53,
@@ -2165,7 +2165,7 @@
       "slot": "weapon",
       "name": "星骸凡·星矢",
       "level": 50,
-      "quality": "common",
+      "quality": "normal",
       "weaponType": "ranged",
       "attack": 76,
       "critRate": 56,
@@ -2176,16 +2176,16 @@
       "slot": "helmet",
       "name": "星骸凡·星冠",
       "level": 50,
-      "quality": "common",
+      "quality": "normal",
       "health": 225,
       "defense": 40,
       "damageReduction": 5
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "星骸凡·星铠",
       "level": 50,
-      "quality": "common",
+      "quality": "normal",
       "health": 391,
       "defense": 55,
       "damageReduction": 6
@@ -2194,25 +2194,25 @@
       "slot": "legs",
       "name": "星骸凡·星胫",
       "level": 50,
-      "quality": "common",
+      "quality": "normal",
       "health": 313,
       "defense": 48,
       "thorn": 9
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "星骸凡·星踪",
       "level": 50,
-      "quality": "common",
+      "quality": "normal",
       "health": 205,
       "defense": 36,
       "moveSpeed": 7
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "星骸凡·星链",
       "level": 50,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 7,
       "attackSpeed": 7,
       "skillHaste": 9
@@ -2221,7 +2221,7 @@
       "slot": "ring",
       "name": "星骸凡·星环",
       "level": 50,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 8,
       "attackSpeed": 7,
       "skillHaste": 8
@@ -2230,7 +2230,7 @@
       "slot": "belt",
       "name": "星骸凡·星缰",
       "level": 50,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 5,
       "attackSpeed": 5,
       "moveSpeed": 6,
@@ -2240,7 +2240,7 @@
       "slot": "weapon",
       "name": "星骸良·骸纹",
       "level": 50,
-      "quality": "rare",
+      "quality": "magic",
       "weaponType": "melee",
       "attack": 94,
       "critRate": 54,
@@ -2251,7 +2251,7 @@
       "slot": "weapon",
       "name": "星骸良·骸弓",
       "level": 50,
-      "quality": "rare",
+      "quality": "magic",
       "weaponType": "ranged",
       "attack": 87,
       "critRate": 57,
@@ -2262,16 +2262,16 @@
       "slot": "helmet",
       "name": "星骸良·骸翎",
       "level": 50,
-      "quality": "rare",
+      "quality": "magic",
       "health": 258,
       "defense": 46,
       "damageReduction": 5
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "星骸良·骸垣",
       "level": 50,
-      "quality": "rare",
+      "quality": "magic",
       "health": 449,
       "defense": 63,
       "damageReduction": 6
@@ -2280,25 +2280,25 @@
       "slot": "legs",
       "name": "星骸良·骸棘",
       "level": 50,
-      "quality": "rare",
+      "quality": "magic",
       "health": 359,
       "defense": 56,
       "thorn": 10
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "星骸良·骸步",
       "level": 50,
-      "quality": "rare",
+      "quality": "magic",
       "health": 235,
       "defense": 42,
       "moveSpeed": 7
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "星骸良·骸坠",
       "level": 50,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 7,
       "attackSpeed": 7,
       "skillHaste": 10
@@ -2307,7 +2307,7 @@
       "slot": "ring",
       "name": "星骸良·骸戒",
       "level": 50,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 8,
       "attackSpeed": 7,
       "skillHaste": 8
@@ -2316,7 +2316,7 @@
       "slot": "belt",
       "name": "星骸良·骸束",
       "level": 50,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 5,
       "attackSpeed": 5,
       "moveSpeed": 6,
@@ -2326,7 +2326,7 @@
       "slot": "weapon",
       "name": "星骸湛·链痕",
       "level": 50,
-      "quality": "fine",
+      "quality": "magic",
       "weaponType": "melee",
       "attack": 106,
       "critRate": 55,
@@ -2337,7 +2337,7 @@
       "slot": "weapon",
       "name": "星骸湛·链羽",
       "level": 50,
-      "quality": "fine",
+      "quality": "magic",
       "weaponType": "ranged",
       "attack": 98,
       "critRate": 58,
@@ -2348,16 +2348,16 @@
       "slot": "helmet",
       "name": "星骸湛·链识",
       "level": 50,
-      "quality": "fine",
+      "quality": "magic",
       "health": 291,
       "defense": 52,
       "damageReduction": 5
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "星骸湛·链甲",
       "level": 50,
-      "quality": "fine",
+      "quality": "magic",
       "health": 506,
       "defense": 72,
       "damageReduction": 6
@@ -2366,25 +2366,25 @@
       "slot": "legs",
       "name": "星骸湛·链行",
       "level": 50,
-      "quality": "fine",
+      "quality": "magic",
       "health": 405,
       "defense": 63,
       "thorn": 10
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "星骸湛·链影",
       "level": 50,
-      "quality": "fine",
+      "quality": "magic",
       "health": 265,
       "defense": 47,
       "moveSpeed": 7
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "星骸湛·链涌",
       "level": 50,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 7,
       "attackSpeed": 7,
       "skillHaste": 10
@@ -2393,7 +2393,7 @@
       "slot": "ring",
       "name": "星骸湛·链指",
       "level": 50,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 8,
       "attackSpeed": 7,
       "skillHaste": 8
@@ -2402,7 +2402,7 @@
       "slot": "belt",
       "name": "星骸湛·链络",
       "level": 50,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 5,
       "attackSpeed": 5,
       "moveSpeed": 6,
@@ -2440,7 +2440,7 @@
       "damageReduction": 5
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "星骸炽·裂壁",
       "level": 50,
       "quality": "epic",
@@ -2458,7 +2458,7 @@
       "thorn": 10
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "星骸炽·裂踏",
       "level": 50,
       "quality": "epic",
@@ -2467,7 +2467,7 @@
       "moveSpeed": 7
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "星骸炽·裂咒",
       "level": 50,
       "quality": "epic",
@@ -2526,7 +2526,7 @@
       "damageReduction": 5
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "星骸曜·陨障",
       "level": 50,
       "quality": "legendary",
@@ -2544,7 +2544,7 @@
       "thorn": 10
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "星骸曜·陨痕",
       "level": 50,
       "quality": "legendary",
@@ -2553,7 +2553,7 @@
       "moveSpeed": 7
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "星骸曜·陨泉",
       "level": 50,
       "quality": "legendary",
@@ -2584,7 +2584,7 @@
       "slot": "weapon",
       "name": "裂点凡·裂锋",
       "level": 55,
-      "quality": "common",
+      "quality": "normal",
       "weaponType": "melee",
       "attack": 85,
       "critRate": 57,
@@ -2595,7 +2595,7 @@
       "slot": "weapon",
       "name": "裂点凡·裂弓",
       "level": 55,
-      "quality": "common",
+      "quality": "normal",
       "weaponType": "ranged",
       "attack": 79,
       "critRate": 62,
@@ -2606,16 +2606,16 @@
       "slot": "helmet",
       "name": "裂点凡·裂冠",
       "level": 55,
-      "quality": "common",
+      "quality": "normal",
       "health": 234,
       "defense": 42,
       "damageReduction": 5
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "裂点凡·裂铠",
       "level": 55,
-      "quality": "common",
+      "quality": "normal",
       "health": 409,
       "defense": 58,
       "damageReduction": 6
@@ -2624,25 +2624,25 @@
       "slot": "legs",
       "name": "裂点凡·裂胫",
       "level": 55,
-      "quality": "common",
+      "quality": "normal",
       "health": 327,
       "defense": 50,
       "thorn": 10
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "裂点凡·裂踪",
       "level": 55,
-      "quality": "common",
+      "quality": "normal",
       "health": 214,
       "defense": 38,
       "moveSpeed": 8
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "裂点凡·裂链",
       "level": 55,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 7,
       "attackSpeed": 8,
       "skillHaste": 10
@@ -2651,7 +2651,7 @@
       "slot": "ring",
       "name": "裂点凡·裂环",
       "level": 55,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 8,
       "attackSpeed": 8,
       "skillHaste": 8
@@ -2660,7 +2660,7 @@
       "slot": "belt",
       "name": "裂点凡·裂缰",
       "level": 55,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 5,
       "attackSpeed": 5,
       "moveSpeed": 6,
@@ -2670,7 +2670,7 @@
       "slot": "weapon",
       "name": "裂点良·点芒",
       "level": 55,
-      "quality": "rare",
+      "quality": "magic",
       "weaponType": "melee",
       "attack": 98,
       "critRate": 58,
@@ -2681,7 +2681,7 @@
       "slot": "weapon",
       "name": "裂点良·点羽",
       "level": 55,
-      "quality": "rare",
+      "quality": "magic",
       "weaponType": "ranged",
       "attack": 91,
       "critRate": 63,
@@ -2692,16 +2692,16 @@
       "slot": "helmet",
       "name": "裂点良·点翎",
       "level": 55,
-      "quality": "rare",
+      "quality": "magic",
       "health": 270,
       "defense": 48,
       "damageReduction": 5
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "裂点良·点垣",
       "level": 55,
-      "quality": "rare",
+      "quality": "magic",
       "health": 471,
       "defense": 67,
       "damageReduction": 6
@@ -2710,25 +2710,25 @@
       "slot": "legs",
       "name": "裂点良·点棘",
       "level": 55,
-      "quality": "rare",
+      "quality": "magic",
       "health": 376,
       "defense": 58,
       "thorn": 11
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "裂点良·点步",
       "level": 55,
-      "quality": "rare",
+      "quality": "magic",
       "health": 247,
       "defense": 44,
       "moveSpeed": 8
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "裂点良·点坠",
       "level": 55,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 7,
       "attackSpeed": 8,
       "skillHaste": 11
@@ -2737,7 +2737,7 @@
       "slot": "ring",
       "name": "裂点良·点戒",
       "level": 55,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 8,
       "attackSpeed": 8,
       "skillHaste": 9
@@ -2746,7 +2746,7 @@
       "slot": "belt",
       "name": "裂点良·点束",
       "level": 55,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 5,
       "attackSpeed": 5,
       "moveSpeed": 6,
@@ -2756,7 +2756,7 @@
       "slot": "weapon",
       "name": "裂点湛·隙纹",
       "level": 55,
-      "quality": "fine",
+      "quality": "magic",
       "weaponType": "melee",
       "attack": 111,
       "critRate": 59,
@@ -2767,7 +2767,7 @@
       "slot": "weapon",
       "name": "裂点湛·隙矢",
       "level": 55,
-      "quality": "fine",
+      "quality": "magic",
       "weaponType": "ranged",
       "attack": 103,
       "critRate": 64,
@@ -2778,16 +2778,16 @@
       "slot": "helmet",
       "name": "裂点湛·隙识",
       "level": 55,
-      "quality": "fine",
+      "quality": "magic",
       "health": 306,
       "defense": 55,
       "damageReduction": 5
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "裂点湛·隙甲",
       "level": 55,
-      "quality": "fine",
+      "quality": "magic",
       "health": 533,
       "defense": 76,
       "damageReduction": 6
@@ -2796,25 +2796,25 @@
       "slot": "legs",
       "name": "裂点湛·隙行",
       "level": 55,
-      "quality": "fine",
+      "quality": "magic",
       "health": 426,
       "defense": 66,
       "thorn": 11
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "裂点湛·隙影",
       "level": 55,
-      "quality": "fine",
+      "quality": "magic",
       "health": 279,
       "defense": 49,
       "moveSpeed": 8
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "裂点湛·隙涌",
       "level": 55,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 7,
       "attackSpeed": 8,
       "skillHaste": 11
@@ -2823,7 +2823,7 @@
       "slot": "ring",
       "name": "裂点湛·隙指",
       "level": 55,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 8,
       "attackSpeed": 8,
       "skillHaste": 9
@@ -2832,7 +2832,7 @@
       "slot": "belt",
       "name": "裂点湛·隙络",
       "level": 55,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 5,
       "attackSpeed": 5,
       "moveSpeed": 6,
@@ -2870,7 +2870,7 @@
       "damageReduction": 5
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "裂点炽·穿壁",
       "level": 55,
       "quality": "epic",
@@ -2888,7 +2888,7 @@
       "thorn": 11
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "裂点炽·穿踏",
       "level": 55,
       "quality": "epic",
@@ -2897,7 +2897,7 @@
       "moveSpeed": 8
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "裂点炽·穿咒",
       "level": 55,
       "quality": "epic",
@@ -2956,7 +2956,7 @@
       "damageReduction": 5
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "裂点曜·断障",
       "level": 55,
       "quality": "legendary",
@@ -2974,7 +2974,7 @@
       "thorn": 11
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "裂点曜·断痕",
       "level": 55,
       "quality": "legendary",
@@ -2983,7 +2983,7 @@
       "moveSpeed": 8
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "裂点曜·断泉",
       "level": 55,
       "quality": "legendary",
@@ -3014,7 +3014,7 @@
       "slot": "weapon",
       "name": "终焉凡·殒刃",
       "level": 60,
-      "quality": "common",
+      "quality": "normal",
       "weaponType": "melee",
       "attack": 99,
       "critRate": 65,
@@ -3025,7 +3025,7 @@
       "slot": "weapon",
       "name": "终焉凡·殒弓",
       "level": 60,
-      "quality": "common",
+      "quality": "normal",
       "weaponType": "ranged",
       "attack": 91,
       "critRate": 69,
@@ -3036,16 +3036,16 @@
       "slot": "helmet",
       "name": "终焉凡·殒冠",
       "level": 60,
-      "quality": "common",
+      "quality": "normal",
       "health": 266,
       "defense": 48,
       "damageReduction": 7
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "终焉凡·殒铠",
       "level": 60,
-      "quality": "common",
+      "quality": "normal",
       "health": 464,
       "defense": 65,
       "damageReduction": 8
@@ -3054,25 +3054,25 @@
       "slot": "legs",
       "name": "终焉凡·殒胫",
       "level": 60,
-      "quality": "common",
+      "quality": "normal",
       "health": 371,
       "defense": 56,
       "thorn": 12
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "终焉凡·殒踪",
       "level": 60,
-      "quality": "common",
+      "quality": "normal",
       "health": 243,
       "defense": 42,
       "moveSpeed": 7
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "终焉凡·殒链",
       "level": 60,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 7,
       "attackSpeed": 7,
       "skillHaste": 11
@@ -3081,7 +3081,7 @@
       "slot": "ring",
       "name": "终焉凡·殒环",
       "level": 60,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 7,
       "attackSpeed": 7,
       "skillHaste": 9
@@ -3090,7 +3090,7 @@
       "slot": "belt",
       "name": "终焉凡·殒缰",
       "level": 60,
-      "quality": "common",
+      "quality": "normal",
       "dodge": 5,
       "attackSpeed": 5,
       "moveSpeed": 7,
@@ -3100,7 +3100,7 @@
       "slot": "weapon",
       "name": "终焉良·焉痕",
       "level": 60,
-      "quality": "rare",
+      "quality": "magic",
       "weaponType": "melee",
       "attack": 114,
       "critRate": 66,
@@ -3111,7 +3111,7 @@
       "slot": "weapon",
       "name": "终焉良·焉矢",
       "level": 60,
-      "quality": "rare",
+      "quality": "magic",
       "weaponType": "ranged",
       "attack": 105,
       "critRate": 71,
@@ -3122,16 +3122,16 @@
       "slot": "helmet",
       "name": "终焉良·焉翎",
       "level": 60,
-      "quality": "rare",
+      "quality": "magic",
       "health": 308,
       "defense": 55,
       "damageReduction": 7
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "终焉良·焉垣",
       "level": 60,
-      "quality": "rare",
+      "quality": "magic",
       "health": 537,
       "defense": 76,
       "damageReduction": 8
@@ -3140,25 +3140,25 @@
       "slot": "legs",
       "name": "终焉良·焉棘",
       "level": 60,
-      "quality": "rare",
+      "quality": "magic",
       "health": 429,
       "defense": 65,
       "thorn": 12
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "终焉良·焉步",
       "level": 60,
-      "quality": "rare",
+      "quality": "magic",
       "health": 282,
       "defense": 49,
       "moveSpeed": 7
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "终焉良·焉坠",
       "level": 60,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 7,
       "attackSpeed": 7,
       "skillHaste": 11
@@ -3167,7 +3167,7 @@
       "slot": "ring",
       "name": "终焉良·焉戒",
       "level": 60,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 8,
       "attackSpeed": 7,
       "skillHaste": 10
@@ -3176,7 +3176,7 @@
       "slot": "belt",
       "name": "终焉良·焉束",
       "level": 60,
-      "quality": "rare",
+      "quality": "magic",
       "dodge": 5,
       "attackSpeed": 5,
       "moveSpeed": 7,
@@ -3186,7 +3186,7 @@
       "slot": "weapon",
       "name": "终焉湛·终络",
       "level": 60,
-      "quality": "fine",
+      "quality": "magic",
       "weaponType": "melee",
       "attack": 129,
       "critRate": 67,
@@ -3197,7 +3197,7 @@
       "slot": "weapon",
       "name": "终焉湛·终羽",
       "level": 60,
-      "quality": "fine",
+      "quality": "magic",
       "weaponType": "ranged",
       "attack": 120,
       "critRate": 72,
@@ -3208,16 +3208,16 @@
       "slot": "helmet",
       "name": "终焉湛·终识",
       "level": 60,
-      "quality": "fine",
+      "quality": "magic",
       "health": 350,
       "defense": 62,
       "damageReduction": 7
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "终焉湛·终甲",
       "level": 60,
-      "quality": "fine",
+      "quality": "magic",
       "health": 609,
       "defense": 85,
       "damageReduction": 8
@@ -3226,25 +3226,25 @@
       "slot": "legs",
       "name": "终焉湛·终行",
       "level": 60,
-      "quality": "fine",
+      "quality": "magic",
       "health": 487,
       "defense": 73,
       "thorn": 13
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "终焉湛·终影",
       "level": 60,
-      "quality": "fine",
+      "quality": "magic",
       "health": 319,
       "defense": 56,
       "moveSpeed": 7
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "终焉湛·终涌",
       "level": 60,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 7,
       "attackSpeed": 7,
       "skillHaste": 12
@@ -3253,7 +3253,7 @@
       "slot": "ring",
       "name": "终焉湛·终指",
       "level": 60,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 8,
       "attackSpeed": 7,
       "skillHaste": 10
@@ -3262,7 +3262,7 @@
       "slot": "belt",
       "name": "终焉湛·殁络",
       "level": 60,
-      "quality": "fine",
+      "quality": "magic",
       "dodge": 5,
       "attackSpeed": 5,
       "moveSpeed": 7,
@@ -3300,7 +3300,7 @@
       "damageReduction": 7
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "终焉炽·归壁",
       "level": 60,
       "quality": "epic",
@@ -3318,7 +3318,7 @@
       "thorn": 13
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "终焉炽·归踏",
       "level": 60,
       "quality": "epic",
@@ -3327,7 +3327,7 @@
       "moveSpeed": 7
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "终焉炽·归咒",
       "level": 60,
       "quality": "epic",
@@ -3386,7 +3386,7 @@
       "damageReduction": 7
     },
     {
-      "slot": "chest",
+      "slot": "body",
       "name": "终焉曜·墟铠",
       "level": 60,
       "quality": "legendary",
@@ -3404,7 +3404,7 @@
       "thorn": 13
     },
     {
-      "slot": "boots",
+      "slot": "feet",
       "name": "终焉曜·墟踪",
       "level": 60,
       "quality": "legendary",
@@ -3413,7 +3413,7 @@
       "moveSpeed": 7
     },
     {
-      "slot": "necklace",
+      "slot": "amulet",
       "name": "终焉曜·墟链",
       "level": 60,
       "quality": "legendary",

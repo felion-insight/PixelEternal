@@ -50,12 +50,25 @@
         const enhMult = 1 + enh * 0.1;
         let mult = multOverride != null ? multOverride
             : (ec.damageMultiplier != null ? ec.damageMultiplier : (skillDef.damageMultiplier || 1));
-        return Math.max(1, Math.floor(baseAtk(player) * mult * enhMult));
+        var dmg = Math.max(1, Math.floor(baseAtk(player) * mult * enhMult));
+        if (player._cloneDmgFactor) {
+            dmg = Math.max(1, Math.floor(dmg * player._cloneDmgFactor));
+        }
+        return dmg;
     }
 
     function sanitizeSkillDamage(dmg) {
         const n = Number(dmg);
         return Number.isFinite(n) ? Math.max(1, Math.floor(n)) : 1;
+    }
+
+    function isClassBasicSkill(skillDef) {
+        return !!(skillDef && (skillDef.slotType === 'basic' || skillDef.type === 'basic'));
+    }
+
+    function isTrainingCombatTarget(monster) {
+        return (typeof TrainingDummy !== 'undefined' && monster instanceof TrainingDummy)
+            || (typeof MonsterTrainingDummy !== 'undefined' && monster instanceof MonsterTrainingDummy);
     }
 
     function applyDmg(player, monster, dmg, skillDef, g, statusList) {
@@ -82,6 +95,10 @@
             const sm = window.getStrikerDamageBonus(player, monster);
             dmg = sanitizeSkillDamage(dmg * (Number.isFinite(sm) ? sm : 1));
         }
+        if (typeof window.getAssassinSkillDamageMult === 'function') {
+            const am = window.getAssassinSkillDamageMult(player, skillDef, monster);
+            dmg = sanitizeSkillDamage(dmg * (Number.isFinite(am) ? am : 1));
+        }
         if (typeof window.getBuildDamageMultiplier === 'function') {
             const bm = window.getBuildDamageMultiplier(player, monster, skillDef);
             dmg = sanitizeSkillDamage(dmg * (Number.isFinite(bm) ? bm : 1));
@@ -101,7 +118,17 @@
         const defRed = typeof window.getCombatStatusDefenseReduction === 'function'
             ? window.getCombatStatusDefenseReduction(monster) : 0;
         if (defRed > 0) dmg = sanitizeSkillDamage(dmg * (1 + defRed / 100));
+        if (isTrainingCombatTarget(monster)) {
+            const isBasic = skillDef && (skillDef.slotType === 'basic' || skillDef.type === 'basic');
+            monster._pendingDamageSource = isBasic
+                ? 'basic'
+                : (skillDef && skillDef.id ? 'skill:' + skillDef.id : null);
+        }
         const killed = monster.takeDamage(dmg);
+        if (g && isTrainingCombatTarget(monster) && dmg > 0
+            && typeof g.addFloatingText === 'function') {
+            g.addFloatingText(monster.x, monster.y, String(dmg), '#ffeedd', 1200, 18, true);
+        }
         if (typeof window.onBuildSkillHit === 'function') {
             window.onBuildSkillHit(player, monster, skillDef, dmg, g);
         }
@@ -110,7 +137,12 @@
         }
         applyStatusFromConfig(player, monster, skillDef, g, statusList);
         if (g && typeof g.triggerHitImpact === 'function') {
-            g.triggerHitImpact(monster.x, monster.y, { target: monster, sourceX: player.x, sourceY: player.y, skipSound: true });
+            g.triggerHitImpact(monster.x, monster.y, {
+                target: monster,
+                sourceX: player.x,
+                sourceY: player.y,
+                skipSound: true
+            });
         }
         if (killed && player && g && g.player === player && typeof player.processKillRewards === 'function') {
             const isDummy = typeof TrainingDummy !== 'undefined' && monster instanceof TrainingDummy;
@@ -156,22 +188,31 @@
         window.applySkillStatusEffects(patched, monster, player, g);
     }
 
+    function isTrainingSceneDummyTarget(m, player) {
+        if (typeof TrainingDummy === 'undefined' || !(m instanceof TrainingDummy)) return false;
+        const g = player && player.gameInstance;
+        if (!g || !g.currentScene) return false;
+        return g.currentScene === 'skill_lab' || g.currentScene === 'training';
+    }
+
     function nearestEnemy(player, monsters, range) {
         let best = null, bestD = Infinity;
         (monsters || []).forEach(m => {
             if (!m || m.hp <= 0) return;
-            if (typeof TrainingDummy !== 'undefined' && m instanceof TrainingDummy) return;
+            if (typeof TrainingDummy !== 'undefined' && m instanceof TrainingDummy
+                && !isTrainingSceneDummyTarget(m, player)) return;
             const d = Math.hypot(m.x - player.x, m.y - player.y);
             if (d <= range && d < bestD) { bestD = d; best = m; }
         });
         return best;
     }
 
-    function nearestEnemyInCone(px, py, angle, monsters, range, halfAngleRad, exclude) {
+    function nearestEnemyInCone(px, py, angle, monsters, range, halfAngleRad, exclude, playerRef) {
         let best = null, bestD = Infinity;
         (monsters || []).forEach(m => {
             if (!m || m.hp <= 0 || (exclude && exclude.has(m))) return;
-            if (typeof TrainingDummy !== 'undefined' && m instanceof TrainingDummy) return;
+            if (typeof TrainingDummy !== 'undefined' && m instanceof TrainingDummy
+                && !isTrainingSceneDummyTarget(m, playerRef)) return;
             const dx = m.x - px, dy = m.y - py;
             const d = Math.hypot(dx, dy);
             if (d > range || d >= bestD) return;
@@ -201,6 +242,10 @@
         const range = skillDef.range || c.maxRange || 500;
         if (castOptions && castOptions.lockTarget && castOptions.lockTarget.hp > 0) {
             return castOptions.lockTarget;
+        }
+        if (skillDef && (skillDef.type === 'basic' || skillDef.slotType === 'basic')
+            && typeof window.pickNearestSkillTarget === 'function') {
+            return window.pickNearestSkillTarget(player, monsters, range);
         }
         if (c.lockTargetCenter !== false && shouldUseArcherCenterLock(player, skillDef, c)) {
             if (typeof window.pickArcherAutoLockTarget === 'function') {
@@ -374,12 +419,10 @@
             if (!m || m.hp <= 0) return;
             if (Math.hypot(m.x - cx, m.y - cy) > radius + (m.size || 20) * 0.5) return;
             applyDmg(player, m, dmg, skillDef, g);
-            const kb = opts.knockback || 45;
-            const dx = m.x - cx;
-            const dy = m.y - cy;
-            const dist = Math.hypot(dx, dy) || 1;
-            m.x += (dx / dist) * kb;
-            m.y += (dy / dist) * kb;
+            const kb = opts.knockback > 0 ? opts.knockback : 0;
+            if (kb > 0 && typeof window.applyEnemyKnockback === 'function') {
+                window.applyEnemyKnockback(m, cx, cy, kb);
+            }
         });
         floatText(g, cx, cy - 20, opts.label || '风爆!', '#66eedd');
         if (g && typeof g.triggerHitImpact === 'function') {
@@ -410,6 +453,9 @@
         }
         if (typeof window.getDeadeyeMarkCritDmgBonus === 'function') {
             extra += window.getDeadeyeMarkCritDmgBonus(monster, player);
+        }
+        if (typeof window.getAssassinCritDmgBonus === 'function') {
+            extra += window.getAssassinCritDmgBonus(player, monster);
         }
         if (typeof window.getPlayerPrecisionCritDmgBonus === 'function') {
             extra += window.getPlayerPrecisionCritDmgBonus(player);
@@ -765,7 +811,15 @@
                 );
             }
         } else if (c.shape === 'cone' && c.autoLockOnTap !== false) {
-            if (typeof window.pickBestConeAngle === 'function') {
+            if (castOptions && castOptions.lockTarget && castOptions.lockTarget.hp > 0
+                && typeof window.snapPlayerAngleToCombatTarget === 'function') {
+                window.snapPlayerAngleToCombatTarget(player, castOptions.lockTarget);
+            } else if ((skillDef.type === 'basic' || skillDef.slotType === 'basic')
+                && typeof window.pickNearestSkillTarget === 'function'
+                && typeof window.snapPlayerAngleToCombatTarget === 'function') {
+                const lockT = window.pickNearestSkillTarget(player, monsters, range + 40);
+                if (lockT) window.snapPlayerAngleToCombatTarget(player, lockT);
+            } else if (typeof window.pickBestConeAngle === 'function') {
                 player.angle = window.pickBestConeAngle(
                     player, monsters, range, c.halfAngleDeg || 45
                 );
@@ -801,8 +855,11 @@
     function applyCcEffects(m, now, opts, g, tauntTarget) {
         if (!m || !opts) return;
         if (typeof window.applyMonsterSkillDebuffs === 'function') {
+            const src = tauntTarget || opts.tauntTarget || opts.player;
             window.applyMonsterSkillDebuffs(m, opts, g, now, {
-                tauntTarget: tauntTarget || opts.tauntTarget || opts.player
+                tauntTarget: src,
+                sourceX: src && src.x,
+                sourceY: src && src.y
             });
         }
     }
@@ -848,7 +905,222 @@
                 }
             });
         }
+        if (c.chainOnKill && c.chainOnKill > 0
+            && typeof window.triggerAssassinChainOnKill === 'function') {
+            window.triggerAssassinChainOnKill(
+                player, skillDef, { entityConfig: c }, g, monsters, now, killedMonster, c.chainOnKill - 1
+            );
+        }
     }
+
+    function distPointToSegment(px, py, x1, y1, x2, y2) {
+        const dx = x2 - x1, dy = y2 - y1;
+        const lenSq = dx * dx + dy * dy;
+        if (lenSq < 0.001) return Math.hypot(px - x1, py - y1);
+        let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+        t = Math.max(0, Math.min(1, t));
+        return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+    }
+
+    function applyInstantSkillSingleHit(player, m, skillDef, ec, g, monsters, now, chainMult, hitOpts) {
+        const c = ec.entityConfig || ec;
+        const opts = hitOpts || {};
+        const baseDmg = opts.baseDmg != null
+            ? opts.baseDmg
+            : calcDmg(player, skillDef, c, c.damageMultiplier);
+        let d = Math.max(1, Math.floor(baseDmg * (chainMult || 1)));
+        if (typeof window.applyComboPointDamageMult === 'function') {
+            d = window.applyComboPointDamageMult(player, c, d, g);
+        }
+        const hpRatio = m.hp / (m.maxHp || 1);
+        let isExecute = false;
+        if (c.executeThreshold != null) {
+            const execTh = (m.isBoss || m.isElite)
+                ? (c.executeBossThreshold != null ? c.executeBossThreshold : c.executeThreshold)
+                : c.executeThreshold;
+            if (hpRatio <= execTh) {
+                isExecute = true;
+                if (c.executeMultiplier != null) {
+                    d = Math.max(1, Math.floor(d * c.executeMultiplier));
+                }
+                if (!m.isBoss && !m.isElite) {
+                    d = Math.max(d, m.hp);
+                }
+                floatText(g, m.x, m.y - 28, '暗杀·处决!', '#ff2244', 18);
+            }
+        }
+        const isCrit = rollSkillCrit(player, c, m);
+        d = applySkillCritDamage(player, d, isCrit, c, m);
+        const hpBefore = m.hp;
+        applyDmg(player, m, d, skillDef, g, c.statusOnHit);
+        if (typeof window.onAssassinSkillHit === 'function') {
+            window.onAssassinSkillHit(player, m, skillDef, isCrit, g);
+        }
+        if (!isExecute && c.nonExecuteComboPoints && typeof window.grantComboPoints === 'function') {
+            window.grantComboPoints(player, c.nonExecuteComboPoints);
+        }
+        applyCcEffects(m, now, {
+            stunMs: c.stunMs || c.confuseMs,
+            knockback: isClassBasicSkill(skillDef) ? 0 : c.knockback,
+            knockbackAngle: Math.atan2(m.y - player.y, m.x - player.x)
+        }, g);
+        const killed = m.hp <= 0 && hpBefore > 0;
+        if (killed && !opts.skipChainOnKill) {
+            onInstantSkillKill(player, skillDef, c, g, monsters, now, m);
+        }
+        return { killed, isExecute, isCrit, damage: d };
+    }
+    window.applyInstantSkillSingleHit = applyInstantSkillSingleHit;
+
+    function shadowRaidBaseSkillId(skillDef) {
+        if (!skillDef) return null;
+        if (skillDef.evolutionPath && skillDef.evolutionPath.baseSkillId) {
+            return skillDef.evolutionPath.baseSkillId;
+        }
+        if (skillDef.id === 'shadow_raid' || skillDef.id === 'shadow_dance') return 'shadow_vortex';
+        return skillDef.id;
+    }
+
+    const SHADOW_RAID_SKILL_IDS = { shadow_raid: true, shadow_vortex: true, shadow_dance: true };
+
+    window.shadowRaidSkillMatches = function shadowRaidSkillMatches(player, skillDef, pending) {
+        if (!pending || !skillDef) return false;
+        const resolved = (typeof window.getResolvedSkillForPlayer === 'function'
+            ? window.getResolvedSkillForPlayer(player, skillDef) : null) || skillDef;
+        if (pending.skillId === resolved.id) return true;
+        if (pending.baseSkillId && resolved.id === pending.baseSkillId) return true;
+        if (pending.slotType === 'core2' && resolved.slotType === 'core2'
+            && SHADOW_RAID_SKILL_IDS[pending.skillId] && SHADOW_RAID_SKILL_IDS[resolved.id]) {
+            return true;
+        }
+        return false;
+    };
+
+    window.canShadowRaidReturnCast = function canShadowRaidReturnCast(player, skillDef, now) {
+        if (!player || !skillDef || player.isDashing) return false;
+        const pending = player._shadowRaidReturn;
+        if (!pending || now > pending.expireTime) return false;
+        return window.shadowRaidSkillMatches(player, skillDef, pending);
+    };
+
+    function offerShadowRaidReturn(ch, g, now) {
+        const c = ch.ec && ch.ec.entityConfig ? ch.ec.entityConfig : {};
+        if (!c.returnWindowMs) return;
+        ch.player._shadowRaidReturn = {
+            skillId: ch.skillDef.id,
+            baseSkillId: shadowRaidBaseSkillId(ch.skillDef),
+            slotType: ch.skillDef.slotType || 'core2',
+            skillDef: ch.skillDef,
+            ec: ch.ec,
+            startX: ch.startX,
+            startY: ch.startY,
+            endX: ch.player.x,
+            endY: ch.player.y,
+            expireTime: now + c.returnWindowMs,
+            returnMult: c.returnDamageMultiplier != null ? c.returnDamageMultiplier : 1.2,
+            hitIds: ch.hitIds ? new Set(ch.hitIds) : new Set()
+        };
+        floatText(g, ch.player.x, ch.player.y - 28, '影袭·可返回', '#bb88ff');
+        if (c.autoReturnMs !== false) {
+            floatText(g, ch.player.x, ch.player.y - 44, '自动返回中…', '#9966cc');
+        }
+    }
+
+    function scheduleShadowRaidAutoReturn(ch, g, monsters, now) {
+        const c = ch.ec && ch.ec.entityConfig ? ch.ec.entityConfig : {};
+        if (!c.returnWindowMs || c.autoReturnMs === false) return;
+        const delay = c.autoReturnMs != null ? c.autoReturnMs : 220;
+        const st = ensureState(g);
+        st.pendingShadowReturns = st.pendingShadowReturns || [];
+        st.pendingShadowReturns.push({
+            activateTime: now + delay,
+            expireTime: now + c.returnWindowMs,
+            player: ch.player,
+            skillDef: ch.skillDef,
+            monsters
+        });
+    }
+
+    function tickPendingShadowReturns(st, g, monsters, now) {
+        if (!st.pendingShadowReturns || !st.pendingShadowReturns.length) return;
+        st.pendingShadowReturns = st.pendingShadowReturns.filter(pr => {
+            if (now < pr.activateTime) return true;
+            if (pr.player && pr.player._shadowRaidReturn && now <= pr.expireTime
+                && typeof window.tryShadowRaidReturn === 'function') {
+                window.tryShadowRaidReturn(pr.player, pr.skillDef, g, pr.monsters || monsters, now);
+            }
+            return false;
+        });
+    }
+
+    window.tryShadowRaidReturn = function tryShadowRaidReturn(player, skillDef, g, monsters, now) {
+        if (!player || !skillDef) return null;
+        if (player.isDashing) return null;
+        const pending = player._shadowRaidReturn;
+        if (!pending || !window.shadowRaidSkillMatches(player, skillDef, pending)) return null;
+        if (now > pending.expireTime) {
+            delete player._shadowRaidReturn;
+            return null;
+        }
+        delete player._shadowRaidReturn;
+        const ec = pending.ec || { entityConfig: {} };
+        const c = ec.entityConfig || {};
+        if (typeof window.clearComboPointDamageMult === 'function') {
+            window.clearComboPointDamageMult(player);
+        }
+        if (c.consumeAllComboPoints && typeof window.prepareComboPointDamageMult === 'function') {
+            window.prepareComboPointDamageMult(player, c, g);
+        }
+        const fromX = player.x;
+        const fromY = player.y;
+        const toX = pending.startX;
+        const toY = pending.startY;
+        if (!Number.isFinite(toX) || !Number.isFinite(toY)) {
+            delete player._shadowRaidReturn;
+            return null;
+        }
+        const clamped = clampInRoom(g, toX, toY);
+        player.x = clamped.x;
+        player.y = clamped.y;
+        player.angle = Math.atan2(toY - fromY, toX - fromX);
+        const hitRadius = (c.collisionRadius || 22) + 15;
+        const returnDmg = calcDmg(player, pending.skillDef, c, pending.returnMult);
+        const hitTargets = [];
+        (monsters || []).forEach(m => {
+            if (!m || m.hp <= 0) return;
+            if (distPointToSegment(m.x, m.y, fromX, fromY, pending.endX, pending.endY) > hitRadius + (m.size || 16) * 0.35) return;
+            let d = returnDmg;
+            if (typeof window.applyComboPointDamageMult === 'function') {
+                d = window.applyComboPointDamageMult(player, c, d, g);
+            }
+            const isCrit = rollSkillCrit(player, c, m);
+            d = applySkillCritDamage(player, d, isCrit, c, m);
+            applyDmg(player, m, d, pending.skillDef, g, c.statusOnHit);
+            if (typeof window.onAssassinSkillHit === 'function') {
+                window.onAssassinSkillHit(player, m, pending.skillDef, isCrit, g);
+            }
+            hitTargets.push(m);
+        });
+        if (c.grantBackstabStance && typeof window.grantBackstabStance === 'function') {
+            window.grantBackstabStance(player, c.grantBackstabStance.angleDeg || 180, c.grantBackstabStance.durationMs || 3500);
+        }
+        floatText(g, player.x, player.y - 24, '影袭返回!', '#aa66ee');
+        if (typeof window.playAssassinShadowRaidReturnVfx === 'function') {
+            window.playAssassinShadowRaidReturnVfx(player, g, {
+                fromX, fromY, toX, toY, hitTargets, skillDef: pending.skillDef
+            });
+        } else if (typeof window.playAssassinSkillVfx === 'function') {
+            window.playAssassinSkillVfx(player, pending.skillDef, g, { returnDash: true, fromX, fromY, hitTargets });
+        }
+        if (typeof window.clearComboPointDamageMult === 'function') {
+            window.clearComboPointDamageMult(player);
+        }
+        if (g && g.currentScene === window.SCENE_TYPES.SKILL_LAB && typeof g._syncSkillLabCamera === 'function') {
+            g._syncSkillLabCamera();
+        }
+        return true;
+    };
+
 
     function healPlayerPercent(player, pct, g, label) {
         if (!player || !pct) return;
@@ -1152,6 +1424,14 @@
         ch.player._chargeSuperArmor = false;
         ch.active = false;
 
+        if (!ch.multiDash) {
+            offerShadowRaidReturn(ch, g, now);
+            scheduleShadowRaidAutoReturn(ch, g, monsters, now);
+            if (g && g.currentScene === window.SCENE_TYPES.SKILL_LAB && typeof g._syncSkillLabCamera === 'function') {
+                g._syncSkillLabCamera();
+            }
+        }
+
         const finish = c.endFinish || (c.endExplodeRadius > 0 ? 'radial' : null);
         const hitTargets = finish ? resolveChargeEndFinish(ch, ec, g, monsters, now) : [];
         applyChargeBuffOnEnd(ch.player, c, ch.skillDef, now);
@@ -1212,10 +1492,54 @@
     function execCharge(player, skillDef, ec, g, monsters, now, angle) {
         const c = ec.entityConfig;
         const st = ensureState(g);
+        const isMultiDash = c.type === 'shadow_dance'
+            || (c.dashCount > 1 && c.dashDamage && c.dashDamage.length > 1);
+        if (isMultiDash) {
+            const dashCount = c.dashCount || 3;
+            const dashDamage = c.dashDamage || [1.5, 1.875, 2.34];
+            const dashRange = c.dashRange || 130;
+            st.charges.push({
+                player, skillDef, ec,
+                angle,
+                startX: player.x,
+                startY: player.y,
+                speed: c.speed || 680,
+                baseSpeed: c.speed || 680,
+                radius: c.collisionRadius || 30,
+                superArmor: !!c.superArmor,
+                multiDash: true,
+                dashIndex: 0,
+                dashCount,
+                dashDamage,
+                dashRange,
+                dashIntervalMs: c.dashIntervalMs || 150,
+                dashWaitUntil: 0,
+                dashPhase: 'moving',
+                traveled: 0,
+                maxDist: dashRange,
+                damage: calcDmg(player, skillDef, c, dashDamage[0]),
+                hitIds: new Set(),
+                stopOnFirstHit: false,
+                active: true
+            });
+            player.isDashing = true;
+            player.isCastingSkill = false;
+            player._chargeSuperArmor = !!c.superArmor;
+            if (c.dashInvincibilityMs) {
+                player.invincibleUntil = now + c.dashInvincibilityMs;
+            }
+            floatText(g, player.x, player.y - 20, skillDef.name, '#ff8844');
+            if (typeof window.playAssassinSkillVfx === 'function') {
+                window.playAssassinSkillVfx(player, skillDef, g, { chargeStart: true, angle, dashIndex: 0, dashTotal: dashCount });
+            }
+            return;
+        }
         const baseSpeed = c.speed || 450;
         st.charges.push({
             player, skillDef, ec,
             angle,
+            startX: player.x,
+            startY: player.y,
             speed: baseSpeed,
             baseSpeed,
             maxDist: c.maxDistance || 150,
@@ -1702,6 +2026,32 @@
             });
             if (typeof player.updateStats === 'function') player.updateStats();
         }
+        if (c.spawnMirrorClones && player && g && typeof window.spawnSkillSummon === 'function') {
+            field._mirrorDomain = true;
+            var cloneCount = c.spawnMirrorClones;
+            var cloneRadius = c.fieldRadius || 120;
+            for (var ci = 0; ci < cloneCount; ci++) {
+                var angMirror = (Math.PI * 2 * ci) / cloneCount + Math.random() * 0.3;
+                var distMirror = cloneRadius * 0.5;
+                var cx = fx + Math.cos(angMirror) * distMirror;
+                var cy = fy + Math.sin(angMirror) * distMirror;
+                var cloneSummon = window.spawnSkillSummon(player, skillDef, g, {
+                    x: cx, y: cy,
+                    unitId: 'mirror_clone',
+                    durationMs: c.fieldDurationMs || 10000,
+                    size: 20,
+                    color: '#4466cc'
+                });
+                if (cloneSummon) {
+                    cloneSummon._mirrorDomainClone = true;
+                    cloneSummon._mirrorDomainField = field;
+                    var cloneHp = Math.max(1, Math.floor((player.maxHp || 100) * 0.2));
+                    cloneSummon.hp = cloneHp;
+                    cloneSummon.maxHp = cloneHp;
+                    cloneSummon._damageReduction = c.cloneDamageReduction || 40;
+                }
+            }
+        }
         floatText(g, fx, fy, skillDef.name, '#88ddff');
         return true;
     }
@@ -1737,6 +2087,24 @@
         const c = ec.entityConfig;
         const opts = impactOpts || {};
         if (c.breathHold || c.deadeyeSnipe) return true;
+        // 巫师/大魔导师：元素爆发走专用 handler（烈焰风暴引导 / 极寒新星 / 雷霆之怒 / 元素熔合）
+        if (skillDef.id === 'elemental_burst' || c.archmageFusionBurst) {
+            if (typeof window.castArchmageElementalBurst === 'function') {
+                var archResult = window.castArchmageElementalBurst(player, skillDef, g, monsters, now, castOptions || {});
+                if (archResult !== false) return archResult;
+            }
+            if (typeof window.castWizardElementalBurst === 'function') {
+                return window.castWizardElementalBurst(player, skillDef, g, monsters, now, castOptions || {});
+            }
+            return false;
+        }
+        // 极寒新星延迟爆发：由 castWizardFrostBurst 推入延迟队列，激活时走专用 handler
+        if (c.wizardFrostBurst) {
+            if (typeof window.resolveWizardFrostBurst === 'function') {
+                window.resolveWizardFrostBurst(player, skillDef, c, g, monsters, now);
+                return true;
+            }
+        }
         if (c.leapSlam && !opts.skipLeap) {
             if (player._leapSlam) return false;
             const landing = resolveLeapLanding(player, c, g, monsters, castOptions);
@@ -1744,11 +2112,30 @@
             return true;
         }
         const range = c.range || skillDef.range || 80;
+        const dashBehind = !!(c._comboDashBehind || skillDef._comboDashBehind);
         applyCastAimAngle(player, castOptions, monsters, skillDef, c);
+        if ((skillDef.type === 'basic' || skillDef.slotType === 'basic')
+            && castOptions && castOptions.lockTarget && castOptions.lockTarget.hp > 0
+            && !dashBehind) {
+            const t = castOptions.lockTarget;
+            const dx = t.x - player.x;
+            const dy = t.y - player.y;
+            const dist = Math.hypot(dx, dy);
+            const hitRange = c.range || skillDef.range || 80;
+            const monR = ((t.size || t.radius || 32) / 2);
+            if (dist > hitRange + monR * 0.35 && dist < hitRange * 1.85) {
+                const step = Math.min(dist - (hitRange + monR * 0.2), c._comboDash || 20);
+                if (step > 2) {
+                    const nx = player.x + (dx / dist) * step;
+                    const ny = player.y + (dy / dist) * step;
+                    const clamped = clampInRoom(g, nx, ny);
+                    player.x = clamped.x;
+                    player.y = clamped.y;
+                }
+            }
+        }
         const dmg = calcDmg(player, skillDef, c, c.damageMultiplier);
         const targets = [];
-
-        const dashBehind = !!(c._comboDashBehind || skillDef._comboDashBehind);
 
         if (c.shape === 'pierce' || c.shape === 'fissure' || dashBehind) {
             const pierceWidth = c.pierceWidth || (c.shape === 'fissure' ? 40 : 28);
@@ -1757,9 +2144,10 @@
             const half = (c.halfAngleDeg || 45) * Math.PI / 180;
             (monsters || []).forEach(m => {
                 if (!m || m.hp <= 0) return;
+                const monR = ((m.size || m.radius || 32) / 2);
                 const dx = m.x - player.x, dy = m.y - player.y;
                 const dist = Math.hypot(dx, dy);
-                if (dist > range) return;
+                if (dist > range + monR) return;
                 let diff = Math.atan2(dy, dx) - player.angle;
                 while (diff > Math.PI) diff -= Math.PI * 2;
                 while (diff < -Math.PI) diff += Math.PI * 2;
@@ -1938,8 +2326,17 @@
             g.triggerHitImpact(fx, fy, {
                 skipSound: false, isCrit: false, sourceX, sourceY
             });
+        } else if ((skillDef.type === 'basic' || skillDef.slotType === 'basic')
+            && g && typeof g.triggerHitImpact === 'function') {
+            const hitR = c.range || skillDef.range || 80;
+            g.triggerHitImpact(
+                player.x + Math.cos(player.angle) * hitR * 0.35,
+                player.y + Math.sin(player.angle) * hitR * 0.35,
+                { skipSound: false, isCrit: false, sourceX: player.x, sourceY: player.y }
+            );
         }
-        return targets.length > 0 || c.shape === 'cone' || c.shape === 'radial' || c.shape === 'pierce';
+        return targets.length > 0 || c.shape === 'cone' || c.shape === 'radial' || c.shape === 'pierce'
+            || skillDef.type === 'basic' || skillDef.slotType === 'basic';
     }
 
     function resolveBlink(player, skillDef, ec, g, monsters, now, castOptions) {
@@ -2043,6 +2440,10 @@
                 spawnSummon(player, skillDef, fakeEc, g, monsters, now);
             }
         }
+        if (c.phaseShift && typeof window.onWizardPhaseShiftComplete === 'function') {
+            player._phaseShiftPrevPhase = player._elementPhase;
+            window.onWizardPhaseShiftComplete(player, skillDef, g, monsters, now, originX, originY);
+        }
         floatText(g, player.x, player.y - 20, skillDef.name, '#cc88ff');
         return true;
     }
@@ -2081,6 +2482,38 @@
         return true;
     }
 
+    window.spawnSkillSummon = function spawnSkillSummon(player, skillDef, g, opts) {
+        if (!player || !g) return null;
+        var st = ensureState(g);
+        var now = Date.now();
+        var unitId = (opts && opts.unitId) || 'shadow_clone';
+        var durationMs = (opts && opts.durationMs) || 8000;
+        var pos = { x: (opts && opts.x) || player.x, y: (opts && opts.y) || player.y };
+        var isClone = unitId === 'shadow_clone' || unitId === 'decoy' || unitId === 'mirror_clone' || (opts && opts.isClone);
+        // 根据类型决定默认 AI：分身追击，替身站桩嘲讽
+        var defaultAi = unitId === 'decoy' ? 'taunt_static' : 'melee_chase';
+        var summon = {
+            x: pos.x, y: pos.y,
+            hp: 1, maxHp: 1,
+            attack: 0,
+            defense: 0,
+            owner: player,
+            unitId: unitId,
+            aiType: defaultAi,
+            attackIntervalMs: 1200,
+            lastAttack: 0,
+            expireTime: now + durationMs,
+            size: (opts && opts.size) || 22,
+            color: (opts && opts.color) || '#6688cc',
+            skillDef: skillDef,
+            vx: 0, vy: 0,
+            isClone: isClone,
+            spawnTime: now
+        };
+        st.summons.push(summon);
+        return summon;
+    };
+
     window.castSkillEntity = function castSkillEntity(player, skillDef, gameInstance, monsters, now, castOptions) {
         const ec = entityCfg(skillDef);
         const type = (ec && ec.entityType) || window.inferSkillEntityType(skillDef);
@@ -2095,6 +2528,25 @@
             case 'charge': return startCharge(player, skillDef, cfg, gameInstance, monsters, now, castOptions);
             default: return null;
         }
+    };
+
+    window.castSkillEntityFromPosition = function castSkillEntityFromPosition(player, skillDef, g, x, y, dmgFactor, monsters, now, castOptions) {
+        if (!player || !skillDef || !g) return null;
+        var origX = player.x;
+        var origY = player.y;
+        player.x = x;
+        player.y = y;
+        var origDmgFactor = player._cloneDmgFactor;
+        player._cloneDmgFactor = dmgFactor || 0.6;
+        var result = null;
+        try {
+            result = window.castSkillEntity(player, skillDef, g, monsters, now, castOptions);
+        } finally {
+            player.x = origX;
+            player.y = origY;
+            player._cloneDmgFactor = origDmgFactor;
+        }
+        return result;
     };
 
     window.hasSkillEntityBehavior = function hasSkillEntityBehavior(skillDef) {
@@ -2146,6 +2598,9 @@
         if (pLeap && pLeap._backstepShot && typeof window.updatePlayerBackstepShot === 'function') {
             window.updatePlayerBackstepShot(pLeap, now);
         }
+        if (pLeap && pLeap._pierceDash && typeof window.updatePlayerPierceDash === 'function') {
+            window.updatePlayerPierceDash(pLeap, now);
+        }
 
         if (pLeap && typeof window.tickDeadeyeStates === 'function') {
             window.tickDeadeyeStates(pLeap, monsters, gameInstance, now);
@@ -2158,6 +2613,12 @@
         }
         if (pLeap && typeof window.tickWarlockSoulStates === 'function') {
             window.tickWarlockSoulStates(pLeap, gameInstance, monsters, now);
+        }
+        if (typeof window.tickAssassinMultiStrikes === 'function') {
+            window.tickAssassinMultiStrikes(gameInstance, monsters, now);
+        }
+        if (st.pendingShadowReturns && st.pendingShadowReturns.length) {
+            tickPendingShadowReturns(st, gameInstance, monsters, now);
         }
 
         // Projectiles
@@ -2228,7 +2689,7 @@
                     const remain = Math.max(80, (p.maxRange || 600) - (p.traveled || 0));
                     const trackTarget = nearestEnemyInCone(
                         p.x, p.y, p.initialAngle != null ? p.initialAngle : p.angle,
-                        monsters, remain, trackDeg, p.hitIds
+                        monsters, remain, trackDeg, p.hitIds, p.player
                     );
                     if (trackTarget) targetAng = angleToAimPoint(p.x, p.y, trackTarget);
                 }
@@ -2305,6 +2766,49 @@
                         p.player.hp = Math.min(p.player.maxHp, p.player.hp + heal);
                     }
                     p.hitIds.add(m);
+                    // 毒师普攻弹射：命中后弹射到最近中毒目标
+                    var ecRic = p.entityConfig || {};
+                    if ((ecRic.ricochetBounces || 0) > 0 && p.player && p.player.hp > 0) {
+                        if (p._ricochetBouncesLeft == null) p._ricochetBouncesLeft = ecRic.ricochetBounces;
+                        if (!p._ricochetChainHitIds) p._ricochetChainHitIds = new Set();
+                        p._ricochetChainHitIds.add(m);
+                        var rBounces = p._ricochetBouncesLeft;
+                        var rDecay = ecRic.ricochetDecay || 0.2;
+                        var rRange = ecRic.ricochetRange || 150;
+                        var lastTarget = m;
+                        for (var rb = 0; rb < rBounces; rb++) {
+                            var nearestPoisoned = null;
+                            var nearDist = Infinity;
+                            (monsters || []).forEach(function(mR) {
+                                if (!mR || mR.hp <= 0 || p._ricochetChainHitIds.has(mR)) return;
+                                if (mR.combatStatuses && mR.combatStatuses.poison) {
+                                    var dR = Math.hypot(mR.x - lastTarget.x, mR.y - lastTarget.y);
+                                    if (dR <= rRange && dR < nearDist) {
+                                        nearDist = dR;
+                                        nearestPoisoned = mR;
+                                    }
+                                }
+                            });
+                            if (!nearestPoisoned) break;
+                            p._ricochetChainHitIds.add(nearestPoisoned);
+                            var bounceDmg = Math.max(1, Math.floor(p.damage * Math.pow(1 - rDecay, rb + 1)));
+                            if (typeof window.applyDmg === 'function') {
+                                window.applyDmg(p.player, nearestPoisoned, bounceDmg, p.skillDef, gameInstance, p.statusOnHit);
+                            } else {
+                                nearestPoisoned.takeDamage(bounceDmg);
+                            }
+                            if (gameInstance && typeof gameInstance.addFloatingText === 'function') {
+                                gameInstance.addFloatingText(
+                                    nearestPoisoned.x, nearestPoisoned.y - 14, String(bounceDmg),
+                                    '#66ff44', 500, 11, true
+                                );
+                            }
+                            if (p.statusOnHit && typeof window.applyStatusFromConfig === 'function') {
+                                window.applyStatusFromConfig(p.player, nearestPoisoned, p.skillDef, gameInstance, p.statusOnHit);
+                            }
+                            lastTarget = nearestPoisoned;
+                        }
+                    }
                     if (p.explodeRadius) applyProjectileExplodeEffects(p, p.x, p.y, monsters, gameInstance, now);
                     const ecHit = p.entityConfig || {};
                     const critContinue = ecHit.continueOnCritKill && hitFx && hitFx.isCrit && hitFx.killed;
@@ -2330,13 +2834,49 @@
         st.summons = st.summons.filter(s => {
             if (!s) return false;
             if (s.hp <= 0) {
+                if (s._explosionOnDeath && s.owner && s.skillDef) {
+                    const decoyEc = s.skillDef.entityConfig || {};
+                    const exRadius = s._explosionRadius || 80;
+                    const exDmg = calcDmg(s.owner, s.skillDef, decoyEc, s._explosionDamageMult || 1.5);
+                    (monsters || []).forEach(m => {
+                        if (!m || m.hp <= 0) return;
+                        if (Math.hypot(m.x - s.x, m.y - s.y) <= exRadius) {
+                            applyDmg(s.owner, m, exDmg, s.skillDef, gameInstance);
+                        }
+                    });
+                    if (typeof window.playAssassinDecoyExplosionVfx === 'function') {
+                        window.playAssassinDecoyExplosionVfx(s.owner, s.x, s.y, exRadius, gameInstance);
+                    }
+                    if (gameInstance && typeof gameInstance.addFloatingText === 'function') {
+                        gameInstance.addFloatingText(s.x, s.y - 24, '替身爆破!', '#99bbff', 700, 12);
+                    }
+                }
                 if (s.isUndead && typeof window.onUndeadDeath === 'function') {
                     window.onUndeadDeath(s, gameInstance);
+                }
+                if (s.isClone && s.owner && typeof window.onTricksterCloneDeath === 'function') {
+                    window.onTricksterCloneDeath(s.owner, gameInstance, false);
+                }
+                // 幻影戏法/影之盛宴：分身死亡→保护目标获得无敌
+                if ((s._phantomTrickClone || s._shadowFeastClone) && s._protectTarget && s._protectTarget.hp > 0) {
+                    s._protectTarget.invincibleUntil = Math.max(s._protectTarget.invincibleUntil || 0, Date.now() + 3000);
+                    if (gameInstance && typeof gameInstance.addFloatingText === 'function') {
+                        gameInstance.addFloatingText(s._protectTarget.x, s._protectTarget.y - 30, '分身庇护! 3s无敌', '#6688cc', 800, 12);
+                    }
                 }
                 return false;
             }
             if (s.expireTime == null || !isFinite(s.expireTime)) return false;
-            if (now >= s.expireTime) return false;
+            if (now >= s.expireTime) {
+                if (s.isClone && s.owner && typeof window.onTricksterCloneDeath === 'function') {
+                    window.onTricksterCloneDeath(s.owner, gameInstance, true);
+                }
+                // 幻影戏法/影之盛宴：分身过期→保护目标获得无敌
+                if ((s._phantomTrickClone || s._shadowFeastClone) && s._protectTarget && s._protectTarget.hp > 0) {
+                    s._protectTarget.invincibleUntil = Math.max(s._protectTarget.invincibleUntil || 0, Date.now() + 3000);
+                }
+                return false;
+            }
             if (s.isPhantomClone && typeof window.updatePhantomCloneSummon === 'function') {
                 return window.updatePhantomCloneSummon(s, monsters, gameInstance, now);
             }
@@ -2438,6 +2978,25 @@
                         color: '#ff4400',
                         _burnGround: true
                     });
+                }
+                if (f._mirrorDomain && f.owner) {
+                    var explodeRadius = (ecEnd.explosionRadius || 80);
+                    var explodeMult = ecEnd.explosionDamageMultiplier || 1.5;
+                    var boomDmg = calcDmg(f.owner, f.skillDef, ecEnd, explodeMult);
+                    var mirrorSt = ensureState(gameInstance);
+                    mirrorSt.summons = (mirrorSt.summons || []).filter(function (s) {
+                        if (s._mirrorDomainClone && s._mirrorDomainField === f && s.hp > 0) {
+                            (monsters || []).forEach(function (m) {
+                                if (!m || m.hp <= 0) return;
+                                if (Math.hypot(m.x - s.x, m.y - s.y) <= explodeRadius) {
+                                    applyDmg(f.owner, m, boomDmg, f.skillDef, gameInstance);
+                                }
+                            });
+                            return false;
+                        }
+                        return true;
+                    });
+                    floatText(gameInstance, f.x, f.y, '结界崩塌!', '#3344aa', 18);
                 }
                 return false;
             }
@@ -2627,12 +3186,29 @@
                     }
                 } else {
                     const ec = f.entityConfig || {};
+                    // 毒雾增伤：场内每个中毒敌人+damageAmp%
+                    let poisonAmpMult = 1;
+                    if (ec.damageAmpPerPoisonedEnemy && ec.damageAmpMax) {
+                        let poisonedCount = 0;
+                        (monsters || []).forEach(m => {
+                            if (m && m.hp > 0 && Math.hypot(m.x - f.x, m.y - f.y) <= f.radius
+                                && m.combatStatuses && m.combatStatuses.poison) poisonedCount++;
+                        });
+                        poisonAmpMult = 1 + Math.min(ec.damageAmpMax / 100,
+                            poisonedCount * (ec.damageAmpPerPoisonedEnemy / 100));
+                    }
                     (monsters || []).forEach(m => {
                         if (!m || m.hp <= 0) return;
                         if (Math.hypot(m.x - f.x, m.y - f.y) <= f.radius) {
                             let tickDmg = f.damage;
                             if (ec.damageEnemyPerTick != null && f.owner) {
                                 tickDmg = Math.max(1, Math.floor(baseAtk(f.owner) * ec.damageEnemyPerTick));
+                            }
+                            // 毒雾场内增伤
+                            if (poisonAmpMult !== 1) tickDmg = Math.floor(tickDmg * poisonAmpMult);
+                            // 疫病云雾：场内中毒伤害翻倍
+                            if (ec.poisonDamageMult && m.combatStatuses && m.combatStatuses.poison) {
+                                m.combatStatuses.poison.amplifyMult = ec.poisonDamageMult;
                             }
                             if (tickDmg > 0) applyDmg(f.owner, m, tickDmg, f.skillDef, gameInstance, f.statusOnTick);
                             if (ec.enemySlowPercent) {
@@ -2673,6 +3249,42 @@
                             hudVisible: true
                         });
                         if (typeof f.owner.updateStats === 'function') f.owner.updateStats();
+                    }
+                    // 毒雾潜行：施法者在毒雾内获得潜行
+                    if (ec.stealthSelfInField && f.owner && f.owner.hp > 0) {
+                        var sxDist = Math.hypot(f.owner.x - f.x, f.owner.y - f.y);
+                        if (sxDist <= f.radius) {
+                            f.owner._stealthFromFieldUntil = now + 500;
+                            if (typeof window.grantStealthBuff === 'function') {
+                                window.grantStealthBuff(f.owner, 500, gameInstance);
+                            } else if (f.owner.buffs) {
+                                f.owner.buffs = f.owner.buffs.filter(function(b) { return b.id !== 'stealth_fld'; });
+                                f.owner.buffs.push({
+                                    name: '毒雾潜行', id: 'stealth_fld',
+                                    expireTime: now + 500,
+                                    stealth: true,
+                                    stealthNotBrokenByAttack: false
+                                });
+                            }
+                        }
+                    }
+                    // 疫病云雾击杀扩大：敌人在场内死亡时扩大半径
+                    if (ec.killExpandRadius && ec.killExpandRadius > 0) {
+                        var maxExpanded = ec.killExpandMaxRadius || 200;
+                        (monsters || []).forEach(function(mE) {
+                            if (!mE || mE.hp > 0) return;
+                            if (Math.hypot(mE.x - f.x, mE.y - f.y) <= f.radius) {
+                                if (!f._expandedKillIds) f._expandedKillIds = new Set();
+                                if (!f._expandedKillIds.has(mE)) {
+                                    f._expandedKillIds.add(mE);
+                                    var oldR = f.radius;
+                                    f.radius = Math.min(maxExpanded, f.radius + ec.killExpandRadius);
+                                    if (f.radius > oldR) {
+                                        floatText(gameInstance, f.x, f.y - 10, '云雾扩大!', '#44cc33', 13);
+                                    }
+                                }
+                            }
+                        });
                     }
                 }
             }
@@ -2727,7 +3339,12 @@
                     applyDmg(ch.player, m, ch.damage, ch.skillDef, gameInstance);
                     ch.hitIds.add(m);
                     const pathStun = ch.pathStunMs != null ? ch.pathStunMs : ch.stunMs;
-                    const ccCfg = Object.assign({}, c, { stunMs: pathStun, slowMult: ch.slowMult || c.slowMult, slowMs: ch.slowMs || c.slowMs });
+                    const ccCfg = Object.assign({}, c, {
+                        stunMs: pathStun,
+                        slowMult: ch.slowMult || c.slowMult,
+                        slowMs: ch.slowMs || c.slowMs,
+                        knockback: ch.knockback || c.knockback
+                    });
                     applyCcEffects(m, now, ccCfg, gameInstance, ch.player);
                     if (c.destroyMarkOnPath && typeof window.applySkillDestroyMarks === 'function') {
                         window.applySkillDestroyMarks(ch.player, m, ch.skillDef, c.destroyMarkOnPath, gameInstance, { now });
@@ -3041,7 +3658,15 @@
             ctx.restore();
         }
 
+        if (pl && typeof window.drawTricksterAnchorOverlays === 'function') {
+            window.drawTricksterAnchorOverlays(ctx, pl, now);
+        }
+
         st.summons.forEach(s => {
+            if (s.unitId === 'decoy' && typeof window.drawTricksterDecoySummon === 'function') {
+                window.drawTricksterDecoySummon(ctx, s, now);
+                return;
+            }
             if (s.isPhantomClone && typeof window.drawPhantomCloneSummon === 'function') {
                 window.drawPhantomCloneSummon(ctx, s, s.owner, Date.now());
                 return;
@@ -3174,10 +3799,27 @@
         if (player) {
             delete player._packAssaultUntil;
             player._wolfPounceCd = {};
+            player.isDashing = false;
+            player._chargeSuperArmor = false;
+            player.dashGhosts = [];
+            player.dashBrightness = 0;
+            player.dashCompression = 0;
+            delete player._shadowRaidReturn;
+            delete player._pierceDash;
+            delete player._leapSlam;
+            delete player._backstepShot;
+            delete player._backstepVisualOffset;
+            delete player._leapSlamVisualOffset;
             if (Array.isArray(player.buffs)) {
-                player.buffs = player.buffs.filter(b => !b.id || !String(b.id).startsWith('summon_bonus_'));
+                player.buffs = player.buffs.filter(b => {
+                    if (!b) return false;
+                    if (b.stealth) return false;
+                    if (b.id && String(b.id).startsWith('summon_bonus_')) return false;
+                    return true;
+                });
             }
         }
+        st.pendingShadowReturns = [];
 
         if (opts.clearMarks !== false) {
             let targets = [];

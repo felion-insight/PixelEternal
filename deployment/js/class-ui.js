@@ -18,6 +18,10 @@
             if (this._bound) return;
             this._bound = true;
             this._statusBuffSig = '';
+            const self = this;
+            window._refreshWarlockHud = function () {
+                if (self.game) self.updateWarlockCounters();
+            };
             this._bindClassSelect();
             this._bindCharacterPanel();
             this._bindSkillPanel();
@@ -128,8 +132,11 @@
             const tip = $('class-skill-tooltip');
             if (!tip) return;
             const p = this.game.player;
-            const hotbar = window.getPlayerHotbarSkills(p);
-            const sk = hotbar[slotIndex];
+            const sk = typeof window.getHotbarSkillAtSlot === 'function'
+                ? window.getHotbarSkillAtSlot(p, slotIndex, {
+                    labMode: this.game.currentScene === SCENE_TYPES.SKILL_LAB
+                })
+                : (window.getPlayerHotbarSkills(p)[slotIndex] || null);
             if (!sk) {
                 tip.style.display = 'none';
                 return;
@@ -369,13 +376,16 @@
                     lines.push(`<div class="class-tree-node active">${b ? b.name : cd.baseClass} (基础)</div>`);
                     if (cd.firstAdvancement) {
                         const f = window.getClassDefinition(cd.firstAdvancement);
-                        lines.push(`<div class="class-tree-node active">→ ${f ? f.name : cd.firstAdvancement} (一转)</div>`);
+                        const fc = f && f.themeColor ? f.themeColor : '#88ff88';
+                        const fl = f && f.themeLabel ? ` · ${f.themeLabel}` : '';
+                        lines.push(`<div class="class-tree-node active" style="color:${fc}">→ ${f ? f.name : cd.firstAdvancement} (一转)${fl}</div>`);
                     } else if (p.level >= 20) {
                         lines.push('<div class="class-tree-node locked">→ 一转（待转职）</div>');
                     }
                     if (cd.secondAdvancement) {
                         const s = window.getClassDefinition(cd.secondAdvancement);
-                        lines.push(`<div class="class-tree-node active">→ ${s ? s.name : cd.secondAdvancement} (二转)</div>`);
+                        const sc = s && s.themeColor ? s.themeColor : '#88ff88';
+                        lines.push(`<div class="class-tree-node active" style="color:${sc}">→ ${s ? s.name : cd.secondAdvancement} (二转)</div>`);
                     } else if (p.level >= 40 && cd.firstAdvancement) {
                         lines.push('<div class="class-tree-node locked">→ 二转（待觉醒）</div>');
                     }
@@ -458,8 +468,8 @@
             allProg.forEach((skillId, idx) => {
                 const def = window.getSkillDefinition(skillId);
                 if (!def) return;
-                const resolved = window.resolveEvolvedSkill(def, p.classData, level);
-                const displayDef = resolved || def;
+                const displayDef = window.getResolvedSkillForPlayer(p, def)
+                    || window.resolveEvolvedSkill(def, p.classData, level) || def;
                 const reqLv = displayDef.unlockLevel || slots[idx] || 1;
                 const isUnlocked = level >= reqLv;
                 const enhLv = window.getSkillEnhanceLevel(p, displayDef.id);
@@ -587,6 +597,11 @@
                         : String(i + 1);
                     btn.title = `[${keyLabel}] ${sk.name} — ${desc}`;
                     btn.dataset.skillId = sk.id;
+                    if (sk._beastPackDisplayPhase) {
+                        btn.dataset.beastPhase = sk._beastPackDisplayPhase;
+                    } else {
+                        delete btn.dataset.beastPhase;
+                    }
                     const keyEl = btn.querySelector('.class-skill-key');
                     if (keyEl) keyEl.textContent = keyLabel;
                     btn.querySelector('.class-skill-label').textContent = sk.name.length > 4 ? sk.name.slice(0, 4) : sk.name;
@@ -611,17 +626,305 @@
             const fill = $('class-resource-fill');
             const text = $('class-resource-text');
             const wrap = $('class-resource-bar');
+            const precRow = $('precision-stack-row');
+            const precDots = $('precision-stack-dots');
             if (!fill || !wrap) return;
             const st = window.getPlayerResourceState(this.game.player);
             if (!st.family) {
                 wrap.style.display = 'none';
+                if (precRow) precRow.style.display = 'none';
                 return;
             }
             wrap.style.display = 'flex';
             const pct = st.max > 0 ? (st.current / st.max) * 100 : 0;
             fill.style.width = pct + '%';
             fill.dataset.family = st.family;
-            if (text) text.textContent = `${Math.floor(st.current)}/${st.max}`;
+            if (text) {
+                text.textContent = `${Math.floor(st.current)}/${st.max}`;
+                if (typeof window.isAssassinTreePlayer === 'function'
+                    && window.isAssassinTreePlayer(this.game.player)) {
+                    const sec = typeof window.getAssassinSecondaryResource === 'function'
+                        ? window.getAssassinSecondaryResource(this.game.player) : null;
+                if (sec && sec.type) {
+                    // 骗术师的幻象值暂不显示
+                    if (sec.type !== 'illusion') {
+                        const labels = { combo_point: '连击', catalyst: '催化' };
+                        text.textContent += ` · ${labels[sec.type] || sec.type} ${Math.floor(sec.current || 0)}/${sec.max}`;
+                    }
+                }
+                    const combo = this.game.player._shadowCombo || 0;
+                    if (combo > 0) text.title = `影之连击 ${combo}`;
+                }
+                text.dataset.family = st.family;
+                const theme = window.getClassThemeColor && window.getClassThemeColor(this.game.player.classData);
+                if (theme) text.style.color = theme;
+            }
+            const phaseEl = $('element-phase-indicator');
+            if (phaseEl && typeof window.getElementPhase === 'function') {
+                const phase = window.getElementPhase(this.game.player);
+                const showWizard = typeof window.isWizardTreePlayer === 'function'
+                    && window.isWizardTreePlayer(this.game.player);
+                const showMage = typeof window.isBaseMagePhasePlayer === 'function'
+                    && window.isBaseMagePhasePlayer(this.game.player);
+                if (phase && (showWizard || showMage)) {
+                    phaseEl.style.display = 'block';
+                    const isArchmage = showWizard && typeof window.getActiveClassId === 'function'
+                        && window.getActiveClassId(this.game.player.classData) === 'archmage';
+                    const bridgeActive = isArchmage && typeof window.isInBridgeWindow === 'function'
+                        && window.isInBridgeWindow(this.game.player);
+                    phaseEl.textContent = phase === 'fire' ? '灼热相位'
+                        : phase === 'frost' ? '极寒相位'
+                        : phase === 'overload' ? '过载相位'
+                        : phase === 'awakening' ? (isArchmage ? '化身相位' : '觉醒相位')
+                        : phase === 'arctic' ? '极寒相位' : phase;
+                    if (bridgeActive) {
+                        const fusion = typeof window.getBridgeFusionType === 'function'
+                            ? window.getBridgeFusionType(this.game.player) : null;
+                        const fusionLabel = fusion === 'magma' ? '熔岩桥'
+                            : fusion === 'tempest' ? '暴风桥' : fusion === 'plasma' ? '等离子桥' : '桥接';
+                        phaseEl.textContent += ' · ' + fusionLabel;
+                    }
+                    phaseEl.dataset.phase = phase;
+                } else if (phaseEl) {
+                    phaseEl.style.display = 'none';
+                }
+            }
+            const showPrec = typeof window.isMarksmanTreePlayer === 'function'
+                && window.isMarksmanTreePlayer(this.game.player);
+            if (precRow && precDots) {
+                if (showPrec) {
+                    precRow.style.display = 'flex';
+                    const stacks = typeof window.getPrecisionStacks === 'function'
+                        ? window.getPrecisionStacks(this.game.player) : 0;
+                    const hold = typeof window.getPrecisionHoldBonuses === 'function'
+                        ? window.getPrecisionHoldBonuses(this.game.player) : { attackPercent: 0, critRate: 0 };
+                    let dots = '';
+                    const maxPrec = typeof window.getMaxPrecisionStacks === 'function'
+                        ? window.getMaxPrecisionStacks() : 5;
+                    for (let i = 0; i < maxPrec; i++) {
+                        dots += `<span class="precision-dot${i < stacks ? ' active' : ''}"></span>`;
+                    }
+                    if (hold.attackPercent > 0 || hold.critRate > 0) {
+                        dots += `<span class="precision-hold-bonus">+${hold.attackPercent}%攻 +${hold.critRate}%暴</span>`;
+                    }
+                    precDots.innerHTML = dots;
+                } else {
+                    precRow.style.display = 'none';
+                    precDots.innerHTML = '';
+                }
+            }
+            this.updateWarlockCounters();
+            this.updateSurgeIndicator();
+            this.updateWizardResonanceIndicator();
+            this.updateArchmageBridgeIndicator();
+        }
+
+        updateArchmageBridgeIndicator() {
+            const row = $('archmage-bridge-row');
+            const fill = $('archmage-bridge-fill');
+            const hint = $('archmage-fusion-hint');
+            const player = this.game && this.game.player;
+            if (!row || !fill || !hint || !player) return;
+            const isArchmage = typeof window.getActiveClassId === 'function'
+                && window.getActiveClassId(player.classData) === 'archmage';
+            if (!isArchmage) {
+                row.style.display = 'none';
+                return;
+            }
+            const bridgeRem = typeof window.getArchmageBridgeRemaining === 'function'
+                ? window.getArchmageBridgeRemaining(player) : 0;
+            const bridgeMax = typeof window.getArchmageBridgeMaxMs === 'function'
+                ? window.getArchmageBridgeMaxMs(player) : 3000;
+            const fusionLabel = typeof window.getArchmageFusionLabel === 'function'
+                ? window.getArchmageFusionLabel(player) : null;
+            const stacks = typeof window.getWizardResonanceStacks === 'function'
+                ? window.getWizardResonanceStacks(player) : 0;
+
+            if (bridgeRem <= 0 || !fusionLabel) {
+                row.style.display = 'none';
+                hint.textContent = '';
+                hint.classList.remove('ready');
+                return;
+            }
+            row.style.display = 'flex';
+            const pct = bridgeMax > 0 ? (bridgeRem / bridgeMax) * 100 : 0;
+            fill.style.width = pct + '%';
+            fill.classList.toggle('sanctuary', !!player._triSanctuaryActive);
+            hint.textContent = fusionLabel;
+            hint.classList.toggle('ready', stacks >= 1);
+            hint.title = stacks >= 1
+                ? '长按元素熔爆 ≥0.4s 可释放' + fusionLabel
+                : '需要至少 1 层共鸣才能熔合';
+        }
+
+        updateWizardResonanceIndicator() {
+            const row = $('surge-stack-row');
+            const dotsEl = $('surge-stack-dots');
+            const timerEl = $('surge-awakening-timer');
+            const player = this.game && this.game.player;
+            const showMage = player && typeof window.isBaseMagePhasePlayer === 'function'
+                && window.isBaseMagePhasePlayer(player);
+            if (showMage) return;
+            const showWizard = player && typeof window.isWizardTreePlayer === 'function'
+                && window.isWizardTreePlayer(player)
+                && typeof window.getActiveClassId === 'function'
+                && (window.getActiveClassId(player.classData) === 'wizard'
+                    || window.getActiveClassId(player.classData) === 'archmage');
+            if (!row || !dotsEl || !showWizard) return;
+            const isArchmage = window.getActiveClassId(player.classData) === 'archmage';
+            const labelEl = row.querySelector('.surge-stack-label');
+            if (labelEl) labelEl.textContent = '共鸣';
+            const stacks = typeof window.getWizardResonanceStacks === 'function'
+                ? window.getWizardResonanceStacks(player) : 0;
+            const libRem = typeof window.getWizardLiberationRemaining === 'function'
+                ? window.getWizardLiberationRemaining(player) : 0;
+            const awakenRem = typeof window.getWizardAwakeningRemaining === 'function'
+                ? window.getWizardAwakeningRemaining(player) : 0;
+            const bridgeRem = isArchmage && typeof window.getArchmageBridgeRemaining === 'function'
+                ? window.getArchmageBridgeRemaining(player) : 0;
+            const riftRem = isArchmage && typeof window.getArchmageRiftRemaining === 'function'
+                ? window.getArchmageRiftRemaining(player) : 0;
+            if (stacks <= 0 && libRem <= 0 && awakenRem <= 0 && bridgeRem <= 0 && riftRem <= 0) {
+                row.style.display = 'none';
+                dotsEl.innerHTML = '';
+                if (timerEl) timerEl.textContent = '';
+                return;
+            }
+            row.style.display = 'flex';
+            let dots = '';
+            if (awakenRem > 0 || libRem > 0) {
+                for (let i = 0; i < 4; i++) {
+                    dots += '<span class="surge-dot active tier-gold"></span>';
+                }
+            } else {
+                for (let i = 0; i < 4; i++) {
+                    const active = i < stacks;
+                    const gold = active && stacks >= 4;
+                    dots += `<span class="surge-dot${active ? ' active' : ''}${gold ? ' tier-gold' : ''}"></span>`;
+                }
+            }
+            dotsEl.innerHTML = dots;
+            if (timerEl) {
+                if (awakenRem > 0) {
+                    timerEl.textContent = (isArchmage ? '化身 ' : '觉醒 ') + (awakenRem / 1000).toFixed(1) + 's';
+                } else if (libRem > 0) {
+                    timerEl.textContent = '解放 ' + (libRem / 1000).toFixed(1) + 's';
+                } else if (bridgeRem > 0) {
+                    const fusionLabel = typeof window.getArchmageFusionLabel === 'function'
+                        ? window.getArchmageFusionLabel(player) : null;
+                    timerEl.textContent = '桥接 ' + (bridgeRem / 1000).toFixed(1) + 's'
+                        + (fusionLabel ? ' · ' + fusionLabel : '');
+                } else if (riftRem > 0) {
+                    timerEl.textContent = '裂隙 ' + (riftRem / 1000).toFixed(1) + 's · 连按返回';
+                } else {
+                    timerEl.textContent = stacks >= 3 ? '即将解放' : (stacks > 0 ? '共鸣' : '');
+                }
+            }
+        }
+
+        updateSurgeIndicator() {
+            const row = $('surge-stack-row');
+            const dotsEl = $('surge-stack-dots');
+            const timerEl = $('surge-awakening-timer');
+            const player = this.game && this.game.player;
+            const show = player && typeof window.isBaseMagePhasePlayer === 'function'
+                && window.isBaseMagePhasePlayer(player);
+            if (!row || !dotsEl) return;
+            if (!show) {
+                row.style.display = 'none';
+                dotsEl.innerHTML = '';
+                if (timerEl) timerEl.textContent = '';
+                return;
+            }
+            const stacks = typeof window.getBaseMageSurgeStacks === 'function'
+                ? window.getBaseMageSurgeStacks(player) : 0;
+            const awakenRem = typeof window.getBaseMageSurgeAwakeningRemaining === 'function'
+                ? window.getBaseMageSurgeAwakeningRemaining(player) : 0;
+            if (stacks <= 0 && awakenRem <= 0) {
+                row.style.display = 'none';
+                dotsEl.innerHTML = '';
+                if (timerEl) timerEl.textContent = '';
+                return;
+            }
+            row.style.display = 'flex';
+            let dots = '';
+            if (awakenRem > 0) {
+                for (let i = 0; i < 4; i++) {
+                    dots += '<span class="surge-dot active tier-gold"></span>';
+                }
+            } else {
+                for (let i = 0; i < 4; i++) {
+                    const active = i < stacks;
+                    const gold = active && stacks >= 3;
+                    dots += `<span class="surge-dot${active ? ' active' : ''}${gold ? ' tier-gold' : ''}"></span>`;
+                }
+            }
+            dotsEl.innerHTML = dots;
+            if (timerEl) {
+                if (awakenRem > 0) {
+                    timerEl.textContent = '觉醒 ' + (awakenRem / 1000).toFixed(1) + 's';
+                } else {
+                    timerEl.textContent = stacks >= 2 ? (stacks >= 3 ? '共振' : '回响') : '';
+                }
+            }
+        }
+
+        updateWarlockCounters() {
+            const soulRow = $('warlock-soul-row');
+            const soulEl = $('soul-shard-counter');
+            const undeadRow = $('undead-legion-row');
+            const undeadEl = $('undead-legion-counter');
+            const player = this.game && this.game.player;
+            const isWarlock = player && typeof window.isWarlockTreePlayer === 'function'
+                && window.isWarlockTreePlayer(player);
+            const st = player && typeof window.getPlayerResourceState === 'function'
+                ? window.getPlayerResourceState(player) : null;
+            if (soulRow && soulEl) {
+                if (isWarlock && st && st.family === 'soul_shard_v2') {
+                    soulRow.style.display = 'flex';
+                    const burn = typeof window.isSoulBurning === 'function' && window.isSoulBurning(player);
+                    const cur = Math.floor(st.current);
+                    const max = st.max || 8;
+                    soulEl.textContent = burn ? (cur + '🔥/' + max) : (cur + '/' + max);
+                    soulEl.title = burn ? '灵魂燃烧中' : ('灵魂碎片 ' + cur + '/' + max);
+                } else {
+                    soulRow.style.display = 'none';
+                }
+            }
+            if (undeadRow && undeadEl) {
+                if (!isWarlock || !player) {
+                    undeadRow.style.display = 'none';
+                } else {
+                    let n = 0;
+                    const g = this.game;
+                    if (g && g._skillEntities && g._skillEntities.summons) {
+                        n = g._skillEntities.summons.filter(
+                            s => s && s.owner === player && s.isUndead && s.hp > 0
+                        ).length;
+                    }
+                    undeadRow.style.display = n > 0 ? 'flex' : 'none';
+                    undeadEl.textContent = String(n);
+                }
+            }
+            const resonanceRow = $('death-resonance-row');
+            const resonanceEl = $('death-resonance-counter');
+            if (resonanceRow && resonanceEl) {
+                const isNecro = player && typeof window.getDeathResonanceStacks === 'function'
+                    && typeof window.getActiveClassId === 'function'
+                    && window.getActiveClassId(player.classData) === 'necromancer';
+                if (isNecro) {
+                    const stacks = window.getDeathResonanceStacks(player);
+                    resonanceRow.style.display = 'flex';
+                    resonanceEl.textContent = stacks + '/5';
+                    resonanceEl.title = stacks >= 5
+                        ? '死者共鸣已满：下次灵魂收割免费且×1.5伤害'
+                        : ('死者共鸣 ' + stacks + '/5：死亡缠绕命中诅咒目标叠层');
+                    resonanceEl.classList.toggle('resonance-full', stacks >= 5);
+                } else {
+                    resonanceRow.style.display = 'none';
+                    resonanceEl.classList.remove('resonance-full');
+                }
+            }
         }
 
         updateStatusBuffs() {
@@ -694,6 +997,7 @@
 
         updateAll() {
             this.updateResourceBar();
+            this.updateWarlockCounters();
             this.updateSkillBar();
             this.updateStatusBuffs();
         }

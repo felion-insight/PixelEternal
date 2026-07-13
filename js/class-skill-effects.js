@@ -464,6 +464,18 @@
         if (id.includes('wind_mark') || id.includes('wind')) {
             return { stroke: '#44ddcc', glow: '#22aa99', core: '#e8fffa', label: '风', badge: '#33ddcc' };
         }
+        if (id.includes('soul_link') || id.includes('soul')) {
+            return { stroke: '#6644cc', glow: '#442288', core: '#ddccff', label: '魂', badge: '#8866ff' };
+        }
+        if (id.includes('pack_roar') || id.includes('pack')) {
+            return { stroke: '#cc8844', glow: '#aa6622', core: '#ffe8cc', label: '群', badge: '#dd9933' };
+        }
+        if (id.includes('shadow_bind') || id.includes('bind')) {
+            return { stroke: '#664488', glow: '#442266', core: '#ccaaee', label: '缚', badge: '#8855cc' };
+        }
+        if (id.includes('hunters_mark')) {
+            return { stroke: '#ffcc44', glow: '#ddaa22', core: '#fff8cc', label: '猎', badge: '#ffaa33' };
+        }
         return { stroke: '#ffcc44', glow: '#ddaa22', core: '#fff8cc', label: '猎', badge: '#ffaa33' };
     }
 
@@ -485,6 +497,7 @@
             executeMultiplier: opts.executeMultiplier,
             name: (skillDef && skillDef.name) || opts.name || '标记',
             markId: (skillDef && skillDef.id) || opts.markId || 'hunters_mark',
+            deathSentence: !!opts.deathSentence,
             owner: opts.owner || null,
             petDamageBonus: opts.petDamageBonus || 0,
             phantomEchoDamageBonus: opts.phantomEchoDamageBonus || 0,
@@ -593,8 +606,15 @@
         if (typeof window.applyWarlockSkillPrimary === 'function') {
             const warOk = window.applyWarlockSkillPrimary(player, skillDef, g, now, ctx);
             if (warOk) return true;
+            const warlockOnly = ['life_drain', 'agony_curse', 'soul_link', 'spreading_curse', 'soul_harvest', 'dark_harvest'];
+            if (warlockOnly.includes(se.type)) return false;
         }
-        if (se.type === 'elemental_liberation' || se.type === 'meteor_liberation') {
+        if (typeof window.applyAssassinSkillPrimary === 'function') {
+            const asnOk = window.applyAssassinSkillPrimary(player, skillDef, g, now, ctx);
+            if (asnOk) return true;
+        }
+        if (se.type === 'elemental_liberation' || se.type === 'meteor_liberation'
+            || se.type === 'wizard_awakening') {
             if (typeof window.applyElementalLiberationEffect === 'function') {
                 return window.applyElementalLiberationEffect(player, skillDef, g, now);
             }
@@ -1153,7 +1173,7 @@
         return ['ice_armor', 'damage_reduction', 'shield', 'guard', 'taunt', 'heal', 'cleanse', 'invincible_field',
             'raise_shield', 'divine_bastion', 'sacred_bond', 'damage_redirect', 'sacred_sacrifice',
             'foresight_shield', 'purify_time', 'chrono_aura', 'sacred_rewind', 'time_field', 'fate_weave',
-            'fate_reversal', 'time_rewind', 'agony_curse', 'life_drain', 'dark_harvest', 'spreading_curse',
+            'fate_reversal', 'time_rewind', 'agony_curse', 'life_drain', 'soul_link', 'dark_harvest', 'spreading_curse',
             'soul_harvest', 'elemental_liberation', 'meteor_liberation'].includes(t);
     };
 })();

@@ -9,7 +9,9 @@
       "durationMs": 4000,
       "tickIntervalMs": 1000,
       "damagePerTickRatio": 0.2,
-      "damageType": "fire"
+      "damageType": "fire",
+      "stackable": true,
+      "maxStacks": 5
     },
     "frostbite": {
       "id": "frostbite",
@@ -37,7 +39,7 @@
       "durationMs": 4000,
       "tickIntervalMs": 1000,
       "damagePerTickRatio": 0.15,
-      "maxStacks": 5,
+      "maxStacks": 0,
       "stackable": true
     },
     "bleed": {

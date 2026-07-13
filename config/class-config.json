@@ -45,7 +45,9 @@
         "guardian"
       ],
       "battleRole": "striker",
-      "battleRoleName": "强攻手·基础"
+      "battleRoleName": "强攻手·基础",
+      "themeColor": "#cc6633",
+      "themeLabel": "锻钢、坚韧"
     },
     "archer": {
       "id": "archer",
@@ -91,7 +93,9 @@
         "windrunner"
       ],
       "battleRole": "striker",
-      "battleRoleName": "强攻手·远程"
+      "battleRoleName": "强攻手·远程",
+      "themeColor": "#55aa55",
+      "themeLabel": "精准、灵动"
     },
     "mage": {
       "id": "mage",
@@ -137,45 +141,50 @@
         "warlock"
       ],
       "battleRole": "anomaly",
-      "battleRoleName": "异常手·元素"
+      "battleRoleName": "异常手·元素",
+      "themeColor": "#8866cc",
+      "themeLabel": "秘法、元素"
     },
     "assassin": {
       "id": "assassin",
       "name": "刺客",
-      "description": "刺客 — 基础职业",
+      "description": "暗影中的舞者，以极致的操作换取毁灭性的爆发。全职业最脆弱但上限最高。",
       "icon": "assets/icons/classes/assassin.png",
       "role": "mdps",
+      "difficulty": 5,
       "baseStats": {
-        "hp": 90,
-        "attack": 11,
-        "defense": 4,
-        "magicAttack": 6,
-        "magicDefense": 5,
-        "speed": 8,
-        "critical": 10,
-        "dodge": 12
+        "hp": 85,
+        "attack": 12,
+        "defense": 3,
+        "magicAttack": 5,
+        "magicDefense": 4,
+        "speed": 9,
+        "critical": 12,
+        "dodge": 15
       },
       "growthPerLevel": {
-        "hp": 14,
-        "attack": 2.8,
-        "defense": 0.9,
-        "magicAttack": 0.6,
-        "magicDefense": 0.7,
-        "speed": 0.4,
-        "critical": 0.55,
-        "dodge": 0.35
+        "hp": 12,
+        "attack": 3.0,
+        "defense": 0.7,
+        "magicAttack": 0.5,
+        "magicDefense": 0.6,
+        "speed": 0.45,
+        "critical": 0.6,
+        "dodge": 0.4
       },
       "resource": {
-        "type": "energy",
-        "max": 120,
-        "regen": 12
+        "type": "shadow_force",
+        "name": "影之力",
+        "max": 100,
+        "regen": 0,
+        "tooltip": "普攻+8 | 背刺+12 | 完美闪避+30 | 弹反成功+100"
       },
       "skills": [
         "assassin_basic",
-        "shadow_step",
-        "smoke_bomb",
-        "poison_dagger",
-        "assassination"
+        "shadow_pierce",
+        "shadow_vortex",
+        "shadow_bind",
+        "midnight_raid"
       ],
       "advancements": [
         "shadowdancer",
@@ -183,7 +192,8 @@
         "venomancer"
       ],
       "battleRole": "switch",
-      "battleRoleName": "速切手·敏捷"
+      "battleRoleName": "速切手·敏捷",
+      "themeColor": "#6644aa"
     }
   },
   "firstAdvancements": {
@@ -422,7 +432,7 @@
       "name": "巫师",
       "baseClass": "mage",
       "requiredLevel": 20,
-      "description": "元素相位循环 — 灼热爆发与霜寒回能交替，触发元素共鸣进入解放状态。",
+      "description": "元素舞者 — 三相位轮转驱动技能形态变换，切换叠共鸣层触发元素解放。",
       "icon": "assets/icons/classes/wizard.png",
       "role": "rdps",
       "statsModifier": {
@@ -450,14 +460,17 @@
       "classPassive": "elemental_rhythm",
       "skillEvolution": {
         "slot": "core1",
-        "first": "flame_bolt",
-        "second": "lava_storm",
+        "first": "elemental_burst",
+        "second": "elemental_burst",
         "core2Slot": "core2",
-        "core2First": "chain_lightning",
-        "core2Second": "aurora_beam",
+        "core2First": "phase_shift",
+        "core2Second": "phase_shift",
+        "teamSlot": "team",
+        "teamFirst": "resonance_field",
+        "teamSecond": "resonance_field",
         "survivalSlot": "survival",
-        "survivalFirst": "elemental_symphony",
-        "survivalSecond": "meteor"
+        "survivalFirst": "elemental_awakening",
+        "survivalSecond": "elemental_awakening"
       }
     },
     "sage": {
@@ -511,7 +524,7 @@
       "name": "术士",
       "baseClass": "mage",
       "requiredLevel": 20,
-      "description": "诅咒DOT与灵魂碎片经济 — 击杀与DOT产碎片，消耗碎片召唤与引爆。",
+      "description": "诅咒织网与灵魂引爆 — 3连暗影箭、诅咒引爆、灵魂链接与暗黑漩涡。",
       "icon": "assets/icons/classes/warlock.png",
       "role": "rdps",
       "statsModifier": {
@@ -560,12 +573,13 @@
       "name": "影舞者",
       "baseClass": "assassin",
       "requiredLevel": 20,
-      "description": "影舞者",
+      "description": "精准的暗杀者，以背刺和连击点驱动的爆发循环消灭目标。",
       "icon": "assets/icons/classes/shadowdancer.png",
       "role": "mdps",
+      "difficulty": 4,
       "statsModifier": {
         "hp": 0.95,
-        "attack": 1.2,
+        "attack": 1.35,
         "defense": 0.9,
         "magicAttack": 0.95,
         "magicDefense": 0.95,
@@ -574,8 +588,8 @@
         "dodge": 1.2
       },
       "resource": {
-        "type": "combo_point",
-        "max": 5,
+        "type": "shadow_force",
+        "max": 100,
         "regen": 0
       },
       "advancements": [
@@ -583,10 +597,21 @@
       ],
       "battleRole": "breaker",
       "battleRoleName": "击破手·爆发",
+      "themeColor": "#7733aa",
+      "classPassive": "shadow_rhythm_pre",
       "skillEvolution": {
         "slot": "core1",
         "first": "backstab",
-        "second": "shadow_assault"
+        "second": "assassinate",
+        "core2Slot": "core2",
+        "core2First": "shadow_raid",
+        "core2Second": "shadow_dance",
+        "teamSlot": "team",
+        "teamFirst": "shadow_death_mark",
+        "teamSecond": "death_sentence",
+        "survivalSlot": "survival",
+        "survivalFirst": "nightfall",
+        "survivalSecond": "eternal_night"
       }
     },
     "trickster": {
@@ -594,9 +619,10 @@
       "name": "骗术师",
       "baseClass": "assassin",
       "requiredLevel": 20,
-      "description": "骗术师",
+      "description": "操纵分身的幻术大师，以虚实掩人耳目、以分身代替自身承受伤害。",
       "icon": "assets/icons/classes/trickster.png",
       "role": "support",
+      "difficulty": 4,
       "statsModifier": {
         "hp": 1,
         "attack": 1,
@@ -608,19 +634,30 @@
         "dodge": 1.15
       },
       "resource": {
-        "type": "illusion",
+        "type": "shadow_force",
         "max": 100,
-        "regen": 8
+        "regen": 0
       },
       "advancements": [
         "illusionist"
       ],
       "battleRole": "switch",
       "battleRoleName": "速切手·控制",
+      "themeColor": "#6688cc",
+      "classPassive": "indistinguishable_pre",
       "skillEvolution": {
-        "slot": "core2",
-        "first": "illusion",
-        "second": "quintuple_illusion"
+        "slot": "core1",
+        "first": "transposition",
+        "second": "phantom_reality",
+        "core2Slot": "core2",
+        "core2First": "decoy",
+        "core2Second": "mirror_domain",
+        "teamSlot": "team",
+        "teamFirst": "phantom_trick",
+        "teamSecond": "shadow_feast",
+        "survivalSlot": "survival",
+        "survivalFirst": "reality_shift",
+        "survivalSecond": "phantom_array"
       }
     },
     "venomancer": {
@@ -628,9 +665,10 @@
       "name": "毒师",
       "baseClass": "assassin",
       "requiredLevel": 20,
-      "description": "毒师",
+      "description": "毒术专家，以层层叠加的猛毒消磨敌人，在毒雾中优雅地收割生命。",
       "icon": "assets/icons/classes/venomancer.png",
       "role": "mdps",
+      "difficulty": 3,
       "statsModifier": {
         "hp": 1.05,
         "attack": 1.05,
@@ -642,8 +680,8 @@
         "dodge": 1
       },
       "resource": {
-        "type": "poison_stack",
-        "max": 10,
+        "type": "shadow_force",
+        "max": 100,
         "regen": 0
       },
       "advancements": [
@@ -651,10 +689,21 @@
       ],
       "battleRole": "anomaly",
       "battleRoleName": "异常手·DOT",
+      "themeColor": "#44aa22",
+      "classPassive": "toxicology_pre",
       "skillEvolution": {
         "slot": "core1",
-        "first": "venom_blade",
-        "second": "plague_blade"
+        "first": "venom_sting",
+        "second": "lethal_venom",
+        "core2Slot": "core2",
+        "core2First": "poison_mist",
+        "core2Second": "plague_cloud",
+        "teamSlot": "team",
+        "teamFirst": "contagion",
+        "teamSecond": "pandemic",
+        "survivalSlot": "survival",
+        "survivalFirst": "toxin_detonation",
+        "survivalSecond": "withering"
       }
     }
   },
@@ -723,7 +772,9 @@
         "dodge": 0.65
       },
       "battleRole": "support",
-      "battleRoleName": "支援手·守护坦"
+      "battleRoleName": "支援手·守护坦",
+      "themeColor": "#ccaa44",
+      "themeLabel": "圣殿、守护"
     },
     "beastmaster": {
       "id": "beastmaster",
@@ -850,22 +901,43 @@
       "name": "大魔导师",
       "firstAdvancement": "wizard",
       "requiredLevel": 40,
-      "description": "元素解放与四元素共鸣 — 熔岩风暴、极光束与陨石终极爆发。",
+      "description": "元素融合者 — 相位桥梁、双元素熔合、维度裂隙与元素化身。",
       "icon": "assets/icons/classes/archmage.png",
       "role": "rdps",
       "statsModifier": {
-        "hp": 0.85,
-        "attack": 0.8,
-        "defense": 0.8,
-        "magicAttack": 1.45,
+        "hp": 0.95,
+        "attack": 0.85,
+        "defense": 0.85,
+        "magicAttack": 1.5,
         "magicDefense": 1.1,
-        "speed": 0.9,
+        "speed": 0.95,
         "critical": 1.15,
-        "dodge": 0.85
+        "dodge": 0.9
+      },
+      "resource": {
+        "type": "elemental_power",
+        "max": 100,
+        "regen": 0
       },
       "classPassive": "elemental_mastery",
+      "skillEvolution": {
+        "slot": "core1",
+        "first": "elemental_burst",
+        "second": "elemental_burst",
+        "core2Slot": "core2",
+        "core2First": "phase_shift",
+        "core2Second": "phase_shift",
+        "teamSlot": "team",
+        "teamFirst": "resonance_field",
+        "teamSecond": "resonance_field",
+        "survivalSlot": "survival",
+        "survivalFirst": "elemental_awakening",
+        "survivalSecond": "elemental_awakening"
+      },
       "battleRole": "striker",
-      "battleRoleName": "强攻手·元素"
+      "battleRoleName": "强攻手·元素",
+      "themeColor": "#ee4400",
+      "themeLabel": "熔火、融合"
     },
     "oracle": {
       "id": "oracle",
@@ -886,8 +958,32 @@
         "dodge": 0.9
       },
       "classPassive": "paradox_walker",
+      "resource": {
+        "type": "chronos_sand",
+        "max": 100,
+        "regen": 3
+      },
+      "skillEvolution": {
+        "slot": "basic",
+        "first": "timely_shot",
+        "second": "timely_shot_plus",
+        "core1Slot": "core1",
+        "core1First": "foresight_shield",
+        "core1Second": "time_field",
+        "core2Slot": "core2",
+        "core2First": "purify_time",
+        "core2Second": "fate_weave",
+        "teamSlot": "team",
+        "teamFirst": "chrono_aura",
+        "teamSecond": "fate_reversal",
+        "survivalSlot": "survival",
+        "survivalFirst": "sacred_rewind",
+        "survivalSecond": "time_rewind"
+      },
       "battleRole": "support",
-      "battleRoleName": "支援手·时空"
+      "battleRoleName": "支援手·时空",
+      "themeColor": "#7788ee",
+      "themeLabel": "时光、命运"
     },
     "necromancer": {
       "id": "necromancer",
@@ -908,20 +1004,28 @@
         "dodge": 0.8
       },
       "classPassive": "undeath_sovereign",
+      "resource": {
+        "type": "soul_shard",
+        "max": 8,
+        "regen": 0
+      },
       "battleRole": "anomaly",
-      "battleRoleName": "异常手·亡灵"
+      "battleRoleName": "异常手·亡灵",
+      "themeColor": "#552288",
+      "themeLabel": "亡灵、凋零"
     },
     "nightblade": {
       "id": "nightblade",
       "name": "夜刃",
       "firstAdvancement": "shadowdancer",
       "requiredLevel": 40,
-      "description": "夜刃",
+      "description": "暗影中的死神。处决敌人如同割草，在永夜领域中无人能逃脱他的刀刃。",
       "icon": "assets/icons/classes/nightblade.png",
       "role": "mdps",
+      "difficulty": 5,
       "statsModifier": {
         "hp": 0.9,
-        "attack": 1.3,
+        "attack": 1.45,
         "defense": 0.85,
         "magicAttack": 1,
         "magicDefense": 0.9,
@@ -930,16 +1034,19 @@
         "dodge": 1.25
       },
       "battleRole": "breaker",
-      "battleRoleName": "击破手·暗杀"
+      "battleRoleName": "击破手·暗杀",
+      "themeColor": "#330066",
+      "classPassive": "shadow_rhythm"
     },
     "illusionist": {
       "id": "illusionist",
       "name": "幻术师",
       "firstAdvancement": "trickster",
       "requiredLevel": 40,
-      "description": "幻术师",
+      "description": "虚实领域的掌控者。当他布下镜影结界，战场便成为他的个人舞台。",
       "icon": "assets/icons/classes/illusionist.png",
       "role": "support",
+      "difficulty": 5,
       "statsModifier": {
         "hp": 0.95,
         "attack": 1.05,
@@ -951,16 +1058,19 @@
         "dodge": 1.2
       },
       "battleRole": "switch",
-      "battleRoleName": "速切手·幻象"
+      "battleRoleName": "速切手·幻象",
+      "themeColor": "#3344aa",
+      "classPassive": "indistinguishable"
     },
     "plaguebringer": {
       "id": "plaguebringer",
       "name": "瘟疫使者",
       "firstAdvancement": "venomancer",
       "requiredLevel": 40,
-      "description": "瘟疫使者",
+      "description": "行走的瘟疫之源。他的毒素如疫病般蔓延，所过之处寸草不生。",
       "icon": "assets/icons/classes/plaguebringer.png",
       "role": "mdps",
+      "difficulty": 4,
       "statsModifier": {
         "hp": 1.1,
         "attack": 1.1,
@@ -972,7 +1082,9 @@
         "dodge": 0.95
       },
       "battleRole": "anomaly",
-      "battleRoleName": "异常手·瘟疫"
+      "battleRoleName": "异常手·瘟疫",
+      "themeColor": "#228800",
+      "classPassive": "toxicology"
     }
   },
   "battleRoles": {
@@ -1165,18 +1277,22 @@
     },
     "wizard": {
       "slot": "core1",
-      "first": "flame_bolt",
-      "second": "lava_storm"
-    },
-    "sage": {
-      "slot": "core2",
-      "first": "holy_light",
-      "second": "time_field"
+      "first": "elemental_burst",
+      "second": "elemental_burst",
+      "core2Slot": "core2",
+      "core2First": "phase_shift",
+      "core2Second": "phase_shift",
+      "teamSlot": "team",
+      "teamFirst": "resonance_field",
+      "teamSecond": "resonance_field",
+      "survivalSlot": "survival",
+      "survivalFirst": "elemental_awakening",
+      "survivalSecond": "elemental_awakening"
     },
     "warlock": {
       "slot": "team",
-      "first": "summon_skeleton",
-      "second": "skeleton_legion"
+      "first": "summon_skeleton_warrior",
+      "second": "undead_legion"
     },
     "shadowdancer": {
       "slot": "core1",

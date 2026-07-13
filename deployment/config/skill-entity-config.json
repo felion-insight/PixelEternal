@@ -69,13 +69,25 @@
     "archer_basic": {
       "entityType": "projectile",
       "entityConfig": {
-        "speed": 700,
+        "speed": 950,
         "maxRange": 450,
-        "trajectory": "straight",
+        "trajectory": "cone_track",
+        "coneTrackDeg": 20,
+        "lockTargetCenter": true,
         "pierceCount": 0,
-        "collisionRadius": 12,
+        "collisionRadius": 18,
         "damageMultiplier": 1.0,
-        "color": "#88cc44"
+        "color": "#88cc44",
+        "comboChain": 3,
+        "comboStepProjectiles": [1, 2, 1],
+        "comboStepSpread": [0, 0, 0],
+        "comboStepPierce": [0, 0, 2],
+        "comboStepDamage": [1.0, 0.7, 1.6],
+        "comboStepResourcePerHit": [8, 5, 15],
+        "comboStepProjectileStagger": [0, 70, 0],
+        "comboStepWindupMs": [0, 0, 180],
+        "comboStepSpeed": [950, 1100, 1050],
+        "hideVisual": true
       }
     },
     "backstep_shot": {
@@ -91,6 +103,10 @@
         "damageMultiplier": 0.6,
         "preCast": "backstep",
         "backstepDistance": 100,
+        "backstepDurationMs": 320,
+        "backstepPeakHeight": 32,
+        "projectileStaggerMs": 45,
+        "lockTargetCenter": true,
         "color": "#66aa33"
       }
     },
@@ -100,6 +116,7 @@
         "speed": 600,
         "maxRange": 500,
         "trajectory": "straight_toward_target",
+        "lockTargetCenter": true,
         "pierceCount": 0,
         "collisionRadius": 14,
         "damageMultiplier": 0.8,
@@ -124,14 +141,18 @@
     "aimed_shot": {
       "entityType": "projectile",
       "entityConfig": {
-        "speed": 900,
-        "maxRange": 600,
+        "speed": 1000,
+        "maxRange": 650,
         "trajectory": "straight_toward_target",
-        "pierceCount": 0,
-        "collisionRadius": 12,
-        "windupMs": 1000,
-        "damageMultiplier": 2.2,
+        "pierceCount": 3,
+        "collisionRadius": 10,
+        "windupMs": 250,
+        "damageMultiplier": 2.5,
         "guaranteedCrit": true,
+        "consumePrecisionStacks": true,
+        "precisionConsumeCount": 1,
+        "precisionCritDmgPerStack": 15,
+        "critRefundAmmo": 5,
         "color": "#ffff88"
       }
     },
@@ -141,12 +162,69 @@
         "speed": 1200,
         "maxRange": 700,
         "trajectory": "straight_toward_target",
-        "pierceCount": 0,
+        "pierceCount": 5,
         "collisionRadius": 14,
-        "windupMs": 800,
+        "windupMs": 1000,
         "damageMultiplier": 3.5,
+        "guaranteedCrit": true,
         "ignoreDefensePercent": 30,
+        "consumePrecisionStacks": true,
+        "precisionConsumeCount": 1,
+        "precisionCritDmgPerStack": 25,
+        "continueOnCritKill": true,
         "color": "#ffffff"
+      }
+    },
+    "weakness_mark_de": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 900,
+        "maxRange": 500,
+        "trajectory": "homing",
+        "pierceCount": 0,
+        "collisionRadius": 8,
+        "damageMultiplier": 0.5,
+        "guaranteedHit": true,
+        "markTarget": true,
+        "markDurationMs": 10000,
+        "markOwnerDamageBonus": 30,
+        "markOwnerCritDmgBonus": 15,
+        "markSpreadOnKill": true,
+        "markSpreadRadius": 120,
+        "markExplosionRadius": 90,
+        "markExplosionDamage": 1.8,
+        "emptyFieldHalfCD": true,
+        "grantPrecisionStacks": 2,
+        "color": "#ff3322"
+      }
+    },
+    "breath_hold": {
+      "entityType": "instant",
+      "entityConfig": {
+        "breathHold": true,
+        "durationMs": 8000,
+        "selfCritRate": 40,
+        "selfCritDmg": 25,
+        "teamAuraRadius": 300,
+        "teamCritDmgBonus": 15,
+        "color": "#ffcc88"
+      }
+    },
+    "deadeye_snipe": {
+      "entityType": "instant",
+      "entityConfig": {
+        "deadeyeSnipe": true,
+        "durationMs": 8000,
+        "shotCount": 5,
+        "shotIntervalMs": 1600,
+        "shotDamageMult": 8.0,
+        "shotAmmoCost": 4,
+        "ignoreDefensePercent": 40,
+        "markedTargetMult": 1.8,
+        "precisionCritDmgPerStack": 15,
+        "damageReduction": 30,
+        "resetTeamCDOnBossKill": true,
+        "color": "#ff0044"
       }
     },
     "shield_bash": {
@@ -203,11 +281,11 @@
         "knockback": 48,
         "slowMult": 0.6,
         "slowMs": 2000,
-        "stopOnFirstHit": false,
+        "stopOnFirstHit": true,
         "superArmor": false,
         "endFinish": "radial",
-        "endExplodeRadius": 55,
-        "endDamageMultiplier": 1.0,
+        "endExplodeRadius": 80,
+        "endDamageMultiplier": 1.2,
         "endStunMs": 800
       }
     },
@@ -294,30 +372,65 @@
       "entityType": "summon",
       "entityConfig": {
         "summonUnitId": "wolf_pet",
-        "spawnOffset": 50,
-        "durationMs": 20000,
-        "maxCount": 1,
-        "inheritStats": { "hp": 0.4, "attack": 0.3, "defense": 0.2 },
+        "spawnOffset": 55,
+        "durationMs": 0,
+        "permanent": true,
+        "maxCount": 2,
+        "spawnPerCast": 2,
+        "inheritStats": { "hp": 0.4, "attack": 0.35, "defense": 0.2 },
         "aiType": "melee_chase",
-        "attackIntervalMs": 1000,
+        "attackIntervalMs": 900,
         "size": 22,
         "color": "#888888",
-        "statusOnHit": [{ "type": "poison", "durationMs": 3000, "stacks": 1 }],
-        "ownerDamageBonusPercent": 10
+        "statusOnHit": [{ "type": "bleed", "durationMs": 3000 }],
+        "pounceCommand": true,
+        "pounceCooldownMs": 8000,
+        "pounceDamageMult": 1.5
       }
     },
     "beast_pack": {
       "entityType": "summon",
       "entityConfig": {
-        "summonUnitId": "wolf_pet",
-        "spawnOffset": 60,
-        "durationMs": 20000,
-        "maxCount": 3,
-        "inheritStats": { "hp": 0.35, "attack": 0.25, "defense": 0.15 },
-        "aiType": "melee_chase",
-        "attackIntervalMs": 900,
-        "size": 22,
-        "color": "#666666"
+        "beastPackCommand": true,
+        "commandCooldownMs": 3000,
+        "durationMs": 120000,
+        "capAndRefresh": true,
+        "wolfCount": 2,
+        "bearCount": 1,
+        "wolfInheritStats": { "hp": 0.5, "attack": 0.45, "defense": 0.3 },
+        "bearInheritStats": { "hp": 0.8, "attack": 0.3, "defense": 0.5 },
+        "wolfCommandDamageMult": 1.8,
+        "bearCommandBaseMult": 3.0,
+        "bearCommandSplashRadius": 80,
+        "spawnOffset": 55,
+        "attackIntervalMs": 900
+      }
+    },
+    "venom_trap": {
+      "entityType": "field",
+      "entityConfig": {
+        "targeted": true,
+        "fieldRadius": 60,
+        "fieldDurationMs": 8000,
+        "maxCount": 2,
+        "triggerType": "hunter_net",
+        "rootMs": 2000,
+        "petDamageBonusPercent": 30,
+        "color": "#88aa44"
+      }
+    },
+    "pack_roar": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 850,
+        "maxRange": 500,
+        "trajectory": "homing",
+        "guaranteedHit": true,
+        "markTarget": true,
+        "markDmgBonus": 0,
+        "petMarkDamageBonus": 40,
+        "markDurationMs": 8000,
+        "petFocusMark": true
       }
     },
     "summon_skeleton": {
@@ -352,8 +465,11 @@
     "frozen_trap": {
       "entityType": "field",
       "entityConfig": {
+        "targeted": true,
+        "autoLockOnTap": true,
         "fieldRadius": 60,
         "fieldDurationMs": 30000,
+        "maxCount": 3,
         "triggerType": "proximity_mine",
         "armDelayMs": 300,
         "invisible": true,
@@ -361,22 +477,45 @@
           "damageMultiplier": 1.0,
           "explodeRadius": 60,
           "freezeMs": 2000,
+          "enemySlowPercent": 40,
+          "enemySlowMs": 4000,
           "statusOnHit": [{ "type": "frostbite", "durationMs": 4000 }]
         },
         "color": "#88ddff"
+      }
+    },
+    "hunting_command": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 850,
+        "maxRange": 500,
+        "trajectory": "homing",
+        "guaranteedHit": true,
+        "lockTargetCenter": true,
+        "markTarget": true,
+        "markDmgBonus": 20,
+        "markDurationMs": 8000,
+        "petFocusMark": true,
+        "petMarkDamageBonus": 30,
+        "color": "#ff8833"
       }
     },
     "poison_mist": {
       "entityType": "field",
       "entityConfig": {
         "fieldRadius": 80,
-        "tickIntervalMs": 500,
-        "fieldDurationMs": 6000,
+        "tickIntervalMs": 1000,
+        "fieldDurationMs": 8000,
         "followCaster": false,
-        "targeted": false,
-        "spawnAtCaster": true,
+        "targeted": true,
+        "spawnAtCaster": false,
         "damageMultiplier": 0.3,
         "statusOnTick": [{ "type": "poison", "durationMs": 4000, "stacks": 1 }],
+        "enemySlowPercent": 20,
+        "damageAmpPerPoisonedEnemy": 10,
+        "damageAmpMax": 50,
+        "grantCatalystPerTick": 1,
+        "stealthSelfInField": true,
         "color": "#55aa44"
       }
     },
@@ -449,15 +588,37 @@
     "wind_blade": {
       "entityType": "projectile",
       "entityConfig": {
-        "speed": 750,
+        "speed": 820,
+        "maxRange": 400,
+        "trajectory": "cone_track",
+        "coneTrackDeg": 18,
+        "pierceCount": 99,
+        "collisionRadius": 30,
+        "windBladeWidth": 60,
+        "damageMultiplier": 1.0,
+        "visualVariant": "wind_blade",
+        "color": "#66eedd"
+      }
+    },
+    "wind_mark": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 900,
         "maxRange": 500,
-        "trajectory": "straight_toward_target",
-        "projectileCount": 3,
-        "spreadAngleDeg": 20,
-        "pierceCount": 2,
-        "collisionRadius": 12,
-        "damageMultiplier": 0.7,
-        "color": "#88eeff"
+        "trajectory": "homing",
+        "pierceCount": 0,
+        "collisionRadius": 10,
+        "damageMultiplier": 0.5,
+        "color": "#44ddcc",
+        "markTarget": true,
+        "markDmgBonus": 15,
+        "markCritBonus": 10,
+        "markWindDmgBonus": 50,
+        "markDurationMs": 8000,
+        "markExplosionRadius": 90,
+        "markExplosionDamage": 1.8,
+        "markExplosionKnockback": 45,
+        "onMarkKillReduceCD": { "skillId": "backstep_shot", "ms": 2000 }
       }
     },
     "piercing_arrow": {
@@ -550,29 +711,40 @@
       }
     },
     "phantom_clone": {
-      "entityType": "summon",
+      "entityType": "blink",
       "entityConfig": {
-        "summonUnitId": "phantom_clone",
-        "spawnOffset": 30,
-        "durationMs": 15000,
-        "maxCount": 1,
-        "inheritStats": { "hp": 0.25, "attack": 0.5, "defense": 0.1 },
-        "aiType": "mirror_player",
-        "attackIntervalMs": 800,
-        "size": 18,
-        "color": "#88aacc",
-        "damageMirrorRatio": 0.5
+        "distance": 150,
+        "direction": "facing",
+        "windupMs": 40,
+        "invincibleMs": 200,
+        "maxCharges": 2,
+        "grantMoveSpeed": 30,
+        "grantMoveSpeedMs": 4000,
+        "leaveEchoOnCast": true,
+        "echoDurationMs": 8000,
+        "echoDamagePercent": 70,
+        "echoReplayDelayMs": 350,
+        "dodgeBonusPerEcho": 8,
+        "echoMaxCount": 4
       }
     },
     "wind_step": {
       "entityType": "blink",
       "entityConfig": {
-        "distance": 80,
+        "distance": 120,
         "direction": "facing",
-        "windupMs": 50,
-        "grantMoveSpeed": 8,
+        "windupMs": 30,
+        "invincibleMs": 150,
+        "grantMoveSpeed": 50,
         "grantMoveSpeedMs": 4000,
-        "invincibleMs": 150
+        "onCastWindBlades": 3,
+        "windBladeDamageMultiplier": 0.5,
+        "windBladeSpreadDeg": 22,
+        "windBladeRange": 380,
+        "windBladeSpeed": 750,
+        "homingToMarkedTarget": true,
+        "perfectDodgeHalfCD": true,
+        "color": "#66eedd"
       }
     },
     "meteor": {
@@ -592,38 +764,109 @@
       "entityType": "instant",
       "entityConfig": {
         "shape": "radial",
-        "range": 140,
-        "damageMultiplier": 3.0,
-        "knockback": 40,
-        "statusOnHit": [{ "type": "poison", "durationMs": 4000, "stacks": 2 }]
+        "range": 120,
+        "damageMultiplier": 2.5,
+        "knockback": 35,
+        "petBloodlust": {
+          "durationMs": 12000,
+          "attackSpeedBonus": 80,
+          "damageBonus": 50,
+          "ccImmune": true,
+          "healFull": true
+        },
+        "spawnGhostWolves": {
+          "unitId": "ghost_wolf",
+          "count": 3,
+          "durationMs": 12000,
+          "inheritStats": { "hp": 0.35, "attack": 0.6, "defense": 0.15 }
+        }
       }
     },
     "death_gaze": {
       "entityType": "projectile",
       "entityConfig": {
-        "speed": 1500,
+        "speed": 1600,
         "maxRange": 800,
-        "trajectory": "straight_toward_target",
+        "trajectory": "homing",
         "pierceCount": 0,
-        "collisionRadius": 8,
-        "windupMs": 1200,
-        "damageMultiplier": 4.0,
+        "collisionRadius": 6,
+        "windupMs": 400,
+        "damageMultiplier": 6.0,
+        "ignoreDefensePercent": 40,
         "guaranteedCrit": true,
+        "guaranteedHit": true,
+        "consumePrecisionStacks": true,
+        "precisionConsumeMax": 5,
+        "precisionCritDmgPerStack": 40,
+        "executeHpThreshold": 0.3,
+        "executeDamageMult": 1.5,
+        "pauseAmmoDuringCast": true,
+        "markTarget": true,
+        "markDurationMs": 3000,
+        "resetTeamCDOnBossKill": true,
+        "color": "#ff0044"
+      }
+    },
+    "death_mark": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 950,
+        "maxRange": 600,
+        "trajectory": "homing",
+        "pierceCount": 0,
+        "collisionRadius": 6,
+        "damageMultiplier": 0.8,
+        "guaranteedHit": true,
+        "markTarget": true,
+        "markCritDmgBonus": 30,
+        "markCritBonus": 15,
+        "markDurationMs": 12000,
+        "markExecuteThreshold": 25,
+        "markExecuteMultiplier": 2.0,
+        "markExplosionRadius": 100,
+        "markExplosionDamage": 2.5,
+        "grantPrecisionStacks": 2,
+        "color": "#ff0000"
+      }
+    },
+    "executioner_gaze": {
+      "entityType": "projectile",
+      "entityConfig": {
+        "speed": 1600,
+        "maxRange": 800,
+        "trajectory": "homing",
+        "pierceCount": 0,
+        "collisionRadius": 6,
+        "windupMs": 1500,
+        "damageMultiplier": 6.0,
+        "ignoreDefensePercent": 50,
+        "guaranteedCrit": true,
+        "guaranteedHit": true,
+        "consumePrecisionStacks": true,
+        "precisionConsumeMax": 5,
+        "precisionCritDmgPerStack": 50,
+        "executeHpThreshold": 0.3,
+        "executeDamageMult": 1.5,
+        "executeNonBoss": true,
+        "pauseAmmoDuringCast": true,
+        "windupSlowRadius": 400,
+        "windupSlowPercent": 50,
+        "resetTeamCDOnBossKill": true,
         "color": "#ff0044"
       }
     },
     "nether_gate": {
       "entityType": "field",
       "entityConfig": {
-        "triggerType": "delayed_strike",
-        "fieldRadius": 100,
-        "delayMs": 1500,
+        "fieldRadius": 120,
+        "fieldDurationMs": 8000,
         "targeted": true,
-        "spawnAtCaster": false,
-        "damageMultiplier": 2.5,
-        "statusOnHit": [{ "type": "dark_erosion", "durationMs": 6000 }],
-        "summonOnImpact": { "unitId": "skeleton_minion", "count": 3, "durationMs": 20000 },
-        "color": "#442266"
+        "netherGate": true,
+        "corruptionPerTick": 1,
+        "undeadBuffAsPercent": 50,
+        "closeDotSettleRatio": 2.0,
+        "dotShardChanceMult": 2.0,
+        "color": "#440066"
       }
     },
     "nightfall": {
@@ -643,18 +886,20 @@
       "entityType": "field",
       "entityConfig": {
         "fieldRadius": 130,
-        "tickIntervalMs": 600,
-        "fieldDurationMs": 5000,
-        "targeted": true,
-        "followCaster": false,
-        "projectilesPerTick": 2,
-        "projectileConfig": {
-          "speed": 600,
-          "collisionRadius": 14,
-          "damageMultiplier": 0.6,
-          "trajectory": "homing"
-        },
-        "color": "#6688aa"
+        "tickIntervalMs": 400,
+        "fieldDurationMs": 6000,
+        "followCaster": true,
+        "spawnAtCaster": true,
+        "damageMultiplier": 0.4,
+        "pullEnemiesIn": true,
+        "pullStrength": 40,
+        "invincibleDuringField": true,
+        "endExplosionDamage": 2.5,
+        "windBladeIntervalMs": 400,
+        "windBladeDamageMultiplier": 0.6,
+        "homingToMarkedTarget": true,
+        "freeWindBladeDuringStorm": true,
+        "color": "#88eeff"
       }
     },
     "plague_outbreak": {

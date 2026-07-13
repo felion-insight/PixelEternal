@@ -208,23 +208,13 @@
     window.getSkillVfxFamilyForPlayer = function getSkillVfxFamilyForPlayer(player, skillDef) {
         if (player && player.classData) {
             const prog = window.getActiveClassProgressionId(player.classData);
-            if (prog === 'knight' || prog === 'paladin') return 'holy';
-            if (prog === 'berserker' || prog === 'destroyer') return 'fury';
-            if (prog === 'guardian' || prog === 'temple_knight') return 'guardian';
-            if (prog && ARCHER_VFX_FAMILY[prog]) return ARCHER_VFX_FAMILY[prog];
-            if (prog && MAGE_VFX_FAMILY[prog]) return MAGE_VFX_FAMILY[prog];
+            if (prog) return prog;
         }
-        if (skillDef && skillDef.classId && ARCHER_VFX_FAMILY[skillDef.classId]) {
-            return ARCHER_VFX_FAMILY[skillDef.classId];
+        if (skillDef && skillDef.classId) {
+            return skillDef.classId;
         }
-        if (skillDef && skillDef.classId && MAGE_VFX_FAMILY[skillDef.classId]) {
-            return MAGE_VFX_FAMILY[skillDef.classId];
-        }
-        if (skillDef && skillDef.classId === 'berserker') return 'fury';
-        if (skillDef && skillDef.classId === 'guardian') return 'guardian';
-        if (skillDef && skillDef.effectTags && skillDef.effectTags.includes('holy')) return 'holy';
-        if (skillDef && (skillDef.classId === 'knight' || skillDef.classId === 'paladin')) return 'holy';
-        return window.getResourceFamilyForClass(player && player.classData) || 'rage';
+        if (skillDef && skillDef.effectTags && skillDef.effectTags.includes('holy')) return 'paladin';
+        return window.getResourceFamilyForClass(player && player.classData) || 'warrior';
     };
 
     const WARRIOR_TREE_CLASS_IDS = new Set([
@@ -243,6 +233,7 @@
 
     window.getEffectiveSkillWindupMs = function getEffectiveSkillWindupMs(player, skillDef, entityConfig) {
         const c = entityConfig || {};
+        if (skillDef && (skillDef.slotType === 'basic' || skillDef.type === 'basic')) return 0;
         if (window.isWarriorTreeSkill(skillDef, player)) return 0;
         return c.windupMs || 0;
     };
@@ -893,8 +884,33 @@
         if (typeof window.applyPhantomSkillOverrides === 'function') {
             resolved = window.applyPhantomSkillOverrides(player, resolved);
         }
+        if (typeof window.applyWizardSkillOverrides === 'function') {
+            resolved = window.applyWizardSkillOverrides(player, resolved);
+        }
+        if (typeof window.applyArchmageSkillOverrides === 'function') {
+            resolved = window.applyArchmageSkillOverrides(player, resolved);
+        }
         return resolved;
     };
+
+    function enrichBasicClassSkill(player, basic) {
+        if (!basic) return null;
+        let out = Object.assign({}, basic);
+        if ((!out.entityType || !out.entityConfig) && typeof window.getSkillEntityConfig === 'function') {
+            const mapped = window.getSkillEntityConfig(out);
+            if (mapped) {
+                if (!out.entityType && mapped.entityType) out.entityType = mapped.entityType;
+                if (!out.entityConfig && mapped.entityConfig) {
+                    out.entityConfig = Object.assign({}, mapped.entityConfig);
+                }
+            }
+        }
+        if (typeof window.isAssassinTreePlayer === 'function' && window.isAssassinTreePlayer(player)
+            && typeof window.resolveAssassinBasicAttack === 'function') {
+            out = window.resolveAssassinBasicAttack(player, out);
+        }
+        return out;
+    }
 
     /** 当前职业普攻（basic 槽位）技能，已解析进化形态 */
     window.getPlayerBasicClassSkill = function getPlayerBasicClassSkill(player) {
@@ -905,13 +921,13 @@
             if (warriorBasic) {
                 const prog = window.getActiveClassProgressionId(player.classData);
                 if (prog === 'knight' || prog === 'paladin') {
-                    return Object.assign({}, warriorBasic, {
+                    return enrichBasicClassSkill(player, Object.assign({}, warriorBasic, {
                         description: prog === 'paladin'
                             ? '【圣骑士·三段圣斩】横斩/上挑/重劈，附圣光特效，每段产生8点神圣怒气。'
                             : '【骑士·三段圣斩】横斩/上挑/重劈，附圣光特效，每段产生8点神圣怒气。'
-                    });
+                    }));
                 }
-                return warriorBasic;
+                return enrichBasicClassSkill(player, warriorBasic);
             }
         }
         const prog = window.getPlayerSkillProgression(player.classData);
@@ -922,7 +938,8 @@
         }) || prog[0];
         const def = window.getSkillDefinition(basicId);
         if (!def) return null;
-        return window.resolveEvolvedSkill(def, player.classData, player.level);
+        const basic = window.resolveEvolvedSkill(def, player.classData, player.level);
+        return enrichBasicClassSkill(player, basic);
     };
 
     /**
@@ -1005,7 +1022,7 @@
         if (typeof window.isDeadeyeSnipeActive === 'function' && window.isDeadeyeSnipeActive(player)) {
             return false;
         }
-        const basic = window.getPlayerBasicClassSkill(player);
+        let basic = window.getPlayerBasicClassSkill(player);
         if (!basic || !basic.entityType || !basic.entityConfig) return false;
         if (typeof window.castSkillEntity !== 'function') return false;
 
@@ -1018,7 +1035,32 @@
         const range = ec.maxRange || modified.range || 450;
         let castOptions = null;
         let primaryTarget = null;
-        if (typeof window.pickArcherAutoLockTarget === 'function'
+        const isAssassinBasic = (modified.classId === 'assassin'
+            || (typeof window.isAssassinTreePlayer === 'function' && window.isAssassinTreePlayer(player)))
+            && (modified.slotType === 'basic' || modified.type === 'basic' || modified.id === 'assassin_basic');
+
+        if (isAssassinBasic && typeof window.pickNearestSkillTarget === 'function') {
+            let lockRange = Math.max(
+                ec.range || modified.range || 55,
+                ec.maxRange || 0,
+                modified.range || 0
+            );
+            if (ec.comboStepRange && ec.comboStepRange.length) {
+                lockRange = Math.max(lockRange, ...ec.comboStepRange);
+            }
+            lockRange += 48;
+            if (gameInstance && (gameInstance.currentScene === 'skill_lab'
+                || gameInstance.currentScene === 'training')) {
+                lockRange = Math.max(lockRange, 140);
+            }
+            primaryTarget = window.pickNearestSkillTarget(player, monsters, lockRange);
+            if (primaryTarget) {
+                if (typeof window.snapPlayerAngleToCombatTarget === 'function') {
+                    window.snapPlayerAngleToCombatTarget(player, primaryTarget);
+                }
+                castOptions = { lockTarget: primaryTarget };
+            }
+        } else if (typeof window.pickArcherAutoLockTarget === 'function'
             && (modified.classId === 'archer' || ec.lockTargetCenter)) {
             primaryTarget = window.pickArcherAutoLockTarget(player, monsters, range, {
                 gameInstance,
@@ -1032,25 +1074,21 @@
             }
         }
         const result = window.castSkillEntity(player, modified, gameInstance, monsters, now, castOptions);
-        if (result !== false) {
+        /** 骗术师/幻术师：分身复读普攻 */
+        if (result !== false && result != null && typeof window.replicateSkillToClones === 'function') {
+            window.replicateSkillToClones(player, modified, gameInstance, monsters, now, castOptions);
+        }
+        if (result !== false && result != null) {
             if (typeof window.playClassSkillVfx === 'function') {
-                if (!primaryTarget && monsters && monsters.length) {
-                    let bestD = Infinity;
-                    (monsters || []).forEach(m => {
-                        if (!m || m.hp <= 0) return;
-                        if (typeof TrainingDummy !== 'undefined' && m instanceof TrainingDummy) return;
-                        const ap = typeof window.getCombatTargetAimPoint === 'function'
-                            ? window.getCombatTargetAimPoint(m)
-                            : { x: m.x, y: m.y };
-                        const d = Math.hypot(ap.x - player.x, ap.y - player.y);
-                        if (d <= range && d < bestD) { bestD = d; primaryTarget = m; }
-                    });
+                if (!primaryTarget && typeof window.pickNearestSkillTarget === 'function') {
+                    const vfxRange = Math.max(ec.range || modified.range || 55, range);
+                    primaryTarget = window.pickNearestSkillTarget(player, monsters, vfxRange + 40);
                 }
                 window.playClassSkillVfx(player, modified, gameInstance, {
                     comboStep: comboInfo.step,
                     comboChain: comboInfo.chain,
                     primaryTarget,
-                    hitTargets: [],
+                    hitTargets: primaryTarget ? [primaryTarget] : [],
                     hit: true
                 });
             }
@@ -1399,6 +1437,13 @@
         player.skillCooldowns[skillId] = Math.max(Date.now(), end - ms);
     };
 
+    window.reduceAllSkillCooldownsMs = function reduceAllSkillCooldownsMs(player, ms) {
+        if (!player || !ms || !player.skillHotbar) return;
+        player.skillHotbar.forEach(function (skillId) {
+            window.reduceSkillCooldownMs(player, skillId, ms);
+        });
+    };
+
     window.tryEnhanceSkill = function tryEnhanceSkill(player, skillId) {
         const def = window.getSkillDefinition(skillId);
         if (!player || !def) return { ok: false, msg: '无效技能' };
@@ -1604,6 +1649,10 @@
                 const skipCdNow = skillDef.id === 'breath_hold';
                 if (!skipCdNow) {
                     window.setSkillCooldown(player, cdDef);
+                    if (player._nextSkillCdHalved) {
+                        window.reduceSkillCooldownByFactor(player, cdDef.id, 0.5);
+                        delete player._nextSkillCdHalved;
+                    }
                 }
             } else if (stormFreeBlade && gameInstance && typeof gameInstance.addFloatingText === 'function') {
                 gameInstance.addFloatingText(player.x, player.y - 36, '风暴风刃!', '#88eeff', 700, 13);
@@ -1620,12 +1669,31 @@
                 && window.isHybridUtilitySkill(skillDef);
             const se = skillDef.skillEffect || {};
 
+            if (typeof window.applyAssassinSkillPrimary === 'function'
+                && window.applyAssassinSkillPrimary(player, skillDef, gameInstance, now, { monsters })) {
+                if (typeof window.playClassSkillVfx === 'function') {
+                    window.playClassSkillVfx(player, skillDef, gameInstance, {
+                        primaryTarget: castOptions && castOptions.lockTarget || null,
+                        hitTargets: [],
+                        hit: true
+                    });
+                }
+                if (gameInstance && typeof gameInstance.addFloatingText === 'function') {
+                    gameInstance.addFloatingText(player.x, player.y - 20, skillDef.name, '#aaddff');
+                }
+                return true;
+            }
+
             /** 实体化技能优先（弹丸/召唤/场域/瞬击/位移/冲撞） */
             if (hasEntity && typeof window.castSkillEntity === 'function') {
                 if (typeof window.prepareMarksmanPrecisionCast === 'function') {
                     window.prepareMarksmanPrecisionCast(player, skillDef, gameInstance, now);
                 }
                 const entityOk = window.castSkillEntity(player, skillDef, gameInstance, monsters, now, castOptions);
+                /** 骗术师/幻术师：分身复读技能 */
+                if (entityOk !== false && typeof window.replicateSkillToClones === 'function') {
+                    window.replicateSkillToClones(player, skillDef, gameInstance, monsters, now, castOptions);
+                }
                 const skipEntityVfx = skillDef.entityType === 'instant' || skillDef.entityType === 'charge';
                 if (!skipEntityVfx && typeof window.playClassSkillVfx === 'function') {
                     let vfxPrimary = castOptions && castOptions.lockTarget || null;
@@ -1657,10 +1725,21 @@
                 if (entityOk !== false && typeof window.onWizardSkillCastPhase === 'function') {
                     window.onWizardSkillCastPhase(player, skillDef, gameInstance);
                 }
-                if (entityOk !== false && skillDef.id === 'blink' && skillDef.entityConfig
-                    && skillDef.entityConfig.switchElementPhase
-                    && typeof window.toggleElementPhaseOnBlink === 'function') {
-                    window.toggleElementPhaseOnBlink(player, gameInstance);
+                if (entityOk !== false && typeof window.onBaseMageSkillCastPhase === 'function') {
+                    window.onBaseMageSkillCastPhase(player, skillDef, gameInstance);
+                }
+                // 闪现场景相位切换：基础法师 blink(switchElementPhase) 或 巫师相位跃迁(phaseShift)
+                if (entityOk !== false && skillDef.entityConfig
+                    && (skillDef.entityConfig.switchElementPhase || skillDef.entityConfig.phaseShift)) {
+                    if (skillDef.entityConfig.switchElementPhase
+                        && typeof window.toggleBaseMagePhaseOnBlink === 'function') {
+                        window.toggleBaseMagePhaseOnBlink(player, gameInstance);
+                    }
+                    // phaseShift 型 blink 的相位切换由实体系统 in entity system: onWizardPhaseShiftComplete 统一处理
+                    if (skillDef.entityConfig.switchElementPhase
+                        && typeof window.toggleElementPhaseOnBlink === 'function') {
+                        window.toggleElementPhaseOnBlink(player, gameInstance);
+                    }
                 }
                 const castSkillId = skillDef.id;
                 const castBaseId = skillDef.evolutionPath && skillDef.evolutionPath.baseSkillId;

@@ -51,6 +51,8 @@ npx http-server -p 8000
 
 详细游戏说明请查看 [PROJECT.md](PROJECT.md)
 
+设计文档位于 [`design/`](design/)，职业重做文档位于 [`design/class-rework/`](design/class-rework/)。
+
 ## 开发工具
 
 - `tools/art_generator.py` - 美术资源生成工具

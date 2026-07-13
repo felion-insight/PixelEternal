@@ -6266,7 +6266,7 @@ class Player {
                 const inCone = monsters.filter(m => {
                     if (m.hp <= 0) return false;
                     // 仅排除木桩训练靶；怪物型假人应可作为远程目标（训练场 T 键生成）
-                    if (m instanceof TrainingDummy) return false;
+                    if (m instanceof TrainingDummy && !(this.gameInstance && this.gameInstance.currentScene === 'skill_lab')) return false;
                     const dx = m.x - this.x;
                     const dy = m.y - this.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);

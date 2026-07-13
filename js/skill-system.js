@@ -240,6 +240,10 @@
 
     function isSkillTargetMonster(m) {
         if (!m || m.hp <= 0) return false;
+        // 技能试验场中木桩也是有效目标
+        if (typeof TrainingDummy !== 'undefined' && m instanceof TrainingDummy) {
+            return true;
+        }
         return true;
     }
 
@@ -1839,7 +1843,7 @@
             const skipDirectDamage = isHybrid && ['backstep', 'charge', 'freeze', 'blink_behind'].includes(se.type)
                 || (isHybrid && se.type === 'dodge_buff' && se.damageMult === 0);
 
-            const targets = (monsters || []).filter(m => m && m.hp > 0 && !(typeof TrainingDummy !== 'undefined' && m instanceof TrainingDummy));
+            const targets = (monsters || []).filter(m => m && m.hp > 0 && !(typeof TrainingDummy !== 'undefined' && m instanceof TrainingDummy && !(gameInstance && gameInstance.currentScene === 'skill_lab')));
             if (!skipDirectDamage) {
                 if (aoe > 0) {
                     targets.forEach(m => {

@@ -1,0 +1,219 @@
+{
+  "scenario": "sustained_dps",
+  "durationMs": 15000,
+  "level": 60,
+  "infiniteResource": false,
+  "results": [
+    {
+      "classInfo": {
+        "baseClass": "archer",
+        "firstAdvancement": "ranger",
+        "id": "beastmaster",
+        "name": "兽王",
+        "secondAdvancement": "beastmaster",
+        "tier": "二转"
+      },
+      "dps": 3602.6666666666665,
+      "metrics": {
+        "buffs": {
+          "bear_guard_undefined": {
+            "activations": 0,
+            "samples": 207,
+            "totalMs": 6210,
+            "uptime": 0.4132011444540555
+          }
+        },
+        "durationMs": 15029,
+        "eventCount": 431,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.3869209809264305,
+          "blocked": 142,
+          "blockedRatio": 0.3869209809264305,
+          "castAttempts": 367,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 83,
+          "fallbackBasic": 142,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 60,
+          "emptyRatio": 0.008888888888888889,
+          "insufficient": 0,
+          "samples": 225,
+          "spent": 210
+        },
+        "scenario": "sustained_dps",
+        "statuses": {
+          "bleed": {
+            "activeSamples": 0,
+            "applications": 64,
+            "resisted": 0
+          }
+        },
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "archer_basic": 17,
+            "beast_pack": 118,
+            "beast_rampage": 1,
+            "pack_roar": 4,
+            "venom_trap": 1
+          },
+          "coverage": 0.060240963855421686,
+          "effectCalls": 569,
+          "particleCalls": 141,
+          "skillCalls": 141
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 44886,
+          "hits": 54,
+          "name": "兽群统领"
+        },
+        {
+          "damage": 5714,
+          "hits": 23,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 2854,
+          "hits": 15,
+          "name": "万兽奔腾"
+        },
+        {
+          "damage": 303,
+          "hits": 2,
+          "name": "兽群咆哮"
+        },
+        {
+          "damage": 283,
+          "hits": 6,
+          "name": "持续伤害(DOT/协同反应)"
+        }
+      ],
+      "totalDamage": 54040
+    },
+    {
+      "classInfo": {
+        "baseClass": "archer",
+        "firstAdvancement": "marksman",
+        "id": "deadeye",
+        "name": "鹰眼",
+        "secondAdvancement": "deadeye",
+        "tier": "二转"
+      },
+      "dps": 1571.9333333333334,
+      "metrics": {
+        "buffs": {
+          "bear_guard_undefined": {
+            "activations": 0,
+            "samples": 446,
+            "totalMs": 13380,
+            "uptime": 0.8911088911088911
+          },
+          "breath_hold_active": {
+            "activations": 0,
+            "samples": 229,
+            "totalMs": 6870,
+            "uptime": 0.45754245754245754
+          },
+          "deadeye_snipe_stance": {
+            "activations": 0,
+            "samples": 215,
+            "totalMs": 6450,
+            "uptime": 0.42957042957042957
+          }
+        },
+        "durationMs": 15015,
+        "eventCount": 445,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0,
+          "blocked": 0,
+          "blockedRatio": 0,
+          "castAttempts": 445,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 445,
+          "fallbackBasic": 0,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 210,
+          "emptyRatio": 0.015730337078651686,
+          "insufficient": 0,
+          "samples": 445,
+          "spent": 44
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "backstep_shot": 4,
+            "weakness_mark_de": 4
+          },
+          "coverage": 0.0044943820224719105,
+          "effectCalls": 77,
+          "particleCalls": 12,
+          "skillCalls": 8
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 21775,
+          "hits": 5,
+          "name": "死神狙击"
+        },
+        {
+          "damage": 1093,
+          "hits": 2,
+          "name": "后跳射击"
+        },
+        {
+          "damage": 711,
+          "hits": 2,
+          "name": "弱点标记"
+        }
+      ],
+      "totalDamage": 23579
+    }
+  ]
+}

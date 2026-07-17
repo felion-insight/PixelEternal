@@ -95,7 +95,10 @@
         const pm = monster._preyMark;
         if (pm.owner && pm.owner !== player) return pm.stacks || 0;
         pm.owner = player;
-        pm.stacks = Math.min(PREY_MAX_STACKS, (pm.stacks || 0) + stacks);
+        const gainBonus = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'preyMarkGain', 0) : 0;
+        const add = gainBonus > 0 ? Math.max(1, Math.ceil(stacks * (1 + gainBonus))) : stacks;
+        pm.stacks = Math.min(PREY_MAX_STACKS, (pm.stacks || 0) + add);
         if (g && typeof g.addFloatingText === 'function') {
             g.addFloatingText(monster.x, monster.y - 28, '猎物×' + pm.stacks, '#cc8844', 900, 13);
         }
@@ -336,6 +339,9 @@
         hitList.forEach(m => {
             const isPrimary = m === target;
             const dmg = isPrimary ? centerDmg : Math.max(1, Math.floor(centerDmg * 0.75));
+            // 巨熊指令是职业专属的直接伤害路径，不经过 applyDmg；补齐
+            // 伤害来源，避免技能试验场把它从职业技能统计中漏掉。
+            if (m._battleStats) m._pendingDamageSource = 'skill:' + skillDef.id;
             if (typeof m.takeDamage === 'function') m.takeDamage(dmg);
             if (g && typeof g.addFloatingText === 'function') {
                 g.addFloatingText(m.x, m.y - 6, String(Math.floor(dmg)), '#cc7744', 900, 18, true);

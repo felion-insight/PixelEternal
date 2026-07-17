@@ -43,6 +43,50 @@
 
     const ARMOR_SLOTS = ['helmet', 'body', 'hands', 'legs', 'feet'];
     const ALL_SLOTS = ['weapon', 'offHand', 'helmet', 'body', 'hands', 'legs', 'feet', 'amulet', 'ring', 'belt'];
+    const BUILD_EQUIPMENT_CHANCE = {
+        epic: 0.03,
+        legendary: 0.06,
+        mythic: 0.10
+    };
+
+    function getBuildEquipmentDef(equipmentId) {
+        const items = window.CLASS_BUILD_EQUIPMENT && window.CLASS_BUILD_EQUIPMENT.items;
+        if (!items || !equipmentId) return null;
+        return items.find(item => item.equipmentId === equipmentId) || null;
+    }
+
+    function normalizeWeaponType(weaponType) {
+        if (!weaponType) return weaponType;
+        return typeof window.resolveWeaponTypeFromLegacy === 'function'
+            ? window.resolveWeaponTypeFromLegacy(weaponType)
+            : weaponType;
+    }
+
+    function rollBuildEquipmentDef(context, quality, slot, weaponType) {
+        const items = window.CLASS_BUILD_EQUIPMENT && window.CLASS_BUILD_EQUIPMENT.items;
+        if (!items || !items.length) return null;
+
+        const ctx = context || {};
+        const forced = getBuildEquipmentDef(ctx.buildEquipmentId);
+        const activeClassId = ctx.classId || ctx.playerClass || null;
+        const baseClassId = ctx.playerClass || activeClassId;
+        const eligible = items.filter(def => {
+            if (def.slot !== slot) return false;
+            if (def.weaponType && normalizeWeaponType(def.weaponType) !== normalizeWeaponType(weaponType)) return false;
+            if (def.classRestriction && def.classRestriction.length) {
+                return def.classRestriction.includes(activeClassId)
+                    || def.classRestriction.includes(baseClassId);
+            }
+            return true;
+        });
+
+        if (forced) {
+            return BUILD_EQUIPMENT_CHANCE[quality] && eligible.includes(forced) ? forced : null;
+        }
+        const chance = BUILD_EQUIPMENT_CHANCE[quality] || 0;
+        if (!chance || rng() >= chance || !eligible.length) return null;
+        return pick(eligible);
+    }
 
     function getDropBiasConfig() {
         const cfg = window.DROP_BIAS_CONFIG || {};
@@ -202,20 +246,86 @@
         return powers;
     }
 
-    function pickSetId(slot, classId, isBoss) {
+    function getAdvancementBaseClass(advancementId) {
+        const cfg = window.CLASS_CONFIG;
+        if (!cfg || !advancementId) return null;
+        if (cfg.baseClasses && cfg.baseClasses[advancementId]) return advancementId;
+        if (cfg.firstAdvancements && cfg.firstAdvancements[advancementId]) {
+            return cfg.firstAdvancements[advancementId].baseClass || null;
+        }
+        if (cfg.secondAdvancements && cfg.secondAdvancements[advancementId]) {
+            const firstId = cfg.secondAdvancements[advancementId].firstAdvancement;
+            const first = cfg.firstAdvancements && cfg.firstAdvancements[firstId];
+            return (first && first.baseClass) || null;
+        }
+        return null;
+    }
+
+    function resolveSetDropContext(classCtx) {
+        const ctx = classCtx && typeof classCtx === 'object' && !Array.isArray(classCtx)
+            ? classCtx
+            : { classId: classCtx };
+        const cd = ctx.classData && typeof window.normalizeClassData === 'function'
+            ? window.normalizeClassData(ctx.classData)
+            : (ctx.classData || {});
+        const second = ctx.secondAdvancement || cd.secondAdvancement || null;
+        const first = ctx.firstAdvancement || cd.firstAdvancement || null;
+        let base = ctx.playerClass || ctx.classId || cd.baseClass || null;
+        if (!base && (first || second)) {
+            base = getAdvancementBaseClass(second || first);
+        }
+        return {
+            second,
+            first,
+            base,
+            active: second || first || base
+        };
+    }
+
+    function pickSetId(slot, classCtx, isBoss) {
         const cfg = window.SET_DEFINITIONS_V2;
         if (!cfg || !cfg.sets) return null;
         const bias = getDropBiasConfig();
         const chance = isBoss ? bias.setChanceBoss : bias.setChance;
         if (rng() > chance) return null;
 
+        const stage = resolveSetDropContext(classCtx);
         const eligible = Object.entries(cfg.sets).filter(([, s]) => {
             if (!s.slots || !s.slots.includes(slot)) return false;
-            if (s.classAffinity && classId && s.classAffinity !== classId) return false;
-            return true;
+            if (!s.classAffinity) return true;
+            if (!stage.active) return true;
+            if (s.classAffinity === stage.second || s.classAffinity === stage.first || s.classAffinity === stage.base) {
+                return true;
+            }
+            const setBase = getAdvancementBaseClass(s.classAffinity) || s.classAffinity;
+            return !!(stage.base && setBase === stage.base);
         });
         if (!eligible.length) return null;
-        return pickWeighted(eligible, ([, s]) => s.dropWeight || 1)[0];
+
+        return pickWeighted(eligible, ([, s]) => {
+            let w = s.dropWeight || 1;
+            if (!s.classAffinity) {
+                if (stage.first || stage.second) w *= 0.35;
+                return w;
+            }
+            if (stage.second && s.tier === 'second' && s.classAffinity === stage.second) {
+                w *= isBoss ? 4.2 : 2.8;
+            } else if (!stage.second && stage.first && s.tier === 'first' && s.classAffinity === stage.first) {
+                w *= isBoss ? 3.6 : 2.4;
+            } else if (s.classAffinity === stage.active) {
+                w *= 1.6;
+            } else {
+                const setBase = getAdvancementBaseClass(s.classAffinity) || s.classAffinity;
+                if (stage.base && setBase === stage.base) w *= 0.45;
+                else w *= 0.12;
+            }
+            if (s.minLevelHint && stage.active) {
+                // 二转套对一转玩家降权，一转套对二转玩家略降
+                if (s.tier === 'second' && !stage.second) w *= 0.25;
+                if (s.tier === 'first' && stage.second) w *= 0.55;
+            }
+            return w;
+        })[0];
     }
 
     function composeEquipmentName(baseName, quality, prefixes, suffixes, classId) {
@@ -224,12 +334,14 @@
         const styleWords = classId && bt.classStyleWords && bt.classStyleWords[classId];
         let name = baseName;
 
+        // 品质词（二字）+ 基底；职业风味二字前置（无间隔），词缀再用「·」
         if (quality !== 'normal' && qPrefixes && qPrefixes.length) {
             const qPre = pick(qPrefixes.filter(Boolean));
-            if (styleWords && styleWords.length && rng() < 0.5) {
-                name = `${pick(styleWords)}${qPre}${baseName}`;
-            } else if (qPre) {
+            if (qPre) {
                 name = `${qPre}${baseName}`;
+            }
+            if (styleWords && styleWords.length && rng() < 0.35) {
+                name = `${pick(styleWords)}${name}`;
             }
         }
 
@@ -269,6 +381,113 @@
             weighted.push({ wt, w });
         }
         return pickWeighted(weighted, x => x.w).wt;
+    }
+
+    function findBaseTypeById(baseTypeId) {
+        const bt = window.BASE_TYPES;
+        if (!bt || !baseTypeId) return null;
+        if (bt.weapons && bt.weapons[baseTypeId]) {
+            return { id: baseTypeId, def: bt.weapons[baseTypeId], weaponType: bt.weapons[baseTypeId].weaponType };
+        }
+        if (bt.offHand && bt.offHand[baseTypeId]) {
+            return { id: baseTypeId, def: bt.offHand[baseTypeId], classAffinity: bt.offHand[baseTypeId].classAffinity };
+        }
+        if (bt.armor && bt.armor[baseTypeId]) {
+            return { id: baseTypeId, def: bt.armor[baseTypeId] };
+        }
+        if (bt.accessories && bt.accessories[baseTypeId]) {
+            return { id: baseTypeId, def: bt.accessories[baseTypeId] };
+        }
+        return null;
+    }
+
+    function findAffixDef(affixId, preferredType) {
+        const pool = window.AFFIX_POOL;
+        if (!pool || !affixId) return null;
+        if (preferredType === 'prefix' || !preferredType) {
+            const pre = (pool.prefixes || []).find(a => a.id === affixId);
+            if (pre) return { def: pre, type: 'prefix' };
+        }
+        if (preferredType === 'suffix' || !preferredType) {
+            const suf = (pool.suffixes || []).find(a => a.id === affixId);
+            if (suf) return { def: suf, type: 'suffix' };
+        }
+        return null;
+    }
+
+    function resolveForcedAffix(spec, level, forcedType) {
+        if (!spec) return null;
+        const id = typeof spec === 'string' ? spec : spec.id;
+        const found = findAffixDef(id, forcedType);
+        if (!found) return null;
+        const { def, type } = found;
+        const tiers = def.tiers || [];
+        let tierObj = null;
+        const wantTier = typeof spec === 'object' && spec.tier != null ? Number(spec.tier) : null;
+        if (wantTier != null) {
+            tierObj = tiers.find(t => t.tier === wantTier) || null;
+        }
+        if (!tierObj) {
+            tierObj = getTierForLevel(def, level);
+        }
+        const value = typeof spec === 'object' && typeof spec.value === 'number'
+            ? spec.value
+            : (tierObj.max != null ? tierObj.max : rollInt(tierObj.min || 1, tierObj.max || 1));
+        return {
+            id: def.id,
+            name: def.name,
+            type,
+            tier: tierObj.tier || 1,
+            stat: def.stat,
+            isPercent: !!def.isPercent,
+            value
+        };
+    }
+
+    function resolveForcedAffixList(list, level, forcedType) {
+        if (!Array.isArray(list) || !list.length) return [];
+        const out = [];
+        const used = new Set();
+        for (const spec of list) {
+            const rolled = resolveForcedAffix(spec, level, forcedType);
+            if (!rolled || used.has(rolled.id)) continue;
+            used.add(rolled.id);
+            out.push(rolled);
+        }
+        return out;
+    }
+
+    function findLegendaryPowerById(powerId) {
+        const cfg = window.LEGENDARY_POWERS;
+        if (!cfg || !powerId) return null;
+        const uni = (cfg.universal || []).find(p => p.id === powerId);
+        if (uni) return { power: uni, source: '通用池' };
+        for (const [cls, list] of Object.entries(cfg.classPowers || {})) {
+            const p = (list || []).find(x => x.id === powerId);
+            if (p) return { power: p, source: cls };
+        }
+        return null;
+    }
+
+    function resolveForcedPowers(powerIds) {
+        if (!Array.isArray(powerIds) || !powerIds.length) return [];
+        const out = [];
+        const used = new Set();
+        for (const raw of powerIds) {
+            const id = typeof raw === 'string' ? raw : (raw && raw.id);
+            if (!id || used.has(id)) continue;
+            const found = findLegendaryPowerById(id);
+            if (!found) continue;
+            used.add(id);
+            const p = found.power;
+            out.push({
+                id: p.id,
+                name: p.name,
+                description: p.description,
+                source: found.source === '通用池' ? '通用池' : '职业专属'
+            });
+        }
+        return out;
     }
 
     function pickBaseTypeForSlot(slot, level, classId, weaponType) {
@@ -321,14 +540,32 @@
         const tierLevels = typeof getEquipmentDropTierLevelsForMonsterLevel === 'function'
             ? getEquipmentDropTierLevelsForMonsterLevel(level)
             : [level];
-        const eqLevel = pick(tierLevels);
+        const eqLevel = ctx.exactLevel != null
+            ? Math.max(1, Math.min(60, Number(ctx.exactLevel) || level))
+            : pick(tierLevels);
         const classId = ctx.playerClass || ctx.classId || null;
+        const activeClassId = ctx.classId || classId;
         const monsterTier = ctx.monsterTier || 'normal';
         const quality = ctx.quality || rollRarity(monsterTier, eqLevel);
-        const slot = ctx.slot || pick(ALL_SLOTS);
-        const weaponType = slot === 'weapon' ? (ctx.weaponType || pickWeaponType(classId)) : null;
+        const forcedBuildDef = getBuildEquipmentDef(ctx.buildEquipmentId);
+        const forcedBase = ctx.baseTypeId
+            ? findBaseTypeById(ctx.baseTypeId)
+            : (forcedBuildDef && forcedBuildDef.preferredBaseTypeId
+                ? findBaseTypeById(forcedBuildDef.preferredBaseTypeId)
+                : null);
+        const slot = forcedBuildDef
+            ? forcedBuildDef.slot
+            : (forcedBase ? forcedBase.def.slot : (ctx.slot || pick(ALL_SLOTS)));
+        const weaponType = slot === 'weapon'
+            ? normalizeWeaponType(
+                (forcedBuildDef && forcedBuildDef.weaponType)
+                || (forcedBase && forcedBase.weaponType)
+                || ctx.weaponType
+                || pickWeaponType(classId)
+            )
+            : null;
 
-        const picked = pickBaseTypeForSlot(slot, eqLevel, classId, weaponType);
+        const picked = forcedBase || pickBaseTypeForSlot(slot, eqLevel, classId, weaponType);
         if (!picked) return null;
 
         const { id: baseTypeId, def } = picked;
@@ -343,11 +580,50 @@
         }
         mergeStats(stats, def.implicit);
 
-        const affixRoll = rollAffixes(slot, quality, eqLevel, classId);
+        const hasForcedAffixes = (ctx.forcePrefixes && ctx.forcePrefixes.length)
+            || (ctx.forceSuffixes && ctx.forceSuffixes.length)
+            || ctx.forceEmptyAffixes;
+        let affixRoll;
+        if (hasForcedAffixes) {
+            affixRoll = {
+                prefixes: resolveForcedAffixList(ctx.forcePrefixes || [], eqLevel, 'prefix'),
+                suffixes: resolveForcedAffixList(ctx.forceSuffixes || [], eqLevel, 'suffix')
+            };
+        } else {
+            affixRoll = rollAffixes(slot, quality, eqLevel, classId);
+        }
         mergeStats(stats, affixesToStats(affixRoll.prefixes, affixRoll.suffixes));
 
-        const legendaryPowers = rollLegendaryPowers(slot, quality, classId);
-        const setId = ctx.setId || pickSetId(slot, classId, monsterTier === 'boss');
+        let legendaryPowers;
+        if (Array.isArray(ctx.forcePowers)) {
+            legendaryPowers = resolveForcedPowers(ctx.forcePowers);
+        } else {
+            legendaryPowers = rollLegendaryPowers(slot, quality, classId);
+        }
+
+        const setId = ctx.setId !== undefined
+            ? ctx.setId
+            : pickSetId(slot, {
+                classId: activeClassId,
+                playerClass: classId,
+                firstAdvancement: ctx.firstAdvancement,
+                secondAdvancement: ctx.secondAdvancement,
+                classData: ctx.classData
+            }, monsterTier === 'boss');
+
+        let buildEquipmentDef = null;
+        if (forcedBuildDef) {
+            // 自定义/强制流派核心：不走掉落概率
+            buildEquipmentDef = forcedBuildDef;
+        } else if (!ctx.skipBuildRoll) {
+            buildEquipmentDef = rollBuildEquipmentDef(
+                { ...ctx, classId: activeClassId, playerClass: classId },
+                quality,
+                slot,
+                weaponType
+            );
+        }
+        if (ctx.buildEquipmentId && !buildEquipmentDef) return null;
 
         const equipClassAffinity = picked.classAffinity || def.classAffinity ||
             (slot === 'weapon' && weaponType && window.WEAPON_AFFINITY_CONFIG &&
@@ -355,7 +631,9 @@
                 window.WEAPON_AFFINITY_CONFIG.weaponTypes[weaponType] &&
                 window.WEAPON_AFFINITY_CONFIG.weaponTypes[weaponType].baseClass) || null;
 
-        const name = composeEquipmentName(def.name, quality, affixRoll.prefixes, affixRoll.suffixes, equipClassAffinity);
+        const name = buildEquipmentDef
+            ? buildEquipmentDef.name
+            : composeEquipmentName(def.name, quality, affixRoll.prefixes, affixRoll.suffixes, equipClassAffinity);
 
         const data = {
             id: 'proc_' + (++_dropId) + '_' + Date.now(),
@@ -371,6 +649,7 @@
             suffixes: affixRoll.suffixes,
             legendaryPowers,
             setId,
+            buildEquipmentId: buildEquipmentDef ? buildEquipmentDef.equipmentId : null,
             classAffinity: equipClassAffinity,
             procedural: true,
             isCrafted: false
@@ -383,6 +662,7 @@
         eq.suffixes = data.suffixes;
         eq.legendaryPowers = data.legendaryPowers;
         eq.setId = data.setId;
+        eq.buildEquipmentId = data.buildEquipmentId;
         eq.classAffinity = data.classAffinity;
         eq.procedural = true;
         if (typeof window.refreshEquipmentGearScore === 'function') {
@@ -390,6 +670,56 @@
         }
         return eq;
     };
+
+    /**
+     * 开发者自定义装配：强制基型/词缀/威能（可无视槽位兼容）
+     * 传入的前缀/后缀/威能列表即为最终结果（可为空）
+     */
+    window.buildCustomProceduralEquipment = function buildCustomProceduralEquipment(options) {
+        const opts = options || {};
+        const prefixes = opts.forcePrefixes || opts.prefixes || [];
+        const suffixes = opts.forceSuffixes || opts.suffixes || [];
+        const powers = opts.forcePowers || opts.powers || [];
+        return window.generateProceduralEquipment({
+            monsterLevel: opts.level || opts.monsterLevel || 20,
+            exactLevel: opts.level || opts.exactLevel || opts.monsterLevel || 20,
+            monsterTier: 'boss',
+            quality: opts.quality || 'legendary',
+            slot: opts.slot || null,
+            weaponType: opts.weaponType || null,
+            baseTypeId: opts.baseTypeId || null,
+            playerClass: opts.playerClass || opts.classId || null,
+            classId: opts.classId || opts.playerClass || null,
+            setId: opts.setId !== undefined ? opts.setId : null,
+            buildEquipmentId: opts.buildEquipmentId || null,
+            forcePrefixes: prefixes,
+            forceSuffixes: suffixes,
+            forcePowers: powers,
+            forceEmptyAffixes: true,
+            skipBuildRoll: !opts.buildEquipmentId,
+            ignoreAffixSlotFilter: opts.ignoreAffixSlotFilter !== false
+        });
+    };
+
+    window.listAllLegendaryPowers = function listAllLegendaryPowers() {
+        const cfg = window.LEGENDARY_POWERS;
+        if (!cfg) return [];
+        const out = [];
+        (cfg.universal || []).forEach(p => out.push({ ...p, group: 'universal', groupLabel: '通用' }));
+        const clsNames = { warrior: '战士', archer: '弓箭', mage: '法师', assassin: '刺客' };
+        Object.entries(cfg.classPowers || {}).forEach(([cls, list]) => {
+            (list || []).forEach(p => out.push({
+                ...p,
+                group: cls,
+                groupLabel: clsNames[cls] || cls
+            }));
+        });
+        return out;
+    };
+
+    window.findLegendaryPowerById = findLegendaryPowerById;
+    window.findAffixDef = findAffixDef;
+    window.findBaseTypeById = findBaseTypeById;
 
     window.refreshEquipmentGearScore = function refreshEquipmentGearScore(equipment) {
         if (!equipment) return 0;

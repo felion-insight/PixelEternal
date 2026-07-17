@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pixel Eternal - 像素永恒</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20260716-dev-codex-1">
     <script src="js/libgif.js"></script>
 </head>
 <body>
@@ -538,6 +538,69 @@
                 <div id="skill-lab-skill-list"></div>
             </div>
         </div>
+        <!-- 装备试验场界面 -->
+        <div id="equipment-lab-modal">
+            <div id="equipment-lab-header">
+                <h2>装备试验场</h2>
+                <button type="button" id="close-equipment-lab">关闭面板</button>
+            </div>
+            <div id="equipment-lab-content">
+                <p class="equipment-lab-hint">覆盖全部威能、套装2/4件、流派核心、武器精炼与词缀样例。ESC 返回主城。</p>
+                <div class="equipment-lab-controls">
+                    <label>分类
+                        <select id="equipment-lab-category">
+                            <option value="all">全部机制</option>
+                            <option value="power">传奇威能</option>
+                            <option value="set">套装效果</option>
+                            <option value="build">流派核心</option>
+                            <option value="weapon">武器与精炼</option>
+                            <option value="resonance">身份共鸣</option>
+                            <option value="affix">词缀样例</option>
+                        </select>
+                    </label>
+                    <label>单项秒数<input id="equipment-lab-duration" type="number" min="2" max="60" value="6"></label>
+                    <label class="equipment-lab-check"><input id="equipment-lab-loop" type="checkbox">循环</label>
+                    <span>共 <b id="equipment-lab-count">0</b> 项</span>
+                </div>
+                <div class="equipment-lab-toolbar">
+                    <button type="button" id="equipment-lab-apply" class="pe-btn pe-btn--sm">应用选中</button>
+                    <button type="button" id="equipment-lab-start" class="pe-btn pe-btn--sm pe-btn--info">自动展示</button>
+                    <button type="button" id="equipment-lab-pause" class="pe-btn pe-btn--sm">暂停</button>
+                    <button type="button" id="equipment-lab-prev" class="pe-btn pe-btn--sm">上一个</button>
+                    <button type="button" id="equipment-lab-next" class="pe-btn pe-btn--sm">下一个</button>
+                    <button type="button" id="equipment-lab-stop" class="pe-btn pe-btn--sm pe-btn--danger">停止并恢复</button>
+                </div>
+                <div id="equipment-lab-status">待机</div>
+                <div class="equipment-lab-progress"><div id="equipment-lab-progress-fill"></div></div>
+                <div id="equipment-lab-metrics"></div>
+                <div class="equipment-lab-main">
+                    <div id="equipment-lab-list"></div>
+                    <div id="equipment-lab-detail">
+                        <h3 id="equipment-lab-selected-name">请选择装备</h3>
+                        <div id="equipment-lab-selected-detail"></div>
+                        <div id="equipment-lab-preview"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <aside id="equipment-lab-showcase-card" aria-live="polite">
+            <div class="equipment-lab-showcase-topline">
+                <span id="equipment-lab-showcase-category">装备演示</span>
+                <span id="equipment-lab-showcase-index">0 / 0</span>
+            </div>
+            <h3 id="equipment-lab-showcase-name">当前装备</h3>
+            <p id="equipment-lab-showcase-description"></p>
+            <div class="equipment-lab-showcase-condition">
+                <span>演示条件</span>
+                <strong id="equipment-lab-showcase-trigger">自动攻击</strong>
+            </div>
+            <div class="equipment-lab-showcase-footer">
+                <span id="equipment-lab-showcase-state">准备中</span>
+                <div class="equipment-lab-showcase-progress">
+                    <div id="equipment-lab-showcase-progress-fill"></div>
+                </div>
+            </div>
+        </aside>
         <!-- 训练场界面 -->
         <div id="training-ground-modal">
             <div id="training-ground-header">
@@ -1010,6 +1073,7 @@
                 <h4 style="color: #8cf; font-size: 14px; margin-bottom: 5px;">技能表现</h4>
                 <p style="color: #888; font-size: 11px; margin: 0 0 8px; line-height: 1.35;">进入独立实验场，切换全部职业并逐个释放技能，测试 VFX 与实体表现。</p>
                 <button type="button" class="pe-btn pe-btn--sm pe-btn--info" onclick="game.enterSkillLab()">进入技能实验场景</button>
+                <button type="button" class="pe-btn pe-btn--sm pe-btn--warning" onclick="game.enterEquipmentLab()">进入装备试验场景</button>
             </div>
 
             <div class="dev-section">
@@ -1033,15 +1097,17 @@
         </div>
         <!-- 图鉴开发者模式面板 -->
         <div id="dev-codex-panel">
-            <h3>开发者模式 - 图鉴道具选择 (F1)</h3>
-            <div id="dev-codex-tabs" style="display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #666; padding-bottom: 10px; flex-wrap: wrap;">
-                <button class="dev-codex-tab active" data-tab="equipments" onclick="game.showDevCodexTab('equipments')">程序化装备</button>
-                <button class="dev-codex-tab" data-tab="procedural" onclick="game.showDevCodexTab('procedural')">程序化</button>
-                <button class="dev-codex-tab" data-tab="base_types" onclick="game.showDevCodexTab('base_types')">基型</button>
-                <button class="dev-codex-tab" data-tab="consumables" onclick="game.showDevCodexTab('consumables')">消耗品</button>
-                <button class="dev-codex-tab" data-tab="recipes" onclick="game.showDevCodexTab('recipes')">图纸</button>
+            <h3>图鉴开发工具 (F1)</h3>
+            <p class="dev-codex-hint">自定义可组合任意词缀与威能；图鉴条目在开发模式下点击即可发放。</p>
+            <div id="dev-codex-tabs">
+                <button type="button" class="dev-codex-tab active" data-tab="custom" onclick="game.showDevCodexTab('custom')">自定义</button>
+                <button type="button" class="dev-codex-tab" data-tab="samples" onclick="game.showDevCodexTab('samples')">样例</button>
+                <button type="button" class="dev-codex-tab" data-tab="builds" onclick="game.showDevCodexTab('builds')">流派核心</button>
+                <button type="button" class="dev-codex-tab" data-tab="base_types" onclick="game.showDevCodexTab('base_types')">基型</button>
+                <button type="button" class="dev-codex-tab" data-tab="sets" onclick="game.showDevCodexTab('sets')">套装</button>
+                <button type="button" class="dev-codex-tab" data-tab="consumables" onclick="game.showDevCodexTab('consumables')">消耗品</button>
             </div>
-            <div id="dev-codex-content" style="max-height: 60vh; overflow-y: auto;">
+            <div id="dev-codex-content">
                 <!-- 内容将动态生成 -->
             </div>
         </div>
@@ -1328,12 +1394,23 @@
     <script src="js/skill-system.js"></script>
     <script src="js/skill-lab-scene.js"></script>
     <script src="js/skill-lab-ui.js"></script>
+    <script src="js/skill-lab-metrics.js"></script>
     <script src="js/automated-balance-tester.js"></script>
     <script src="js/class-ui.js"></script>
     <script src="js/data-classes.js"></script>
-    <script src="js/equipment-weapon-skills.js"></script>
+    <script src="js/equipment-weapon-skills.js?v=20260715-resonance-1"></script>
+    <script src="js/weapon-refinement-system.js?v=20260715-resonance-1"></script>
+    <script src="js/weapon-refinement-resonance.js?v=20260715-resonance-1"></script>
     <script src="js/equipment-generator.js"></script>
+    <script src="js/equipment-set-vfx.js?v=20260715-refinement-1"></script>
+    <script src="js/equipment-power-vfx.js?v=20260715-power-vfx-1"></script>
+    <script src="js/equipment-effect-system.js?v=20260715-power-vfx-1"></script>
     <script src="js/equipment-codex.js"></script>
+    <script src="js/equipment-lab-scene.js?v=20260715-equipment-lab-5"></script>
+    <script src="js/equipment-lab-catalog.js?v=20260715-resonance-1"></script>
+    <script src="js/equipment-lab-metrics.js?v=20260715-equipment-lab-5"></script>
+    <script src="js/equipment-lab-controller.js?v=20260715-power-vfx-1"></script>
+    <script src="js/equipment-lab-ui.js?v=20260715-resonance-1"></script>
     <script src="js/npc-system.js"></script>
     <script src="js/trial-system.js"></script>
     <script src="js/material-system.js"></script>
@@ -1343,6 +1420,7 @@
     <script src="js/talent-system.js"></script>
     <script src="js/tutorial-system.js"></script>
     <script src="js/tutorial-ui.js"></script>
+    <script src="js/tower-map-system.js"></script>
     <script src="js/npc-ui.js"></script>
     <script src="js/elite-boons.js"></script>
     <script src="js/game-entities.js"></script>
@@ -1351,9 +1429,9 @@
     <script src="js/game-utils.js"></script>
     <script src="js/game-assets.js"></script>
     <script src="js/game-particles.js"></script>
-    <script src="js/game-tooltips.js"></script>
+    <script src="js/game-tooltips.js?v=20260716-item-detail-1"></script>
     <script src="js/game-sounds.js"></script>
-    <script src="js/game-main.js"></script>
+    <script src="js/game-main.js?v=20260715-refinement-1"></script>
     <script src="js/init.js"></script>
     <script>
         // 备选初始化方案：如果 init.js 没有执行，这里会执行

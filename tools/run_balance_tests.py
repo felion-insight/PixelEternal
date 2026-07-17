@@ -9,14 +9,51 @@ import os
 import sys
 import time
 import subprocess
+import argparse
+import json
 from pathlib import Path
+
+EQUIPMENT_PRESETS = (
+    "preserve",
+    "naked",
+    "standard10",
+    "legendary",
+    "set2",
+    "set4",
+    "build",
+    "affinity_mismatch",
+)
+
 
 def print_banner():
     print("=" * 60)
     print("      Pixel Eternal - 全职业数值与机制平衡性自动化测试")
     print("=" * 60)
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Pixel Eternal 多维战斗平衡测试运行器")
+    parser.add_argument("--scenario", default="burst_dps", help="测试场景，例如 burst_dps、sustained_dps、multi_target、survivability")
+    parser.add_argument("--duration", type=int, default=5000, help="每个职业测试时长（毫秒）")
+    parser.add_argument("--level", type=int, default=60, help="测试等级")
+    parser.add_argument("--infinite-resource", action="store_true", help="启用无限资源")
+    parser.add_argument("--json-output", default="", help="可选：原始 JSON 结果输出路径")
+    parser.add_argument("--markdown-output", default="balance_test_report.md", help="Markdown 报告输出路径")
+    parser.add_argument("--classes", default="", help="可选：仅测试指定职业ID，逗号分隔")
+    parser.add_argument(
+        "--equipment-preset",
+        default="preserve",
+        choices=EQUIPMENT_PRESETS,
+        help="确定性装备场景；默认 preserve 保持旧 CLI 行为",
+    )
+    parser.add_argument("--seed", type=int, default=1, help="装备生成与测试随机种子")
+    parser.add_argument("--headless", action="store_true", help="使用无界面 Chrome 运行")
+    parser.add_argument("--equipment-lab-smoke", action="store_true", help="仅运行装备试验场自动展示烟测")
+    parser.add_argument("--equipment-lab-effect", default="", help="装备试验场烟测仅运行指定 effectId")
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
     print_banner()
     
     # 提示用户可以使用浏览器内的一键测试
@@ -36,7 +73,7 @@ def main():
         print("  pip install selenium")
         print("\n现在将为您生成一份基于静态配置的数值预测与设计评估报告...")
         generate_static_report_fallback()
-        return
+        return 0
 
     # 询问用户是否启动本地测试
     print("检测到本地已安装 selenium，准备启动自动化浏览器测试...", flush=True)
@@ -72,11 +109,12 @@ def main():
             print("[成功] 本地开发服务器已启动。", flush=True)
         except Exception as e:
             print(f"[警告] 自动启动服务器失败: {e}。请手动运行 python start-server.py 后再试。", flush=True)
-            return
+            return 1
 
     # 配置 Chrome 选项
     chrome_options = Options()
-    # chrome_options.add_argument("--headless") # 如果需要静默运行可以开启
+    if args.headless:
+        chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--mute-audio")
     chrome_options.add_argument("--window-size=1280,800")
 
@@ -105,8 +143,157 @@ def main():
         WebDriverWait(driver, 15).until(
             EC.visibility_of_element_located((By.ID, "start-screen"))
         )
-        driver.execute_script("document.getElementById('start-screen').click();")
-        time.sleep(1.5) # 等待淡出动画和游戏循环启动
+        start_screen = driver.find_element(By.ID, "start-screen")
+        driver.execute_script("arguments[0].click();", start_screen)
+        WebDriverWait(driver, 10).until(
+            lambda d: d.execute_script(
+                "return !!(window.game && window.game._gameLoopStarted === true);"
+            )
+        )
+
+        if args.equipment_lab_smoke:
+            print("[信息] 正在运行装备试验场自动展示烟测...", flush=True)
+            smoke_setup = driver.execute_script("""
+                const g = window.game;
+                const requestedEffect = arguments[0] || '';
+                const requestedEffects = requestedEffect.split(',').map(value => value.trim()).filter(Boolean);
+                if (window.applySkillLabPlayerConfig) window.applySkillLabPlayerConfig(g.player, 'warrior');
+                document.getElementById('class-select-modal')?.classList.remove('show');
+                document.getElementById('dev-panel')?.classList.add('show');
+                g.devMode = true;
+                g.syncGamePausedState();
+                if (!g.paused) throw new Error('烟测未能建立开发面板暂停前置状态');
+                const before = {
+                    classData: JSON.stringify(g.player.classData),
+                    equipment: JSON.stringify(Object.fromEntries(Object.entries(g.player.equipment || {}).map(
+                        ([slot, item]) => [slot, item ? g.serializeEquipment(item) : null]
+                    )))
+                };
+                g.__equipmentLabSmokeBefore = before;
+                document.querySelector('button[onclick="game.enterEquipmentLab()"]').click();
+                g.equipmentLabUI.close();
+                document.dispatchEvent(new KeyboardEvent('keydown', { key: 'o', code: 'KeyO', bubbles: true }));
+                const equipmentShortcutAccessible = g.equipmentLabUI.isOpen();
+                g.toggleInventory();
+                const equipmentPanelZ = Number(getComputedStyle(document.getElementById('equipment-lab-modal')).zIndex);
+                const inventoryPanel = document.getElementById('inventory-modal');
+                const inventoryAccessible = inventoryPanel.classList.contains('show')
+                    && Number(getComputedStyle(inventoryPanel).zIndex) > equipmentPanelZ;
+                g.toggleInventory();
+                g.toggleDevMode();
+                const devPanelAccessible = document.getElementById('dev-panel').classList.contains('show');
+                g.toggleDevMode();
+                const catalog = window.EquipmentLabCatalog.buildCatalog();
+                const categories = ['power', 'set', 'build', 'weapon', 'resonance', 'affix'];
+                const fullQueue = catalog.filter(entry =>
+                    entry.category === 'power'
+                    || (entry.category === 'set' && entry.pieceCount === 4)
+                    || (entry.category === 'weapon' && entry.refineLevel > 0)
+                    || entry.category === 'resonance'
+                );
+                const queue = requestedEffect
+                    ? fullQueue.filter(entry => requestedEffect === 'resonance' || requestedEffect === 'power'
+                        ? entry.category === requestedEffect
+                        : requestedEffects.includes(entry.effectId))
+                    : fullQueue;
+                const counts = Object.fromEntries(categories.map(category => [
+                    category, catalog.filter(entry => entry.category === category).length
+                ]));
+                const controller = g.equipmentLabController;
+                const originalUpdate = controller.update.bind(controller);
+                controller.__smokeUpdateCalls = 0;
+                controller.update = () => {
+                    controller.__smokeUpdateCalls += 1;
+                    return originalUpdate();
+                };
+                const started = controller.start(queue, { durationMs: 2000, loop: false });
+                const showcaseCard = document.getElementById('equipment-lab-showcase-card');
+                return {
+                    started,
+                    scene: g.currentScene,
+                    counts,
+                    queueLength: queue.length,
+                    total: catalog.length,
+                    modalOpen: document.getElementById('equipment-lab-modal').classList.contains('show'),
+                    unpausedAfterEntry: !g.paused,
+                    panelAccess: equipmentShortcutAccessible && inventoryAccessible && devPanelAccessible,
+                    showcaseVisible: showcaseCard.classList.contains('show'),
+                    showcaseHasContent: document.getElementById('equipment-lab-showcase-name').textContent.length > 0
+                        && document.getElementById('equipment-lab-showcase-description').textContent.length > 0
+                };
+            """, args.equipment_lab_effect)
+            if (not smoke_setup.get("started")
+                    or smoke_setup.get("scene") != "equipment_lab"
+                    or not smoke_setup.get("unpausedAfterEntry")
+                    or not smoke_setup.get("panelAccess")
+                    or not smoke_setup.get("showcaseVisible")
+                    or not smoke_setup.get("showcaseHasContent")):
+                raise RuntimeError("装备试验场无法启动: " + json.dumps(smoke_setup, ensure_ascii=False))
+            deadline = time.time() + (120 if args.equipment_lab_effect else 290)
+            while time.time() < deadline:
+                state = driver.execute_script("""
+                    const c = window.game.equipmentLabController;
+                    return { running: c.isRunning, results: c.results.length };
+                """)
+                if not state["running"]:
+                    break
+                time.sleep(0.25)
+            smoke_result = driver.execute_script("""
+                const g = window.game;
+                const c = g.equipmentLabController;
+                const resultCount = c.results.length;
+                const allPositive = c.results.every(row =>
+                    row.triggerCount > 0
+                    && row.effectTriggerCount > 0
+                    && row.triggered === true
+                    && row.totalDamage >= 0
+                    && (row.category !== 'power' || (
+                        row.effectTriggerCount >= 2
+                        && !row.events.some(event =>
+                            event.type === 'skill_cast' || event.type === 'weapon_skill'
+                        )
+                    ))
+                );
+                const failedEffects = c.results
+                    .filter(row => !row.triggered)
+                    .map(row => row.effectId);
+                const diagnostics = {
+                    updateCalls: c.__smokeUpdateCalls || 0,
+                    running: c.isRunning,
+                    elapsedMs: c.elapsedMs,
+                    paused: g.paused,
+                    blockingModal: g.isBlockingModalOpen()
+                };
+                g.exitEquipmentLab();
+                const after = {
+                    classData: JSON.stringify(g.player.classData),
+                    equipment: JSON.stringify(Object.fromEntries(Object.entries(g.player.equipment || {}).map(
+                        ([slot, item]) => [slot, item ? g.serializeEquipment(item) : null]
+                    )))
+                };
+                return {
+                    resultCount,
+                    allPositive,
+                    failedEffects,
+                    diagnostics,
+                    restored: after.classData === g.__equipmentLabSmokeBefore.classData
+                        && after.equipment === g.__equipmentLabSmokeBefore.equipment,
+                    scene: g.currentScene
+                };
+            """)
+            if (smoke_result.get("resultCount", 0) < smoke_setup.get("queueLength", 0)
+                    or not smoke_result.get("allPositive")
+                    or not smoke_result.get("restored")):
+                raise RuntimeError("装备试验场烟测失败: " + json.dumps(smoke_result, ensure_ascii=False))
+            if args.json_output:
+                output = Path(args.json_output)
+                if not output.is_absolute():
+                    output = Path(__file__).parent.parent / output
+                output.parent.mkdir(parents=True, exist_ok=True)
+                with open(output, "w", encoding="utf-8") as handle:
+                    json.dump({"setup": smoke_setup, "result": smoke_result}, handle, ensure_ascii=False, indent=2)
+            print("[成功] 装备试验场目录、自动轮换、战斗展示与状态恢复烟测通过。", flush=True)
+            return 0
 
         print("[信息] 正在进入技能实验场...", flush=True)
         sys.stdout.flush()
@@ -118,18 +305,78 @@ def main():
         if not has_tester:
             print("[错误] 未能在游戏内检测到 AutomatedBalanceTester 脚本，请确保 index.html 已正确引入该脚本。", flush=True)
             sys.stdout.flush()
-            return
+            return 1
 
-        print("[信息] 正在启动全职业自动化数值测试 (每个职业测试 5 秒，共 28 个职业，请稍候)...", flush=True)
+        equipment_smoke = driver.execute_script("""
+            const g = window.game;
+            const item = window.generateProceduralEquipment({
+                level: 60,
+                monsterLevel: 60,
+                monsterTier: 'boss',
+                quality: 'legendary',
+                playerClass: 'warrior',
+                classId: 'destroyer',
+                buildEquipmentId: 'blood_howl'
+            });
+            if (!item) return { ok: false, reason: '无法生成定向流派装备' };
+            item.refineLevel = 2;
+            item.applyEnhancement();
+            const serialized = g.serializeEquipment(item);
+            const restored = g.deserializeEquipment(serialized);
+            const save = g.buildSaveDataObject();
+            const configErrors = typeof window.validatePhase3EquipmentConfig === 'function'
+                ? window.validatePhase3EquipmentConfig()
+                : ['配置校验函数缺失'];
+            return {
+                ok: save.version === '3.0'
+                    && restored.buildEquipmentId === item.buildEquipmentId
+                    && restored.refineLevel === item.refineLevel
+                    && restored.baseTypeId === item.baseTypeId
+                    && JSON.stringify(restored.legendaryPowers) === JSON.stringify(item.legendaryPowers)
+                    && configErrors.length === 0,
+                reason: configErrors.join('; '),
+                saveVersion: save.version
+            };
+        """)
+        if not equipment_smoke.get("ok"):
+            raise RuntimeError(
+                "装备生成/存档往返烟测失败: "
+                + (equipment_smoke.get("reason") or json.dumps(equipment_smoke, ensure_ascii=False))
+            )
+        print("[成功] 装备生成、配置校验与 Phase 3 存档往返烟测通过。", flush=True)
+
+        print(
+            f"[信息] 正在启动自动化数值测试 "
+            f"(装备预设: {args.equipment_preset}, 种子: {args.seed})...",
+            flush=True,
+        )
         sys.stdout.flush()
         # 启动测试
+        class_ids = [item.strip() for item in args.classes.split(",") if item.strip()]
+        classes_json = json.dumps(class_ids, ensure_ascii=False)
         driver.execute_script("""
+            const requested = %s;
+            const selected = requested.length
+                ? window.AutomatedBalanceTester.classesToTest.filter(c => requested.includes(c.id))
+                : undefined;
             window.AutomatedBalanceTester.startTest({
-                duration: 5000,
-                level: 60,
-                infiniteResource: false
+                duration: %d,
+                level: %d,
+                infiniteResource: %s,
+                scenario: %s,
+                equipmentPreset: %s,
+                seed: %d,
+                classes: selected
             });
-        """)
+        """ % (
+            classes_json,
+            args.duration,
+            args.level,
+            "true" if args.infinite_resource else "false",
+            json.dumps(args.scenario, ensure_ascii=False),
+            json.dumps(args.equipment_preset, ensure_ascii=False),
+            args.seed,
+        ))
 
         # 循环等待测试结束
         last_progress = -1
@@ -140,12 +387,27 @@ def main():
                     break
                 
                 # 获取当前测试进度
-                current_idx = driver.execute_script("return window.AutomatedBalanceTester.currentClassIndex;")
-                total_classes = driver.execute_script("return window.AutomatedBalanceTester.classesToTest.length;")
+                progress = driver.execute_script("""
+                    const t = window.AutomatedBalanceTester;
+                    return {
+                        index: Number.isFinite(t.currentClassIndex) ? t.currentClassIndex : -1,
+                        total: Array.isArray(t.classesToTest) ? t.classesToTest.length : 0
+                    };
+                """)
+                current_idx = progress["index"]
+                total_classes = progress["total"]
                 
                 if current_idx != last_progress and current_idx < total_classes:
-                    class_name = driver.execute_script("return window.AutomatedBalanceTester.classesToTest[window.AutomatedBalanceTester.currentClassIndex].name;")
-                    tier = driver.execute_script("return window.AutomatedBalanceTester.classesToTest[window.AutomatedBalanceTester.currentClassIndex].tier;")
+                    current_class = driver.execute_script("""
+                        const t = window.AutomatedBalanceTester;
+                        const c = t.classesToTest[t.currentClassIndex];
+                        return c ? {name: c.name || c.id, tier: c.tier || ''} : null;
+                    """)
+                    if not current_class:
+                        time.sleep(0.25)
+                        continue
+                    class_name = current_class["name"]
+                    tier = current_class["tier"]
                     # 避免控制台打印非 ASCII 字符时在某些 Windows GBK 环境下崩溃
                     try:
                         print(f" -> 正在测试 [{current_idx + 1}/{total_classes}]: {class_name} ({tier})...")
@@ -166,7 +428,10 @@ def main():
         markdown_report = driver.execute_script("return window.AutomatedBalanceTester.generateMarkdownReport();")
         
         # 保存到本地 file
-        report_path = Path(__file__).parent.parent / "balance_test_report.md"
+        report_path = Path(args.markdown_output)
+        if not report_path.is_absolute():
+            report_path = Path(__file__).parent.parent / report_path
+        report_path.parent.mkdir(parents=True, exist_ok=True)
         with open(report_path, "w", encoding="utf-8") as f:
             f.write(markdown_report)
             
@@ -175,12 +440,29 @@ def main():
         
         # 打印简要排行榜
         results = driver.execute_script("return window.AutomatedBalanceTester.results;")
+        if args.json_output:
+            json_path = Path(args.json_output)
+            if not json_path.is_absolute():
+                json_path = Path(__file__).parent.parent / json_path
+            json_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(json_path, "w", encoding="utf-8") as f:
+                json.dump({
+                    "scenario": args.scenario,
+                    "durationMs": args.duration,
+                    "level": args.level,
+                    "infiniteResource": args.infinite_resource,
+                    "equipmentPreset": args.equipment_preset,
+                    "seed": args.seed,
+                    "results": results
+                }, f, ensure_ascii=False, indent=2)
+            print(f"[成功] 原始 JSON 数据已保存至: {json_path.resolve()}", flush=True)
         for idx, r in enumerate(results):
             print(f" {idx+1:2d}. {r['classInfo']['name']:<10} ({r['classInfo']['tier']:<4}) | DPS: {int(r['dps']):,}", flush=True)
         print("="*97, flush=True)
 
     except Exception as e:
         print(f"[错误] 自动化测试运行中发生异常: {e}")
+        return 1
     finally:
         if driver:
             driver.quit()
@@ -188,6 +470,7 @@ def main():
         if server_process:
             server_process.terminate()
             print("[信息] 自动启动的本地服务器已关闭。")
+    return 0
 
 def generate_static_report_fallback():
     """
@@ -300,4 +583,4 @@ def generate_static_report_fallback():
         print(f"[错误] 生成静态报告时发生异常: {e}")
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main() or 0)

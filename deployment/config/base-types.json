@@ -6,66 +6,66 @@
       ""
     ],
     "magic": [
-      "微",
-      "淬",
-      "灵"
+      "微光",
+      "淬火",
+      "灵韵"
     ],
     "rare": [
-      "辉",
-      "湛",
-      "锐"
+      "辉耀",
+      "湛空",
+      "锐锋"
     ],
     "epic": [
-      "炽",
-      "逆",
-      "耀"
+      "炽焰",
+      "逆鳞",
+      "耀世"
     ],
     "legendary": [
-      "圣",
-      "龙",
-      "天"
+      "圣辉",
+      "龙吟",
+      "天启"
     ],
     "mythic": [
-      "神",
-      "终",
-      "无"
+      "神陨",
+      "终焉",
+      "无极"
     ]
   },
   "classStyleWords": {
     "warrior": [
-      "铁",
-      "钢",
-      "龙",
-      "圣",
-      "盾"
+      "铁卫",
+      "钢魂",
+      "龙脊",
+      "圣裁",
+      "盾心"
     ],
     "archer": [
-      "猎",
-      "风",
-      "羽",
-      "迅",
-      "踪"
+      "猎风",
+      "羽落",
+      "迅踪",
+      "穿云",
+      "追月"
     ],
     "mage": [
-      "秘",
-      "星",
-      "咒",
-      "织",
-      "咏"
+      "秘星",
+      "咒织",
+      "咏法",
+      "星尘",
+      "灵弦"
     ],
     "assassin": [
-      "暗",
-      "影",
-      "夜",
-      "潜",
-      "隐"
+      "暗影",
+      "夜行",
+      "潜锋",
+      "隐杀",
+      "幽冥"
     ]
   },
   "weapons": {
     "sword_balanced": {
       "slot": "weapon",
       "weaponType": "sword",
-      "name": "均衡武器",
+      "name": "精钢长剑",
       "style": "balanced",
       "baseStatsPerLevel": {
         "attack": 2.2,
@@ -79,7 +79,7 @@
     "sword_heavy": {
       "slot": "weapon",
       "weaponType": "sword",
-      "name": "重击武器",
+      "name": "裂甲重剑",
       "style": "heavy",
       "baseStatsPerLevel": {
         "attack": 2.9700000000000006,
@@ -93,7 +93,7 @@
     "sword_swift": {
       "slot": "weapon",
       "weaponType": "sword",
-      "name": "迅捷武器",
+      "name": "疾风细剑",
       "style": "swift",
       "baseStatsPerLevel": {
         "attack": 1.87,
@@ -107,7 +107,7 @@
     "sword_arcane": {
       "slot": "weapon",
       "weaponType": "sword",
-      "name": "秘法武器",
+      "name": "秘银咒刃",
       "style": "arcane",
       "baseStatsPerLevel": {
         "attack": 2.4200000000000004,
@@ -121,7 +121,7 @@
     "axe_balanced": {
       "slot": "weapon",
       "weaponType": "axe",
-      "name": "均衡武器",
+      "name": "开山斧",
       "style": "balanced",
       "baseStatsPerLevel": {
         "attack": 2.2,
@@ -135,7 +135,7 @@
     "axe_heavy": {
       "slot": "weapon",
       "weaponType": "axe",
-      "name": "重击武器",
+      "name": "碎骨战斧",
       "style": "heavy",
       "baseStatsPerLevel": {
         "attack": 2.9700000000000006,
@@ -149,7 +149,7 @@
     "axe_swift": {
       "slot": "weapon",
       "weaponType": "axe",
-      "name": "迅捷武器",
+      "name": "迅雷手斧",
       "style": "swift",
       "baseStatsPerLevel": {
         "attack": 1.87,
@@ -163,7 +163,7 @@
     "axe_arcane": {
       "slot": "weapon",
       "weaponType": "axe",
-      "name": "秘法武器",
+      "name": "咒纹战斧",
       "style": "arcane",
       "baseStatsPerLevel": {
         "attack": 2.4200000000000004,
@@ -177,7 +177,7 @@
     "hammer_balanced": {
       "slot": "weapon",
       "weaponType": "hammer",
-      "name": "均衡武器",
+      "name": "精钢战锤",
       "style": "balanced",
       "baseStatsPerLevel": {
         "attack": 2.2,
@@ -191,7 +191,7 @@
     "hammer_heavy": {
       "slot": "weapon",
       "weaponType": "hammer",
-      "name": "重击武器",
+      "name": "撼地巨锤",
       "style": "heavy",
       "baseStatsPerLevel": {
         "attack": 2.9700000000000006,
@@ -205,7 +205,7 @@
     "hammer_swift": {
       "slot": "weapon",
       "weaponType": "hammer",
-      "name": "迅捷武器",
+      "name": "疾风短锤",
       "style": "swift",
       "baseStatsPerLevel": {
         "attack": 1.87,
@@ -219,7 +219,7 @@
     "hammer_arcane": {
       "slot": "weapon",
       "weaponType": "hammer",
-      "name": "秘法武器",
+      "name": "符光战锤",
       "style": "arcane",
       "baseStatsPerLevel": {
         "attack": 2.4200000000000004,
@@ -233,7 +233,7 @@
     "spear_balanced": {
       "slot": "weapon",
       "weaponType": "spear",
-      "name": "均衡武器",
+      "name": "精钢长枪",
       "style": "balanced",
       "baseStatsPerLevel": {
         "attack": 2.2,
@@ -247,7 +247,7 @@
     "spear_heavy": {
       "slot": "weapon",
       "weaponType": "spear",
-      "name": "重击武器",
+      "name": "破阵重枪",
       "style": "heavy",
       "baseStatsPerLevel": {
         "attack": 2.9700000000000006,
@@ -261,7 +261,7 @@
     "spear_swift": {
       "slot": "weapon",
       "weaponType": "spear",
-      "name": "迅捷武器",
+      "name": "流云短矛",
       "style": "swift",
       "baseStatsPerLevel": {
         "attack": 1.87,
@@ -275,7 +275,7 @@
     "spear_arcane": {
       "slot": "weapon",
       "weaponType": "spear",
-      "name": "秘法武器",
+      "name": "星芒长矛",
       "style": "arcane",
       "baseStatsPerLevel": {
         "attack": 2.4200000000000004,
@@ -289,7 +289,7 @@
     "bow_balanced": {
       "slot": "weapon",
       "weaponType": "bow",
-      "name": "均衡武器",
+      "name": "猎风木弓",
       "style": "balanced",
       "baseStatsPerLevel": {
         "attack": 2.2,
@@ -303,7 +303,7 @@
     "bow_heavy": {
       "slot": "weapon",
       "weaponType": "bow",
-      "name": "重击武器",
+      "name": "贯甲强弓",
       "style": "heavy",
       "baseStatsPerLevel": {
         "attack": 2.9700000000000006,
@@ -317,7 +317,7 @@
     "bow_swift": {
       "slot": "weapon",
       "weaponType": "bow",
-      "name": "迅捷武器",
+      "name": "疾羽轻弓",
       "style": "swift",
       "baseStatsPerLevel": {
         "attack": 1.87,
@@ -331,7 +331,7 @@
     "bow_arcane": {
       "slot": "weapon",
       "weaponType": "bow",
-      "name": "秘法武器",
+      "name": "咒纹长弓",
       "style": "arcane",
       "baseStatsPerLevel": {
         "attack": 2.4200000000000004,
@@ -345,7 +345,7 @@
     "crossbow_balanced": {
       "slot": "weapon",
       "weaponType": "crossbow",
-      "name": "均衡武器",
+      "name": "精铁弩",
       "style": "balanced",
       "baseStatsPerLevel": {
         "attack": 2.2,
@@ -359,7 +359,7 @@
     "crossbow_heavy": {
       "slot": "weapon",
       "weaponType": "crossbow",
-      "name": "重击武器",
+      "name": "破甲重弩",
       "style": "heavy",
       "baseStatsPerLevel": {
         "attack": 2.9700000000000006,
@@ -373,7 +373,7 @@
     "crossbow_swift": {
       "slot": "weapon",
       "weaponType": "crossbow",
-      "name": "迅捷武器",
+      "name": "迅影手弩",
       "style": "swift",
       "baseStatsPerLevel": {
         "attack": 1.87,
@@ -387,7 +387,7 @@
     "crossbow_arcane": {
       "slot": "weapon",
       "weaponType": "crossbow",
-      "name": "秘法武器",
+      "name": "秘纹连弩",
       "style": "arcane",
       "baseStatsPerLevel": {
         "attack": 2.4200000000000004,
@@ -401,7 +401,7 @@
     "longbow_balanced": {
       "slot": "weapon",
       "weaponType": "longbow",
-      "name": "均衡武器",
+      "name": "苍穹长弓",
       "style": "balanced",
       "baseStatsPerLevel": {
         "attack": 2.2,
@@ -415,7 +415,7 @@
     "longbow_heavy": {
       "slot": "weapon",
       "weaponType": "longbow",
-      "name": "重击武器",
+      "name": "裂空强弓",
       "style": "heavy",
       "baseStatsPerLevel": {
         "attack": 2.9700000000000006,
@@ -429,7 +429,7 @@
     "longbow_swift": {
       "slot": "weapon",
       "weaponType": "longbow",
-      "name": "迅捷武器",
+      "name": "追风长弓",
       "style": "swift",
       "baseStatsPerLevel": {
         "attack": 1.87,
@@ -443,7 +443,7 @@
     "longbow_arcane": {
       "slot": "weapon",
       "weaponType": "longbow",
-      "name": "秘法武器",
+      "name": "星辉长弓",
       "style": "arcane",
       "baseStatsPerLevel": {
         "attack": 2.4200000000000004,
@@ -457,7 +457,7 @@
     "shortbow_balanced": {
       "slot": "weapon",
       "weaponType": "shortbow",
-      "name": "均衡武器",
+      "name": "游侠短弓",
       "style": "balanced",
       "baseStatsPerLevel": {
         "attack": 2.2,
@@ -471,7 +471,7 @@
     "shortbow_heavy": {
       "slot": "weapon",
       "weaponType": "shortbow",
-      "name": "重击武器",
+      "name": "硬木短弓",
       "style": "heavy",
       "baseStatsPerLevel": {
         "attack": 2.9700000000000006,
@@ -485,7 +485,7 @@
     "shortbow_swift": {
       "slot": "weapon",
       "weaponType": "shortbow",
-      "name": "迅捷武器",
+      "name": "雀羽短弓",
       "style": "swift",
       "baseStatsPerLevel": {
         "attack": 1.87,
@@ -499,7 +499,7 @@
     "shortbow_arcane": {
       "slot": "weapon",
       "weaponType": "shortbow",
-      "name": "秘法武器",
+      "name": "灵韵短弓",
       "style": "arcane",
       "baseStatsPerLevel": {
         "attack": 2.4200000000000004,
@@ -513,7 +513,7 @@
     "staff_balanced": {
       "slot": "weapon",
       "weaponType": "staff",
-      "name": "均衡法器",
+      "name": "橡木法杖",
       "style": "balanced",
       "baseStatsPerLevel": {
         "magicAttack": 1.8,
@@ -527,7 +527,7 @@
     "staff_heavy": {
       "slot": "weapon",
       "weaponType": "staff",
-      "name": "重击法器",
+      "name": "晶岩权杖",
       "style": "heavy",
       "baseStatsPerLevel": {
         "magicAttack": 2.43,
@@ -541,7 +541,7 @@
     "staff_swift": {
       "slot": "weapon",
       "weaponType": "staff",
-      "name": "迅捷法器",
+      "name": "流光短杖",
       "style": "swift",
       "baseStatsPerLevel": {
         "magicAttack": 1.53,
@@ -555,7 +555,7 @@
     "staff_arcane": {
       "slot": "weapon",
       "weaponType": "staff",
-      "name": "秘法法器",
+      "name": "奥术长杖",
       "style": "arcane",
       "baseStatsPerLevel": {
         "magicAttack": 1.9800000000000002,
@@ -569,7 +569,7 @@
     "book_balanced": {
       "slot": "weapon",
       "weaponType": "book",
-      "name": "均衡法器",
+      "name": "启蒙魔典",
       "style": "balanced",
       "baseStatsPerLevel": {
         "magicAttack": 1.8,
@@ -583,7 +583,7 @@
     "book_heavy": {
       "slot": "weapon",
       "weaponType": "book",
-      "name": "重击法器",
+      "name": "厚重秘籍",
       "style": "heavy",
       "baseStatsPerLevel": {
         "magicAttack": 2.43,
@@ -597,7 +597,7 @@
     "book_swift": {
       "slot": "weapon",
       "weaponType": "book",
-      "name": "迅捷法器",
+      "name": "轻页咒书",
       "style": "swift",
       "baseStatsPerLevel": {
         "magicAttack": 1.53,
@@ -611,7 +611,7 @@
     "book_arcane": {
       "slot": "weapon",
       "weaponType": "book",
-      "name": "秘法法器",
+      "name": "星尘法典",
       "style": "arcane",
       "baseStatsPerLevel": {
         "magicAttack": 1.9800000000000002,
@@ -625,7 +625,7 @@
     "orb_balanced": {
       "slot": "weapon",
       "weaponType": "orb",
-      "name": "均衡法器",
+      "name": "澄明法球",
       "style": "balanced",
       "baseStatsPerLevel": {
         "magicAttack": 1.8,
@@ -639,7 +639,7 @@
     "orb_heavy": {
       "slot": "weapon",
       "weaponType": "orb",
-      "name": "重击法器",
+      "name": "沉辉宝珠",
       "style": "heavy",
       "baseStatsPerLevel": {
         "magicAttack": 2.43,
@@ -653,7 +653,7 @@
     "orb_swift": {
       "slot": "weapon",
       "weaponType": "orb",
-      "name": "迅捷法器",
+      "name": "流荧灵珠",
       "style": "swift",
       "baseStatsPerLevel": {
         "magicAttack": 1.53,
@@ -667,7 +667,7 @@
     "orb_arcane": {
       "slot": "weapon",
       "weaponType": "orb",
-      "name": "秘法法器",
+      "name": "虚空法球",
       "style": "arcane",
       "baseStatsPerLevel": {
         "magicAttack": 1.9800000000000002,
@@ -681,7 +681,7 @@
     "rune_balanced": {
       "slot": "weapon",
       "weaponType": "rune",
-      "name": "均衡法器",
+      "name": "凡铁符石",
       "style": "balanced",
       "baseStatsPerLevel": {
         "magicAttack": 1.8,
@@ -695,7 +695,7 @@
     "rune_heavy": {
       "slot": "weapon",
       "weaponType": "rune",
-      "name": "重击法器",
+      "name": "镇岳符碑",
       "style": "heavy",
       "baseStatsPerLevel": {
         "magicAttack": 2.43,
@@ -709,7 +709,7 @@
     "rune_swift": {
       "slot": "weapon",
       "weaponType": "rune",
-      "name": "迅捷法器",
+      "name": "疾光符片",
       "style": "swift",
       "baseStatsPerLevel": {
         "magicAttack": 1.53,
@@ -723,7 +723,7 @@
     "rune_arcane": {
       "slot": "weapon",
       "weaponType": "rune",
-      "name": "秘法法器",
+      "name": "星纹符石",
       "style": "arcane",
       "baseStatsPerLevel": {
         "magicAttack": 1.9800000000000002,
@@ -737,7 +737,7 @@
     "dagger_balanced": {
       "slot": "weapon",
       "weaponType": "dagger",
-      "name": "均衡武器",
+      "name": "精钢匕首",
       "style": "balanced",
       "baseStatsPerLevel": {
         "attack": 2.2,
@@ -751,7 +751,7 @@
     "dagger_heavy": {
       "slot": "weapon",
       "weaponType": "dagger",
-      "name": "重击武器",
+      "name": "穿心短刃",
       "style": "heavy",
       "baseStatsPerLevel": {
         "attack": 2.9700000000000006,
@@ -765,7 +765,7 @@
     "dagger_swift": {
       "slot": "weapon",
       "weaponType": "dagger",
-      "name": "迅捷武器",
+      "name": "影牙匕首",
       "style": "swift",
       "baseStatsPerLevel": {
         "attack": 1.87,
@@ -779,7 +779,7 @@
     "dagger_arcane": {
       "slot": "weapon",
       "weaponType": "dagger",
-      "name": "秘法武器",
+      "name": "咒毒短匕",
       "style": "arcane",
       "baseStatsPerLevel": {
         "attack": 2.4200000000000004,
@@ -793,7 +793,7 @@
     "claw_balanced": {
       "slot": "weapon",
       "weaponType": "claw",
-      "name": "均衡武器",
+      "name": "铁钩爪刃",
       "style": "balanced",
       "baseStatsPerLevel": {
         "attack": 2.2,
@@ -807,7 +807,7 @@
     "claw_heavy": {
       "slot": "weapon",
       "weaponType": "claw",
-      "name": "重击武器",
+      "name": "裂肉重爪",
       "style": "heavy",
       "baseStatsPerLevel": {
         "attack": 2.9700000000000006,
@@ -821,7 +821,7 @@
     "claw_swift": {
       "slot": "weapon",
       "weaponType": "claw",
-      "name": "迅捷武器",
+      "name": "迅鸦爪刃",
       "style": "swift",
       "baseStatsPerLevel": {
         "attack": 1.87,
@@ -835,7 +835,7 @@
     "claw_arcane": {
       "slot": "weapon",
       "weaponType": "claw",
-      "name": "秘法武器",
+      "name": "幽光魔爪",
       "style": "arcane",
       "baseStatsPerLevel": {
         "attack": 2.4200000000000004,
@@ -849,7 +849,7 @@
     "shortblade_balanced": {
       "slot": "weapon",
       "weaponType": "shortblade",
-      "name": "均衡武器",
+      "name": "精钢短刃",
       "style": "balanced",
       "baseStatsPerLevel": {
         "attack": 2.2,
@@ -863,7 +863,7 @@
     "shortblade_heavy": {
       "slot": "weapon",
       "weaponType": "shortblade",
-      "name": "重击武器",
+      "name": "厚脊短刀",
       "style": "heavy",
       "baseStatsPerLevel": {
         "attack": 2.9700000000000006,
@@ -877,7 +877,7 @@
     "shortblade_swift": {
       "slot": "weapon",
       "weaponType": "shortblade",
-      "name": "迅捷武器",
+      "name": "薄锋短刃",
       "style": "swift",
       "baseStatsPerLevel": {
         "attack": 1.87,
@@ -891,7 +891,7 @@
     "shortblade_arcane": {
       "slot": "weapon",
       "weaponType": "shortblade",
-      "name": "秘法武器",
+      "name": "秘纹短刀",
       "style": "arcane",
       "baseStatsPerLevel": {
         "attack": 2.4200000000000004,
@@ -905,7 +905,7 @@
     "chainblade_balanced": {
       "slot": "weapon",
       "weaponType": "chainblade",
-      "name": "均衡武器",
+      "name": "精钢链刃",
       "style": "balanced",
       "baseStatsPerLevel": {
         "attack": 2.2,
@@ -919,7 +919,7 @@
     "chainblade_heavy": {
       "slot": "weapon",
       "weaponType": "chainblade",
-      "name": "重击武器",
+      "name": "裂空链锯",
       "style": "heavy",
       "baseStatsPerLevel": {
         "attack": 2.9700000000000006,
@@ -933,7 +933,7 @@
     "chainblade_swift": {
       "slot": "weapon",
       "weaponType": "chainblade",
-      "name": "迅捷武器",
+      "name": "流光链刃",
       "style": "swift",
       "baseStatsPerLevel": {
         "attack": 1.87,
@@ -947,7 +947,7 @@
     "chainblade_arcane": {
       "slot": "weapon",
       "weaponType": "chainblade",
-      "name": "秘法武器",
+      "name": "咒缚链刃",
       "style": "arcane",
       "baseStatsPerLevel": {
         "attack": 2.4200000000000004,
@@ -962,7 +962,7 @@
   "offHand": {
     "light_shield": {
       "slot": "offHand",
-      "name": "轻盾",
+      "name": "轻圆盾",
       "classAffinity": "warrior",
       "baseStats": {
         "defense": 8,
@@ -974,7 +974,7 @@
     },
     "heavy_shield": {
       "slot": "offHand",
-      "name": "重盾",
+      "name": "壁垒重盾",
       "classAffinity": "warrior",
       "baseStats": {
         "defense": 14,
@@ -986,7 +986,7 @@
     },
     "holy_shield": {
       "slot": "offHand",
-      "name": "圣盾",
+      "name": "圣辉盾",
       "classAffinity": "warrior",
       "baseStats": {
         "defense": 10,
@@ -998,7 +998,7 @@
     },
     "light_quiver": {
       "slot": "offHand",
-      "name": "轻箭袋",
+      "name": "轻羽箭袋",
       "classAffinity": "archer",
       "baseStats": {
         "attackSpeed": 8,
@@ -1010,7 +1010,7 @@
     },
     "heavy_quiver": {
       "slot": "offHand",
-      "name": "重箭袋",
+      "name": "贯甲箭袋",
       "classAffinity": "archer",
       "baseStats": {
         "attack": 6,
@@ -1034,7 +1034,7 @@
     },
     "spellbook": {
       "slot": "offHand",
-      "name": "魔典",
+      "name": "咏咒魔典",
       "classAffinity": "mage",
       "baseStats": {
         "magicAttack": 8,
@@ -1046,7 +1046,7 @@
     },
     "focus_orb": {
       "slot": "offHand",
-      "name": "法球",
+      "name": "凝神法球",
       "classAffinity": "mage",
       "baseStats": {
         "magicAttack": 6,
@@ -1058,7 +1058,7 @@
     },
     "element_orb": {
       "slot": "offHand",
-      "name": "元素球",
+      "name": "元素法球",
       "classAffinity": "mage",
       "baseStats": {
         "magicAttack": 10
@@ -1069,7 +1069,7 @@
     },
     "off_dagger": {
       "slot": "offHand",
-      "name": "副手匕首",
+      "name": "影副刃",
       "classAffinity": "assassin",
       "baseStats": {
         "critRate": 6,
@@ -1081,7 +1081,7 @@
     },
     "poison_dagger": {
       "slot": "offHand",
-      "name": "毒匕",
+      "name": "淬毒短匕",
       "classAffinity": "assassin",
       "baseStats": {
         "attack": 5,
@@ -1093,7 +1093,7 @@
     },
     "shadow_dagger": {
       "slot": "offHand",
-      "name": "暗匕",
+      "name": "影袭短匕",
       "classAffinity": "assassin",
       "baseStats": {
         "critDamage": 15,
@@ -1107,7 +1107,7 @@
   "armor": {
     "helmet_heavy": {
       "slot": "helmet",
-      "name": "重型盔",
+      "name": "铁卫战盔",
       "style": "heavy",
       "baseStatsPerLevel": {
         "health": 4.199999999999999,
@@ -1120,7 +1120,7 @@
     },
     "helmet_medium": {
       "slot": "helmet",
-      "name": "中型盔",
+      "name": "游侠皮盔",
       "style": "medium",
       "baseStatsPerLevel": {
         "health": 3,
@@ -1133,7 +1133,7 @@
     },
     "helmet_light": {
       "slot": "helmet",
-      "name": "轻型盔",
+      "name": "织法软帽",
       "style": "light",
       "baseStatsPerLevel": {
         "health": 2.0999999999999996,
@@ -1146,7 +1146,7 @@
     },
     "body_heavy": {
       "slot": "body",
-      "name": "重型铠",
+      "name": "铁卫板甲",
       "style": "heavy",
       "baseStatsPerLevel": {
         "health": 4.199999999999999,
@@ -1159,7 +1159,7 @@
     },
     "body_medium": {
       "slot": "body",
-      "name": "中型铠",
+      "name": "游侠锁甲",
       "style": "medium",
       "baseStatsPerLevel": {
         "health": 3,
@@ -1172,7 +1172,7 @@
     },
     "body_light": {
       "slot": "body",
-      "name": "轻型铠",
+      "name": "咏咒长袍",
       "style": "light",
       "baseStatsPerLevel": {
         "health": 2.0999999999999996,
@@ -1185,7 +1185,7 @@
     },
     "hands_heavy": {
       "slot": "hands",
-      "name": "重型手",
+      "name": "铁卫护手",
       "style": "heavy",
       "baseStatsPerLevel": {
         "health": 4.199999999999999,
@@ -1198,7 +1198,7 @@
     },
     "hands_medium": {
       "slot": "hands",
-      "name": "中型手",
+      "name": "猎风手套",
       "style": "medium",
       "baseStatsPerLevel": {
         "health": 3,
@@ -1211,7 +1211,7 @@
     },
     "hands_light": {
       "slot": "hands",
-      "name": "轻型手",
+      "name": "织法手套",
       "style": "light",
       "baseStatsPerLevel": {
         "health": 2.0999999999999996,
@@ -1224,7 +1224,7 @@
     },
     "legs_heavy": {
       "slot": "legs",
-      "name": "重型腿",
+      "name": "铁卫护腿",
       "style": "heavy",
       "baseStatsPerLevel": {
         "health": 4.199999999999999,
@@ -1237,7 +1237,7 @@
     },
     "legs_medium": {
       "slot": "legs",
-      "name": "中型腿",
+      "name": "猎风护腿",
       "style": "medium",
       "baseStatsPerLevel": {
         "health": 3,
@@ -1250,7 +1250,7 @@
     },
     "legs_light": {
       "slot": "legs",
-      "name": "轻型腿",
+      "name": "咏咒长裤",
       "style": "light",
       "baseStatsPerLevel": {
         "health": 2.0999999999999996,
@@ -1263,7 +1263,7 @@
     },
     "feet_heavy": {
       "slot": "feet",
-      "name": "重型靴",
+      "name": "征战铁靴",
       "style": "heavy",
       "baseStatsPerLevel": {
         "health": 4.199999999999999,
@@ -1276,7 +1276,7 @@
     },
     "feet_medium": {
       "slot": "feet",
-      "name": "中型靴",
+      "name": "猎风皮靴",
       "style": "medium",
       "baseStatsPerLevel": {
         "health": 3,
@@ -1289,7 +1289,7 @@
     },
     "feet_light": {
       "slot": "feet",
-      "name": "轻型靴",
+      "name": "织法软靴",
       "style": "light",
       "baseStatsPerLevel": {
         "health": 2.0999999999999996,
@@ -1304,7 +1304,7 @@
   "accessories": {
     "guard_amulet": {
       "slot": "amulet",
-      "name": "守护护符",
+      "name": "守护符印",
       "baseStatsPerLevel": {
         "damageReduction": 0.7,
         "health": 5.25
@@ -1313,7 +1313,7 @@
     },
     "power_amulet": {
       "slot": "amulet",
-      "name": "力量护符",
+      "name": "力量坠饰",
       "baseStatsPerLevel": {
         "attack": 1.75,
         "magicAttack": 1.75
@@ -1322,7 +1322,7 @@
     },
     "wisdom_amulet": {
       "slot": "amulet",
-      "name": "智慧护符",
+      "name": "慧心吊坠",
       "baseStatsPerLevel": {
         "magicAttack": 2.8,
         "skillHaste": 1.4
@@ -1331,7 +1331,7 @@
     },
     "attack_ring": {
       "slot": "ring",
-      "name": "攻击戒指",
+      "name": "锋芒之戒",
       "baseStatsPerLevel": {
         "critRate": 1.4,
         "critDamage": 2.8
@@ -1340,7 +1340,7 @@
     },
     "defense_ring": {
       "slot": "ring",
-      "name": "防御戒指",
+      "name": "坚壁之戒",
       "baseStatsPerLevel": {
         "dodge": 1.4,
         "defense": 1.4
@@ -1349,7 +1349,7 @@
     },
     "resource_ring": {
       "slot": "ring",
-      "name": "资源戒指",
+      "name": "涌流之戒",
       "baseStatsPerLevel": {
         "skillHaste": 1.75,
         "attackSpeed": 1.4
@@ -1358,7 +1358,7 @@
     },
     "vitality_belt": {
       "slot": "belt",
-      "name": "巨力腰带",
+      "name": "磐石腰带",
       "baseStatsPerLevel": {
         "health": 10.5,
         "defense": 1.0499999999999998
@@ -1367,7 +1367,7 @@
     },
     "swift_belt": {
       "slot": "belt",
-      "name": "迅捷腰带",
+      "name": "疾风腰带",
       "baseStatsPerLevel": {
         "moveSpeed": 1.75,
         "attackSpeed": 1.4
@@ -1376,7 +1376,7 @@
     },
     "arcane_belt": {
       "slot": "belt",
-      "name": "魔法腰带",
+      "name": "奥术腰带",
       "baseStatsPerLevel": {
         "skillHaste": 2.0999999999999996,
         "magicAttack": 1.4

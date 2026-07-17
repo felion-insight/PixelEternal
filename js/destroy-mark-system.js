@@ -91,7 +91,10 @@
         if (!monster || !amount || amount <= 0 || monster.hp <= 0) return 0;
         const now = (opts && opts.now != null) ? opts.now : Date.now();
         const maxStacks = (opts && opts.maxStacks) || MARK_MAX;
-        let total = window.getDestroyMarkStacks(monster) + amount;
+        const gainBonus = player && typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'destroyMarkGain', 0) : 0;
+        const addAmount = gainBonus > 0 ? Math.max(1, Math.ceil(amount * (1 + gainBonus))) : amount;
+        let total = window.getDestroyMarkStacks(monster) + addAmount;
 
         while (total >= maxStacks) {
             monster._destroyMark = { stacks: maxStacks, expireTime: now + MARK_DURATION_MS };

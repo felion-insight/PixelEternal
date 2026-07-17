@@ -12,88 +12,117 @@ const WEAPON_TYPES = ['sword', 'axe', 'hammer', 'spear', 'bow', 'crossbow', 'lon
     'staff', 'book', 'orb', 'rune', 'dagger', 'claw', 'shortblade', 'chainblade'];
 
 const WEAPON_BASE_VARIANTS = [
-    { suffix: 'balanced', name: '均衡', atkMult: 1.0, spd: 1.2, implicit: { critDamage: 10 } },
-    { suffix: 'heavy', name: '重击', atkMult: 1.35, spd: 0.8, implicit: { critDamage: 15 } },
-    { suffix: 'swift', name: '迅捷', atkMult: 0.85, spd: 1.6, implicit: { critRate: 8 } },
-    { suffix: 'arcane', name: '秘法', atkMult: 1.1, spd: 1.0, implicit: { lifeSteal: 2 } }
+    { suffix: 'balanced', atkMult: 1.0, spd: 1.2, implicit: { critDamage: 10 } },
+    { suffix: 'heavy', atkMult: 1.35, spd: 0.8, implicit: { critDamage: 15 } },
+    { suffix: 'swift', atkMult: 0.85, spd: 1.6, implicit: { critRate: 8 } },
+    { suffix: 'arcane', atkMult: 1.1, spd: 1.0, implicit: { lifeSteal: 2 } }
 ];
+
+/** 武器类型 × 风格 → 可读中文名（避免「均衡武器」式泛称） */
+const WEAPON_DISPLAY_NAMES = {
+    sword: { balanced: '精钢长剑', heavy: '裂甲重剑', swift: '疾风细剑', arcane: '秘银咒刃' },
+    axe: { balanced: '开山斧', heavy: '碎骨战斧', swift: '迅雷手斧', arcane: '咒纹战斧' },
+    hammer: { balanced: '精钢战锤', heavy: '撼地巨锤', swift: '疾风短锤', arcane: '符光战锤' },
+    spear: { balanced: '精钢长枪', heavy: '破阵重枪', swift: '流云短矛', arcane: '星芒长矛' },
+    bow: { balanced: '猎风木弓', heavy: '贯甲强弓', swift: '疾羽轻弓', arcane: '咒纹长弓' },
+    crossbow: { balanced: '精铁弩', heavy: '破甲重弩', swift: '迅影手弩', arcane: '秘纹连弩' },
+    longbow: { balanced: '苍穹长弓', heavy: '裂空强弓', swift: '追风长弓', arcane: '星辉长弓' },
+    shortbow: { balanced: '游侠短弓', heavy: '硬木短弓', swift: '雀羽短弓', arcane: '灵韵短弓' },
+    staff: { balanced: '橡木法杖', heavy: '晶岩权杖', swift: '流光短杖', arcane: '奥术长杖' },
+    book: { balanced: '启蒙魔典', heavy: '厚重秘籍', swift: '轻页咒书', arcane: '星尘法典' },
+    orb: { balanced: '澄明法球', heavy: '沉辉宝珠', swift: '流荧灵珠', arcane: '虚空法球' },
+    rune: { balanced: '凡铁符石', heavy: '镇岳符碑', swift: '疾光符片', arcane: '星纹符石' },
+    dagger: { balanced: '精钢匕首', heavy: '穿心短刃', swift: '影牙匕首', arcane: '咒毒短匕' },
+    claw: { balanced: '铁钩爪刃', heavy: '裂肉重爪', swift: '迅鸦爪刃', arcane: '幽光魔爪' },
+    shortblade: { balanced: '精钢短刃', heavy: '厚脊短刀', swift: '薄锋短刃', arcane: '秘纹短刀' },
+    chainblade: { balanced: '精钢链刃', heavy: '裂空链锯', swift: '流光链刃', arcane: '咒缚链刃' }
+};
 
 const MAGIC_WEAPON_TYPES = new Set(['staff', 'book', 'orb', 'rune']);
 const ARMOR_SLOTS = ['helmet', 'body', 'hands', 'legs', 'feet'];
 const ARMOR_STYLES = [
-    { id: 'heavy', name: '重型', hpMult: 1.4, defMult: 1.5, implicit: { damageReduction: 2 } },
-    { id: 'medium', name: '中型', hpMult: 1.0, defMult: 1.0, implicit: { dodge: 3 } },
-    { id: 'light', name: '轻型', hpMult: 0.7, defMult: 0.7, implicit: { skillHaste: 5 } }
+    { id: 'heavy', hpMult: 1.4, defMult: 1.5, implicit: { damageReduction: 2 } },
+    { id: 'medium', hpMult: 1.0, defMult: 1.0, implicit: { dodge: 3 } },
+    { id: 'light', hpMult: 0.7, defMult: 0.7, implicit: { skillHaste: 5 } }
 ];
+
+const ARMOR_DISPLAY_NAMES = {
+    helmet: { heavy: '铁卫战盔', medium: '游侠皮盔', light: '织法软帽' },
+    body: { heavy: '铁卫板甲', medium: '游侠锁甲', light: '咏咒长袍' },
+    hands: { heavy: '铁卫护手', medium: '猎风手套', light: '织法手套' },
+    legs: { heavy: '铁卫护腿', medium: '猎风护腿', light: '咏咒长裤' },
+    feet: { heavy: '征战铁靴', medium: '猎风皮靴', light: '织法软靴' }
+};
 
 const OFFHAND_BY_CLASS = {
     warrior: [
-        { id: 'light_shield', name: '轻盾', stats: { defense: 8, health: 20 }, implicit: { damageReduction: 1 } },
-        { id: 'heavy_shield', name: '重盾', stats: { defense: 14, health: 40 }, implicit: { damageReduction: 3 } },
-        { id: 'holy_shield', name: '圣盾', stats: { defense: 10, health: 30 }, implicit: { lifeSteal: 2 } }
+        { id: 'light_shield', name: '轻圆盾', stats: { defense: 8, health: 20 }, implicit: { damageReduction: 1 } },
+        { id: 'heavy_shield', name: '壁垒重盾', stats: { defense: 14, health: 40 }, implicit: { damageReduction: 3 } },
+        { id: 'holy_shield', name: '圣辉盾', stats: { defense: 10, health: 30 }, implicit: { lifeSteal: 2 } }
     ],
     archer: [
-        { id: 'light_quiver', name: '轻箭袋', stats: { attackSpeed: 8, critRate: 3 }, implicit: { attackSpeed: 5 } },
-        { id: 'heavy_quiver', name: '重箭袋', stats: { attack: 6, critDamage: 12 }, implicit: { critDamage: 10 } },
+        { id: 'light_quiver', name: '轻羽箭袋', stats: { attackSpeed: 8, critRate: 3 }, implicit: { attackSpeed: 5 } },
+        { id: 'heavy_quiver', name: '贯甲箭袋', stats: { attack: 6, critDamage: 12 }, implicit: { critDamage: 10 } },
         { id: 'element_quiver', name: '元素箭袋', stats: { attack: 4, critRate: 5 }, implicit: { skillHaste: 4 } }
     ],
     mage: [
-        { id: 'spellbook', name: '魔典', stats: { magicAttack: 8, skillHaste: 5 }, implicit: { skillHaste: 5 } },
-        { id: 'focus_orb', name: '法球', stats: { magicAttack: 6, magicDefense: 4 }, implicit: { skillHaste: 3 } },
-        { id: 'element_orb', name: '元素球', stats: { magicAttack: 10 }, implicit: { critRate: 4 } }
+        { id: 'spellbook', name: '咏咒魔典', stats: { magicAttack: 8, skillHaste: 5 }, implicit: { skillHaste: 5 } },
+        { id: 'focus_orb', name: '凝神法球', stats: { magicAttack: 6, magicDefense: 4 }, implicit: { skillHaste: 3 } },
+        { id: 'element_orb', name: '元素法球', stats: { magicAttack: 10 }, implicit: { critRate: 4 } }
     ],
     assassin: [
-        { id: 'off_dagger', name: '副手匕首', stats: { critRate: 6, attackSpeed: 6 }, implicit: { critRate: 5 } },
-        { id: 'poison_dagger', name: '毒匕', stats: { attack: 5, critRate: 4 }, implicit: { lifeSteal: 3 } },
-        { id: 'shadow_dagger', name: '暗匕', stats: { critDamage: 15, dodge: 4 }, implicit: { dodge: 3 } }
+        { id: 'off_dagger', name: '影副刃', stats: { critRate: 6, attackSpeed: 6 }, implicit: { critRate: 5 } },
+        { id: 'poison_dagger', name: '淬毒短匕', stats: { attack: 5, critRate: 4 }, implicit: { lifeSteal: 3 } },
+        { id: 'shadow_dagger', name: '影袭短匕', stats: { critDamage: 15, dodge: 4 }, implicit: { dodge: 3 } }
     ]
 };
 
 const ACCESSORY_TYPES = {
     amulet: [
-        { id: 'guard_amulet', name: '守护护符', stats: { damageReduction: 2, health: 15 } },
-        { id: 'power_amulet', name: '力量护符', stats: { attack: 5, magicAttack: 5 } },
-        { id: 'wisdom_amulet', name: '智慧护符', stats: { magicAttack: 8, skillHaste: 4 } }
+        { id: 'guard_amulet', name: '守护符印', stats: { damageReduction: 2, health: 15 } },
+        { id: 'power_amulet', name: '力量坠饰', stats: { attack: 5, magicAttack: 5 } },
+        { id: 'wisdom_amulet', name: '慧心吊坠', stats: { magicAttack: 8, skillHaste: 4 } }
     ],
     ring: [
-        { id: 'attack_ring', name: '攻击戒指', stats: { critRate: 4, critDamage: 8 } },
-        { id: 'defense_ring', name: '防御戒指', stats: { dodge: 4, defense: 4 } },
-        { id: 'resource_ring', name: '资源戒指', stats: { skillHaste: 5, attackSpeed: 4 } }
+        { id: 'attack_ring', name: '锋芒之戒', stats: { critRate: 4, critDamage: 8 } },
+        { id: 'defense_ring', name: '坚壁之戒', stats: { dodge: 4, defense: 4 } },
+        { id: 'resource_ring', name: '涌流之戒', stats: { skillHaste: 5, attackSpeed: 4 } }
     ],
     belt: [
-        { id: 'vitality_belt', name: '巨力腰带', stats: { health: 30, defense: 3 } },
-        { id: 'swift_belt', name: '迅捷腰带', stats: { moveSpeed: 5, attackSpeed: 4 } },
-        { id: 'arcane_belt', name: '魔法腰带', stats: { skillHaste: 6, magicAttack: 4 } }
+        { id: 'vitality_belt', name: '磐石腰带', stats: { health: 30, defense: 3 } },
+        { id: 'swift_belt', name: '疾风腰带', stats: { moveSpeed: 5, attackSpeed: 4 } },
+        { id: 'arcane_belt', name: '奥术腰带', stats: { skillHaste: 6, magicAttack: 4 } }
     ]
 };
 
 const QUALITY_PREFIXES = {
     normal: ['', ''],
-    magic: ['微', '淬', '灵'],
-    rare: ['辉', '湛', '锐'],
-    epic: ['炽', '逆', '耀'],
-    legendary: ['圣', '龙', '天'],
-    mythic: ['神', '终', '无']
+    magic: ['微光', '淬火', '灵韵'],
+    rare: ['辉耀', '湛空', '锐锋'],
+    epic: ['炽焰', '逆鳞', '耀世'],
+    legendary: ['圣辉', '龙吟', '天启'],
+    mythic: ['神陨', '终焉', '无极']
 };
 
 const CLASS_STYLE_WORDS = {
-    warrior: ['铁', '钢', '龙', '圣', '盾'],
-    archer: ['猎', '风', '羽', '迅', '踪'],
-    mage: ['秘', '星', '咒', '织', '咏'],
-    assassin: ['暗', '影', '夜', '潜', '隐']
+    warrior: ['铁卫', '钢魂', '龙脊', '圣裁', '盾心'],
+    archer: ['猎风', '羽落', '迅踪', '穿云', '追月'],
+    mage: ['秘星', '咒织', '咏法', '星尘', '灵弦'],
+    assassin: ['暗影', '夜行', '潜锋', '隐杀', '幽冥']
 };
 
 function buildBaseTypes() {
     const weapons = {};
     for (const wt of WEAPON_TYPES) {
         const isMagic = MAGIC_WEAPON_TYPES.has(wt);
+        const nameByStyle = WEAPON_DISPLAY_NAMES[wt] || {};
         for (const v of WEAPON_BASE_VARIANTS) {
             const id = `${wt}_${v.suffix}`;
             const atkKey = isMagic ? 'magicAttack' : 'attack';
             weapons[id] = {
                 slot: 'weapon',
                 weaponType: wt,
-                name: `${v.name}${isMagic ? '法器' : '武器'}`,
+                name: nameByStyle[v.suffix] || `${v.suffix}${isMagic ? '法器' : '武器'}`,
                 style: v.suffix,
                 baseStatsPerLevel: {
                     [atkKey]: isMagic ? 1.8 * v.atkMult : 2.2 * v.atkMult,
@@ -114,11 +143,12 @@ function buildBaseTypes() {
 
     const armor = {};
     for (const slot of ARMOR_SLOTS) {
+        const nameByStyle = ARMOR_DISPLAY_NAMES[slot] || {};
         for (const st of ARMOR_STYLES) {
             const id = `${slot}_${st.id}`;
             armor[id] = {
                 slot,
-                name: `${st.name}${slot === 'helmet' ? '盔' : slot === 'body' ? '铠' : slot === 'hands' ? '手' : slot === 'legs' ? '腿' : '靴'}`,
+                name: nameByStyle[st.id] || `${st.id}${slot}`,
                 style: st.id,
                 baseStatsPerLevel: {
                     health: 3 * st.hpMult,
@@ -188,7 +218,7 @@ function buildAffixPool() {
         { id: 'evasion', name: '闪避', stat: 'dodge', isPercent: true, slots: ['legs', 'feet', 'ring'], tiers: tierValues(2, 12), classWeights: { assassin: 2 } },
         { id: 'calm', name: '冷静', stat: 'skillHaste', isPercent: true, slots: ['helmet', 'amulet', 'belt'], tiers: tierValues(3, 15), classWeights: { mage: 2 } },
         { id: 'spring', name: '涌泉', stat: 'skillHaste', isPercent: true, slots: ['amulet', 'ring', 'belt'], tiers: tierValues(5, 25), classWeights: { mage: 2 } },
-        { id: 'ward', name: '减伤', stat: 'damageReduction', isPercent: true, slots: ['body', 'helmet', 'amulet'], tiers: tierValues(1, 6), classWeights: { warrior: 2 } },
+        { id: 'ward', name: '守御', stat: 'damageReduction', isPercent: true, slots: ['body', 'helmet', 'amulet'], tiers: tierValues(1, 6), classWeights: { warrior: 2 } },
         { id: 'greed', name: '贪婪', stat: 'towerGoldBonus', isPercent: true, slots: ['belt', 'ring'], tiers: tierValues(5, 35), classWeights: {} }
     ];
     const tierColors = ['#cccccc', '#44cc44', '#4488ff', '#aa44ff', '#ff8800'];
@@ -349,14 +379,20 @@ function writeJson(file, data) {
     console.log('Wrote', path.relative(ROOT, file));
 }
 
+const ONLY = process.argv.includes('--only-base-types');
 writeJson(OUT('base-types.json'), buildBaseTypes());
-writeJson(OUT('affix-pool.json'), buildAffixPool());
-writeJson(OUT('legendary-powers.json'), buildLegendaryPowers());
-writeJson(OUT('set-config-v2.json'), buildSetConfigV2());
+if (!ONLY) {
+    writeJson(OUT('affix-pool.json'), buildAffixPool());
+    writeJson(OUT('legendary-powers.json'), buildLegendaryPowers());
+    writeJson(OUT('set-config-v2.json'), buildSetConfigV2());
+}
 
 // deployment mirror
 const DEP = path.join(ROOT, 'deployment', 'config');
-for (const f of ['base-types.json', 'affix-pool.json', 'legendary-powers.json', 'set-config-v2.json']) {
+const syncFiles = ONLY
+    ? ['base-types.json']
+    : ['base-types.json', 'affix-pool.json', 'legendary-powers.json', 'set-config-v2.json'];
+for (const f of syncFiles) {
     fs.copyFileSync(OUT(f), path.join(DEP, f));
 }
-console.log('Synced to deployment/config/');
+console.log('Synced to deployment/config/', syncFiles.join(', '));

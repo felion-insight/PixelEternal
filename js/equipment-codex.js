@@ -84,9 +84,40 @@
         return samples;
     }
 
+    function generateBuildEquipmentSamples(options) {
+        const opts = options || {};
+        const items = window.CLASS_BUILD_EQUIPMENT && window.CLASS_BUILD_EQUIPMENT.items;
+        if (!items) return [];
+        const quality = opts.quality && opts.quality !== 'all' ? opts.quality : 'legendary';
+        if (!['epic', 'legendary', 'mythic'].includes(quality)) return [];
+        const activeClassId = opts.classId || opts.playerClass || null;
+        const baseClassId = opts.playerClass || activeClassId;
+        return items
+            .filter(def => {
+                if (opts.slot && opts.slot !== 'all' && def.slot !== opts.slot) return false;
+                if (def.classRestriction && def.classRestriction.length && activeClassId) {
+                    if (!def.classRestriction.includes(activeClassId)
+                        && !def.classRestriction.includes(baseClassId)) return false;
+                }
+                return true;
+            })
+            .map(def => generateProceduralSample({
+                monsterLevel: opts.level || 60,
+                monsterTier: 'boss',
+                quality,
+                slot: def.slot,
+                weaponType: def.weaponType,
+                setId: null,
+                playerClass: baseClassId,
+                classId: activeClassId,
+                buildEquipmentId: def.equipmentId
+            }))
+            .filter(Boolean);
+    }
+
     function cloneEquipmentForGrant(eq) {
         if (!eq || typeof Equipment === 'undefined') return null;
-        return new Equipment({
+        const copy = new Equipment({
             id: 'dev_' + Date.now() + '_' + Math.floor(Math.random() * 9999),
             name: eq.name,
             slot: eq.slot,
@@ -100,11 +131,14 @@
             suffixes: eq.suffixes ? JSON.parse(JSON.stringify(eq.suffixes)) : [],
             legendaryPowers: eq.legendaryPowers ? JSON.parse(JSON.stringify(eq.legendaryPowers)) : [],
             setId: eq.setId,
+            buildEquipmentId: eq.buildEquipmentId || null,
             classAffinity: eq.classAffinity,
             procedural: !!eq.procedural,
             refineLevel: eq.refineLevel || 0,
             enhanceLevel: eq.enhanceLevel || 0
         });
+        copy.buildEquipmentId = eq.buildEquipmentId || null;
+        return copy;
     }
 
     function grantFullSetV2(setId, game) {
@@ -142,22 +176,22 @@
         if (!pool) return '<p style="color:#888;">词缀配置未加载</p>';
         const tierColors = pool.tierColors || ['#ccc', '#4c4', '#48f', '#a4f', '#f80'];
         let html = '<p style="color:#aaa;font-size:13px;line-height:1.5;margin:0 0 14px;">前缀偏数值、后缀偏机制；Tier 1–5 随装备等级提升。括号内为可出现的槽位。</p>';
-        const renderGroup = (title, list, sym) => {
+        const renderGroup = (title, list, sym, affixType) => {
             html += `<h3 style="color:#e0e0e0;margin:18px 0 8px;font-size:15px;">${title}</h3>`;
             (list || []).forEach(a => {
                 const t5 = (a.tiers || []).find(t => t.tier === 5) || (a.tiers || [])[(a.tiers || []).length - 1];
                 const t1 = (a.tiers || [])[0];
                 const range = t1 && t5 ? `${t1.min}–${t5.max}${a.isPercent ? '%' : ''}` : '-';
                 const slots = (a.slots || []).map(s => (window.SLOT_NAMES && window.SLOT_NAMES[s]) || s).join('、');
-                html += `<div style="background:rgba(45,45,55,0.9);border:1px solid #555;border-radius:5px;padding:10px 12px;margin-bottom:8px;">`;
+                html += `<div class="codex-affix-entry" data-affix-id="${a.id}" data-affix-type="${affixType}" style="background:rgba(45,45,55,0.9);border:1px solid #555;border-radius:5px;padding:10px 12px;margin-bottom:8px;">`;
                 html += `<div style="color:${tierColors[4]};font-weight:bold;">${sym} ${a.name} <span style="color:#888;font-weight:normal;font-size:11px;">(${a.stat})</span></div>`;
                 html += `<div style="color:#aaa;font-size:11px;margin-top:4px;">数值范围 T1→T5: ${range}</div>`;
                 html += `<div style="color:#777;font-size:11px;">槽位: ${slots}</div>`;
                 html += `</div>`;
             });
         };
-        renderGroup('前缀', pool.prefixes, '◆');
-        renderGroup('后缀', pool.suffixes, '◇');
+        renderGroup('前缀', pool.prefixes, '◆', 'prefix');
+        renderGroup('后缀', pool.suffixes, '◇', 'suffix');
         return html;
     }
 
@@ -166,7 +200,7 @@
         if (!cfg) return '<p style="color:#888;">威能配置未加载</p>';
         let html = '<p style="color:#aaa;font-size:13px;margin:0 0 14px;">传说装备必有威能，神话装备可有 2 个。史诗有概率附带。</p>';
         const renderPower = (p, tag) => {
-            html += `<div style="background:rgba(50,40,30,0.85);border:1px solid #a60;border-radius:5px;padding:10px 12px;margin-bottom:8px;">`;
+            html += `<div class="codex-power-entry" data-power-id="${p.id}" style="background:rgba(50,40,30,0.85);border:1px solid #a60;border-radius:5px;padding:10px 12px;margin-bottom:8px;">`;
             html += `<div style="color:#fa0;font-weight:bold;">★ ${p.name} <span style="color:#888;font-size:11px;">${tag}</span></div>`;
             html += `<div style="color:#ccc;font-size:12px;margin-top:4px;line-height:1.45;">${p.description}</div>`;
             html += `<div style="color:#777;font-size:11px;margin-top:4px;">槽位: ${(p.slots || []).map(s => (window.SLOT_NAMES && window.SLOT_NAMES[s]) || s).join('、')}</div>`;
@@ -185,31 +219,55 @@
     function buildSetV2Html(activeEquipment) {
         const cfg = window.SET_DEFINITIONS_V2;
         if (!cfg || !cfg.sets) return '<p style="color:#888;">新版套装配置未加载</p>';
-        let html = '<p style="color:#aaa;font-size:13px;line-height:1.5;margin:0 0 14px;">Phase 3 套装：<strong style="color:#8cf;">2 / 4 件</strong>激活。可混搭 2+2。</p>';
+        let html = '<p style="color:#aaa;font-size:13px;line-height:1.5;margin:0 0 14px;">毕业路径：<strong style="color:#8cf;">一转小毕业（2件过试炼）</strong> → <strong style="color:#fc8;">二转大毕业</strong>。通用元素套作过渡，可混搭 2+2。</p>';
         const pieceTargets = cfg.activationPieces || [2, 4];
+        const groups = [
+            { key: 'first', title: '一转小毕业', color: '#8cf' },
+            { key: 'second', title: '二转大毕业', color: '#fc8' },
+            { key: 'generic', title: '通用过渡套装', color: '#aaa' }
+        ];
+        const byTier = { first: [], second: [], generic: [] };
         Object.entries(cfg.sets).forEach(([setId, setData]) => {
-            let equipped = 0;
-            if (activeEquipment && typeof getSetV2PieceCount === 'function') {
-                equipped = getSetV2PieceCount(activeEquipment, setId);
-            }
-            html += `<div style="background:rgba(45,45,55,0.9);border:1px solid #666;border-radius:6px;padding:14px;margin-bottom:12px;">`;
-            html += `<h3 style="margin:0 0 6px;color:#e0c080;font-size:16px;">${setData.name}`;
-            if (setData.classAffinity) {
-                const cn = { warrior: '战士', archer: '弓箭', mage: '法师', assassin: '刺客' };
-                html += ` <span style="color:#8cf;font-size:12px;">(${cn[setData.classAffinity] || setData.classAffinity}专属)</span>`;
-            }
-            html += `</h3>`;
-            html += `<p style="color:#777;font-size:11px;margin:0 0 8px;">ID: ${setId} · 部位: ${(setData.slots || []).map(s => (window.SLOT_NAMES && window.SLOT_NAMES[s]) || s).join(' / ')}</p>`;
-            if (equipped > 0) {
-                html += `<p style="color:#8f8;font-size:12px;margin:0 0 8px;">当前已装备 ${equipped} 件</p>`;
-            }
-            pieceTargets.forEach(pc => {
-                const eff = setData.effects && setData.effects[String(pc)];
-                if (!eff) return;
-                const active = equipped >= pc;
-                html += `<p style="color:${active ? '#3f3' : '#888'};font-size:12px;margin:4px 0;">${pc}件: ${typeof stripSetDescriptionMarkdown === 'function' ? stripSetDescriptionMarkdown(eff.description) : eff.description}</p>`;
+            const tier = setData.tier || (setData.classAffinity ? 'first' : 'generic');
+            (byTier[tier] || byTier.generic).push([setId, setData]);
+        });
+
+        function affinityLabel(id) {
+            const c = window.CLASS_CONFIG;
+            if (!c || !id) return '';
+            if (c.firstAdvancements && c.firstAdvancements[id]) return c.firstAdvancements[id].name;
+            if (c.secondAdvancements && c.secondAdvancements[id]) return c.secondAdvancements[id].name;
+            if (c.baseClasses && c.baseClasses[id]) return c.baseClasses[id].name;
+            return id;
+        }
+
+        groups.forEach(g => {
+            const list = byTier[g.key] || [];
+            if (!list.length) return;
+            html += `<h3 style="color:${g.color};margin:18px 0 10px;font-size:15px;">${g.title}</h3>`;
+            list.forEach(([setId, setData]) => {
+                let equipped = 0;
+                if (activeEquipment && typeof getSetV2PieceCount === 'function') {
+                    equipped = getSetV2PieceCount(activeEquipment, setId);
+                }
+                html += `<div class="codex-set-entry" data-set-id="${setId}" style="background:rgba(45,45,55,0.9);border:1px solid #666;border-radius:6px;padding:14px;margin-bottom:12px;">`;
+                html += `<h3 style="margin:0 0 6px;color:#e0c080;font-size:16px;">${setData.name}`;
+                if (setData.classAffinity) {
+                    html += ` <span style="color:#8cf;font-size:12px;">(${affinityLabel(setData.classAffinity)}专属)</span>`;
+                }
+                html += `</h3>`;
+                html += `<p style="color:#777;font-size:11px;margin:0 0 8px;">ID: ${setId} · 部位: ${(setData.slots || []).map(s => (window.SLOT_NAMES && window.SLOT_NAMES[s]) || s).join(' / ')}</p>`;
+                if (equipped > 0) {
+                    html += `<p style="color:#8f8;font-size:12px;margin:0 0 8px;">当前已装备 ${equipped} 件</p>`;
+                }
+                pieceTargets.forEach(pc => {
+                    const eff = setData.effects && setData.effects[String(pc)];
+                    if (!eff) return;
+                    const active = equipped >= pc;
+                    html += `<p style="color:${active ? '#3f3' : '#888'};font-size:12px;margin:4px 0;">${pc}件: ${typeof stripSetDescriptionMarkdown === 'function' ? stripSetDescriptionMarkdown(eff.description) : eff.description}</p>`;
+                });
+                html += `</div>`;
             });
-            html += `</div>`;
         });
         return html;
     }
@@ -234,6 +292,20 @@
         return html;
     }
 
+    function buildCustomEquipment(options) {
+        if (typeof window.buildCustomProceduralEquipment !== 'function') return null;
+        return window.buildCustomProceduralEquipment(options);
+    }
+
+    function grantCustomEquipment(game, options) {
+        const eq = buildCustomEquipment(options);
+        if (!eq || !game) return { ok: false, message: '生成失败' };
+        const copy = cloneEquipmentForGrant(eq);
+        if (!copy) return { ok: false, message: '克隆失败' };
+        const added = game.addItemToInventory(copy, true);
+        return { ok: !!added, equipment: copy, message: added ? `获得: ${copy.name}` : '背包已满' };
+    }
+
     window.EquipmentCodex = {
         CANONICAL_QUALITIES,
         normalizeQualityFilter,
@@ -241,8 +313,11 @@
         listBaseTypes,
         generateProceduralSample,
         generateProceduralSamples,
+        generateBuildEquipmentSamples,
         cloneEquipmentForGrant,
         grantFullSetV2,
+        buildCustomEquipment,
+        grantCustomEquipment,
         buildAffixReferenceHtml,
         buildLegendaryPowersHtml,
         buildSetV2Html,
@@ -255,6 +330,8 @@
             const lv = Math.max(1, Math.floor(Number(player && player.level) || 1));
             const classId = player && typeof window.getPlayerBaseClassId === 'function'
                 ? window.getPlayerBaseClassId(player.classData) : null;
+            const activeClassId = player && typeof window.getActiveClassId === 'function'
+                ? window.getActiveClassId(player.classData) : classId;
             const qualities = ['normal', 'magic', 'rare', 'epic', 'legendary'];
             const out = [];
             for (let i = 0; i < n; i++) {
@@ -264,7 +341,7 @@
                     monsterTier: q === 'legendary' ? 'boss' : 'elite',
                     quality: q,
                     playerClass: classId,
-                    classId
+                    classId: activeClassId
                 });
                 if (eq) {
                     const copy = cloneEquipmentForGrant(eq);

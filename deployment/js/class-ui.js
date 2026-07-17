@@ -135,6 +135,7 @@
             const sk = typeof window.getHotbarSkillAtSlot === 'function'
                 ? window.getHotbarSkillAtSlot(p, slotIndex, {
                     labMode: this.game.currentScene === SCENE_TYPES.SKILL_LAB
+                        || this.game.currentScene === SCENE_TYPES.EQUIPMENT_LAB
                 })
                 : (window.getPlayerHotbarSkills(p)[slotIndex] || null);
             if (!sk) {
@@ -587,6 +588,7 @@
                 const sk = typeof window.getHotbarSkillAtSlot === 'function'
                     ? window.getHotbarSkillAtSlot(p, i, {
                         labMode: this.game.currentScene === SCENE_TYPES.SKILL_LAB
+                            || this.game.currentScene === SCENE_TYPES.EQUIPMENT_LAB
                     })
                     : hotbar[i];
                 if (!btn) continue;

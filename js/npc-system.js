@@ -175,8 +175,12 @@
             quality: 'epic',
             monsterLevel: Math.max(20, player.level || 20),
             monsterTier: 'boss',
-            playerClass: classId,
-            classId
+            playerClass: typeof window.getPlayerBaseClassId === 'function'
+                ? window.getPlayerBaseClassId(player.classData) : classId,
+            classId,
+            classData: player.classData,
+            firstAdvancement: player.classData && player.classData.firstAdvancement,
+            secondAdvancement: player.classData && player.classData.secondAdvancement
         });
         if (!eq) return msg('合成失败');
         player.gold -= SET_SYNTH_COST;

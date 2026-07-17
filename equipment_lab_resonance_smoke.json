@@ -1,0 +1,35 @@
+{
+  "setup": {
+    "counts": {
+      "affix": 17,
+      "build": 6,
+      "power": 20,
+      "resonance": 13,
+      "set": 20,
+      "weapon": 48
+    },
+    "modalOpen": true,
+    "panelAccess": true,
+    "queueLength": 13,
+    "scene": "equipment_lab",
+    "showcaseHasContent": true,
+    "showcaseVisible": true,
+    "started": true,
+    "total": 124,
+    "unpausedAfterEntry": true
+  },
+  "result": {
+    "allPositive": true,
+    "diagnostics": {
+      "blockingModal": false,
+      "elapsedMs": 2027,
+      "paused": false,
+      "running": false,
+      "updateCalls": 988
+    },
+    "failedEffects": [],
+    "restored": true,
+    "resultCount": 13,
+    "scene": "town"
+  }
+}

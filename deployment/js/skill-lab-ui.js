@@ -18,6 +18,249 @@
         return [base || '', first || '', second || ''].join('|');
     }
 
+    const SKILL_LAB_EQUIPMENT_PRESETS = [
+        'preserve', 'naked', 'standard10', 'legendary', 'set2', 'set4', 'build', 'affinity_mismatch'
+    ];
+
+    function clonePlain(value) {
+        if (value == null) return value;
+        return JSON.parse(JSON.stringify(value));
+    }
+
+    function hashSeed(text) {
+        let hash = 2166136261;
+        const input = String(text || '');
+        for (let i = 0; i < input.length; i++) {
+            hash ^= input.charCodeAt(i);
+            hash = Math.imul(hash, 16777619);
+        }
+        return hash >>> 0;
+    }
+
+    function withSeededRandom(seed, callback) {
+        const originalRandom = Math.random;
+        let state = (seed >>> 0) || 1;
+        Math.random = function seededRandom() {
+            state += 0x6D2B79F5;
+            let n = state;
+            n = Math.imul(n ^ (n >>> 15), n | 1);
+            n ^= n + Math.imul(n ^ (n >>> 7), n | 61);
+            return ((n ^ (n >>> 14)) >>> 0) / 4294967296;
+        };
+        try {
+            return callback();
+        } finally {
+            Math.random = originalRandom;
+        }
+    }
+
+    function getPresetClassIds(player) {
+        const data = window.normalizeClassData(player && player.classData);
+        const activeClass = (typeof window.getActiveClassId === 'function')
+            ? window.getActiveClassId(data)
+            : (data.secondAdvancement || data.firstAdvancement || data.baseClass);
+        return { baseClass: data.baseClass || 'warrior', activeClass: activeClass || data.baseClass || 'warrior' };
+    }
+
+    function generatePresetItem(context, stableId) {
+        if (typeof window.generateProceduralEquipment !== 'function') return null;
+        const item = window.generateProceduralEquipment(context);
+        if (item) item.id = stableId;
+        return item;
+    }
+
+    function resolveAffinitySet(baseClass) {
+        return {
+            warrior: 'valor',
+            archer: 'windchaser',
+            mage: 'arcane',
+            assassin: 'shadow'
+        }[baseClass] || 'fireheart';
+    }
+
+    function buildEquipmentPreset(player, presetName, options) {
+        const name = String(presetName || 'preserve').toLowerCase();
+        if (!SKILL_LAB_EQUIPMENT_PRESETS.includes(name)) {
+            throw new Error('未知装备测试预设: ' + presetName);
+        }
+        if (name === 'preserve') return player.equipment;
+
+        const equipment = (typeof window.createEmptyEquipmentSlots === 'function')
+            ? window.createEmptyEquipmentSlots()
+            : { weapon: null, offHand: null, helmet: null, body: null, hands: null, legs: null, feet: null, amulet: null, ring: null, belt: null };
+        if (name === 'naked') return equipment;
+
+        const opts = options || {};
+        const ids = getPresetClassIds(player);
+        const level = Math.max(1, Math.min(60, Number(opts.level) || player.level || 60));
+        const seedPreset = name === 'affinity_mismatch' ? 'legendary' : name;
+        const seed = hashSeed([opts.seed || 1, seedPreset, ids.baseClass, ids.activeClass, level].join('|'));
+        const allSlots = window.EQUIPMENT_SLOT_ORDER || Object.keys(equipment);
+        let generationClass = ids.baseClass;
+        let mismatchClass = null;
+        let slots = allSlots.slice();
+        let quality = name === 'standard10' ? 'magic' : 'legendary';
+        let itemLevel = name === 'standard10' ? 10 : level;
+        let setId = null;
+
+        if (name === 'affinity_mismatch') {
+            const bases = ['warrior', 'archer', 'mage', 'assassin'];
+            mismatchClass = bases[(bases.indexOf(ids.baseClass) + 1) % bases.length];
+        } else if (name === 'set2' || name === 'set4') {
+            setId = resolveAffinitySet(ids.baseClass);
+            const setDef = window.SET_DEFINITIONS_V2 && window.SET_DEFINITIONS_V2.sets
+                ? window.SET_DEFINITIONS_V2.sets[setId] : null;
+            slots = setDef && Array.isArray(setDef.slots)
+                ? setDef.slots.slice(0, name === 'set2' ? 2 : 4)
+                : allSlots.slice(0, name === 'set2' ? 2 : 4);
+        }
+
+        return withSeededRandom(seed, () => {
+            slots.forEach((slot, index) => {
+                const context = {
+                    monsterLevel: itemLevel,
+                    level: itemLevel,
+                    monsterTier: quality === 'legendary' ? 'boss' : 'elite',
+                    quality,
+                    slot,
+                    playerClass: generationClass,
+                    classId: ids.activeClass
+                };
+                if (setId) context.setId = setId;
+                const item = generatePresetItem(context, `skill_lab_${name}_${ids.activeClass}_${slot}_${index}`);
+                if (item && mismatchClass) {
+                    item.classAffinity = mismatchClass;
+                    if (slot === 'weapon' && window.WEAPON_AFFINITY_CONFIG) {
+                        const weaponTypes = Object.keys(window.WEAPON_AFFINITY_CONFIG.weaponTypes || {});
+                        const rank = { D: 0, C: 1, B: 2, A: 3 };
+                        weaponTypes.sort((a, b) => {
+                            const gradeA = typeof window.getWeaponAffinityGrade === 'function'
+                                ? window.getWeaponAffinityGrade(ids.activeClass, a) : 'B';
+                            const gradeB = typeof window.getWeaponAffinityGrade === 'function'
+                                ? window.getWeaponAffinityGrade(ids.activeClass, b) : 'B';
+                            return rank[gradeA] - rank[gradeB];
+                        });
+                        if (weaponTypes.length) item.weaponType = weaponTypes[0];
+                    }
+                    if (typeof window.refreshEquipmentGearScore === 'function') {
+                        window.refreshEquipmentGearScore(item);
+                    }
+                }
+                if (item) equipment[slot] = item;
+            });
+
+            if (name === 'build') {
+                const defs = window.CLASS_BUILD_EQUIPMENT && window.CLASS_BUILD_EQUIPMENT.items;
+                const eligible = (defs || []).filter(def =>
+                    !def.classRestriction || !def.classRestriction.length
+                    || def.classRestriction.includes(ids.activeClass)
+                    || def.classRestriction.includes(ids.baseClass)
+                );
+                const buildDef = eligible[0];
+                if (buildDef) {
+                    const item = generatePresetItem({
+                        monsterLevel: level,
+                        level,
+                        monsterTier: 'boss',
+                        quality: 'legendary',
+                        slot: buildDef.slot,
+                        weaponType: buildDef.weaponType,
+                        playerClass: ids.baseClass,
+                        classId: ids.activeClass,
+                        buildEquipmentId: buildDef.equipmentId
+                    }, `skill_lab_build_${ids.activeClass}_${buildDef.equipmentId}`);
+                    if (item) equipment[buildDef.slot] = item;
+                }
+            }
+            return equipment;
+        });
+    }
+
+    window.SKILL_LAB_EQUIPMENT_PRESETS = SKILL_LAB_EQUIPMENT_PRESETS.slice();
+
+    window.captureSkillLabPlayerState = function captureSkillLabPlayerState(player) {
+        if (!player) return null;
+        return {
+            classData: clonePlain(player.classData),
+            level: player.level,
+            equipment: Object.assign({}, player.equipment || {}),
+            skillHotbar: clonePlain(player.skillHotbar),
+            skillCooldowns: clonePlain(player.skillCooldowns),
+            classResource: clonePlain(player.classResource),
+            hp: player.hp,
+            x: player.x,
+            y: player.y,
+            angle: player.angle,
+            buffs: clonePlain(player.buffs),
+            weaponSkillCooldown: player.weaponSkillCooldown,
+            weaponSkillDots: clonePlain(player.weaponSkillDots),
+            traitStacks: clonePlain(player.traitStacks),
+            traitCooldowns: clonePlain(player.traitCooldowns),
+            moveTraitCooldowns: clonePlain(player.moveTraitCooldowns),
+            setSpecialEffects: clonePlain(player.setSpecialEffects),
+            activeSetEffects: clonePlain(player.activeSetEffects),
+            nextAttackCrit: player.nextAttackCrit,
+            skillDamageBoost: player.skillDamageBoost
+        };
+    };
+
+    window.restoreSkillLabPlayerState = function restoreSkillLabPlayerState(player, state) {
+        if (!player || !state) return false;
+        if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.reset === 'function') {
+            window.EquipmentEffectSystem.reset(player);
+        }
+        player.classData = clonePlain(state.classData);
+        player.level = state.level;
+        player.equipment = Object.assign({}, state.equipment || {});
+        player.skillHotbar = clonePlain(state.skillHotbar);
+        player.skillCooldowns = clonePlain(state.skillCooldowns) || {};
+        player.buffs = clonePlain(state.buffs) || [];
+        player.weaponSkillCooldown = state.weaponSkillCooldown || 0;
+        player.weaponSkillDots = clonePlain(state.weaponSkillDots) || [];
+        player.traitStacks = clonePlain(state.traitStacks) || {};
+        player.traitCooldowns = clonePlain(state.traitCooldowns) || {};
+        player.moveTraitCooldowns = clonePlain(state.moveTraitCooldowns) || {};
+        player.nextAttackCrit = !!state.nextAttackCrit;
+        player.skillDamageBoost = state.skillDamageBoost == null ? 1 : state.skillDamageBoost;
+        if (typeof player.updateStats === 'function') player.updateStats();
+        player.hp = Math.max(0, Math.min(player.maxHp, Number(state.hp) || 0));
+        player.classResource = clonePlain(state.classResource);
+        player.setSpecialEffects = clonePlain(state.setSpecialEffects) || player.setSpecialEffects;
+        player.activeSetEffects = clonePlain(state.activeSetEffects) || player.activeSetEffects;
+        player.x = state.x;
+        player.y = state.y;
+        player.angle = state.angle;
+        return true;
+    };
+
+    window.applySkillLabEquipmentPreset = function applySkillLabEquipmentPreset(player, presetName, options) {
+        if (!player) return { ok: false, preset: presetName, message: '玩家不存在' };
+        const name = String(presetName || 'preserve').toLowerCase();
+        try {
+            const equipment = buildEquipmentPreset(player, name, options);
+            if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.reset === 'function') {
+                window.EquipmentEffectSystem.reset(player);
+            }
+            if (name !== 'preserve') player.equipment = equipment;
+            player.traitStacks = {};
+            player.traitCooldowns = {};
+            player.moveTraitCooldowns = {};
+            player.weaponSkillCooldown = 0;
+            player.weaponSkillDots = [];
+            player.nextAttackCrit = false;
+            player.skillDamageBoost = 1;
+            if (typeof player.updateStats === 'function') player.updateStats();
+            player.hp = player.maxHp;
+            return {
+                ok: true,
+                preset: name,
+                equippedSlots: Object.values(player.equipment || {}).filter(Boolean).length
+            };
+        } catch (error) {
+            return { ok: false, preset: name, message: error.message };
+        }
+    };
+
     window.getSkillLabSkillList = function getSkillLabSkillList(classData, level) {
         const prog = window.getPlayerSkillProgression(classData);
         const seen = new Set();

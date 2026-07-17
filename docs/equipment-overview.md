@@ -1,6 +1,36 @@
 # Pixel Eternal 装备一览
 
-> 由 `config/equipment-config.json`、`config/equipment-deep-config.json`、`config/deep-suffix-table.json`、`config/set-config.json` 与 `config/set-deep-config.json` 整理。游戏内数值会随强化、精炼变化；机制类字段（吸血、反伤、技能急速、减伤、塔金币加成等）不按强化倍率放大。深阶 **8 件套** 随 **品质** 变化（每主题 5 种机制）；可用 `node tools/sync_equipment_overview_deep_sets.js` 从 JSON 同步文末深阶套装表。
+> 当前运行时采用 Phase 3 程序化装备。本文后半部分保留的静态装备与深阶 8 件套清单仅供历史设计查阅，不再由游戏加载，也不提供旧存档兼容。
+
+## 当前 Phase 3 主系统
+
+- 10 个槽位：`weapon/offHand/helmet/body/hands/legs/feet/amulet/ring/belt`
+- 6 档品质：`normal/magic/rare/epic/legendary/mythic`
+- 装备结构：基型隐式属性 + 前后缀词缀 + 传奇威能 + 2/4/6 件套 + 可选流派核心 ID
+- 运行配置：`base-types.json`、`affix-pool.json`、`legendary-powers.json`、`set-config-v2.json`、`class-build-equipment.json`
+- 养成闭环：强化、武器精炼、洗练、威能提取/刻印、套装合成
+- 战斗入口：`equipment-effect-system.js` 统一处理传奇威能和套装 special
+- 战斗覆盖：20 个传奇威能、30 套套装（6 通用过渡 + 12 一转小毕业 + 12 二转大毕业）、16 类武器的 5 阶精炼效果与二转大毕业的 5 星身份共鸣
+- 精炼机制：保留1–5星累计数值成长；3星体现16类武器的操作核心，5星按“套装共鸣 > 武器类型基础进阶”解析
+- 身份共鸣：通用三套（烈焰/雷霆/龙族）+ 全部二转大毕业提供 5 星武器技能蓄势/释放循环；传奇威能走独立战斗状态机
+- **满编毕业公式**：
+  - **6 件职业套**：主武器 + 头盔 + 胸甲 + 手套 + 腿甲 + 足具（断点 2/4/6，机制挂钩本职回路）
+  - **副手**：流派核心装（改技能形态）
+  - **护符 / 指环 / 腰带**：传奇威能（满编可同时 3 威能）
+- 毕业路径：Lv20 一转后刷本职小毕业（**2 件机制即可过二转试炼**，6 件完整小毕业）→ Lv40 二转后缓慢刷大毕业；通用元素套仅作过渡
+- 掉落亲和：按 `secondAdvancement || firstAdvancement || baseClass` 强偏向当前阶段专属套
+- 套装视觉：各套 4/6 件 special 按职业族分化绘制（盾光/浴血/兽印/狙击凝视/疾羽/元素波/时轨/咒链/影斩/镜碎/毒雾）；apex 更大更久；二件套低频徽记
+- 套装 modifiers：2 件 `modifiers` 写入 `player._setModifiers`，经 `getSetModifier` 接入各职业系统（精准/印记/圣盾/毒层/共鸣/残影等）
+- 威能视觉：20个传奇威能均有独立触发视觉；装备试验场会约每秒重放当前威能，且威能演示不会自动释放带击退风险的职业/武器技能
+- 流派核心：16 件核心装备覆盖 12 个二转职业，**固定副手槽**，与 6 件套叠加
+- 自动验证：运行 `python tools/run_equipment_system_tests.py`；追加 `--browser` 可测试确定性装备预设
+- 装备试验场：开发面板点击“装备试验场”，场内按 `O` 打开/关闭目录；可单项换装或启动自动轮换攻击
+- 存档版本：仅接受 Phase 3 `3.0` 格式，不兼容旧装备存档
+- 当前范围不含：深阶装备、突破/觉醒、图纸锻造、徽记和塔图支线奖励
+
+---
+
+## 历史静态装备归档
 
 ## 部位与品质
 

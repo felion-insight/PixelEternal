@@ -49,6 +49,11 @@
             this.testDurationMs = 5000; // 默认每个职业测试5秒
             this.testLevel = 60; // 默认测试等级60
             this.infiniteResource = false; // 默认不开启无限资源，以测试资源循环
+            this.scenario = 'burst_dps';
+            this.scenarios = ['burst_dps'];
+            this.rotationMode = 'priority';
+            this.randomSeed = 1;
+            this.equipmentPreset = 'preserve';
             this.classesToTest = [...CLASSES_TO_TEST];
             this.results = [];
             this.originalState = null;
@@ -56,6 +61,7 @@
             this.tickId = null;
             this.currentClassStartTime = 0;
             this.currentClassDamage = 0;
+            this.currentMetrics = null;
 
             this.injectCSS();
             this.initUI();
@@ -98,7 +104,6 @@
                     color: #ccc;
                     font-family: 'Microsoft YaHei', sans-serif;
                     overflow: hidden;
-                    display: flex;
                     flex-direction: column;
                 }
                 .bt-modal.show {
@@ -415,6 +420,32 @@
                         </div>
                     </div>
                     <div class="bt-form-group">
+                        <label for="bt-select-scenario">测试场景</label>
+                        <select id="bt-select-scenario" class="bt-select">
+                            <option value="burst_dps">爆发输出（无敌木桩）</option>
+                            <option value="sustained_dps">持续输出（资源循环）</option>
+                            <option value="multi_target">多目标范围收益</option>
+                            <option value="survivability">生存与承伤（攻击型怪物桩）</option>
+                            <option value="sustain_healing">受伤与治疗反应</option>
+                            <option value="buff_status">Buff、异常与协同</option>
+                            <option value="feel_timing">操作节奏与卡手</option>
+                            <option value="vfx_coverage">技能视觉覆盖</option>
+                        </select>
+                    </div>
+                    <div class="bt-form-group">
+                        <label for="bt-select-equipment-preset">确定性装备预设</label>
+                        <select id="bt-select-equipment-preset" class="bt-select">
+                            <option value="preserve">保持当前装备（兼容模式）</option>
+                            <option value="naked">Naked（无装备）</option>
+                            <option value="standard10">Standard10（Lv10 标准装）</option>
+                            <option value="legendary">Legendary（全身传说）</option>
+                            <option value="set2">Set2（职业亲和 2 件套）</option>
+                            <option value="set4">Set4（职业亲和 4 件套）</option>
+                            <option value="build">Build（职业流派核心装）</option>
+                            <option value="affinity_mismatch">Affinity mismatch（错职业亲和）</option>
+                        </select>
+                    </div>
+                    <div class="bt-form-group">
                         <label class="bt-checkbox-label">
                             <input type="checkbox" id="bt-input-infinite-resource">
                             <span>无限职业资源 (开启后将自动补满 Rage/Mana/Focus 等，不测试资源循环瓶颈)</span>
@@ -621,6 +652,8 @@
             const duration = parseInt(document.getElementById('bt-input-duration').value, 10) || 5;
             const level = parseInt(document.getElementById('bt-input-level').value, 10) || 60;
             const infiniteResource = document.getElementById('bt-input-infinite-resource').checked;
+            const scenario = document.getElementById('bt-select-scenario').value;
+            const equipmentPreset = document.getElementById('bt-select-equipment-preset').value;
 
             const selectedClassIds = [];
             CLASSES_TO_TEST.forEach(c => {
@@ -641,6 +674,8 @@
                 duration: duration * 1000,
                 level,
                 infiniteResource,
+                scenario,
+                equipmentPreset,
                 classes: selectedClasses
             });
         }
@@ -671,16 +706,32 @@
             this.testDurationMs = options.duration || 5000;
             this.testLevel = options.level || 60;
             this.infiniteResource = !!options.infiniteResource;
+            this.scenario = options.scenario || 'burst_dps';
+            this.scenarios = Array.isArray(options.scenarios) && options.scenarios.length
+                ? options.scenarios : [this.scenario];
+            this.rotationMode = options.rotationMode || 'priority';
+            this.randomSeed = Number.isFinite(options.seed) ? options.seed : 1;
+            this.equipmentPreset = String(options.equipmentPreset || 'preserve').toLowerCase();
+            const knownPresets = window.SKILL_LAB_EQUIPMENT_PRESETS || ['preserve'];
+            if (!knownPresets.includes(this.equipmentPreset)) {
+                this.isRunning = false;
+                throw new Error('未知装备测试预设: ' + this.equipmentPreset);
+            }
             this.classesToTest = options.classes || [...CLASSES_TO_TEST];
             this.currentClassIndex = 0;
             this.results = [];
 
             // 保存玩家当前状态，以便测试结束后还原
-            this.originalState = {
-                classData: JSON.parse(JSON.stringify(g.player.classData)),
-                level: g.player.level,
-                hotbar: g.player.skillHotbar ? JSON.parse(JSON.stringify(g.player.skillHotbar)) : null
-            };
+            this.originalState = typeof window.captureSkillLabPlayerState === 'function'
+                ? window.captureSkillLabPlayerState(g.player)
+                : {
+                    classData: JSON.parse(JSON.stringify(g.player.classData)),
+                    level: g.player.level,
+                    equipment: Object.assign({}, g.player.equipment || {}),
+                    skillHotbar: g.player.skillHotbar ? JSON.parse(JSON.stringify(g.player.skillHotbar)) : null
+                };
+            this.originalState.gameEquipmentEffects = Array.isArray(g.equipmentEffects)
+                ? g.equipmentEffects.slice() : [];
 
             // 显示进度覆盖层
             document.getElementById('bt-progress-overlay').classList.add('show');
@@ -694,6 +745,81 @@
         /**
          * 运行下一个职业的测试
          */
+        getScenarioConfig() {
+            const configs = {
+                burst_dps: { dummyCount: 3, distance: 60, durationMs: this.testDurationMs, invincible: true, chasePlayer: false },
+                sustained_dps: { dummyCount: 1, distance: 70, durationMs: Math.max(this.testDurationMs, 15000), invincible: true, chasePlayer: false },
+                multi_target: { dummyCount: 6, distance: 65, durationMs: this.testDurationMs, invincible: true, chasePlayer: false },
+                survivability: { dummyCount: 1, distance: 30, durationMs: Math.max(this.testDurationMs, 15000), invincible: true, chasePlayer: true, monsterType: 'goblin' },
+                sustain_healing: { dummyCount: 1, distance: 30, durationMs: Math.max(this.testDurationMs, 15000), invincible: true, chasePlayer: true, monsterType: 'goblin' },
+                buff_status: { dummyCount: 3, distance: 65, durationMs: Math.max(this.testDurationMs, 10000), invincible: true, chasePlayer: false },
+                feel_timing: { dummyCount: 1, distance: 65, durationMs: this.testDurationMs, invincible: true, chasePlayer: false },
+                vfx_coverage: { dummyCount: 1, distance: 65, durationMs: this.testDurationMs, invincible: true, chasePlayer: false }
+            };
+            return configs[this.scenario] || configs.burst_dps;
+        }
+
+        setupScenarioDummies(g, p) {
+            const cfg = this.getScenarioConfig();
+            const count = cfg.dummyCount;
+            const ang = p.angle || 0;
+            const spacing = count > 3 ? 0.22 : 0.25;
+            for (let i = 0; i < count; i++) {
+                const offset = count === 1 ? 0 : (i - (count - 1) / 2) * spacing;
+                const distance = cfg.distance + (i % 2) * 5;
+                const x = p.x + Math.cos(ang + offset) * distance;
+                const y = p.y + Math.sin(ang + offset) * distance;
+                const options = {
+                    invincible: cfg.invincible,
+                    chasePlayer: cfg.chasePlayer,
+                    facingAngle: ang + Math.PI
+                };
+                if (cfg.monsterType && typeof g.skillLabScene.addMonsterDummy === 'function') {
+                    g.skillLabScene.addMonsterDummy(x, y, cfg.monsterType, options);
+                } else {
+                    g.skillLabScene.addDummy(x, y, options);
+                }
+            }
+        }
+
+        selectSkillForScenario(g, target) {
+            const candidates = [];
+            for (let i = 0; i < 4; i++) {
+                const skillDef = g._getClassSkillDefForHotbarSlot(i);
+                if (skillDef) candidates.push({ slot: i, skillDef });
+            }
+            if (!candidates.length) return null;
+            if (this.scenario === 'sustain_healing') {
+                const healing = candidates.find(item => {
+                    const tags = item.skillDef.effectTags || [];
+                    const text = `${item.skillDef.id || ''} ${item.skillDef.description || ''}`.toLowerCase();
+                    return tags.includes('heal') || tags.includes('support') || /heal|治疗|回复|护盾|shield/.test(text);
+                });
+                if (healing) return healing;
+            }
+            if (this.scenario === 'buff_status') {
+                const support = candidates.find(item => {
+                    const tags = item.skillDef.effectTags || [];
+                    return tags.includes('buff') || tags.includes('debuff') || (item.skillDef.statusEffects || []).length > 0;
+                });
+                if (support) return support;
+            }
+            // 输出测试不能按快捷栏顺序永远优先释放无伤害的团队/姿态技能。
+            // 例如鹰眼的“屏息”原本会一直可准备，从而把狙击完全挤出轮转。
+            const scored = candidates.map(item => {
+                const def = item.skillDef;
+                const tags = def.effectTags || [];
+                const multiplier = Number(def.damageMultiplier) || 0;
+                let score = multiplier * 100;
+                if (def.id === 'beast_pack') score += 60; // 兽群指令本身由宠物造成伤害
+                if (tags.includes('buff') || tags.includes('support')) score -= 500;
+                if (def.id === 'breath_hold') score -= 500;
+                return Object.assign(item, { score });
+            }).sort((a, b) => b.score - a.score);
+            return scored.find(item => g._canPrepareClassSkillCast(item.skillDef))
+                || scored[0];
+        }
+
         runNextClass() {
             if (!this.isRunning) return;
 
@@ -705,6 +831,10 @@
             const g = window.game;
             const p = g.player;
             const targetClass = this.classesToTest[this.currentClassIndex];
+
+            if (typeof g.resetSkillLabCombatState === 'function') {
+                g.resetSkillLabCombatState();
+            }
 
             // 1. 更新进度UI
             const progressPct = ((this.currentClassIndex) / this.classesToTest.length * 100).toFixed(0);
@@ -722,6 +852,18 @@
                 secondAdvancement: targetClass.secondAdvancement
             };
             window.applySkillLabPlayerConfig(p, classData, this.testLevel);
+            const presetResult = typeof window.applySkillLabEquipmentPreset === 'function'
+                ? window.applySkillLabEquipmentPreset(p, this.equipmentPreset, {
+                    level: this.testLevel,
+                    seed: this.randomSeed
+                })
+                : { ok: this.equipmentPreset === 'preserve', preset: this.equipmentPreset };
+            if (!presetResult.ok) {
+                this.stopTest(false);
+                throw new Error(presetResult.message || `无法应用装备预设 ${this.equipmentPreset}`);
+            }
+            this.currentEquipmentSummary = presetResult;
+            p.hp = p.maxHp;
 
             // 3. 自动装配前4个主动技能到快捷栏
             const skills = window.getSkillLabSkillList(p.classData, this.testLevel);
@@ -736,20 +878,22 @@
                 window.assignSkillLabHotbar(p, i, activeSkills[i].id);
             }
 
-            // 4. 清理并重新生成3个无敌木桩在玩家面前
+            // 4. 按场景清理并重新生成测试目标
             g.skillLabScene.clearAllDummies();
-            const cx = p.x;
-            const cy = p.y;
-            const ang = p.angle || 0;
-            // 扇形分布，确保近战和远程技能都能完美命中
-            g.skillLabScene.addDummy(cx + Math.cos(ang) * 60, cy + Math.sin(ang) * 60, { invincible: true, chasePlayer: false });
-            g.skillLabScene.addDummy(cx + Math.cos(ang + 0.25) * 65, cy + Math.sin(ang + 0.25) * 65, { invincible: true, chasePlayer: false });
-            g.skillLabScene.addDummy(cx + Math.cos(ang - 0.25) * 65, cy + Math.sin(ang - 0.25) * 65, { invincible: true, chasePlayer: false });
+            this.setupScenarioDummies(g, p);
 
             // 5. 重置战斗统计
             g.resetAllSkillLabBattleStats();
             this.currentClassStartTime = Date.now();
             this.currentClassDamage = 0;
+            this.currentMetrics = window.SkillLabMetrics || null;
+            if (this.currentMetrics) {
+                this.currentMetrics.start({
+                    scenario: this.scenario,
+                    durationMs: this.testDurationMs,
+                    seed: this.randomSeed
+                });
+            }
 
             // 6. 启动每帧战斗模拟 (每 30ms 触发一次，模拟极高频率的连招判定)
             if (this.tickId) clearInterval(this.tickId);
@@ -784,6 +928,7 @@
             if (this.infiniteResource && p.classResource) {
                 p.classResource.current = p.classResource.max;
             }
+            const resourceBefore = p.classResource ? p.classResource.current : 0;
 
             // 3. 检查玩家是否处于施法或特殊动作状态，避免打断
             const now = Date.now();
@@ -800,6 +945,7 @@
                         this._castStartTimestamp = now;
                     } else if (now - this._castStartTimestamp > 1500) {
                         console.warn("检测到玩家施法状态卡死，强制重置施法状态");
+                        if (this.currentMetrics) this.currentMetrics.recordStuckReset();
                         p.isCastingSkill = false;
                         p._skillCastBar = null;
                         this._castStartTimestamp = null;
@@ -826,20 +972,26 @@
                 }
             }
 
-            // 4. 尝试依次释放快捷栏 1-4 的技能 (CD好了且资源足够就放)
+            // 4. 按场景策略释放技能
             let castAny = false;
-            for (let i = 0; i < 4; i++) {
-                const skillDef = g._getClassSkillDefForHotbarSlot(i);
-                if (skillDef && g._canPrepareClassSkillCast(skillDef)) {
-                    g._castClassSkillHotbar(i, { angle: p.angle, lockTarget: target });
+            const selected = this.selectSkillForScenario(g, target);
+            if (selected && g._canPrepareClassSkillCast(selected.skillDef)) {
+                    if (this.currentMetrics) this.currentMetrics.recordCastAttempt(selected.skillDef.id, 'cast');
+                    g._castClassSkillHotbar(selected.slot, { angle: p.angle, lockTarget: target });
                     castAny = true;
-                    break; // 单次滴答只放一个技能，避免同一毫秒内释放所有技能产生冲突
-                }
+            } else if (selected && this.currentMetrics) {
+                this.currentMetrics.recordCastAttempt(selected.skillDef.id, 'blocked');
             }
 
             // 5. 如果所有技能都在CD或放不出，则进行普攻
             if (!castAny) {
+                if (this.currentMetrics) this.currentMetrics.recordCastAttempt('basic', 'fallback_basic');
                 p.attack(dummies);
+            }
+            if (this.currentMetrics) {
+                const resourceAfter = p.classResource ? p.classResource.current : resourceBefore;
+                this.currentMetrics.recordResource(resourceBefore, resourceAfter, p.classResource && p.classResource.max);
+                this.currentMetrics.sample(p);
             }
 
             // 6. 实时更新界面 DPS 预览
@@ -861,6 +1013,9 @@
 
             const g = window.game;
             const stats = g.getSkillLabBattleStats();
+            const metrics = this.currentMetrics
+                ? this.currentMetrics.stop(g.player)
+                : null;
             
             let totalDmg = 0;
             const skillBreakdown = [];
@@ -912,23 +1067,27 @@
 
             this.results.push({
                 classInfo: targetClass,
+                scenario: this.scenario,
+                equipmentPreset: this.equipmentPreset,
+                equipmentSummary: this.currentEquipmentSummary || null,
                 totalDamage: totalDmg,
                 dps: dps,
-                skills: skillBreakdown
+                skills: skillBreakdown,
+                metrics: metrics || {}
             });
         }
 
         /**
          * 停止测试 (手动干预)
          */
-        stopTest() {
+        stopTest(showAlert = true) {
             this.isRunning = false;
             if (this.timerId) clearTimeout(this.timerId);
             if (this.tickId) clearInterval(this.tickId);
 
             document.getElementById('bt-progress-overlay').classList.remove('show');
             this.restorePlayerState();
-            alert('测试已手动停止。');
+            if (showAlert) alert('测试已手动停止。');
         }
 
         /**
@@ -962,26 +1121,44 @@
             const p = g.player;
             const os = this.originalState;
 
-            // 还原职业与等级
-            window.applySkillLabPlayerConfig(p, os.classData, os.level);
-
-            // 还原快捷栏
-            if (os.hotbar) {
-                p.skillHotbar = os.hotbar;
+            if (typeof window.restoreSkillLabPlayerState === 'function') {
+                window.restoreSkillLabPlayerState(p, os);
+            } else {
+                p.classData = os.classData;
+                p.level = os.level;
+                p.equipment = Object.assign({}, os.equipment || {});
+                p.skillHotbar = os.skillHotbar || os.hotbar;
+                if (typeof p.updateStats === 'function') p.updateStats();
             }
 
             // 重新同步游戏UI
             if (typeof g.updateHUD === 'function') g.updateHUD();
             if (g.classUI) g.classUI.updateSkillBar();
+            g.equipmentEffects = Array.isArray(os.gameEquipmentEffects)
+                ? os.gameEquipmentEffects.slice() : [];
             if (g.skillLabUI) {
-                g.skillLabUI.applyDefaults();
+                const cd = window.normalizeClassData(p.classData);
+                g.skillLabUI.populateClassSelect();
+                g.skillLabUI._selectedClassValue = [cd.baseClass || '', cd.firstAdvancement || '', cd.secondAdvancement || ''].join('|');
+                g.skillLabUI._selectedLevel = p.level || 60;
+                const select = document.getElementById('skill-lab-class-select');
+                const levelInput = document.getElementById('skill-lab-level');
+                if (select) select.value = g.skillLabUI._selectedClassValue;
+                if (levelInput) levelInput.value = String(g.skillLabUI._selectedLevel);
+                g.skillLabUI.renderHotbarEditor();
+                g.skillLabUI.renderSkillList();
             }
 
             // 重新生成默认木桩
             g.skillLabScene.clearAllDummies();
             if (typeof g.spawnSkillLabDefaultDummies === 'function') {
                 g.spawnSkillLabDefaultDummies();
+                p.x = os.x == null ? p.x : os.x;
+                p.y = os.y == null ? p.y : os.y;
+                p.angle = os.angle == null ? p.angle : os.angle;
+                if (typeof g._syncSkillLabCamera === 'function') g._syncSkillLabCamera();
             }
+            this.originalState = null;
         }
 
         /**
@@ -1227,6 +1404,8 @@
             md += `* **单职业测试时长**: ${this.testDurationMs / 1000} 秒\n`;
             md += `* **测试角色等级**: Lv.${this.testLevel}\n`;
             md += `* **测试资源模式**: ${this.infiniteResource ? '无限资源 (不限循环)' : '常规资源 (测试资源经济)'}\n\n`;
+            md += `* **测试场景**: ${this.scenario}\n\n`;
+            md += `* **装备预设**: ${this.equipmentPreset}\n\n`;
 
             md += `## 一、 全职业 DPS 排行榜\n\n`;
             md += `| 排名 | 职业名称 | 阶级 | 总伤害 | 平均 DPS | 相对均值占比 |\n`;
@@ -1301,6 +1480,35 @@
                     });
                 }
                 md += `\n---\n\n`;
+            });
+
+            md += `## 四、 多维战斗指标\n\n`;
+            md += `> 以下指标来自测试事件采集器；综合职业判断必须结合职业定位与场景，不能只看 DPS。\n\n`;
+            md += `| 职业 | 承伤 | 最低生命 | 有效治疗 | 治疗 HPS | 资源空窗 | 施法阻塞率 | 普攻兜底率 | 状态次数 | 协同次数 | VFX覆盖 |\n`;
+            md += `| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n`;
+            this.results.forEach(r => {
+                const m = r.metrics || {};
+                const p = m.player || {};
+                const resource = m.resources || {};
+                const feel = m.feel || {};
+                const statuses = Object.values(m.statuses || {}).reduce((sum, s) => sum + (s.applications || 0), 0);
+                const synergies = Object.values(m.synergies || {}).reduce((sum, s) => sum + (s.triggers || 0), 0);
+                const vfx = m.vfx || {};
+                md += `| ${r.classInfo.name} | ${Math.floor(p.damageTaken || 0).toLocaleString()} | ${((p.lowestHpPct || 0) * 100).toFixed(1)}% | ${Math.floor(p.effectiveHealing || 0).toLocaleString()} | ${Math.floor(p.healingPerSecond || 0).toLocaleString()} | ${((resource.emptyRatio || 0) * 100).toFixed(1)}% | ${((feel.blockedRatio || 0) * 100).toFixed(1)}% | ${((feel.basicFallbackRatio || 0) * 100).toFixed(1)}% | ${statuses} | ${synergies} | ${((vfx.coverage || 0) * 100).toFixed(1)}% |\n`;
+            });
+            md += `\n## 五、 可解释性诊断\n\n`;
+            this.results.forEach(r => {
+                const m = r.metrics || {};
+                const feel = m.feel || {};
+                const p = m.player || {};
+                const resource = m.resources || {};
+                const notes = [];
+                if ((feel.blockedRatio || 0) > 0.25) notes.push('技能阻塞率较高');
+                if ((resource.emptyRatio || 0) > 0.35) notes.push('资源空窗较长');
+                if ((feel.basicFallbackRatio || 0) > 0.7) notes.push('输出高度依赖普攻或技能未命中');
+                if ((p.lowestHpPct || 1) < 0.25) notes.push('生存场景最低生命过低');
+                if (!notes.length) notes.push('未发现明显的测试层面异常');
+                md += `* **${r.classInfo.name}**：${notes.join('；')}。\n`;
             });
 
             return md;

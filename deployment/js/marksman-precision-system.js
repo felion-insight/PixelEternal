@@ -43,7 +43,9 @@
     window.isMarksmanTreePlayer = isMarksmanTree;
 
     window.getMaxPrecisionStacks = function getMaxPrecisionStacks(player) {
-        if (isDeadeye(player)) return DEADEYE_MAX;
+        const sustain = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'precisionSustain', 0) : 0;
+        if (isDeadeye(player)) return DEADEYE_MAX + Math.max(0, Math.floor(sustain));
         return MARKSMAN_MAX;
     };
 
@@ -90,9 +92,16 @@
 
     window.addPrecisionStacks = function addPrecisionStacks(player, amount, gameInstance) {
         if (!isMarksmanTree(player) || !amount) return;
+        const gainBonus = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'precisionGainBonus', 0) : 0;
+        let add = amount;
+        if (gainBonus > 0) {
+            // 概率/倍率：0.25 → 25% 额外 +1，或按倍率放大
+            add = Math.max(1, Math.ceil(amount * (1 + gainBonus)));
+        }
         const max = window.getMaxPrecisionStacks(player);
         const before = window.getPrecisionStacks(player);
-        player._precisionStacks = Math.min(max, before + amount);
+        player._precisionStacks = Math.min(max, before + add);
         const gained = player._precisionStacks - before;
         if (gained > 0 && gameInstance) {
             if (typeof gameInstance.addFloatingText === 'function') {

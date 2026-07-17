@@ -1,0 +1,132 @@
+{
+  "ok": true,
+  "static": {
+    "configFiles": {
+      "config/base-types.json": 7,
+      "config/affix-pool.json": 6,
+      "config/legendary-powers.json": 4,
+      "config/set-config-v2.json": 3,
+      "config/class-build-equipment.json": 3,
+      "config/weapon-affinity-config.json": 5
+    },
+    "checkedScripts": [
+      "js/config-helpers.js",
+      "js/config-loader.js",
+      "js/equipment-weapon-skills.js",
+      "js/equipment-generator.js",
+      "js/equipment-effect-system.js",
+      "js/equipment-codex.js",
+      "js/class-build-system.js",
+      "js/data-classes.js",
+      "js/skill-system.js",
+      "js/skill-entity-system.js",
+      "js/skill-lab-ui.js",
+      "js/automated-balance-tester.js",
+      "js/game-entities.js",
+      "js/game-main.js"
+    ],
+    "nodeTests": [
+      "tools/test_phase3_equipment.js",
+      "tools/test_equipment_generation.js",
+      "tools/test_build_equipment.js",
+      "tools/test_equipment_presets.js"
+    ],
+    "deploymentMirror": [
+      "index.html",
+      "config/class-build-equipment.json",
+      "js/config-helpers.js",
+      "js/config-loader.js",
+      "js/equipment-weapon-skills.js",
+      "js/equipment-generator.js",
+      "js/equipment-effect-system.js",
+      "js/equipment-codex.js",
+      "js/class-build-system.js",
+      "js/data-classes.js",
+      "js/skill-system.js",
+      "js/skill-entity-system.js",
+      "js/skill-lab-ui.js",
+      "js/automated-balance-tester.js",
+      "js/game-entities.js",
+      "js/game-main.js"
+    ]
+  },
+  "browser": [
+    {
+      "preset": "naked",
+      "classes": [
+        "archmage",
+        "destroyer"
+      ],
+      "dps": [
+        2979.8,
+        1575.4
+      ]
+    },
+    {
+      "preset": "standard10",
+      "classes": [
+        "archmage",
+        "destroyer"
+      ],
+      "dps": [
+        4825.4,
+        2571.6
+      ]
+    },
+    {
+      "preset": "legendary",
+      "classes": [
+        "archmage",
+        "destroyer"
+      ],
+      "dps": [
+        13957.6,
+        1602.2
+      ]
+    },
+    {
+      "preset": "set2",
+      "classes": [
+        "archmage",
+        "destroyer"
+      ],
+      "dps": [
+        3153.6,
+        1575.4
+      ]
+    },
+    {
+      "preset": "set4",
+      "classes": [
+        "archmage",
+        "destroyer"
+      ],
+      "dps": [
+        2887.8,
+        1633
+      ]
+    },
+    {
+      "preset": "build",
+      "classes": [
+        "archmage",
+        "destroyer"
+      ],
+      "dps": [
+        50653,
+        5334.8
+      ]
+    },
+    {
+      "preset": "affinity_mismatch",
+      "classes": [
+        "archmage",
+        "destroyer"
+      ],
+      "dps": [
+        7812.2,
+        5921
+      ]
+    }
+  ]
+}

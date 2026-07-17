@@ -1,0 +1,3090 @@
+{
+  "scenario": "sustained_dps",
+  "durationMs": 15000,
+  "level": 60,
+  "infiniteResource": false,
+  "results": [
+    {
+      "classInfo": {
+        "baseClass": "assassin",
+        "firstAdvancement": "venomancer",
+        "id": "plaguebringer",
+        "name": "瘟疫使者",
+        "secondAdvancement": "plaguebringer",
+        "tier": "二转"
+      },
+      "dps": 10465.066666666668,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 279,
+            "totalMs": 8370,
+            "uptime": 0.5563310069790628
+          },
+          "stealth_fld": {
+            "activations": 0,
+            "samples": 137,
+            "totalMs": 4110,
+            "uptime": 0.2731804586241276
+          }
+        },
+        "durationMs": 15045,
+        "eventCount": 743,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.48990825688073397,
+          "blocked": 267,
+          "blockedRatio": 0.48990825688073397,
+          "castAttempts": 545,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 11,
+          "fallbackBasic": 267,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 30,
+          "emptyRatio": 0.0035971223021582736,
+          "insufficient": 0,
+          "samples": 278,
+          "spent": 348
+        },
+        "scenario": "sustained_dps",
+        "statuses": {
+          "corruption": {
+            "activeSamples": 0,
+            "applications": 1,
+            "resisted": 0
+          },
+          "poison": {
+            "activeSamples": 0,
+            "applications": 197,
+            "resisted": 0
+          }
+        },
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "assassin_basic": 35,
+            "lethal_venom": 6,
+            "pandemic": 2,
+            "plague_cloud": 2,
+            "withering": 1
+          },
+          "coverage": 0.45454545454545453,
+          "effectCalls": 0,
+          "particleCalls": 0,
+          "skillCalls": 46
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 122423,
+          "hits": 17,
+          "name": "持续伤害(DOT/协同反应)"
+        },
+        {
+          "damage": 29094,
+          "hits": 165,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 3107,
+          "hits": 13,
+          "name": "疫病云雾"
+        },
+        {
+          "damage": 2352,
+          "hits": 6,
+          "name": "致命毒液"
+        }
+      ],
+      "totalDamage": 156976
+    },
+    {
+      "classInfo": {
+        "baseClass": "assassin",
+        "firstAdvancement": "trickster",
+        "id": "illusionist",
+        "name": "幻术师",
+        "secondAdvancement": "illusionist",
+        "tier": "二转"
+      },
+      "dps": 8719.333333333334,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 173,
+            "totalMs": 5190,
+            "uptime": 0.34507978723404253
+          }
+        },
+        "durationMs": 15040,
+        "eventCount": 325,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.4691358024691358,
+          "blocked": 152,
+          "blockedRatio": 0.4691358024691358,
+          "castAttempts": 324,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 20,
+          "fallbackBasic": 152,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 90,
+          "emptyRatio": 0.01744186046511628,
+          "insufficient": 0,
+          "samples": 172,
+          "spent": 310
+        },
+        "scenario": "sustained_dps",
+        "statuses": {
+          "vulnerable": {
+            "activeSamples": 0,
+            "applications": 1,
+            "resisted": 0
+          }
+        },
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "assassin_basic": 288,
+            "mirror_domain": 2,
+            "phantom_array": 1,
+            "phantom_reality": 16,
+            "shadow_feast": 1
+          },
+          "coverage": 0.25,
+          "effectCalls": 0,
+          "particleCalls": 0,
+          "skillCalls": 308
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 128216,
+          "hits": 852,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 2574,
+          "hits": 13,
+          "name": "镜影结界"
+        }
+      ],
+      "totalDamage": 130790
+    },
+    {
+      "classInfo": {
+        "baseClass": "archer",
+        "firstAdvancement": "windrunner",
+        "id": "phantom",
+        "name": "幻影",
+        "secondAdvancement": "phantom",
+        "tier": "二转"
+      },
+      "dps": 4288.066666666667,
+      "metrics": {
+        "buffs": {
+          "bear_guard_undefined": {
+            "activations": 0,
+            "samples": 300,
+            "totalMs": 9000,
+            "uptime": 0.5990016638935108
+          },
+          "breath_hold_active": {
+            "activations": 0,
+            "samples": 183,
+            "totalMs": 5490,
+            "uptime": 0.3653910149750416
+          },
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 300,
+            "totalMs": 9000,
+            "uptime": 0.5990016638935108
+          },
+          "phantom_clone_dodge": {
+            "activations": 0,
+            "samples": 300,
+            "totalMs": 9000,
+            "uptime": 0.5990016638935108
+          },
+          "phantom_storm_void_storm": {
+            "activations": 0,
+            "samples": 179,
+            "totalMs": 5370,
+            "uptime": 0.3574043261231281
+          },
+          "wind_step_phantom_clone": {
+            "activations": 0,
+            "samples": 551,
+            "totalMs": 16530,
+            "uptime": 1
+          }
+        },
+        "durationMs": 15025,
+        "eventCount": 465,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.35698924731182796,
+          "blocked": 166,
+          "blockedRatio": 0.35698924731182796,
+          "castAttempts": 465,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 133,
+          "fallbackBasic": 166,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 90,
+          "emptyRatio": 0.010033444816053512,
+          "insufficient": 0,
+          "samples": 299,
+          "spent": 330
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "archer_basic": 23,
+            "phantom_clone": 7,
+            "phantom_echo_blade": 9,
+            "phantom_mark": 13,
+            "void_storm": 1
+          },
+          "coverage": 0.03759398496240601,
+          "effectCalls": 216,
+          "particleCalls": 60,
+          "skillCalls": 53
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 30513,
+          "hits": 41,
+          "name": "残影风刃"
+        },
+        {
+          "damage": 28141,
+          "hits": 96,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 3305,
+          "hits": 24,
+          "name": "虚空风暴"
+        },
+        {
+          "damage": 2362,
+          "hits": 10,
+          "name": "虚影印"
+        }
+      ],
+      "totalDamage": 64321
+    },
+    {
+      "classInfo": {
+        "baseClass": "mage",
+        "firstAdvancement": "warlock",
+        "id": "necromancer",
+        "name": "死灵法师",
+        "secondAdvancement": "necromancer",
+        "tier": "二转"
+      },
+      "dps": 4002.0666666666666,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 298,
+            "totalMs": 8940,
+            "uptime": 0.595682302771855
+          }
+        },
+        "durationMs": 15008,
+        "eventCount": 600,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.49230769230769234,
+          "blocked": 288,
+          "blockedRatio": 0.49230769230769234,
+          "castAttempts": 585,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 9,
+          "fallbackBasic": 288,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 0,
+          "emptyRatio": 0,
+          "insufficient": 0,
+          "samples": 297,
+          "spent": 9
+        },
+        "scenario": "sustained_dps",
+        "statuses": {
+          "corruption": {
+            "activeSamples": 0,
+            "applications": 15,
+            "resisted": 0
+          }
+        },
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "death_coil": 34,
+            "nether_gate": 1,
+            "soul_harvest": 3,
+            "spreading_curse": 4,
+            "undead_legion": 1
+          },
+          "coverage": 0.5555555555555556,
+          "effectCalls": 0,
+          "particleCalls": 0,
+          "skillCalls": 43
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 54819,
+          "hits": 33,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 2226,
+          "hits": 7,
+          "name": "冥界之门"
+        },
+        {
+          "damage": 1272,
+          "hits": 4,
+          "name": "传染诅咒"
+        },
+        {
+          "damage": 954,
+          "hits": 3,
+          "name": "灵魂收割"
+        },
+        {
+          "damage": 760,
+          "hits": 8,
+          "name": "持续伤害(DOT/协同反应)"
+        }
+      ],
+      "totalDamage": 60031
+    },
+    {
+      "classInfo": {
+        "baseClass": "assassin",
+        "firstAdvancement": "trickster",
+        "id": "trickster",
+        "name": "诡术师",
+        "secondAdvancement": null,
+        "tier": "一转"
+      },
+      "dps": 3410.4,
+      "metrics": {
+        "buffs": {
+          "decoy_stealth": {
+            "activations": 0,
+            "samples": 185,
+            "totalMs": 5550,
+            "uptime": 0.3694581280788177
+          },
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 299,
+            "totalMs": 8970,
+            "uptime": 0.597124217813873
+          },
+          "phantom_clone_dodge": {
+            "activations": 0,
+            "samples": 165,
+            "totalMs": 4950,
+            "uptime": 0.32951670882705364
+          }
+        },
+        "durationMs": 15022,
+        "eventCount": 574,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.4808362369337979,
+          "blocked": 276,
+          "blockedRatio": 0.4808362369337979,
+          "castAttempts": 574,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 22,
+          "fallbackBasic": 276,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 240,
+          "emptyRatio": 0.026845637583892617,
+          "insufficient": 0,
+          "samples": 298,
+          "spent": 390
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "assassin_basic": 138,
+            "decoy": 3,
+            "phantom_trick": 1,
+            "reality_shift": 1,
+            "transposition": 17
+          },
+          "coverage": 0.22727272727272727,
+          "effectCalls": 0,
+          "particleCalls": 0,
+          "skillCalls": 160
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 51156,
+          "hits": 414,
+          "name": "基础普攻"
+        }
+      ],
+      "totalDamage": 51156
+    },
+    {
+      "classInfo": {
+        "baseClass": "archer",
+        "firstAdvancement": "windrunner",
+        "id": "windrunner",
+        "name": "风行者",
+        "secondAdvancement": null,
+        "tier": "一转"
+      },
+      "dps": 2214.733333333333,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 367,
+            "totalMs": 11010,
+            "uptime": 0.7330226364846871
+          },
+          "phantom_storm_phantom_storm": {
+            "activations": 0,
+            "samples": 124,
+            "totalMs": 3720,
+            "uptime": 0.24766977363515313
+          },
+          "wind_step_wind_step": {
+            "activations": 0,
+            "samples": 367,
+            "totalMs": 11010,
+            "uptime": 0.7330226364846871
+          }
+        },
+        "durationMs": 15020,
+        "eventCount": 679,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.46097201767304863,
+          "blocked": 313,
+          "blockedRatio": 0.46097201767304863,
+          "castAttempts": 679,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 53,
+          "fallbackBasic": 313,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 60,
+          "emptyRatio": 0.00546448087431694,
+          "insufficient": 0,
+          "samples": 366,
+          "spent": 244
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "archer_basic": 27,
+            "phantom_storm": 1,
+            "wind_blade": 46,
+            "wind_mark": 4,
+            "wind_step": 4
+          },
+          "coverage": 0.09433962264150944,
+          "effectCalls": 356,
+          "particleCalls": 86,
+          "skillCalls": 82
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 20853,
+          "hits": 46,
+          "name": "风刃"
+        },
+        {
+          "damage": 7935,
+          "hits": 36,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 2919,
+          "hits": 27,
+          "name": "风暴之眼"
+        },
+        {
+          "damage": 1302,
+          "hits": 12,
+          "name": "风之步"
+        },
+        {
+          "damage": 212,
+          "hits": 2,
+          "name": "风之印记"
+        }
+      ],
+      "totalDamage": 33221
+    },
+    {
+      "classInfo": {
+        "baseClass": "mage",
+        "firstAdvancement": "wizard",
+        "id": "archmage",
+        "name": "大法师",
+        "secondAdvancement": "archmage",
+        "tier": "二转"
+      },
+      "dps": 2043.4666666666667,
+      "metrics": {
+        "buffs": {
+          "bear_guard_undefined": {
+            "activations": 0,
+            "samples": 347,
+            "totalMs": 10410,
+            "uptime": 0.6922923455476492
+          },
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 347,
+            "totalMs": 10410,
+            "uptime": 0.6922923455476492
+          },
+          "phantom_clone_dodge": {
+            "activations": 0,
+            "samples": 98,
+            "totalMs": 2940,
+            "uptime": 0.19551772295005654
+          },
+          "skill_resonance_field_consecration_dmg": {
+            "activations": 0,
+            "samples": 181,
+            "totalMs": 5430,
+            "uptime": 0.36110926381592073
+          },
+          "wind_step_phantom_clone": {
+            "activations": 0,
+            "samples": 1,
+            "totalMs": 30,
+            "uptime": 0.0019950788056128216
+          },
+          "wizard_ice_shield": {
+            "activations": 0,
+            "samples": 84,
+            "totalMs": 2520,
+            "uptime": 0.16758661967147703
+          },
+          "wizard_overload_speed": {
+            "activations": 0,
+            "samples": 26,
+            "totalMs": 780,
+            "uptime": 0.05187204894593336
+          }
+        },
+        "durationMs": 15037,
+        "eventCount": 763,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.49266862170087977,
+          "blocked": 336,
+          "blockedRatio": 0.49266862170087977,
+          "castAttempts": 682,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 10,
+          "fallbackBasic": 336,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 0,
+          "emptyRatio": 0,
+          "insufficient": 0,
+          "samples": 346,
+          "spent": 249
+        },
+        "scenario": "sustained_dps",
+        "statuses": {
+          "burn": {
+            "activeSamples": 0,
+            "applications": 16,
+            "resisted": 0
+          },
+          "frostbite": {
+            "activeSamples": 0,
+            "applications": 37,
+            "resisted": 0
+          },
+          "shock": {
+            "activeSamples": 0,
+            "applications": 2,
+            "resisted": 0
+          }
+        },
+        "synergies": {
+          "chaos": {
+            "damage": 0,
+            "triggers": 13
+          },
+          "conductive_freeze": {
+            "damage": 0,
+            "triggers": 1
+          },
+          "thermal_shock": {
+            "damage": 0,
+            "triggers": 12
+          }
+        },
+        "vfx": {
+          "bySkill": {
+            "elemental_awakening": 1,
+            "mage_basic": 32,
+            "phase_shift": 3,
+            "resonance_field": 1
+          },
+          "coverage": 0.4,
+          "effectCalls": 0,
+          "particleCalls": 0,
+          "skillCalls": 37
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 24010,
+          "hits": 41,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 3498,
+          "hits": 18,
+          "name": "元素爆发"
+        },
+        {
+          "damage": 2075,
+          "hits": 7,
+          "name": "元素共鸣场"
+        },
+        {
+          "damage": 764,
+          "hits": 1,
+          "name": "元素觉醒"
+        },
+        {
+          "damage": 305,
+          "hits": 2,
+          "name": "持续伤害(DOT/协同反应)"
+        }
+      ],
+      "totalDamage": 30652
+    },
+    {
+      "classInfo": {
+        "baseClass": "mage",
+        "firstAdvancement": "wizard",
+        "id": "wizard",
+        "name": "巫师",
+        "secondAdvancement": null,
+        "tier": "一转"
+      },
+      "dps": 1798.5333333333333,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 246,
+            "totalMs": 7380,
+            "uptime": 0.4905284147557328
+          },
+          "skill_resonance_field_consecration_dmg": {
+            "activations": 0,
+            "samples": 64,
+            "totalMs": 1920,
+            "uptime": 0.12761714855433698
+          },
+          "wind_step_wind_step": {
+            "activations": 0,
+            "samples": 1,
+            "totalMs": 30,
+            "uptime": 0.0019940179461615153
+          },
+          "wizard_awakening": {
+            "activations": 0,
+            "samples": 91,
+            "totalMs": 2730,
+            "uptime": 0.1814556331006979
+          },
+          "wizard_ice_shield": {
+            "activations": 0,
+            "samples": 78,
+            "totalMs": 2340,
+            "uptime": 0.15553339980059822
+          }
+        },
+        "durationMs": 15045,
+        "eventCount": 565,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.48851774530271397,
+          "blocked": 234,
+          "blockedRatio": 0.48851774530271397,
+          "castAttempts": 479,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 11,
+          "fallbackBasic": 234,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 0,
+          "emptyRatio": 0,
+          "insufficient": 0,
+          "samples": 245,
+          "spent": 295
+        },
+        "scenario": "sustained_dps",
+        "statuses": {
+          "burn": {
+            "activeSamples": 0,
+            "applications": 12,
+            "resisted": 0
+          },
+          "frostbite": {
+            "activeSamples": 0,
+            "applications": 47,
+            "resisted": 0
+          },
+          "shock": {
+            "activeSamples": 0,
+            "applications": 1,
+            "resisted": 0
+          }
+        },
+        "synergies": {
+          "chaos": {
+            "damage": 0,
+            "triggers": 13
+          },
+          "conductive_freeze": {
+            "damage": 0,
+            "triggers": 1
+          },
+          "thermal_shock": {
+            "damage": 0,
+            "triggers": 12
+          }
+        },
+        "vfx": {
+          "bySkill": {
+            "elemental_awakening": 1,
+            "mage_basic": 27,
+            "phase_shift": 3,
+            "resonance_field": 2
+          },
+          "coverage": 0.36363636363636365,
+          "effectCalls": 0,
+          "particleCalls": 0,
+          "skillCalls": 33
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 19814,
+          "hits": 34,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 4272,
+          "hits": 23,
+          "name": "元素爆发"
+        },
+        {
+          "damage": 2122,
+          "hits": 10,
+          "name": "元素共鸣场"
+        },
+        {
+          "damage": 668,
+          "hits": 1,
+          "name": "元素觉醒"
+        },
+        {
+          "damage": 102,
+          "hits": 2,
+          "name": "持续伤害(DOT/协同反应)"
+        }
+      ],
+      "totalDamage": 26978
+    },
+    {
+      "classInfo": {
+        "baseClass": "assassin",
+        "firstAdvancement": "venomancer",
+        "id": "venomancer",
+        "name": "毒术士",
+        "secondAdvancement": null,
+        "tier": "一转"
+      },
+      "dps": 1748.0666666666666,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 300,
+            "totalMs": 9000,
+            "uptime": 0.599680170575693
+          },
+          "stealth_fld": {
+            "activations": 0,
+            "samples": 178,
+            "totalMs": 5340,
+            "uptime": 0.35581023454157784
+          }
+        },
+        "durationMs": 15008,
+        "eventCount": 723,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.4888888888888889,
+          "blocked": 286,
+          "blockedRatio": 0.4888888888888889,
+          "castAttempts": 585,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 13,
+          "fallbackBasic": 286,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 180,
+          "emptyRatio": 0.020066889632107024,
+          "insufficient": 0,
+          "samples": 299,
+          "spent": 397
+        },
+        "scenario": "sustained_dps",
+        "statuses": {
+          "poison": {
+            "activeSamples": 0,
+            "applications": 138,
+            "resisted": 0
+          }
+        },
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "assassin_basic": 35,
+            "contagion": 3,
+            "poison_mist": 3,
+            "toxin_detonation": 1,
+            "venom_sting": 6
+          },
+          "coverage": 0.38461538461538464,
+          "effectCalls": 0,
+          "particleCalls": 0,
+          "skillCalls": 48
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 15100,
+          "hits": 96,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 8637,
+          "hits": 12,
+          "name": "持续伤害(DOT/协同反应)"
+        },
+        {
+          "damage": 1422,
+          "hits": 6,
+          "name": "毒刺"
+        },
+        {
+          "damage": 1062,
+          "hits": 18,
+          "name": "毒雾"
+        }
+      ],
+      "totalDamage": 26221
+    },
+    {
+      "classInfo": {
+        "baseClass": "mage",
+        "firstAdvancement": null,
+        "id": "mage",
+        "name": "法师",
+        "secondAdvancement": null,
+        "tier": "基础"
+      },
+      "dps": 1512.3333333333333,
+      "metrics": {
+        "buffs": {},
+        "durationMs": 15014,
+        "eventCount": 792,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.48863636363636365,
+          "blocked": 344,
+          "blockedRatio": 0.48863636363636365,
+          "castAttempts": 704,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 16,
+          "fallbackBasic": 344,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 0,
+          "emptyRatio": 0,
+          "insufficient": 0,
+          "samples": 360,
+          "spent": 329
+        },
+        "scenario": "sustained_dps",
+        "statuses": {
+          "burn": {
+            "activeSamples": 0,
+            "applications": 17,
+            "resisted": 0
+          },
+          "frostbite": {
+            "activeSamples": 0,
+            "applications": 41,
+            "resisted": 0
+          }
+        },
+        "synergies": {
+          "chaos": {
+            "damage": 0,
+            "triggers": 15
+          },
+          "thermal_shock": {
+            "damage": 0,
+            "triggers": 15
+          }
+        },
+        "vfx": {
+          "bySkill": {
+            "blink": 3,
+            "elemental_storm": 1,
+            "fireball": 8,
+            "frost_nova": 4,
+            "mage_basic": 34
+          },
+          "coverage": 0.3125,
+          "effectCalls": 0,
+          "particleCalls": 0,
+          "skillCalls": 50
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 11136,
+          "hits": 44,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 6840,
+          "hits": 16,
+          "name": "火球术"
+        },
+        {
+          "damage": 4520,
+          "hits": 20,
+          "name": "极寒之地"
+        },
+        {
+          "damage": 189,
+          "hits": 1,
+          "name": "元素风暴"
+        }
+      ],
+      "totalDamage": 22685
+    },
+    {
+      "classInfo": {
+        "baseClass": "assassin",
+        "firstAdvancement": "shadowdancer",
+        "id": "nightblade",
+        "name": "夜刃",
+        "secondAdvancement": "nightblade",
+        "tier": "二转"
+      },
+      "dps": 1397.3333333333333,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 370,
+            "totalMs": 11100,
+            "uptime": 0.7398027192748601
+          },
+          "nightfall": {
+            "activations": 0,
+            "samples": 152,
+            "totalMs": 4560,
+            "uptime": 0.30391895494534793
+          }
+        },
+        "durationMs": 15004,
+        "eventCount": 728,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.49313186813186816,
+          "blocked": 359,
+          "blockedRatio": 0.49313186813186816,
+          "castAttempts": 728,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 10,
+          "fallbackBasic": 359,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 330,
+          "emptyRatio": 0.02981029810298103,
+          "insufficient": 0,
+          "samples": 369,
+          "spent": 395
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "assassin_basic": 68,
+            "death_sentence": 2,
+            "eternal_night": 1
+          },
+          "coverage": 0.3,
+          "effectCalls": 0,
+          "particleCalls": 0,
+          "skillCalls": 71
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 18724,
+          "hits": 34,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 1823,
+          "hits": 3,
+          "name": "影舞"
+        },
+        {
+          "damage": 413,
+          "hits": 1,
+          "name": "死神宣告"
+        }
+      ],
+      "totalDamage": 20960
+    },
+    {
+      "classInfo": {
+        "baseClass": "archer",
+        "firstAdvancement": "ranger",
+        "id": "ranger",
+        "name": "巡林客",
+        "secondAdvancement": null,
+        "tier": "一转"
+      },
+      "dps": 1050.8,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 347,
+            "totalMs": 10410,
+            "uptime": 0.6930758988015979
+          }
+        },
+        "durationMs": 15020,
+        "eventCount": 753,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.49266862170087977,
+          "blocked": 336,
+          "blockedRatio": 0.49266862170087977,
+          "castAttempts": 682,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 10,
+          "fallbackBasic": 336,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 0,
+          "emptyRatio": 0,
+          "insufficient": 0,
+          "samples": 346,
+          "spent": 280
+        },
+        "scenario": "sustained_dps",
+        "statuses": {
+          "bleed": {
+            "activeSamples": 0,
+            "applications": 63,
+            "resisted": 0
+          },
+          "frostbite": {
+            "activeSamples": 0,
+            "applications": 4,
+            "resisted": 0
+          }
+        },
+        "synergies": {
+          "chaos": {
+            "damage": 0,
+            "triggers": 4
+          }
+        },
+        "vfx": {
+          "bySkill": {
+            "archer_basic": 35,
+            "frozen_trap": 4,
+            "hunting_command": 4,
+            "natures_wrath": 1,
+            "summon_wolf": 5
+          },
+          "coverage": 0.5,
+          "effectCalls": 213,
+          "particleCalls": 49,
+          "skillCalls": 49
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 13958,
+          "hits": 47,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 973,
+          "hits": 4,
+          "name": "布置冰阱"
+        },
+        {
+          "damage": 528,
+          "hits": 1,
+          "name": "群狼出击"
+        },
+        {
+          "damage": 268,
+          "hits": 2,
+          "name": "狩猎指令"
+        },
+        {
+          "damage": 35,
+          "hits": 1,
+          "name": "持续伤害(DOT/协同反应)"
+        }
+      ],
+      "totalDamage": 15762
+    },
+    {
+      "classInfo": {
+        "baseClass": "assassin",
+        "firstAdvancement": "shadowdancer",
+        "id": "shadowdancer",
+        "name": "影舞者",
+        "secondAdvancement": null,
+        "tier": "一转"
+      },
+      "dps": 932.8666666666667,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 394,
+            "totalMs": 11820,
+            "uptime": 0.7869507323568575
+          },
+          "nightfall": {
+            "activations": 0,
+            "samples": 135,
+            "totalMs": 4050,
+            "uptime": 0.26964047936085217
+          }
+        },
+        "durationMs": 15020,
+        "eventCount": 746,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.47319034852546915,
+          "blocked": 353,
+          "blockedRatio": 0.47319034852546915,
+          "castAttempts": 746,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 40,
+          "fallbackBasic": 353,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 360,
+          "emptyRatio": 0.030534351145038167,
+          "insufficient": 0,
+          "samples": 393,
+          "spent": 380
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "assassin_basic": 64,
+            "backstab": 6,
+            "nightfall": 1,
+            "shadow_death_mark": 2,
+            "shadow_raid": 4
+          },
+          "coverage": 0.125,
+          "effectCalls": 0,
+          "particleCalls": 0,
+          "skillCalls": 77
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 12031,
+          "hits": 32,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 1804,
+          "hits": 4,
+          "name": "影袭"
+        },
+        {
+          "damage": 158,
+          "hits": 1,
+          "name": "死印"
+        }
+      ],
+      "totalDamage": 13993
+    },
+    {
+      "classInfo": {
+        "baseClass": "archer",
+        "firstAdvancement": "marksman",
+        "id": "marksman",
+        "name": "神射手",
+        "secondAdvancement": null,
+        "tier": "一转"
+      },
+      "dps": 838.9333333333333,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 407,
+            "totalMs": 12210,
+            "uptime": 0.8138914811358485
+          }
+        },
+        "durationMs": 15002,
+        "eventCount": 801,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.49313358302122345,
+          "blocked": 395,
+          "blockedRatio": 0.49313358302122345,
+          "castAttempts": 801,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 11,
+          "fallbackBasic": 395,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 300,
+          "emptyRatio": 0.024630541871921183,
+          "insufficient": 0,
+          "samples": 406,
+          "spent": 102
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "aimed_shot": 3,
+            "archer_basic": 34,
+            "backstep_shot": 5,
+            "death_gaze": 2,
+            "weakness_mark": 4
+          },
+          "coverage": 0.45454545454545453,
+          "effectCalls": 242,
+          "particleCalls": 53,
+          "skillCalls": 48
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 5774,
+          "hits": 17,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 3173,
+          "hits": 3,
+          "name": "瞄准射击"
+        },
+        {
+          "damage": 2845,
+          "hits": 1,
+          "name": "死神之眼"
+        },
+        {
+          "damage": 471,
+          "hits": 2,
+          "name": "后跳射击"
+        },
+        {
+          "damage": 321,
+          "hits": 2,
+          "name": "弱点标记"
+        }
+      ],
+      "totalDamage": 12584
+    },
+    {
+      "classInfo": {
+        "baseClass": "assassin",
+        "firstAdvancement": null,
+        "id": "assassin",
+        "name": "刺客",
+        "secondAdvancement": null,
+        "tier": "基础"
+      },
+      "dps": 777.9333333333333,
+      "metrics": {
+        "buffs": {
+          "midnight_raid": {
+            "activations": 0,
+            "samples": 100,
+            "totalMs": 3000,
+            "uptime": 0.19986675549633579
+          }
+        },
+        "durationMs": 15010,
+        "eventCount": 720,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.4930555555555556,
+          "blocked": 355,
+          "blockedRatio": 0.4930555555555556,
+          "castAttempts": 720,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 10,
+          "fallbackBasic": 355,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 360,
+          "emptyRatio": 0.03287671232876712,
+          "insufficient": 0,
+          "samples": 365,
+          "spent": 310
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "assassin_basic": 68,
+            "midnight_raid": 1,
+            "shadow_bind": 4,
+            "shadow_pierce": 5,
+            "shadow_vortex": 2
+          },
+          "coverage": 0.5,
+          "effectCalls": 0,
+          "particleCalls": 0,
+          "skillCalls": 80
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 8683,
+          "hits": 34,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 1800,
+          "hits": 5,
+          "name": "暗影突刺"
+        },
+        {
+          "damage": 1014,
+          "hits": 2,
+          "name": "影涡"
+        },
+        {
+          "damage": 172,
+          "hits": 2,
+          "name": "影缚印记"
+        }
+      ],
+      "totalDamage": 11669
+    },
+    {
+      "classInfo": {
+        "baseClass": "mage",
+        "firstAdvancement": "sage",
+        "id": "oracle",
+        "name": "神谕者",
+        "secondAdvancement": "oracle",
+        "tier": "二转"
+      },
+      "dps": 692.8,
+      "metrics": {
+        "buffs": {
+          "bear_guard_undefined": {
+            "activations": 0,
+            "samples": 313,
+            "totalMs": 9390,
+            "uptime": 0.6254996003197442
+          },
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 317,
+            "totalMs": 9510,
+            "uptime": 0.6334932054356515
+          }
+        },
+        "durationMs": 15012,
+        "eventCount": 627,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.4960127591706539,
+          "blocked": 311,
+          "blockedRatio": 0.4960127591706539,
+          "castAttempts": 627,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 5,
+          "fallbackBasic": 311,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 30,
+          "emptyRatio": 0.0031645569620253164,
+          "insufficient": 0,
+          "samples": 316,
+          "spent": 270
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "fate_reversal": 1,
+            "fate_weave": 2,
+            "time_field": 1,
+            "time_rewind": 1,
+            "timely_shot_plus": 35
+          },
+          "coverage": 1,
+          "effectCalls": 0,
+          "particleCalls": 0,
+          "skillCalls": 40
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 9252,
+          "hits": 35,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 456,
+          "hits": 2,
+          "name": "命运编织"
+        },
+        {
+          "damage": 228,
+          "hits": 1,
+          "name": "时间领域"
+        },
+        {
+          "damage": 228,
+          "hits": 1,
+          "name": "命运逆转"
+        },
+        {
+          "damage": 228,
+          "hits": 1,
+          "name": "时光倒流"
+        }
+      ],
+      "totalDamage": 10392
+    },
+    {
+      "classInfo": {
+        "baseClass": "mage",
+        "firstAdvancement": "sage",
+        "id": "sage",
+        "name": "贤者",
+        "secondAdvancement": null,
+        "tier": "一转"
+      },
+      "dps": 641.2,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 358,
+            "totalMs": 10740,
+            "uptime": 0.7141432276082186
+          }
+        },
+        "durationMs": 15039,
+        "eventCount": 705,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.49361702127659574,
+          "blocked": 348,
+          "blockedRatio": 0.49361702127659574,
+          "castAttempts": 705,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 9,
+          "fallbackBasic": 348,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 0,
+          "emptyRatio": 0,
+          "insufficient": 0,
+          "samples": 357,
+          "spent": 305
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "chrono_aura": 2,
+            "foresight_shield": 2,
+            "purify_time": 3,
+            "sacred_rewind": 1,
+            "timely_shot": 35
+          },
+          "coverage": 0.5555555555555556,
+          "effectCalls": 0,
+          "particleCalls": 0,
+          "skillCalls": 43
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 8034,
+          "hits": 35,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 594,
+          "hits": 3,
+          "name": "净化时序"
+        },
+        {
+          "damage": 396,
+          "hits": 2,
+          "name": "预知之盾"
+        },
+        {
+          "damage": 396,
+          "hits": 2,
+          "name": "时光光环"
+        },
+        {
+          "damage": 198,
+          "hits": 1,
+          "name": "神圣回溯"
+        }
+      ],
+      "totalDamage": 9618
+    },
+    {
+      "classInfo": {
+        "baseClass": "archer",
+        "firstAdvancement": null,
+        "id": "archer",
+        "name": "游侠",
+        "secondAdvancement": null,
+        "tier": "基础"
+      },
+      "dps": 638,
+      "metrics": {
+        "buffs": {},
+        "durationMs": 15035,
+        "eventCount": 789,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.49230769230769234,
+          "blocked": 384,
+          "blockedRatio": 0.49230769230769234,
+          "castAttempts": 780,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 12,
+          "fallbackBasic": 384,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 0,
+          "emptyRatio": 0,
+          "insufficient": 0,
+          "samples": 396,
+          "spent": 169
+        },
+        "scenario": "sustained_dps",
+        "statuses": {
+          "poison": {
+            "activeSamples": 0,
+            "applications": 9,
+            "resisted": 0
+          }
+        },
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "archer_basic": 34,
+            "arrow_storm": 1,
+            "backstep_shot": 5,
+            "hunters_mark": 4,
+            "poison_arrow": 4
+          },
+          "coverage": 0.4166666666666667,
+          "effectCalls": 245,
+          "particleCalls": 53,
+          "skillCalls": 48
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 7007,
+          "hits": 34,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 1485,
+          "hits": 13,
+          "name": "持续伤害(DOT/协同反应)"
+        },
+        {
+          "damage": 457,
+          "hits": 3,
+          "name": "后跳射击"
+        },
+        {
+          "damage": 346,
+          "hits": 3,
+          "name": "毒箭"
+        },
+        {
+          "damage": 221,
+          "hits": 2,
+          "name": "猎人印记"
+        },
+        {
+          "damage": 54,
+          "hits": 2,
+          "name": "箭雨风暴"
+        }
+      ],
+      "totalDamage": 9570
+    },
+    {
+      "classInfo": {
+        "baseClass": "mage",
+        "firstAdvancement": "warlock",
+        "id": "warlock",
+        "name": "术士",
+        "secondAdvancement": null,
+        "tier": "一转"
+      },
+      "dps": 562.6,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 203,
+            "totalMs": 6090,
+            "uptime": 0.4058106217098687
+          }
+        },
+        "durationMs": 15007,
+        "eventCount": 392,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.4846938775510204,
+          "blocked": 190,
+          "blockedRatio": 0.4846938775510204,
+          "castAttempts": 392,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 12,
+          "fallbackBasic": 190,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 0,
+          "emptyRatio": 0,
+          "insufficient": 0,
+          "samples": 202,
+          "spent": 4
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "agony_curse": 8,
+            "dark_harvest": 1,
+            "life_drain": 2,
+            "shadow_arrow": 20,
+            "summon_skeleton_warrior": 1
+          },
+          "coverage": 0.4166666666666667,
+          "effectCalls": 0,
+          "particleCalls": 0,
+          "skillCalls": 32
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 6175,
+          "hits": 20,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 1888,
+          "hits": 8,
+          "name": "痛苦诅咒"
+        },
+        {
+          "damage": 236,
+          "hits": 1,
+          "name": "暗黑丰收"
+        },
+        {
+          "damage": 140,
+          "hits": 2,
+          "name": "生命汲取"
+        }
+      ],
+      "totalDamage": 8439
+    },
+    {
+      "classInfo": {
+        "baseClass": "warrior",
+        "firstAdvancement": "berserker",
+        "id": "destroyer",
+        "name": "毁灭者",
+        "secondAdvancement": "destroyer",
+        "tier": "二转"
+      },
+      "dps": 269,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 402,
+            "totalMs": 12060,
+            "uptime": 0.8027156549520766
+          },
+          "skill_blood_demon_form": {
+            "activations": 0,
+            "samples": 107,
+            "totalMs": 3210,
+            "uptime": 0.21365814696485624
+          },
+          "skill_sacred_provocation_ally_shield": {
+            "activations": 0,
+            "samples": 134,
+            "totalMs": 4020,
+            "uptime": 0.26757188498402557
+          },
+          "skill_sacred_provocation_consecration_dmg": {
+            "activations": 0,
+            "samples": 2,
+            "totalMs": 60,
+            "uptime": 0.003993610223642172
+          }
+        },
+        "durationMs": 15024,
+        "eventCount": 790,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.49240506329113926,
+          "blocked": 389,
+          "blockedRatio": 0.49240506329113926,
+          "castAttempts": 790,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 12,
+          "fallbackBasic": 389,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 60,
+          "emptyRatio": 0.004987531172069825,
+          "insufficient": 0,
+          "samples": 401,
+          "spent": 387
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "blood_demon_form": 5,
+            "devastation_rift": 4,
+            "devastation_whirlwind": 6,
+            "executioners_cry": 1,
+            "warrior_basic": 66
+          },
+          "coverage": 0.4166666666666667,
+          "effectCalls": 152,
+          "particleCalls": 76,
+          "skillCalls": 82
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 3222,
+          "hits": 18,
+          "name": "毁灭裂波"
+        },
+        {
+          "damage": 813,
+          "hits": 1,
+          "name": "裂地重击"
+        }
+      ],
+      "totalDamage": 4035
+    },
+    {
+      "classInfo": {
+        "baseClass": "warrior",
+        "firstAdvancement": "guardian",
+        "id": "guardian",
+        "name": "守护者",
+        "secondAdvancement": null,
+        "tier": "一转"
+      },
+      "dps": 197.8,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 406,
+            "totalMs": 12180,
+            "uptime": 0.8118917477669644
+          },
+          "skill_fury_slam_as_stack": {
+            "activations": 0,
+            "samples": 52,
+            "totalMs": 1560,
+            "uptime": 0.10398613518197573
+          },
+          "skill_raise_shield": {
+            "activations": 0,
+            "samples": 228,
+            "totalMs": 6840,
+            "uptime": 0.4559392081055859
+          },
+          "skill_unyielding_wall": {
+            "activations": 0,
+            "samples": 215,
+            "totalMs": 6450,
+            "uptime": 0.429942674310092
+          }
+        },
+        "durationMs": 15002,
+        "eventCount": 797,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.4918444165621079,
+          "blocked": 392,
+          "blockedRatio": 0.4918444165621079,
+          "castAttempts": 797,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 13,
+          "fallbackBasic": 392,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 60,
+          "emptyRatio": 0.0049382716049382715,
+          "insufficient": 0,
+          "samples": 405,
+          "spent": 336
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "guardian_charge": 8,
+            "raise_shield": 8,
+            "unyielding_wall": 1,
+            "war_cry": 2,
+            "warrior_basic": 66
+          },
+          "coverage": 0.38461538461538464,
+          "effectCalls": 180,
+          "particleCalls": 77,
+          "skillCalls": 85
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 1500,
+          "hits": 9,
+          "name": "基础普攻"
+        },
+        {
+          "damage": 865,
+          "hits": 8,
+          "name": "守护冲锋"
+        },
+        {
+          "damage": 318,
+          "hits": 2,
+          "name": "equipment_effect"
+        },
+        {
+          "damage": 152,
+          "hits": 1,
+          "name": "不灭守护"
+        },
+        {
+          "damage": 132,
+          "hits": 2,
+          "name": "战吼"
+        }
+      ],
+      "totalDamage": 2967
+    },
+    {
+      "classInfo": {
+        "baseClass": "warrior",
+        "firstAdvancement": "berserker",
+        "id": "berserker",
+        "name": "狂战士",
+        "secondAdvancement": null,
+        "tier": "一转"
+      },
+      "dps": 194.8,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 443,
+            "totalMs": 13290,
+            "uptime": 0.8849970033961511
+          },
+          "skill_fury_form": {
+            "activations": 0,
+            "samples": 290,
+            "totalMs": 8700,
+            "uptime": 0.5793434108010921
+          },
+          "skill_fury_slam_as_stack": {
+            "activations": 0,
+            "samples": 433,
+            "totalMs": 12990,
+            "uptime": 0.8650196444030099
+          }
+        },
+        "durationMs": 15017,
+        "eventCount": 869,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.49136939010356734,
+          "blocked": 427,
+          "blockedRatio": 0.49136939010356734,
+          "castAttempts": 869,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 15,
+          "fallbackBasic": 427,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 0.7342964824120602,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 0,
+          "emptyRatio": 0,
+          "insufficient": 0,
+          "samples": 442,
+          "spent": 401
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "blood_roar": 2,
+            "fury_form": 1,
+            "fury_slam": 4,
+            "warrior_basic": 78,
+            "whirlwind_slash": 8
+          },
+          "coverage": 0.3333333333333333,
+          "effectCalls": 172,
+          "particleCalls": 94,
+          "skillCalls": 93
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 2276,
+          "hits": 4,
+          "name": "狂暴碎击"
+        },
+        {
+          "damage": 352,
+          "hits": 1,
+          "name": "旋风斩"
+        },
+        {
+          "damage": 294,
+          "hits": 1,
+          "name": "狂暴化"
+        }
+      ],
+      "totalDamage": 2922
+    },
+    {
+      "classInfo": {
+        "baseClass": "warrior",
+        "firstAdvancement": "knight",
+        "id": "paladin",
+        "name": "圣骑士",
+        "secondAdvancement": "paladin",
+        "tier": "二转"
+      },
+      "dps": 161.53333333333333,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 421,
+            "totalMs": 12630,
+            "uptime": 0.841270898554586
+          },
+          "skill_sacred_provocation_ally_shield": {
+            "activations": 0,
+            "samples": 328,
+            "totalMs": 9840,
+            "uptime": 0.6554319589688936
+          },
+          "skill_sacred_provocation_consecration_dmg": {
+            "activations": 0,
+            "samples": 127,
+            "totalMs": 3810,
+            "uptime": 0.25378005728368747
+          }
+        },
+        "durationMs": 15013,
+        "eventCount": 830,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.49336550060313633,
+          "blocked": 409,
+          "blockedRatio": 0.49336550060313633,
+          "castAttempts": 829,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 11,
+          "fallbackBasic": 409,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 120,
+          "emptyRatio": 0.009523809523809525,
+          "insufficient": 0,
+          "samples": 420,
+          "spent": 382
+        },
+        "scenario": "sustained_dps",
+        "statuses": {
+          "dark_erosion": {
+            "activeSamples": 0,
+            "applications": 1,
+            "resisted": 0
+          }
+        },
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "angel_descends": 1,
+            "judgment_ground": 4,
+            "judgment_shield": 4,
+            "sacred_provocation": 4,
+            "warrior_basic": 68
+          },
+          "coverage": 0.45454545454545453,
+          "effectCalls": 123,
+          "particleCalls": 78,
+          "skillCalls": 81
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 1027,
+          "hits": 3,
+          "name": "审判净地"
+        },
+        {
+          "damage": 692,
+          "hits": 7,
+          "name": "圣光挑衅"
+        },
+        {
+          "damage": 369,
+          "hits": 1,
+          "name": "天使降临"
+        },
+        {
+          "damage": 335,
+          "hits": 1,
+          "name": "审判之盾"
+        }
+      ],
+      "totalDamage": 2423
+    },
+    {
+      "classInfo": {
+        "baseClass": "warrior",
+        "firstAdvancement": null,
+        "id": "warrior",
+        "name": "战士",
+        "secondAdvancement": null,
+        "tier": "基础"
+      },
+      "dps": 116.26666666666667,
+      "metrics": {
+        "buffs": {
+          "skill_wargod_descends": {
+            "activations": 0,
+            "samples": 294,
+            "totalMs": 8820,
+            "uptime": 0.5868263473053892
+          }
+        },
+        "durationMs": 15030,
+        "eventCount": 801,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.4918851435705368,
+          "blocked": 394,
+          "blockedRatio": 0.4918851435705368,
+          "castAttempts": 801,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 13,
+          "fallbackBasic": 394,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 90,
+          "emptyRatio": 0.007371007371007371,
+          "insufficient": 0,
+          "samples": 407,
+          "spent": 336
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "charge": 8,
+            "shield_slam": 6,
+            "war_cry": 2,
+            "wargod_descends": 1,
+            "warrior_basic": 70
+          },
+          "coverage": 0.38461538461538464,
+          "effectCalls": 153,
+          "particleCalls": 87,
+          "skillCalls": 87
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 1052,
+          "hits": 4,
+          "name": "冲锋"
+        },
+        {
+          "damage": 270,
+          "hits": 1,
+          "name": "战神降临"
+        },
+        {
+          "damage": 235,
+          "hits": 1,
+          "name": "盾击"
+        },
+        {
+          "damage": 187,
+          "hits": 2,
+          "name": "战吼"
+        }
+      ],
+      "totalDamage": 1744
+    },
+    {
+      "classInfo": {
+        "baseClass": "warrior",
+        "firstAdvancement": "knight",
+        "id": "knight",
+        "name": "骑士",
+        "secondAdvancement": null,
+        "tier": "一转"
+      },
+      "dps": 92.33333333333333,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 397,
+            "totalMs": 11910,
+            "uptime": 0.793365307753797
+          },
+          "skill_holy_bastion": {
+            "activations": 0,
+            "samples": 233,
+            "totalMs": 6990,
+            "uptime": 0.4656274980015987
+          }
+        },
+        "durationMs": 15012,
+        "eventCount": 863,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.49303944315545245,
+          "blocked": 425,
+          "blockedRatio": 0.49303944315545245,
+          "castAttempts": 862,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 12,
+          "fallbackBasic": 425,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 60,
+          "emptyRatio": 0.004576659038901602,
+          "insufficient": 0,
+          "samples": 437,
+          "spent": 366
+        },
+        "scenario": "sustained_dps",
+        "statuses": {
+          "dark_erosion": {
+            "activeSamples": 0,
+            "applications": 1,
+            "resisted": 0
+          }
+        },
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "holy_bastion": 1,
+            "holy_ground": 4,
+            "holy_shield_slam": 5,
+            "holy_taunt": 4,
+            "warrior_basic": 66
+          },
+          "coverage": 0.4166666666666667,
+          "effectCalls": 141,
+          "particleCalls": 78,
+          "skillCalls": 80
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 886,
+          "hits": 4,
+          "name": "神圣净地"
+        },
+        {
+          "damage": 253,
+          "hits": 1,
+          "name": "神圣盾击"
+        },
+        {
+          "damage": 246,
+          "hits": 2,
+          "name": "神圣挑衅"
+        }
+      ],
+      "totalDamage": 1385
+    },
+    {
+      "classInfo": {
+        "baseClass": "warrior",
+        "firstAdvancement": "guardian",
+        "id": "temple_knight",
+        "name": "神殿骑士",
+        "secondAdvancement": "temple_knight",
+        "tier": "二转"
+      },
+      "dps": 32.46666666666667,
+      "metrics": {
+        "buffs": {
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 495,
+            "totalMs": 14850,
+            "uptime": 0.9874983375448863
+          },
+          "skill_blood_demon_form": {
+            "activations": 0,
+            "samples": 208,
+            "totalMs": 6240,
+            "uptime": 0.41494879638249765
+          },
+          "skill_divine_bastion": {
+            "activations": 0,
+            "samples": 494,
+            "totalMs": 14820,
+            "uptime": 0.985503391408432
+          },
+          "skill_sacred_bond": {
+            "activations": 0,
+            "samples": 493,
+            "totalMs": 14790,
+            "uptime": 0.9835084452719777
+          },
+          "skill_sacred_sacrifice": {
+            "activations": 0,
+            "samples": 331,
+            "totalMs": 9930,
+            "uptime": 0.6603271711663785
+          }
+        },
+        "durationMs": 15038,
+        "eventCount": 977,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.49437052200614123,
+          "blocked": 483,
+          "blockedRatio": 0.49437052200614123,
+          "castAttempts": 977,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 11,
+          "fallbackBasic": 483,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 120,
+          "emptyRatio": 0.008097165991902834,
+          "insufficient": 0,
+          "samples": 494,
+          "spent": 324
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "blood_demon_form": 9,
+            "divine_bastion": 5,
+            "sacred_bond": 3,
+            "sacred_sacrifice": 1,
+            "war_cry": 2,
+            "warrior_basic": 72
+          },
+          "coverage": 0.5454545454545454,
+          "effectCalls": 160,
+          "particleCalls": 84,
+          "skillCalls": 92
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [
+        {
+          "damage": 331,
+          "hits": 1,
+          "name": "神圣献身"
+        },
+        {
+          "damage": 156,
+          "hits": 2,
+          "name": "战吼"
+        }
+      ],
+      "totalDamage": 487
+    },
+    {
+      "classInfo": {
+        "baseClass": "archer",
+        "firstAdvancement": "ranger",
+        "id": "beastmaster",
+        "name": "兽王",
+        "secondAdvancement": "beastmaster",
+        "tier": "二转"
+      },
+      "dps": 0,
+      "metrics": {
+        "buffs": {
+          "bear_guard_undefined": {
+            "activations": 0,
+            "samples": 454,
+            "totalMs": 13620,
+            "uptime": 0.9070324986680873
+          },
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 454,
+            "totalMs": 13620,
+            "uptime": 0.9070324986680873
+          },
+          "skill_divine_bastion": {
+            "activations": 0,
+            "samples": 105,
+            "totalMs": 3150,
+            "uptime": 0.20977623867874268
+          },
+          "skill_sacred_bond": {
+            "activations": 0,
+            "samples": 103,
+            "totalMs": 3090,
+            "uptime": 0.2057805007991476
+          }
+        },
+        "durationMs": 15016,
+        "eventCount": 926,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0.49441964285714285,
+          "blocked": 443,
+          "blockedRatio": 0.49441964285714285,
+          "castAttempts": 896,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 10,
+          "fallbackBasic": 443,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 0,
+          "emptyRatio": 0,
+          "insufficient": 0,
+          "samples": 453,
+          "spent": 225
+        },
+        "scenario": "sustained_dps",
+        "statuses": {
+          "bleed": {
+            "activeSamples": 0,
+            "applications": 30,
+            "resisted": 0
+          }
+        },
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "archer_basic": 35,
+            "beast_pack": 7,
+            "pack_roar": 2,
+            "venom_trap": 3
+          },
+          "coverage": 0.4,
+          "effectCalls": 211,
+          "particleCalls": 47,
+          "skillCalls": 47
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [],
+      "totalDamage": 0
+    },
+    {
+      "classInfo": {
+        "baseClass": "archer",
+        "firstAdvancement": "marksman",
+        "id": "deadeye",
+        "name": "鹰眼",
+        "secondAdvancement": "deadeye",
+        "tier": "二转"
+      },
+      "dps": 0,
+      "metrics": {
+        "buffs": {
+          "bear_guard_undefined": {
+            "activations": 0,
+            "samples": 491,
+            "totalMs": 14730,
+            "uptime": 0.9809536494405967
+          },
+          "breath_hold_active": {
+            "activations": 0,
+            "samples": 489,
+            "totalMs": 14670,
+            "uptime": 0.9769579115610016
+          },
+          "holy_shield_stacks": {
+            "activations": 0,
+            "samples": 491,
+            "totalMs": 14730,
+            "uptime": 0.9809536494405967
+          }
+        },
+        "durationMs": 15016,
+        "eventCount": 490,
+        "feel": {
+          "averageCastLatencyMs": 0,
+          "basicFallbackRatio": 0,
+          "blocked": 0,
+          "blockedRatio": 0,
+          "castAttempts": 490,
+          "castLatencyCount": 0,
+          "castLatencyMs": 0,
+          "casts": 490,
+          "fallbackBasic": 0,
+          "idleMs": 0,
+          "stuckResets": 0
+        },
+        "player": {
+          "damageMitigated": 0,
+          "damageTaken": 0,
+          "damageTakenPerSecond": 0,
+          "deaths": 0,
+          "dodges": 0,
+          "effectiveHealing": 0,
+          "healingPerSecond": 0,
+          "healingTotal": 0,
+          "immunities": 0,
+          "lowestHpPct": 1,
+          "overheal": 0,
+          "shieldAbsorbed": 0,
+          "timeBelow50Ms": 0
+        },
+        "resources": {
+          "emptyMs": 0,
+          "emptyRatio": 0,
+          "insufficient": 0,
+          "samples": 490,
+          "spent": 20
+        },
+        "scenario": "sustained_dps",
+        "statuses": {},
+        "synergies": {},
+        "vfx": {
+          "bySkill": {
+            "backstep_shot": 1,
+            "weakness_mark_de": 2
+          },
+          "coverage": 0.004081632653061225,
+          "effectCalls": 17,
+          "particleCalls": 4,
+          "skillCalls": 3
+        }
+      },
+      "scenario": "sustained_dps",
+      "skills": [],
+      "totalDamage": 0
+    }
+  ]
+}

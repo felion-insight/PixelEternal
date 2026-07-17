@@ -442,8 +442,11 @@
 
     function applyContagion(player, skillDef, g, now, monsters) {
         const ec = skillDef.entityConfig || {};
-        const range = ec.spreadRadius || 120;
-        const maxTargets = skillDef.id === 'pandemic' ? 6 : 3;
+        const spreadBonus = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'poisonSpreadBonus', 0) : 0;
+        const range = Math.floor((ec.spreadRadius || 120) * (1 + spreadBonus));
+        let maxTargets = skillDef.id === 'pandemic' ? 6 : 3;
+        if (spreadBonus > 0) maxTargets += Math.max(1, Math.floor(spreadBonus * 5));
         let source = nearestEnemy(player, monsters, 200);
         if (!source || !source.combatStatuses || !source.combatStatuses.poison) {
             floatText(g, player.x, player.y, '目标未中毒', '#ff6666');
@@ -482,6 +485,11 @@
             decoySummon.aiType = 'taunt_static';
             decoySummon.tauntRadius = ec.tauntRadius || 130;
             decoySummon.hp = Math.max(1, Math.floor((player.maxHp || 100) * ((ec.inheritStats && ec.inheritStats.hp) || 0.2)));
+            const durBonus = typeof window.getSetModifier === 'function'
+                ? window.getSetModifier(player, 'decoyDurability', 0) : 0;
+            if (durBonus > 0) {
+                decoySummon.hp = Math.max(1, Math.floor(decoySummon.hp * (1 + durBonus)));
+            }
             decoySummon.maxHp = decoySummon.hp;
             decoySummon._explosionOnDeath = true;
             decoySummon._explosionRadius = ec.explosionRadius || 80;

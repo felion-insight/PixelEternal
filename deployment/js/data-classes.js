@@ -1231,15 +1231,13 @@ class Equipment {
             this.refineEffects = null;
         }
         
-        // 装备词条（旧静态体系已移除）
-        this.equipmentTraits = data.equipmentTraits || null;
-        
         this.isCrafted = data.isCrafted || false;
         this.implicit = data.implicit || null;
         this.prefixes = data.prefixes || [];
         this.suffixes = data.suffixes || [];
         this.legendaryPowers = data.legendaryPowers || [];
         this.setId = data.setId || null;
+        this.buildEquipmentId = data.buildEquipmentId || null;
         this.classAffinity = data.classAffinity || null;
         this.gearScore = (typeof window.computeEquipmentGearScoreV2 === 'function' && (this.procedural || this.baseTypeId))
             ? window.computeEquipmentGearScoreV2(this)
@@ -1261,7 +1259,11 @@ class Equipment {
     }
     
     getWeaponRefineEffects() {
-        return null;
+        if (this.slot !== 'weapon' || typeof window.getProceduralWeaponSkill !== 'function') {
+            return null;
+        }
+        const result = window.getProceduralWeaponSkill(this.weaponType, this.quality, 0);
+        return result && Array.isArray(result.refineEffects) ? result.refineEffects : null;
     }
 
     /**
@@ -1272,10 +1274,6 @@ class Equipment {
         if (typeof window.getProceduralWeaponSkill === 'function') {
             return window.getProceduralWeaponSkill(this.weaponType, this.quality);
         }
-        return null;
-    }
-
-    generateEquipmentTraits() {
         return null;
     }
 
@@ -1397,8 +1395,21 @@ class Equipment {
         }
 
         if (this.classAffinity) {
-            const clsNames = { warrior: '战士', archer: '弓箭手', mage: '法师', assassin: '刺客' };
-            html += `<p style="color: #88ccff; font-size: 11px;">职业亲和: ${clsNames[this.classAffinity] || this.classAffinity}</p>`;
+            let affinityLabel = this.classAffinity;
+            const cfg = typeof window.CLASS_CONFIG !== 'undefined' ? window.CLASS_CONFIG : null;
+            if (cfg) {
+                if (cfg.baseClasses && cfg.baseClasses[this.classAffinity]) {
+                    affinityLabel = cfg.baseClasses[this.classAffinity].name;
+                } else if (cfg.firstAdvancements && cfg.firstAdvancements[this.classAffinity]) {
+                    affinityLabel = cfg.firstAdvancements[this.classAffinity].name + '（一转）';
+                } else if (cfg.secondAdvancements && cfg.secondAdvancements[this.classAffinity]) {
+                    affinityLabel = cfg.secondAdvancements[this.classAffinity].name + '（二转）';
+                } else {
+                    const clsNames = { warrior: '战士', archer: '弓箭手', mage: '法师', assassin: '刺客' };
+                    affinityLabel = clsNames[this.classAffinity] || this.classAffinity;
+                }
+            }
+            html += `<p style="color: #88ccff; font-size: 11px;">职业亲和: ${affinityLabel}</p>`;
         }
         
         // 显示武器技能
@@ -1421,17 +1432,13 @@ class Equipment {
                     const isUnlocked = this.refineLevel >= refineLevel;
                     const color = isCurrentLevel ? '#ffd700' : (isUnlocked ? '#88ff88' : '#888888');
                     const starText = '★'.repeat(refineLevel);
-                    
-                    html += `<p style="color: ${color}; font-size: 10px; margin-left: 10px; margin-top: 3px;">${starText} 精炼${refineLevel}级: ${refineEffect.description}</p>`;
+                    const description = typeof window.getWeaponRefineEffectDescription === 'function'
+                        ? window.getWeaponRefineEffectDescription(this, refineEffect, refineLevel)
+                        : refineEffect.description;
+
+                    html += `<p style="color: ${color}; font-size: 10px; margin-left: 10px; margin-top: 3px;">${starText} 精炼${refineLevel}级: ${description}</p>`;
                 }
             }
-        }
-        
-        // 显示装备词条
-        if (this.equipmentTraits && this.equipmentTraits.description) {
-            html += `<p>---</p>`;
-            html += `<p style="color: #88ff88;"><strong>装备词条:</strong></p>`;
-            html += `<p style="color: #88ff88; font-size: 11px;">${this.equipmentTraits.description}</p>`;
         }
         
         if (this.setId && typeof SET_DEFINITIONS_V2 !== 'undefined' && SET_DEFINITIONS_V2 && SET_DEFINITIONS_V2.sets && SET_DEFINITIONS_V2.sets[this.setId]) {

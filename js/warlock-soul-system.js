@@ -51,8 +51,11 @@
 
     window.addDeathResonance = function addDeathResonance(player, amount, g) {
         if (!player || !isNecromancer(player) || !amount) return 0;
+        const bonus = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'deathResonanceBonus', 0) : 0;
+        const add = bonus > 0 ? Math.max(1, Math.ceil(amount * (1 + bonus))) : amount;
         const prev = player._deathResonance || 0;
-        player._deathResonance = Math.min(DEATH_RESONANCE_MAX, prev + amount);
+        player._deathResonance = Math.min(DEATH_RESONANCE_MAX, prev + add);
         if (player._deathResonance >= DEATH_RESONANCE_MAX && player._deathResonance > prev) {
             floatText(g || player.gameInstance, player.x, player.y - 40, '共鸣已满!', '#ff88ff');
         }
@@ -230,9 +233,13 @@
         if (!monster._agonyCurse) {
             monster._agonyCurse = { stacks: 0, until: now + dur, lastTick: now, tickRatio: ratio, owner: player, durationMs: dur };
         }
+        const stackBonus = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'curseStackBonus', 0) : 0;
+        let addStacks = stacks || 1;
+        if (stackBonus > 0) addStacks = Math.max(1, Math.ceil(addStacks * (1 + stackBonus)));
         const ac = monster._agonyCurse;
         const stackCap = isNecromancer(player) ? 999 : AGONY_MAX;
-        ac.stacks = Math.min(stackCap, (ac.stacks || 0) + (stacks || 1));
+        ac.stacks = Math.min(stackCap, (ac.stacks || 0) + addStacks);
         ac.until = now + dur;
         ac.durationMs = dur;
         ac.lastTick = ac.lastTick || now;
@@ -340,6 +347,9 @@
             mult *= window.getClassPassiveDotMult(player);
         }
         if (isWarlock(player) && window.isSoulBurning(player)) mult *= 1.5;
+        const curseDot = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'curseDotBonus', 0) : 0;
+        if (curseDot > 0) mult *= 1 + curseDot;
         return mult;
     };
 

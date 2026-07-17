@@ -121,7 +121,8 @@ if (typeof window.SCENE_TYPES === 'undefined') {
         TRAINING: 'training',
         TRIAL: 'trial',
         DUNGEON: 'dungeon',
-        SKILL_LAB: 'skill_lab'
+        SKILL_LAB: 'skill_lab',
+        EQUIPMENT_LAB: 'equipment_lab'
     };
 }
 

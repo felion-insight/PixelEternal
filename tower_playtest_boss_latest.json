@@ -1,0 +1,5890 @@
+{
+  "config": {
+    "floors": [
+      20
+    ],
+    "classes": [
+      "warrior"
+    ],
+    "repeats": 1,
+    "timeoutSeconds": 25.0,
+    "level": 30,
+    "roomType": "boss"
+  },
+  "episodes": [
+    {
+      "floor": 20,
+      "classId": "warrior",
+      "result": "timeout",
+      "durationMs": 27833,
+      "snapshots": [
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 0,
+            "vy": 0,
+            "x": 1500,
+            "y": 1560
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081693229,
+          "transitioning": false,
+          "elapsedMs": 19
+        },
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -3.6479982604980465,
+            "vy": 0,
+            "x": 1427.0399982604981,
+            "y": 1560
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081693664,
+          "transitioning": false,
+          "elapsedMs": 454
+        },
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -3.6479999999997923,
+            "vy": 0,
+            "x": 1343.1359999999995,
+            "y": 1560
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081694049,
+          "transitioning": false,
+          "elapsedMs": 848
+        },
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -3.6479999999999997,
+            "vy": 0,
+            "x": 1262.8800000000015,
+            "y": 1560
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081694410,
+          "transitioning": false,
+          "elapsedMs": 1200
+        },
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -3.6479999999999997,
+            "vy": 0,
+            "x": 1186.2720000000033,
+            "y": 1560
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081694770,
+          "transitioning": false,
+          "elapsedMs": 1561
+        },
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -3.6479999999999997,
+            "vy": 0,
+            "x": 1113.3120000000051,
+            "y": 1560
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081695110,
+          "transitioning": false,
+          "elapsedMs": 1900
+        },
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -3.6479999999999997,
+            "vy": 0,
+            "x": 1047.6480000000067,
+            "y": 1560
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081695406,
+          "transitioning": false,
+          "elapsedMs": 2196
+        },
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -3.6479999999999997,
+            "vy": 0,
+            "x": 981.984000000007,
+            "y": 1560
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081695706,
+          "transitioning": false,
+          "elapsedMs": 2497
+        },
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -0.00011132812499999999,
+            "vy": -3.6478886718749997,
+            "x": 967.3921113281319,
+            "y": 1508.9278886718748
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081695991,
+          "transitioning": false,
+          "elapsedMs": 2782
+        },
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -1.6987323760986327e-09,
+            "vy": -3.6479999983012674,
+            "x": 967.3920000017057,
+            "y": 1450.5599999983012
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081696264,
+          "transitioning": false,
+          "elapsedMs": 3054
+        },
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -1.2960299500264226e-14,
+            "vy": -3.647999999999987,
+            "x": 967.392000000007,
+            "y": 1388.5439999999999
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081696564,
+          "transitioning": false,
+          "elapsedMs": 3355
+        },
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -9.8879238130678e-20,
+            "vy": -3.6479999999999997,
+            "x": 967.392000000007,
+            "y": 1326.5280000000014
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081696841,
+          "transitioning": false,
+          "elapsedMs": 3630
+        },
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.57897858203125,
+            "vy": -2.5792012382812493,
+            "x": 1000.9209254179758,
+            "y": 1278.4072972382826
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081697119,
+          "transitioning": false,
+          "elapsedMs": 3910
+        },
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.5791359987989955,
+            "vy": -2.579136000497728,
+            "x": 1044.7660800012081,
+            "y": 1234.561920000499
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081697395,
+          "transitioning": false,
+          "elapsedMs": 4185
+        },
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.579135999999963,
+            "vy": -2.579136000000015,
+            "x": 1083.453120000007,
+            "y": 1195.8748800000012
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081697665,
+          "transitioning": false,
+          "elapsedMs": 4455
+        },
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.579135999999999,
+            "vy": -2.579136,
+            "x": 1129.877568000008,
+            "y": 1149.450432
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081697948,
+          "transitioning": false,
+          "elapsedMs": 4743
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.579135999999999,
+            "vy": -2.579136,
+            "x": 1160.8272000000088,
+            "y": 1118.5007999999993
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081698263,
+          "transitioning": false,
+          "elapsedMs": 5054
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.579135999999999,
+            "vy": -2.579136,
+            "x": 1202.0933760000098,
+            "y": 1077.2346239999983
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081698629,
+          "transitioning": false,
+          "elapsedMs": 5419
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.579135999999999,
+            "vy": -2.579136,
+            "x": 1251.096960000011,
+            "y": 1028.2310399999972
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081699042,
+          "transitioning": false,
+          "elapsedMs": 5832
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1500,
+              "y": 1000
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.579135999999999,
+            "vy": -2.579136,
+            "x": 1294.942272000012,
+            "y": 984.3857279999979
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081699427,
+          "transitioning": false,
+          "elapsedMs": 6217
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2800,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1495.8840263957934,
+              "y": 998.9798724529186
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 3.6479959226074214,
+            "vy": -9.838623046875e-06,
+            "x": 1375.0122280774049,
+            "y": 966.3317858386213
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081699929,
+          "transitioning": false,
+          "elapsedMs": 6719
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": true,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2686,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1471.1158330652504,
+              "y": 990.2853675250814
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 693,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.579201238281189,
+            "vy": 2.5789785820311026,
+            "x": 1455.9649267617308,
+            "y": 999.860701417967
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081700457,
+          "transitioning": false,
+          "elapsedMs": 7247
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2604,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1476.251507365351,
+              "y": 1002.8920880423763
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 693,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 0.030167052274069742,
+            "vy": 0.012494496644162155,
+            "x": 1499.801930216681,
+            "y": 1037.6587181616844
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081701011,
+          "transitioning": false,
+          "elapsedMs": 7801
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2604,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1456.0163303084414,
+              "y": 983.1345301074758
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 693,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -2.579135999999999,
+            "vy": -2.579136,
+            "x": 1365.7572021558456,
+            "y": 888.9807809973934
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081702390,
+          "transitioning": false,
+          "elapsedMs": 9197
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": true,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2604,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1419.4024797195075,
+              "y": 946.8004945172828
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 693,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.579097553875732,
+            "vy": 2.579114600994873,
+            "x": 1335.3535318019683,
+            "y": 870.7978935963997
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081703273,
+          "transitioning": false,
+          "elapsedMs": 10065
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": true,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2396,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1399.464454166368,
+              "y": 929.5825623037039
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 598,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.5791359999999983,
+            "vy": 2.579135999999999,
+            "x": 1425.6232533558443,
+            "y": 961.0676321973941
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081704088,
+          "transitioning": false,
+          "elapsedMs": 10914
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2396,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1435.4256064635504,
+              "y": 965.9970857000598
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 598,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -2.578361885449218,
+            "vy": -2.5791467487304685,
+            "x": 1491.0117848412954,
+            "y": 1010.7705485461238
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081704980,
+          "transitioning": false,
+          "elapsedMs": 11770
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2302,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1446.4417069834842,
+              "y": 974.5820864986575
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 598,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -2.579135988187949,
+            "vy": -2.579136000164012,
+            "x": 1449.7463829440342,
+            "y": 969.5043617975572
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081705364,
+          "transitioning": false,
+          "elapsedMs": 12154
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2188,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1447.7779724749967,
+              "y": 975.2791355704243
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 503,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -0.0024843864698804122,
+            "vy": -0.0010289755326492991,
+            "x": 1421.3196678576703,
+            "y": 947.1542507403016
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081705920,
+          "transitioning": false,
+          "elapsedMs": 12710
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": true,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2106,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1446.9788910064397,
+              "y": 974.4011583891552
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 503,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.579126160819462,
+            "vy": 2.579133119153866,
+            "x": 1465.1595825091993,
+            "y": 994.6453260888281
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081706429,
+          "transitioning": false,
+          "elapsedMs": 13235
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 2106,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1474.0941713175418,
+              "y": 999.7105697510607
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 503,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 0.011679354533020516,
+            "vy": 0.001071403095214914,
+            "x": 1529.7657608427687,
+            "y": 1044.076263267424
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081707164,
+          "transitioning": false,
+          "elapsedMs": 13954
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 1992,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1490.380203095053,
+              "y": 1011.7943729108107
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 408,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -2.579135384751771,
+            "vy": -2.5791358199308814,
+            "x": 1475.6274171040666,
+            "y": 986.2685640360662
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081707722,
+          "transitioning": false,
+          "elapsedMs": 14530
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": true,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 1910,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1482.0734447597827,
+              "y": 1001.9235448697599
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 408,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -4.750927727040669e-05,
+            "vy": 3.6479246586914273,
+            "x": 1453.925513228592,
+            "y": 1022.9346875574441
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081708208,
+          "transitioning": false,
+          "elapsedMs": 15023
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 1816,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1494.0937444151675,
+              "y": 1141.3085626901704
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 408,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 3.6479999999999997,
+            "vy": 1.7167918265844838e-19,
+            "x": 1658.2134657193142,
+            "y": 1257.5896234458687
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081710621,
+          "transitioning": false,
+          "elapsedMs": 17422
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 1816,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1528.4182953448878,
+              "y": 1160.4041353927546
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 408,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -2.5791251420288086,
+            "vy": -2.5791335403442384,
+            "x": 1767.5841428613394,
+            "y": 1208.5860369862128
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081711824,
+          "transitioning": false,
+          "elapsedMs": 18631
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 1816,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1556.7173364392188,
+              "y": 1113.4093833028742
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 408,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -2.579135999999999,
+            "vy": -2.579135999999999,
+            "x": 1535.461913719307,
+            "y": 976.4637994458666
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081713636,
+          "transitioning": false,
+          "elapsedMs": 20451
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": true,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 1816,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1523.5821458231687,
+              "y": 1057.5833466666174
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 408,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -2.4598441086709495e-11,
+            "vy": 3.6479999999687656,
+            "x": 1479.1623297193305,
+            "y": 1058.7882154458987
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081714760,
+          "transitioning": false,
+          "elapsedMs": 21550
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 1702,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1533.6026716134124,
+              "y": 1084.181027373243
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 313,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 3.6479999999999477,
+            "vy": 2.5402187020517665e-14,
+            "x": 1643.3223297193063,
+            "y": 1101.3968554458672
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081715940,
+          "transitioning": false,
+          "elapsedMs": 22754
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 1588,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1640.5959043654468,
+              "y": 1094.3872330676036
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 218,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -3.647999999999561,
+            "vy": 7.570695755382845e-41,
+            "x": 1647.9059297986619,
+            "y": 1101.3968554458672
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081717562,
+          "transitioning": false,
+          "elapsedMs": 24352
+        }
+      ],
+      "actions": [
+        {
+          "elapsedMs": 19,
+          "mode": "route",
+          "target": {
+            "x": 960,
+            "y": 1560
+          },
+          "keys": [
+            "KeyA"
+          ]
+        },
+        {
+          "elapsedMs": 454,
+          "mode": "route",
+          "target": {
+            "x": 960,
+            "y": 1560
+          },
+          "keys": [
+            "KeyA"
+          ]
+        },
+        {
+          "elapsedMs": 848,
+          "mode": "route",
+          "target": {
+            "x": 960,
+            "y": 1560
+          },
+          "keys": [
+            "KeyA"
+          ]
+        },
+        {
+          "elapsedMs": 1200,
+          "mode": "route",
+          "target": {
+            "x": 960,
+            "y": 1560
+          },
+          "keys": [
+            "KeyA"
+          ]
+        },
+        {
+          "elapsedMs": 1561,
+          "mode": "route",
+          "target": {
+            "x": 960,
+            "y": 1560
+          },
+          "keys": [
+            "KeyA"
+          ]
+        },
+        {
+          "elapsedMs": 1900,
+          "mode": "route",
+          "target": {
+            "x": 960,
+            "y": 1560
+          },
+          "keys": [
+            "KeyA"
+          ]
+        },
+        {
+          "elapsedMs": 2196,
+          "mode": "route",
+          "target": {
+            "x": 960,
+            "y": 1560
+          },
+          "keys": [
+            "KeyA"
+          ]
+        },
+        {
+          "elapsedMs": 2497,
+          "mode": "route",
+          "target": {
+            "x": 960,
+            "y": 1280
+          },
+          "keys": [
+            "KeyW"
+          ]
+        },
+        {
+          "elapsedMs": 2782,
+          "mode": "route",
+          "target": {
+            "x": 960,
+            "y": 1280
+          },
+          "keys": [
+            "KeyW"
+          ]
+        },
+        {
+          "elapsedMs": 3054,
+          "mode": "route",
+          "target": {
+            "x": 960,
+            "y": 1280
+          },
+          "keys": [
+            "KeyW"
+          ]
+        },
+        {
+          "elapsedMs": 3355,
+          "mode": "route",
+          "target": {
+            "x": 960,
+            "y": 1280
+          },
+          "keys": [
+            "KeyW"
+          ]
+        },
+        {
+          "elapsedMs": 3630,
+          "mode": "route",
+          "target": {
+            "x": 1500,
+            "y": 1000
+          },
+          "keys": [
+            "KeyD",
+            "KeyW"
+          ]
+        },
+        {
+          "elapsedMs": 3910,
+          "mode": "route",
+          "target": {
+            "x": 1500,
+            "y": 1000
+          },
+          "keys": [
+            "KeyD",
+            "KeyW"
+          ]
+        },
+        {
+          "elapsedMs": 4185,
+          "mode": "route",
+          "target": {
+            "x": 1500,
+            "y": 1000
+          },
+          "keys": [
+            "KeyD",
+            "KeyW"
+          ]
+        },
+        {
+          "elapsedMs": 4455,
+          "mode": "route",
+          "target": {
+            "x": 1500,
+            "y": 1000
+          },
+          "keys": [
+            "KeyD",
+            "KeyW"
+          ]
+        },
+        {
+          "elapsedMs": 4743,
+          "mode": "fight",
+          "target": {
+            "hp": 2800,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1500,
+            "y": 1000
+          },
+          "keys": [
+            "KeyD",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 5054,
+          "mode": "fight",
+          "target": {
+            "hp": 2800,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1500,
+            "y": 1000
+          },
+          "keys": [
+            "KeyD",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 5419,
+          "mode": "fight",
+          "target": {
+            "hp": 2800,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1500,
+            "y": 1000
+          },
+          "keys": [
+            "KeyD",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 5832,
+          "mode": "fight",
+          "target": {
+            "hp": 2800,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1500,
+            "y": 1000
+          },
+          "keys": [
+            "KeyD",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 6217,
+          "mode": "fight",
+          "target": {
+            "hp": 2800,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1500,
+            "y": 1000
+          },
+          "keys": [
+            "KeyD",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 6719,
+          "mode": "fight",
+          "target": {
+            "hp": 2800,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1495.8840263957934,
+            "y": 998.9798724529186
+          },
+          "keys": [
+            "KeyD",
+            "KeyS",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 7247,
+          "mode": "fight",
+          "target": {
+            "hp": 2686,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1471.1158330652504,
+            "y": 990.2853675250814
+          },
+          "keys": [
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 7801,
+          "mode": "fight",
+          "target": {
+            "hp": 2604,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1476.251507365351,
+            "y": 1002.8920880423763
+          },
+          "keys": [
+            "KeyA",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 9197,
+          "mode": "fight",
+          "target": {
+            "hp": 2604,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1456.0163303084414,
+            "y": 983.1345301074758
+          },
+          "keys": [
+            "KeyD",
+            "KeyS",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 10065,
+          "mode": "fight",
+          "target": {
+            "hp": 2604,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1419.4024797195075,
+            "y": 946.8004945172828
+          },
+          "keys": [
+            "KeyD",
+            "KeyS",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 10914,
+          "mode": "fight",
+          "target": {
+            "hp": 2396,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1399.464454166368,
+            "y": 929.5825623037039
+          },
+          "keys": [
+            "KeyA",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 11770,
+          "mode": "fight",
+          "target": {
+            "hp": 2396,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1435.4256064635504,
+            "y": 965.9970857000598
+          },
+          "keys": [
+            "KeyA",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 12154,
+          "mode": "fight",
+          "target": {
+            "hp": 2302,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1446.4417069834842,
+            "y": 974.5820864986575
+          },
+          "keys": [
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 12710,
+          "mode": "fight",
+          "target": {
+            "hp": 2188,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1447.7779724749967,
+            "y": 975.2791355704243
+          },
+          "keys": [
+            "KeyD",
+            "KeyS",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 13235,
+          "mode": "fight",
+          "target": {
+            "hp": 2106,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1446.9788910064397,
+            "y": 974.4011583891552
+          },
+          "keys": [
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 13954,
+          "mode": "fight",
+          "target": {
+            "hp": 2106,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1474.0941713175418,
+            "y": 999.7105697510607
+          },
+          "keys": [
+            "KeyA",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 14530,
+          "mode": "fight",
+          "target": {
+            "hp": 1992,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1490.380203095053,
+            "y": 1011.7943729108107
+          },
+          "keys": [
+            "KeyS",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 15023,
+          "mode": "fight",
+          "target": {
+            "hp": 1910,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1482.0734447597827,
+            "y": 1001.9235448697599
+          },
+          "keys": [
+            "KeyD",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 17422,
+          "mode": "fight",
+          "target": {
+            "hp": 1816,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1494.0937444151675,
+            "y": 1141.3085626901704
+          },
+          "keys": [
+            "KeyA",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 18631,
+          "mode": "fight",
+          "target": {
+            "hp": 1816,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1528.4182953448878,
+            "y": 1160.4041353927546
+          },
+          "keys": [
+            "KeyA",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 20451,
+          "mode": "fight",
+          "target": {
+            "hp": 1816,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1556.7173364392188,
+            "y": 1113.4093833028742
+          },
+          "keys": [
+            "KeyS",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 21550,
+          "mode": "fight",
+          "target": {
+            "hp": 1816,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1523.5821458231687,
+            "y": 1057.5833466666174
+          },
+          "keys": [
+            "KeyD",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 22754,
+          "mode": "fight",
+          "target": {
+            "hp": 1702,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1533.6026716134124,
+            "y": 1084.181027373243
+          },
+          "keys": [
+            "KeyA",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 24352,
+          "mode": "fight",
+          "target": {
+            "hp": 1588,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 2800,
+            "optionalHidden": false,
+            "size": 45,
+            "x": 1640.5959043654468,
+            "y": 1094.3872330676036
+          },
+          "keys": [
+            "KeyJ"
+          ]
+        }
+      ],
+      "screenshot": null
+    }
+  ],
+  "issues": [
+    {
+      "severity": "严重",
+      "code": "FLOOR_TIMEOUT",
+      "message": "在限定时间内没有完成当前楼层",
+      "floor": 20,
+      "classId": "warrior",
+      "evidence": {
+        "durationMs": 27833,
+        "lastSnapshot": {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": null,
+          "floor": 20,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 760,
+                "id": "battle_zone_1",
+                "index": 3,
+                "label": "战斗区 1",
+                "radius": 220,
+                "width": 1160,
+                "x": 1500,
+                "y": 1000
+              }
+            ],
+            "branches": [],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              }
+            ],
+            "floor": 20,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 760,
+              "id": "battle_zone_1",
+              "index": 3,
+              "label": "战斗区 1",
+              "radius": 220,
+              "width": 1160,
+              "x": 1500,
+              "y": 1000
+            },
+            "mechanism": null,
+            "obstacles": [],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 720
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1000
+              },
+              {
+                "x": 1500,
+                "y": 1000
+              },
+              {
+                "x": 960,
+                "y": 1280
+              },
+              {
+                "x": 960,
+                "y": 1560
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 1588,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 2800,
+              "optionalHidden": false,
+              "size": 45,
+              "x": 1640.5959043654468,
+              "y": 1094.3872330676036
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 218,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -3.647999999999561,
+            "vy": 7.570695755382845e-41,
+            "x": 1647.9059297986619,
+            "y": 1101.3968554458672
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "boss",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784081717562,
+          "transitioning": false,
+          "elapsedMs": 24352
+        }
+      }
+    }
+  ]
+}

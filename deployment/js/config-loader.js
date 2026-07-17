@@ -99,6 +99,12 @@ class ConfigLoader {
             // 将配置赋值给全局变量
             this.assignToGlobals();
             this.loaded = true;
+            if (typeof window.validatePhase3EquipmentConfig === 'function') {
+                const equipmentErrors = window.validatePhase3EquipmentConfig();
+                if (equipmentErrors.length) {
+                    throw new Error(`Phase 3 装备配置存在 ${equipmentErrors.length} 个错误`);
+                }
+            }
         } catch (error) {
             console.error('Failed to load configurations:', error);
             throw error;

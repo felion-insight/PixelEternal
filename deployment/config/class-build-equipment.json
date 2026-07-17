@@ -1,16 +1,17 @@
 {
-  "version": "2.0",
-  "description": "流派核心装备 — 改变技能行为",
+  "version": "3.0",
+  "description": "流派核心装备 — 副手槽，改变技能行为（覆盖 12 个二转）",
   "items": [
     {
       "equipmentId": "blood_howl",
       "name": "血吼",
-      "slot": "weapon",
-      "weaponType": "greatsword",
+      "slot": "offHand",
+      "preferredBaseTypeId": "heavy_shield",
       "classRestriction": ["berserker", "destroyer"],
       "skillModifiers": [
         {
-          "skillId": "furious_charge",
+          "skillId": "fury_slam",
+          "evolvedSkillIds": ["devastation_rift"],
           "modifications": {
             "aoeRadiusAdd": 50,
             "onHitHealMaxHpPercent": 0.01
@@ -23,17 +24,18 @@
           "moveSpeedPercent": -30
         }
       ],
-      "description": "冲锋范围+50%，每击中一敌恢复1%最大HP；狂暴期间移速-30%"
+      "description": "狂暴碎击/毁灭裂波范围+50%，每击中一敌恢复1%最大HP；狂暴期间移速-30%"
     },
     {
       "equipmentId": "bone_crusher",
       "name": "碎骨锤",
-      "slot": "weapon",
-      "weaponType": "hammer",
+      "slot": "offHand",
+      "preferredBaseTypeId": "heavy_shield",
       "classRestriction": ["berserker", "destroyer"],
       "skillModifiers": [
         {
-          "skillId": "furious_charge",
+          "skillId": "fury_slam",
+          "evolvedSkillIds": ["devastation_rift"],
           "skillReplace": {
             "name": "碎骨重击",
             "damageMultiplier": 3.0,
@@ -43,33 +45,70 @@
           }
         }
       ],
-      "description": "狂暴冲锋变为前方扇形300%重击，对破防敌人伤害×2"
+      "description": "狂暴碎击/毁灭裂波变为前方扇形300%重击，对破防敌人伤害×2"
     },
     {
       "equipmentId": "berserker_heart",
       "name": "狂战之心",
-      "slot": "amulet",
+      "slot": "offHand",
+      "preferredBaseTypeId": "holy_shield",
       "classRestriction": ["berserker", "destroyer"],
       "skillModifiers": [
         {
-          "skillId": "berserk",
+          "skillId": "fury_form",
+          "evolvedSkillIds": ["blood_demon_form"],
           "modifications": {
             "attackSpeedPerTenPercentHpLost": 0.15,
             "endHpLossPercent": 50
           }
         }
       ],
-      "description": "狂暴期间每损失10%HP攻速+15%；结束时损失当前HP的50%"
+      "description": "狂暴/血魔形态期间每损失10%HP攻速+15%；结束时损失当前HP的50%"
+    },
+    {
+      "equipmentId": "judgment_crest",
+      "name": "审判徽记",
+      "slot": "offHand",
+      "preferredBaseTypeId": "holy_shield",
+      "classRestriction": ["paladin"],
+      "skillModifiers": [
+        {
+          "skillId": "judgment_ground",
+          "modifications": {
+            "aoeRadiusAdd": 40,
+            "damageMultiplier": 1.25
+          }
+        }
+      ],
+      "description": "审判净地范围+40，伤害+25%"
+    },
+    {
+      "equipmentId": "sacred_aegis",
+      "name": "圣约盾徽",
+      "slot": "offHand",
+      "preferredBaseTypeId": "holy_shield",
+      "classRestriction": ["temple_knight"],
+      "skillModifiers": [
+        {
+          "skillId": "sacred_bond",
+          "modifications": {
+            "durationMsAdd": 2000,
+            "healOnTickMaxHpPercent": 0.015
+          }
+        }
+      ],
+      "description": "圣约链接持续时间+2秒，周期额外回复1.5%最大HP"
     },
     {
       "equipmentId": "elemental_staff",
       "name": "元素法杖",
-      "slot": "weapon",
-      "weaponType": "staff",
+      "slot": "offHand",
+      "preferredBaseTypeId": "element_orb",
       "classRestriction": ["wizard", "archmage"],
       "skillModifiers": [
         {
           "skillId": "fireball",
+          "evolvedSkillIds": ["elemental_burst"],
           "modifications": {
             "projectileCount": 3,
             "damageMultiplier": 0.7,
@@ -77,17 +116,18 @@
           }
         }
       ],
-      "description": "火球术同时释放3颗（扇形），每颗伤害-30%，灼烧效率+200%"
+      "description": "火球术/元素迸发同时释放3颗（扇形），每颗伤害-30%，灼烧效率+200%"
     },
     {
       "equipmentId": "ice_crystal_staff",
       "name": "冰晶权杖",
-      "slot": "weapon",
-      "weaponType": "staff",
+      "slot": "offHand",
+      "preferredBaseTypeId": "focus_orb",
       "classRestriction": ["wizard", "archmage"],
       "skillModifiers": [
         {
           "skillId": "fireball",
+          "evolvedSkillIds": ["elemental_burst"],
           "skillReplace": {
             "name": "冰锥术",
             "statusEffects": [{ "type": "frostbite", "durationMs": 4000 }],
@@ -95,16 +135,18 @@
           }
         }
       ],
-      "description": "火球术变为冰锥术，施加冻伤；对冻伤敌人伤害+40%"
+      "description": "火球术/元素迸发变为冰锥术，施加冻伤；对冻伤敌人伤害+40%"
     },
     {
       "equipmentId": "arcane_eye",
       "name": "奥术之眼",
-      "slot": "amulet",
-      "classRestriction": ["mage", "wizard", "archmage", "sage", "oracle"],
+      "slot": "offHand",
+      "preferredBaseTypeId": "spellbook",
+      "classRestriction": ["mage", "wizard", "archmage"],
       "skillModifiers": [
         {
           "skillId": "blink",
+          "evolvedSkillIds": ["phase_shift"],
           "modifications": {
             "noDisplacement": true,
             "afterimageDurationMs": 3000,
@@ -112,7 +154,143 @@
           }
         }
       ],
-      "description": "闪现不再位移，改为制造3秒奥术残影，复制50%伤害"
+      "description": "闪现/相位跃迁不再位移，改为制造3秒奥术残影，复制50%伤害"
+    },
+    {
+      "equipmentId": "fate_lens",
+      "name": "命运透镜",
+      "slot": "offHand",
+      "preferredBaseTypeId": "spellbook",
+      "classRestriction": ["oracle"],
+      "skillModifiers": [
+        {
+          "skillId": "fate_weave",
+          "modifications": {
+            "cooldownReductionPercent": 20,
+            "durationMsAdd": 1500
+          }
+        }
+      ],
+      "description": "命运编织冷却-20%，效果持续时间+1.5秒"
+    },
+    {
+      "equipmentId": "grave_sigil",
+      "name": "坟茔符印",
+      "slot": "offHand",
+      "preferredBaseTypeId": "focus_orb",
+      "classRestriction": ["necromancer"],
+      "skillModifiers": [
+        {
+          "skillId": "undead_legion",
+          "modifications": {
+            "summonCountAdd": 1,
+            "damageMultiplier": 1.15
+          }
+        }
+      ],
+      "description": "亡灵军团额外召唤1个单位，召唤物伤害+15%"
+    },
+    {
+      "equipmentId": "pack_totem",
+      "name": "兽群图腾",
+      "slot": "offHand",
+      "preferredBaseTypeId": "element_quiver",
+      "classRestriction": ["beastmaster"],
+      "skillModifiers": [
+        {
+          "skillId": "beast_pack",
+          "modifications": {
+            "summonCountAdd": 1,
+            "durationMsAdd": 3000
+          }
+        }
+      ],
+      "description": "兽群召唤额外+1，持续时间+3秒"
+    },
+    {
+      "equipmentId": "breath_scope",
+      "name": "屏息瞄准镜",
+      "slot": "offHand",
+      "preferredBaseTypeId": "heavy_quiver",
+      "classRestriction": ["deadeye"],
+      "skillModifiers": [
+        {
+          "skillId": "deadeye_snipe",
+          "modifications": {
+            "damageMultiplier": 1.35,
+            "castTimeReductionPercent": 25
+          }
+        }
+      ],
+      "description": "死眼狙击伤害+35%，蓄力时间-25%"
+    },
+    {
+      "equipmentId": "echo_veil",
+      "name": "回声面纱",
+      "slot": "offHand",
+      "preferredBaseTypeId": "light_quiver",
+      "classRestriction": ["phantom"],
+      "skillModifiers": [
+        {
+          "skillId": "phantom_echo_blade",
+          "modifications": {
+            "aoeRadiusAdd": 35,
+            "afterimageDamageRatio": 0.35
+          }
+        }
+      ],
+      "description": "幻影回声刃范围+35，追加35%残影伤害"
+    },
+    {
+      "equipmentId": "night_contract",
+      "name": "夜契",
+      "slot": "offHand",
+      "preferredBaseTypeId": "shadow_dagger",
+      "classRestriction": ["nightblade"],
+      "skillModifiers": [
+        {
+          "skillId": "shadow_dance",
+          "modifications": {
+            "durationMsAdd": 1500,
+            "critDamageAdd": 40
+          }
+        }
+      ],
+      "description": "影舞持续时间+1.5秒，期间暴击伤害+40%"
+    },
+    {
+      "equipmentId": "mirror_core",
+      "name": "镜核",
+      "slot": "offHand",
+      "preferredBaseTypeId": "off_dagger",
+      "classRestriction": ["illusionist"],
+      "skillModifiers": [
+        {
+          "skillId": "mirror_domain",
+          "modifications": {
+            "durationMsAdd": 2000,
+            "cloneDamageRatio": 0.45
+          }
+        }
+      ],
+      "description": "镜域持续时间+2秒，镜像伤害比例提升至45%"
+    },
+    {
+      "equipmentId": "plague_censer",
+      "name": "瘟疫香炉",
+      "slot": "offHand",
+      "preferredBaseTypeId": "poison_dagger",
+      "classRestriction": ["plaguebringer"],
+      "skillModifiers": [
+        {
+          "skillId": "pandemic",
+          "modifications": {
+            "aoeRadiusAdd": 40,
+            "poisonDurationBonusPercent": 40
+          }
+        }
+      ],
+      "description": "大流行传播半径+40，中毒持续时间+40%"
     }
   ]
 }

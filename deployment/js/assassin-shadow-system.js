@@ -110,7 +110,20 @@
     window.grantAssassinSecondary = function grantAssassinSecondary(player, amount) {
         const sec = window.getAssassinSecondaryResource(player);
         if (!sec || !sec.type || !amount) return;
-        sec.current = Math.min(sec.max, (sec.current || 0) + amount);
+        let add = amount;
+        if (typeof window.getSetModifier === 'function') {
+            if (sec.type === 'combo_point') {
+                const comboBonus = window.getSetModifier(player, 'comboGainBonus', 0);
+                if (comboBonus > 0) add = Math.max(1, Math.ceil(amount * (1 + comboBonus)));
+            } else if (sec.type === 'illusion') {
+                const illBonus = window.getSetModifier(player, 'illusionRegenBonus', 0);
+                if (illBonus > 0) add = Math.max(1, Math.ceil(amount * (1 + illBonus)));
+            } else if (sec.type === 'catalyst') {
+                const catBonus = window.getSetModifier(player, 'catalystGainBonus', 0);
+                if (catBonus > 0) add = Math.max(1, Math.ceil(amount * (1 + catBonus)));
+            }
+        }
+        sec.current = Math.min(sec.max, (sec.current || 0) + add);
         if (typeof window.updateAssassinShadowUI === 'function') window.updateAssassinShadowUI(player);
     };
 
@@ -186,13 +199,16 @@
     window.getBackstabAngleDeg = function getBackstabAngleDeg(player) {
         if (!player) return DEFAULT_BACKSTAB_ANGLE;
         const now = Date.now();
+        const angleBonus = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'backstabAngleBonus', 0) : 0;
+        const widen = angleBonus > 0 ? Math.round(DEFAULT_BACKSTAB_ANGLE * angleBonus) : 0;
         if (player._backstabStanceUntil && now < player._backstabStanceUntil) {
-            return player._backstabStanceAngle || 180;
+            return (player._backstabStanceAngle || 180) + widen;
         }
         if (player._midnightRaidUntil && now < player._midnightRaidUntil) return 360;
         if (player._nightfallUntil && now < player._nightfallUntil) return 360;
-        if (progressionId(player) === 'nightblade') return 180;
-        return DEFAULT_BACKSTAB_ANGLE;
+        if (progressionId(player) === 'nightblade') return 180 + widen;
+        return DEFAULT_BACKSTAB_ANGLE + widen;
     };
 
     /** 获取战斗单位朝向（面向角度） */

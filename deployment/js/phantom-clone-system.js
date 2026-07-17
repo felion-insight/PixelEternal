@@ -64,12 +64,20 @@
 
     window.getPhantomEchoDamagePercent = function getPhantomEchoDamagePercent(owner, gameInstance, echo, action) {
         if (!owner) return DEFAULT_ECHO_DAMAGE_PCT;
+        let pct;
         if (window.isPlayerInVoidStorm(owner, Date.now(), gameInstance)) {
-            return STORM_ECHO_DAMAGE_PCT;
+            pct = STORM_ECHO_DAMAGE_PCT;
+        } else if (action && action.echoDamagePercent != null) {
+            pct = action.echoDamagePercent;
+        } else if (echo && echo.damagePercent != null) {
+            pct = echo.damagePercent;
+        } else {
+            pct = DEFAULT_ECHO_DAMAGE_PCT;
         }
-        if (action && action.echoDamagePercent != null) return action.echoDamagePercent;
-        if (echo && echo.damagePercent != null) return echo.damagePercent;
-        return DEFAULT_ECHO_DAMAGE_PCT;
+        const setBonus = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(owner, 'echoDamageBonus', 0) : 0;
+        if (setBonus > 0) pct = pct * (1 + setBonus);
+        return pct;
     };
 
     function isEchoableSkill(skillDef) {
@@ -365,7 +373,9 @@
         const buffId = 'phantom_clone_dodge';
         owner.buffs = (owner.buffs || []).filter(b => b.id !== buffId);
         if (echoes.length) {
-            const dodgeBonus = Math.min(MAX_ECHO_DODGE, echoes.length * DODGE_PER_ECHO);
+            const setEchoDodge = typeof window.getSetModifier === 'function'
+                ? window.getSetModifier(owner, 'echoDodge', 0) : 0;
+            const dodgeBonus = Math.min(MAX_ECHO_DODGE, echoes.length * DODGE_PER_ECHO) + setEchoDodge;
             const maxExpire = Math.max.apply(null, echoes.map(s => s.expireTime));
             owner.buffs.push({
                 id: buffId,

@@ -1,0 +1,6610 @@
+{
+  "config": {
+    "floors": [
+      1
+    ],
+    "classes": [
+      "warrior"
+    ],
+    "repeats": 1,
+    "timeoutSeconds": 8.0,
+    "level": 30,
+    "roomType": "battle"
+  },
+  "episodes": [
+    {
+      "floor": 1,
+      "classId": "warrior",
+      "result": "timeout",
+      "durationMs": 11685,
+      "snapshots": [
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": {
+            "branchCleared": [
+              false,
+              false
+            ],
+            "branchPortalSpawned": [
+              false,
+              false
+            ],
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 600,
+                "id": "battle_zone_1",
+                "index": 1,
+                "label": "战斗区 1",
+                "radius": 124,
+                "width": 900,
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_2",
+                "index": 2,
+                "label": "战斗区 2",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_3",
+                "index": 3,
+                "label": "战斗区 3",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1450
+              }
+            ],
+            "branchBattleZones": [
+              {
+                "branchIndex": 0,
+                "height": 460,
+                "id": "exit_branch_1_battle",
+                "radius": 155,
+                "width": 680,
+                "x": 1080,
+                "y": 970
+              },
+              {
+                "branchIndex": 1,
+                "height": 460,
+                "id": "exit_branch_2_battle",
+                "radius": 155,
+                "width": 680,
+                "x": 2400,
+                "y": 1140
+              }
+            ],
+            "branches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exit": {
+              "x": 1290,
+              "y": 1340
+            },
+            "exitBranches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exitChoices": [
+              {
+                "x": 780,
+                "y": 600
+              },
+              {
+                "x": 2220,
+                "y": 600
+              }
+            ],
+            "floor": 1,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 600,
+              "id": "battle_zone_2",
+              "index": 2,
+              "label": "战斗区 2",
+              "radius": 124,
+              "width": 900,
+              "x": 2040.0000000000002,
+              "y": 1340
+            },
+            "mechanism": null,
+            "obstacles": [
+              {
+                "height": 40.559108534920966,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 164.16782026039436,
+                "x": 168.1194331170991,
+                "y": 341.3879960598424
+              },
+              {
+                "height": 38.22324653025717,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.81391370110214,
+                "x": 2419.47031577304,
+                "y": 416.8061306900345
+              },
+              {
+                "height": 40.425865202676505,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.62850201083347,
+                "x": 253.69105718191713,
+                "y": 1576.4921029135585
+              },
+              {
+                "height": 43.526080476120114,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 186.54034489765763,
+                "x": 2290.7876270916313,
+                "y": 1613.4235773873515
+              },
+              {
+                "height": 63.15150493895635,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 1245.2201585033908,
+                "y": 789.8289730353281
+              },
+              {
+                "height": 69.96001413743943,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.96686885673553,
+                "x": 1685.913756377995,
+                "y": 1098.2397836479358
+              },
+              {
+                "height": 55.821035937871784,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 55.821035937871784,
+                "x": 1225.7736579580233,
+                "y": 1532.6723945792764
+              },
+              {
+                "height": 80.53515266776085,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 56.96388847231865,
+                "x": 1769.176420578733,
+                "y": 684.5210777469911
+              },
+              {
+                "height": 81.73104000249877,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.80976000176743,
+                "x": 1166.9570763902739,
+                "y": 1163.06425882224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 72
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 144
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 216
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 288
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 360
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 432
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 648,
+                "x": 0,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 936,
+                "x": 1152,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 648,
+                "x": 0,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1224,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 936,
+                "x": 1224,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1440,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1440,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 576,
+                "x": 1440,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 576,
+                "x": 1440,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1008
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1008
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1080
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1080
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1152
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1152
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1296
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1296
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1368
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1368
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1440
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1440
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1512
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1512
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1584
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1584
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1584,
+                "x": 0,
+                "y": 1656
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1656
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1584,
+                "x": 0,
+                "y": 1728
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1728
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1800
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1872
+              },
+              {
+                "height": 56,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1944
+              }
+            ],
+            "route": [
+              {
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1505.9344028699363,
+              "y": 1521.297182772158
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2026.100666106957,
+              "y": 1452.100870658027
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1801.9229308545932,
+              "y": 1346.827428551311
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2066.225798971862,
+              "y": 1412.0395972885633
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2006.1800492817454,
+              "y": 1487.1103052285794
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1652.8216144095593,
+              "y": 1335.2111716029362
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2022.1616806895292,
+              "y": 1280.0840869451733
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2089.0910097237725,
+              "y": 1387.4720347520472
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1127.7668244562803,
+              "y": 984.776010333067
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1019.8451074292217,
+              "y": 1025.726016363976
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1068.9129880868772,
+              "y": 921.244711396216
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2447.76682445628,
+              "y": 1154.776010333067
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2339.8451074292216,
+              "y": 1195.726016363976
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2388.9129880868772,
+              "y": 1091.244711396216
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 0,
+            "vy": 0,
+            "x": 1500,
+            "y": 1560
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "battle",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784086286711,
+          "transitioning": false,
+          "elapsedMs": 97
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": {
+            "branchCleared": [
+              false,
+              false
+            ],
+            "branchPortalSpawned": [
+              false,
+              false
+            ],
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 600,
+                "id": "battle_zone_1",
+                "index": 1,
+                "label": "战斗区 1",
+                "radius": 124,
+                "width": 900,
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_2",
+                "index": 2,
+                "label": "战斗区 2",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_3",
+                "index": 3,
+                "label": "战斗区 3",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1450
+              }
+            ],
+            "branchBattleZones": [
+              {
+                "branchIndex": 0,
+                "height": 460,
+                "id": "exit_branch_1_battle",
+                "radius": 155,
+                "width": 680,
+                "x": 1080,
+                "y": 970
+              },
+              {
+                "branchIndex": 1,
+                "height": 460,
+                "id": "exit_branch_2_battle",
+                "radius": 155,
+                "width": 680,
+                "x": 2400,
+                "y": 1140
+              }
+            ],
+            "branches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exit": {
+              "x": 1290,
+              "y": 1340
+            },
+            "exitBranches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exitChoices": [
+              {
+                "x": 780,
+                "y": 600
+              },
+              {
+                "x": 2220,
+                "y": 600
+              }
+            ],
+            "floor": 1,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 600,
+              "id": "battle_zone_2",
+              "index": 2,
+              "label": "战斗区 2",
+              "radius": 124,
+              "width": 900,
+              "x": 2040.0000000000002,
+              "y": 1340
+            },
+            "mechanism": null,
+            "obstacles": [
+              {
+                "height": 40.559108534920966,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 164.16782026039436,
+                "x": 168.1194331170991,
+                "y": 341.3879960598424
+              },
+              {
+                "height": 38.22324653025717,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.81391370110214,
+                "x": 2419.47031577304,
+                "y": 416.8061306900345
+              },
+              {
+                "height": 40.425865202676505,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.62850201083347,
+                "x": 253.69105718191713,
+                "y": 1576.4921029135585
+              },
+              {
+                "height": 43.526080476120114,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 186.54034489765763,
+                "x": 2290.7876270916313,
+                "y": 1613.4235773873515
+              },
+              {
+                "height": 63.15150493895635,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 1245.2201585033908,
+                "y": 789.8289730353281
+              },
+              {
+                "height": 69.96001413743943,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.96686885673553,
+                "x": 1685.913756377995,
+                "y": 1098.2397836479358
+              },
+              {
+                "height": 55.821035937871784,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 55.821035937871784,
+                "x": 1225.7736579580233,
+                "y": 1532.6723945792764
+              },
+              {
+                "height": 80.53515266776085,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 56.96388847231865,
+                "x": 1769.176420578733,
+                "y": 684.5210777469911
+              },
+              {
+                "height": 81.73104000249877,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.80976000176743,
+                "x": 1166.9570763902739,
+                "y": 1163.06425882224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 72
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 144
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 216
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 288
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 360
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 432
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 648,
+                "x": 0,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 936,
+                "x": 1152,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 648,
+                "x": 0,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1224,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 936,
+                "x": 1224,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1440,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1440,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 576,
+                "x": 1440,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 576,
+                "x": 1440,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1008
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1008
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1080
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1080
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1152
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1152
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1296
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1296
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1368
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1368
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1440
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1440
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1512
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1512
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1584
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1584
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1584,
+                "x": 0,
+                "y": 1656
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1656
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1584,
+                "x": 0,
+                "y": 1728
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1728
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1800
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1872
+              },
+              {
+                "height": 56,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1944
+              }
+            ],
+            "route": [
+              {
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1501.7845813928027,
+              "y": 1469.3264252548902
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2026.100666106957,
+              "y": 1452.100870658027
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1801.9229308545932,
+              "y": 1346.827428551311
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2066.225798971862,
+              "y": 1412.0395972885633
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2006.1800492817454,
+              "y": 1487.1103052285794
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1652.8216144095593,
+              "y": 1335.2111716029362
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2022.1616806895292,
+              "y": 1280.0840869451733
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2089.0910097237725,
+              "y": 1387.4720347520472
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1127.7668244562803,
+              "y": 984.776010333067
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1019.8451074292217,
+              "y": 1025.726016363976
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1068.9129880868772,
+              "y": 921.244711396216
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2447.76682445628,
+              "y": 1154.776010333067
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2339.8451074292216,
+              "y": 1195.726016363976
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2388.9129880868772,
+              "y": 1091.244711396216
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 0,
+            "vy": -3.6479999999999997,
+            "x": 1500,
+            "y": 1319.2320000000016
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "battle",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784086288584,
+          "transitioning": false,
+          "elapsedMs": 1971
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": true,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": {
+            "branchCleared": [
+              false,
+              false
+            ],
+            "branchPortalSpawned": [
+              false,
+              false
+            ],
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 600,
+                "id": "battle_zone_1",
+                "index": 1,
+                "label": "战斗区 1",
+                "radius": 124,
+                "width": 900,
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_2",
+                "index": 2,
+                "label": "战斗区 2",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_3",
+                "index": 3,
+                "label": "战斗区 3",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1450
+              }
+            ],
+            "branchBattleZones": [
+              {
+                "branchIndex": 0,
+                "height": 460,
+                "id": "exit_branch_1_battle",
+                "radius": 155,
+                "width": 680,
+                "x": 1080,
+                "y": 970
+              },
+              {
+                "branchIndex": 1,
+                "height": 460,
+                "id": "exit_branch_2_battle",
+                "radius": 155,
+                "width": 680,
+                "x": 2400,
+                "y": 1140
+              }
+            ],
+            "branches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exit": {
+              "x": 1290,
+              "y": 1340
+            },
+            "exitBranches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exitChoices": [
+              {
+                "x": 780,
+                "y": 600
+              },
+              {
+                "x": 2220,
+                "y": 600
+              }
+            ],
+            "floor": 1,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 600,
+              "id": "battle_zone_2",
+              "index": 2,
+              "label": "战斗区 2",
+              "radius": 124,
+              "width": 900,
+              "x": 2040.0000000000002,
+              "y": 1340
+            },
+            "mechanism": null,
+            "obstacles": [
+              {
+                "height": 40.559108534920966,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 164.16782026039436,
+                "x": 168.1194331170991,
+                "y": 341.3879960598424
+              },
+              {
+                "height": 38.22324653025717,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.81391370110214,
+                "x": 2419.47031577304,
+                "y": 416.8061306900345
+              },
+              {
+                "height": 40.425865202676505,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.62850201083347,
+                "x": 253.69105718191713,
+                "y": 1576.4921029135585
+              },
+              {
+                "height": 43.526080476120114,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 186.54034489765763,
+                "x": 2290.7876270916313,
+                "y": 1613.4235773873515
+              },
+              {
+                "height": 63.15150493895635,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 1245.2201585033908,
+                "y": 789.8289730353281
+              },
+              {
+                "height": 69.96001413743943,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.96686885673553,
+                "x": 1685.913756377995,
+                "y": 1098.2397836479358
+              },
+              {
+                "height": 55.821035937871784,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 55.821035937871784,
+                "x": 1225.7736579580233,
+                "y": 1532.6723945792764
+              },
+              {
+                "height": 80.53515266776085,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 56.96388847231865,
+                "x": 1769.176420578733,
+                "y": 684.5210777469911
+              },
+              {
+                "height": 81.73104000249877,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.80976000176743,
+                "x": 1166.9570763902739,
+                "y": 1163.06425882224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 72
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 144
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 216
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 288
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 360
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 432
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 648,
+                "x": 0,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 936,
+                "x": 1152,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 648,
+                "x": 0,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1224,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 936,
+                "x": 1224,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1440,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1440,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 576,
+                "x": 1440,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 576,
+                "x": 1440,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1008
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1008
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1080
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1080
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1152
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1152
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1296
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1296
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1368
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1368
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1440
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1440
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1512
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1512
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1584
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1584
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1584,
+                "x": 0,
+                "y": 1656
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1656
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1584,
+                "x": 0,
+                "y": 1728
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1728
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1800
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1872
+              },
+              {
+                "height": 56,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1944
+              }
+            ],
+            "route": [
+              {
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1500.8248157149878,
+              "y": 1367.5090210928556
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2026.100666106957,
+              "y": 1452.100870658027
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1801.9229308545932,
+              "y": 1346.827428551311
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2066.225798971862,
+              "y": 1412.0395972885633
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2006.1800492817454,
+              "y": 1487.1103052285794
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1652.8216144095593,
+              "y": 1335.2111716029362
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2022.1616806895292,
+              "y": 1280.0840869451733
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2089.0910097237725,
+              "y": 1387.4720347520472
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1127.7668244562803,
+              "y": 984.776010333067
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1019.8451074292217,
+              "y": 1025.726016363976
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1068.9129880868772,
+              "y": 921.244711396216
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2447.76682445628,
+              "y": 1154.776010333067
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2339.8451074292216,
+              "y": 1195.726016363976
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2388.9129880868772,
+              "y": 1091.244711396216
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 776,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 0,
+            "vy": 3.6479999999425425,
+            "x": 1500,
+            "y": 1336.6565713152622
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "battle",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784086289878,
+          "transitioning": false,
+          "elapsedMs": 3256
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": true,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": {
+            "branchCleared": [
+              false,
+              false
+            ],
+            "branchPortalSpawned": [
+              false,
+              false
+            ],
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 600,
+                "id": "battle_zone_1",
+                "index": 1,
+                "label": "战斗区 1",
+                "radius": 124,
+                "width": 900,
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_2",
+                "index": 2,
+                "label": "战斗区 2",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_3",
+                "index": 3,
+                "label": "战斗区 3",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1450
+              }
+            ],
+            "branchBattleZones": [
+              {
+                "branchIndex": 0,
+                "height": 460,
+                "id": "exit_branch_1_battle",
+                "radius": 155,
+                "width": 680,
+                "x": 1080,
+                "y": 970
+              },
+              {
+                "branchIndex": 1,
+                "height": 460,
+                "id": "exit_branch_2_battle",
+                "radius": 155,
+                "width": 680,
+                "x": 2400,
+                "y": 1140
+              }
+            ],
+            "branches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exit": {
+              "x": 1290,
+              "y": 1340
+            },
+            "exitBranches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exitChoices": [
+              {
+                "x": 780,
+                "y": 600
+              },
+              {
+                "x": 2220,
+                "y": 600
+              }
+            ],
+            "floor": 1,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 600,
+              "id": "battle_zone_2",
+              "index": 2,
+              "label": "战斗区 2",
+              "radius": 124,
+              "width": 900,
+              "x": 2040.0000000000002,
+              "y": 1340
+            },
+            "mechanism": null,
+            "obstacles": [
+              {
+                "height": 40.559108534920966,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 164.16782026039436,
+                "x": 168.1194331170991,
+                "y": 341.3879960598424
+              },
+              {
+                "height": 38.22324653025717,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.81391370110214,
+                "x": 2419.47031577304,
+                "y": 416.8061306900345
+              },
+              {
+                "height": 40.425865202676505,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.62850201083347,
+                "x": 253.69105718191713,
+                "y": 1576.4921029135585
+              },
+              {
+                "height": 43.526080476120114,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 186.54034489765763,
+                "x": 2290.7876270916313,
+                "y": 1613.4235773873515
+              },
+              {
+                "height": 63.15150493895635,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 1245.2201585033908,
+                "y": 789.8289730353281
+              },
+              {
+                "height": 69.96001413743943,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.96686885673553,
+                "x": 1685.913756377995,
+                "y": 1098.2397836479358
+              },
+              {
+                "height": 55.821035937871784,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 55.821035937871784,
+                "x": 1225.7736579580233,
+                "y": 1532.6723945792764
+              },
+              {
+                "height": 80.53515266776085,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 56.96388847231865,
+                "x": 1769.176420578733,
+                "y": 684.5210777469911
+              },
+              {
+                "height": 81.73104000249877,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.80976000176743,
+                "x": 1166.9570763902739,
+                "y": 1163.06425882224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 72
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 144
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 216
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 288
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 360
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 432
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 648,
+                "x": 0,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 936,
+                "x": 1152,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 648,
+                "x": 0,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1224,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 936,
+                "x": 1224,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1440,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1440,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 576,
+                "x": 1440,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 576,
+                "x": 1440,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1008
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1008
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1080
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1080
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1152
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1152
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1296
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1296
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1368
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1368
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1440
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1440
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1512
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1512
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1584
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1584
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1584,
+                "x": 0,
+                "y": 1656
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1656
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1584,
+                "x": 0,
+                "y": 1728
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1728
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1800
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1872
+              },
+              {
+                "height": 56,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1944
+              }
+            ],
+            "route": [
+              {
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": -7,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1500.7897634971223,
+              "y": 1365.5147951494525
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2026.100666106957,
+              "y": 1452.100870658027
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1801.9229308545932,
+              "y": 1346.827428551311
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2066.225798971862,
+              "y": 1412.0395972885633
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2006.1800492817454,
+              "y": 1487.1103052285794
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1652.8216144095593,
+              "y": 1335.2111716029362
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2022.1616806895292,
+              "y": 1280.0840869451733
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2089.0910097237725,
+              "y": 1387.4720347520472
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1127.7668244562803,
+              "y": 984.776010333067
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1019.8451074292217,
+              "y": 1025.726016363976
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1068.9129880868772,
+              "y": 921.244711396216
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2447.76682445628,
+              "y": 1154.776010333067
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2339.8451074292216,
+              "y": 1195.726016363976
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2388.9129880868772,
+              "y": 1091.244711396216
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 776,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 0,
+            "vy": 3.6479999999999997,
+            "x": 1500,
+            "y": 1624.8485713151983
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "battle",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784086291479,
+          "transitioning": false,
+          "elapsedMs": 4867
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": {
+            "branchCleared": [
+              false,
+              false
+            ],
+            "branchPortalSpawned": [
+              false,
+              false
+            ],
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 600,
+                "id": "battle_zone_1",
+                "index": 1,
+                "label": "战斗区 1",
+                "radius": 124,
+                "width": 900,
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_2",
+                "index": 2,
+                "label": "战斗区 2",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_3",
+                "index": 3,
+                "label": "战斗区 3",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1450
+              }
+            ],
+            "branchBattleZones": [
+              {
+                "branchIndex": 0,
+                "height": 460,
+                "id": "exit_branch_1_battle",
+                "radius": 155,
+                "width": 680,
+                "x": 1080,
+                "y": 970
+              },
+              {
+                "branchIndex": 1,
+                "height": 460,
+                "id": "exit_branch_2_battle",
+                "radius": 155,
+                "width": 680,
+                "x": 2400,
+                "y": 1140
+              }
+            ],
+            "branches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exit": {
+              "x": 1290,
+              "y": 1340
+            },
+            "exitBranches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exitChoices": [
+              {
+                "x": 780,
+                "y": 600
+              },
+              {
+                "x": 2220,
+                "y": 600
+              }
+            ],
+            "floor": 1,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 600,
+              "id": "battle_zone_2",
+              "index": 2,
+              "label": "战斗区 2",
+              "radius": 124,
+              "width": 900,
+              "x": 2040.0000000000002,
+              "y": 1340
+            },
+            "mechanism": null,
+            "obstacles": [
+              {
+                "height": 40.559108534920966,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 164.16782026039436,
+                "x": 168.1194331170991,
+                "y": 341.3879960598424
+              },
+              {
+                "height": 38.22324653025717,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.81391370110214,
+                "x": 2419.47031577304,
+                "y": 416.8061306900345
+              },
+              {
+                "height": 40.425865202676505,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.62850201083347,
+                "x": 253.69105718191713,
+                "y": 1576.4921029135585
+              },
+              {
+                "height": 43.526080476120114,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 186.54034489765763,
+                "x": 2290.7876270916313,
+                "y": 1613.4235773873515
+              },
+              {
+                "height": 63.15150493895635,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 1245.2201585033908,
+                "y": 789.8289730353281
+              },
+              {
+                "height": 69.96001413743943,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.96686885673553,
+                "x": 1685.913756377995,
+                "y": 1098.2397836479358
+              },
+              {
+                "height": 55.821035937871784,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 55.821035937871784,
+                "x": 1225.7736579580233,
+                "y": 1532.6723945792764
+              },
+              {
+                "height": 80.53515266776085,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 56.96388847231865,
+                "x": 1769.176420578733,
+                "y": 684.5210777469911
+              },
+              {
+                "height": 81.73104000249877,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.80976000176743,
+                "x": 1166.9570763902739,
+                "y": 1163.06425882224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 72
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 144
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 216
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 288
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 360
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 432
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 648,
+                "x": 0,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 936,
+                "x": 1152,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 648,
+                "x": 0,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1224,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 936,
+                "x": 1224,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1440,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1440,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 576,
+                "x": 1440,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 576,
+                "x": 1440,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1008
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1008
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1080
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1080
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1152
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1152
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1296
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1296
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1368
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1368
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1440
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1440
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1512
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1512
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1584
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1584
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1584,
+                "x": 0,
+                "y": 1656
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1656
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1584,
+                "x": 0,
+                "y": 1728
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1728
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1800
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1872
+              },
+              {
+                "height": 56,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1944
+              }
+            ],
+            "route": [
+              {
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": -7,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1500.7897634971223,
+              "y": 1365.5147951494525
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2026.100666106957,
+              "y": 1452.100870658027
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1801.9229308545932,
+              "y": 1346.827428551311
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2066.225798971862,
+              "y": 1412.0395972885633
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2006.1800492817454,
+              "y": 1487.1103052285794
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1652.8216144095593,
+              "y": 1335.2111716029362
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2022.1616806895292,
+              "y": 1280.0840869451733
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2089.0910097237725,
+              "y": 1387.4720347520472
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1127.7668244562803,
+              "y": 984.776010333067
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1019.8451074292217,
+              "y": 1025.726016363976
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1068.9129880868772,
+              "y": 921.244711396216
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2447.76682445628,
+              "y": 1154.776010333067
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2339.8451074292216,
+              "y": 1195.726016363976
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2388.9129880868772,
+              "y": 1091.244711396216
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 776,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.5791359993994973,
+            "vy": -2.5791359998241807,
+            "x": 1579.953216000601,
+            "y": 1552.1913553150218
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "battle",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784086292629,
+          "transitioning": false,
+          "elapsedMs": 6005
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": {
+            "branchCleared": [
+              false,
+              false
+            ],
+            "branchPortalSpawned": [
+              false,
+              false
+            ],
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 600,
+                "id": "battle_zone_1",
+                "index": 1,
+                "label": "战斗区 1",
+                "radius": 124,
+                "width": 900,
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_2",
+                "index": 2,
+                "label": "战斗区 2",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_3",
+                "index": 3,
+                "label": "战斗区 3",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1450
+              }
+            ],
+            "branchBattleZones": [
+              {
+                "branchIndex": 0,
+                "height": 460,
+                "id": "exit_branch_1_battle",
+                "radius": 155,
+                "width": 680,
+                "x": 1080,
+                "y": 970
+              },
+              {
+                "branchIndex": 1,
+                "height": 460,
+                "id": "exit_branch_2_battle",
+                "radius": 155,
+                "width": 680,
+                "x": 2400,
+                "y": 1140
+              }
+            ],
+            "branches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exit": {
+              "x": 1290,
+              "y": 1340
+            },
+            "exitBranches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exitChoices": [
+              {
+                "x": 780,
+                "y": 600
+              },
+              {
+                "x": 2220,
+                "y": 600
+              }
+            ],
+            "floor": 1,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 600,
+              "id": "battle_zone_2",
+              "index": 2,
+              "label": "战斗区 2",
+              "radius": 124,
+              "width": 900,
+              "x": 2040.0000000000002,
+              "y": 1340
+            },
+            "mechanism": null,
+            "obstacles": [
+              {
+                "height": 40.559108534920966,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 164.16782026039436,
+                "x": 168.1194331170991,
+                "y": 341.3879960598424
+              },
+              {
+                "height": 38.22324653025717,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.81391370110214,
+                "x": 2419.47031577304,
+                "y": 416.8061306900345
+              },
+              {
+                "height": 40.425865202676505,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.62850201083347,
+                "x": 253.69105718191713,
+                "y": 1576.4921029135585
+              },
+              {
+                "height": 43.526080476120114,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 186.54034489765763,
+                "x": 2290.7876270916313,
+                "y": 1613.4235773873515
+              },
+              {
+                "height": 63.15150493895635,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 1245.2201585033908,
+                "y": 789.8289730353281
+              },
+              {
+                "height": 69.96001413743943,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.96686885673553,
+                "x": 1685.913756377995,
+                "y": 1098.2397836479358
+              },
+              {
+                "height": 55.821035937871784,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 55.821035937871784,
+                "x": 1225.7736579580233,
+                "y": 1532.6723945792764
+              },
+              {
+                "height": 80.53515266776085,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 56.96388847231865,
+                "x": 1769.176420578733,
+                "y": 684.5210777469911
+              },
+              {
+                "height": 81.73104000249877,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.80976000176743,
+                "x": 1166.9570763902739,
+                "y": 1163.06425882224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 72
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 144
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 216
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 288
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 360
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 432
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 648,
+                "x": 0,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 936,
+                "x": 1152,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 648,
+                "x": 0,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1224,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 936,
+                "x": 1224,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1440,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1440,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 576,
+                "x": 1440,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 576,
+                "x": 1440,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1008
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1008
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1080
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1080
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1152
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1152
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1296
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1296
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1368
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1368
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1440
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1440
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1512
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1512
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1584
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1584
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1584,
+                "x": 0,
+                "y": 1656
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1656
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1584,
+                "x": 0,
+                "y": 1728
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1728
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1800
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1872
+              },
+              {
+                "height": 56,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1944
+              }
+            ],
+            "route": [
+              {
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": -7,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1500.7897634971223,
+              "y": 1365.5147951494525
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2026.100666106957,
+              "y": 1452.100870658027
+            },
+            {
+              "hp": -24,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1789.9319151005,
+              "y": 1356.7818822972708
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2066.225798971862,
+              "y": 1412.0395972885633
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2006.1800492817454,
+              "y": 1487.1103052285794
+            },
+            {
+              "hp": -54,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1664.8008314970368,
+              "y": 1370.900206049632
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2022.1616806895292,
+              "y": 1280.0840869451733
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2089.0910097237725,
+              "y": 1387.4720347520472
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1127.7668244562803,
+              "y": 984.776010333067
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1019.8451074292217,
+              "y": 1025.726016363976
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1068.9129880868772,
+              "y": 921.244711396216
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2447.76682445628,
+              "y": 1154.776010333067
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2339.8451074292216,
+              "y": 1195.726016363976
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2388.9129880868772,
+              "y": 1091.244711396216
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 776,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.579135999999999,
+            "vy": -2.579135999999999,
+            "x": 1768.230144000004,
+            "y": 1363.9144273151937
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "battle",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784086294078,
+          "transitioning": false,
+          "elapsedMs": 7466
+        }
+      ],
+      "actions": [
+        {
+          "elapsedMs": 97,
+          "mode": "fight",
+          "target": {
+            "hp": 75,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 75,
+            "optionalHidden": false,
+            "size": 30,
+            "towerExitBranchIndex": null,
+            "x": 1505.9344028699363,
+            "y": 1521.297182772158
+          },
+          "keys": [
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 1971,
+          "mode": "fight",
+          "target": {
+            "hp": 75,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 75,
+            "optionalHidden": false,
+            "size": 30,
+            "towerExitBranchIndex": null,
+            "x": 1501.7845813928027,
+            "y": 1469.3264252548902
+          },
+          "keys": [
+            "KeyS",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 3256,
+          "mode": "fight",
+          "target": {
+            "hp": 75,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 75,
+            "optionalHidden": false,
+            "size": 30,
+            "towerExitBranchIndex": null,
+            "x": 1500.8248157149878,
+            "y": 1367.5090210928556
+          },
+          "keys": [
+            "KeyS",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 4867,
+          "mode": "fight",
+          "target": {
+            "hp": 60,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 60,
+            "optionalHidden": false,
+            "size": 30,
+            "towerExitBranchIndex": null,
+            "x": 1652.8216144095593,
+            "y": 1335.2111716029362
+          },
+          "keys": [
+            "KeyD",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 6005,
+          "mode": "fight",
+          "target": {
+            "hp": 60,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 60,
+            "optionalHidden": false,
+            "size": 30,
+            "towerExitBranchIndex": null,
+            "x": 1652.8216144095593,
+            "y": 1335.2111716029362
+          },
+          "keys": [
+            "KeyD",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 7466,
+          "mode": "fight",
+          "target": {
+            "hp": 90,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 90,
+            "optionalHidden": false,
+            "size": 30,
+            "towerExitBranchIndex": null,
+            "x": 2022.1616806895292,
+            "y": 1280.0840869451733
+          },
+          "keys": [
+            "KeyD",
+            "KeyW",
+            "KeyJ"
+          ]
+        }
+      ],
+      "screenshot": "tower_wall_visual\\warrior_floor_1_1784086286.png"
+    }
+  ],
+  "issues": [
+    {
+      "severity": "严重",
+      "code": "FLOOR_TIMEOUT",
+      "message": "在限定时间内没有完成当前楼层",
+      "floor": 1,
+      "classId": "warrior",
+      "evidence": {
+        "durationMs": 11685,
+        "lastSnapshot": {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": {
+            "branchCleared": [
+              false,
+              false
+            ],
+            "branchPortalSpawned": [
+              false,
+              false
+            ],
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 600,
+                "id": "battle_zone_1",
+                "index": 1,
+                "label": "战斗区 1",
+                "radius": 124,
+                "width": 900,
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_2",
+                "index": 2,
+                "label": "战斗区 2",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_3",
+                "index": 3,
+                "label": "战斗区 3",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1450
+              }
+            ],
+            "branchBattleZones": [
+              {
+                "branchIndex": 0,
+                "height": 460,
+                "id": "exit_branch_1_battle",
+                "radius": 155,
+                "width": 680,
+                "x": 1080,
+                "y": 970
+              },
+              {
+                "branchIndex": 1,
+                "height": 460,
+                "id": "exit_branch_2_battle",
+                "radius": 155,
+                "width": 680,
+                "x": 2400,
+                "y": 1140
+              }
+            ],
+            "branches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exit": {
+              "x": 1290,
+              "y": 1340
+            },
+            "exitBranches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exitChoices": [
+              {
+                "x": 780,
+                "y": 600
+              },
+              {
+                "x": 2220,
+                "y": 600
+              }
+            ],
+            "floor": 1,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 600,
+              "id": "battle_zone_2",
+              "index": 2,
+              "label": "战斗区 2",
+              "radius": 124,
+              "width": 900,
+              "x": 2040.0000000000002,
+              "y": 1340
+            },
+            "mechanism": null,
+            "obstacles": [
+              {
+                "height": 40.559108534920966,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 164.16782026039436,
+                "x": 168.1194331170991,
+                "y": 341.3879960598424
+              },
+              {
+                "height": 38.22324653025717,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.81391370110214,
+                "x": 2419.47031577304,
+                "y": 416.8061306900345
+              },
+              {
+                "height": 40.425865202676505,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.62850201083347,
+                "x": 253.69105718191713,
+                "y": 1576.4921029135585
+              },
+              {
+                "height": 43.526080476120114,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 186.54034489765763,
+                "x": 2290.7876270916313,
+                "y": 1613.4235773873515
+              },
+              {
+                "height": 63.15150493895635,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 1245.2201585033908,
+                "y": 789.8289730353281
+              },
+              {
+                "height": 69.96001413743943,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.96686885673553,
+                "x": 1685.913756377995,
+                "y": 1098.2397836479358
+              },
+              {
+                "height": 55.821035937871784,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 55.821035937871784,
+                "x": 1225.7736579580233,
+                "y": 1532.6723945792764
+              },
+              {
+                "height": 80.53515266776085,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 56.96388847231865,
+                "x": 1769.176420578733,
+                "y": 684.5210777469911
+              },
+              {
+                "height": 81.73104000249877,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.80976000176743,
+                "x": 1166.9570763902739,
+                "y": 1163.06425882224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 72
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 144
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 216
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 288
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 360
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 432
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 648,
+                "x": 0,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 936,
+                "x": 1152,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 504
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 648,
+                "x": 0,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1224,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 576
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 936,
+                "x": 1224,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 648
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1440,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 720
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 720,
+                "x": 0,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 864,
+                "x": 1440,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 792
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 576,
+                "x": 1440,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 864
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 576,
+                "x": 1440,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 936
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1008
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1008
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1080
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1080
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1152
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1152
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1224
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1296
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 264,
+                "x": 2736,
+                "y": 1296
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 504,
+                "x": 0,
+                "y": 1368
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1368
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1440
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1440
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1512
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1512
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1224,
+                "x": 0,
+                "y": 1584
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1584
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1584,
+                "x": 0,
+                "y": 1656
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1656
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 1584,
+                "x": 0,
+                "y": 1728
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 480,
+                "x": 2520,
+                "y": 1728
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1800
+              },
+              {
+                "height": 72,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1872
+              },
+              {
+                "height": 56,
+                "kind": "theme_wall",
+                "material": "sanctum",
+                "width": 3000,
+                "x": 0,
+                "y": 1944
+              }
+            ],
+            "route": [
+              {
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": -7,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1500.7897634971223,
+              "y": 1365.5147951494525
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2026.100666106957,
+              "y": 1452.100870658027
+            },
+            {
+              "hp": -24,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1789.9319151005,
+              "y": 1356.7818822972708
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2066.225798971862,
+              "y": 1412.0395972885633
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2006.1800492817454,
+              "y": 1487.1103052285794
+            },
+            {
+              "hp": -54,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 1664.8008314970368,
+              "y": 1370.900206049632
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2022.1616806895292,
+              "y": 1280.0840869451733
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": null,
+              "x": 2089.0910097237725,
+              "y": 1387.4720347520472
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1127.7668244562803,
+              "y": 984.776010333067
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1019.8451074292217,
+              "y": 1025.726016363976
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 0,
+              "x": 1068.9129880868772,
+              "y": 921.244711396216
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2447.76682445628,
+              "y": 1154.776010333067
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2339.8451074292216,
+              "y": 1195.726016363976
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "towerExitBranchIndex": 1,
+              "x": 2388.9129880868772,
+              "y": 1091.244711396216
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 776,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.579135999999999,
+            "vy": -2.579135999999999,
+            "x": 1768.230144000004,
+            "y": 1363.9144273151937
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "battle",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784086294078,
+          "transitioning": false,
+          "elapsedMs": 7466
+        }
+      }
+    }
+  ]
+}

@@ -86,7 +86,11 @@
             floatText(g, player.x, player.y, '无目标', '#ff6666');
             return false;
         }
-        const shieldAmt = Math.max(1, Math.floor(magicAtk(player) * (se.shieldMagicMult || 2)));
+        const absorbBonus = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'foresightAbsorbBonus', 0) : 0;
+        const shieldAmt = Math.max(1, Math.floor(
+            magicAtk(player) * (se.shieldMagicMult || 2) * (1 + absorbBonus)
+        ));
         const dur = se.durationMs || 4000;
         const buffId = 'foresight_shield_' + (target.id || target.name || 'ally');
         target.buffs = (target.buffs || []).filter(b => b.id !== buffId);
@@ -254,6 +258,31 @@
             redirectPct: se.redirectPercent || 20,
             atonementPct: se.atonementPercent || 10
         };
+        const fateHaste = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'fateHaste', 0) : 0;
+        if (fateHaste > 0) {
+            const hasteVal = Math.round(fateHaste * 100);
+            target.buffs = target.buffs || [];
+            target.buffs.push({
+                id: 'fate_web_haste_' + now,
+                name: '织命急速',
+                expireTime: now + (se.durationMs || 8000),
+                effects: { skillHaste: hasteVal },
+                hudVisible: true,
+                iconKey: 'combo'
+            });
+            if (target !== player) {
+                player.buffs = player.buffs || [];
+                player.buffs.push({
+                    id: 'fate_web_haste_self_' + now,
+                    name: '织命急速',
+                    expireTime: now + (se.durationMs || 8000),
+                    effects: { skillHaste: hasteVal },
+                    hudVisible: true,
+                    iconKey: 'combo'
+                });
+            }
+        }
         floatText(g, target.x, target.y - 24, '命运编织', '#ff88cc');
         return true;
     };

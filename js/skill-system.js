@@ -1031,7 +1031,7 @@
         if (typeof window.castSkillEntity !== 'function') return false;
 
         const comboInfo = getBasicComboStep(player, basic);
-        const modified = applyBasicComboOverrides(basic, comboInfo.step);
+        let modified = applyBasicComboOverrides(basic, comboInfo.step);
         // 暂存到 player 供 VFX / 资源等读取
         player._lastBasicCombo = comboInfo;
         const now = Date.now();
@@ -1054,6 +1054,7 @@
             }
             lockRange += 48;
             if (gameInstance && (gameInstance.currentScene === 'skill_lab'
+                || gameInstance.currentScene === 'equipment_lab'
                 || gameInstance.currentScene === 'training')) {
                 lockRange = Math.max(lockRange, 140);
             }
@@ -1077,12 +1078,41 @@
                 castOptions = { lockTarget: primaryTarget };
             }
         }
+        let equipmentBasicContext = null;
+        if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.modifyBasicAttack === 'function') {
+            if (!primaryTarget && typeof window.pickNearestSkillTarget === 'function') {
+                primaryTarget = window.pickNearestSkillTarget(player, monsters, range);
+            }
+            equipmentBasicContext = window.EquipmentEffectSystem.modifyBasicAttack(player, primaryTarget, {
+                damage: 1,
+                isCrit: Math.random() * 100 < (player.baseCritRate || 0),
+                critDamageBonus: 0
+            });
+            let effectMultiplier = Math.max(0, equipmentBasicContext.damage || 1);
+            if (equipmentBasicContext.isCrit) {
+                effectMultiplier *= 1 + ((player.baseCritDamage || 0) + (equipmentBasicContext.critDamageBonus || 0)) / 100;
+            }
+            modified = Object.assign({}, modified, {
+                damageMultiplier: (modified.damageMultiplier || 1) * effectMultiplier,
+                entityConfig: Object.assign({}, modified.entityConfig || {})
+            });
+            if (typeof modified.entityConfig.damageMultiplier === 'number') {
+                modified.entityConfig.damageMultiplier *= effectMultiplier;
+            }
+            if (equipmentBasicContext.isCrit) modified._equipmentGuaranteedCrit = true;
+            if (equipmentBasicContext.critDamageBonus) {
+                modified._equipmentCritDamageBonus = equipmentBasicContext.critDamageBonus;
+            }
+        }
         const result = window.castSkillEntity(player, modified, gameInstance, monsters, now, castOptions);
         /** 骗术师/幻术师：分身复读普攻 */
         if (result !== false && result != null && typeof window.replicateSkillToClones === 'function') {
             window.replicateSkillToClones(player, modified, gameInstance, monsters, now, castOptions);
         }
         if (result !== false && result != null) {
+            if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.afterBasicAttack === 'function') {
+                window.EquipmentEffectSystem.afterBasicAttack(player, primaryTarget, equipmentBasicContext || {});
+            }
             if (typeof window.playClassSkillVfx === 'function') {
                 if (!primaryTarget && typeof window.pickNearestSkillTarget === 'function') {
                     const vfxRange = Math.max(ec.range || modified.range || 55, range);
@@ -1353,7 +1383,12 @@
 
     window.grantSkillResource = function grantSkillResource(player, amount) {
         if (!player || !player.classResource || !amount) return;
-        player.classResource.current = Math.min(player.classResource.max, player.classResource.current + amount);
+        let add = amount;
+        if (typeof window.getSetModifier === 'function') {
+            const chronosBonus = window.getSetModifier(player, 'chronosRegenBonus', 0);
+            if (chronosBonus > 0) add = Math.max(1, Math.ceil(amount * (1 + chronosBonus)));
+        }
+        player.classResource.current = Math.min(player.classResource.max, player.classResource.current + add);
     };
 
     window.tickPlayerClassResource = function tickPlayerClassResource(player, dtSec, inCombat) {
@@ -1363,6 +1398,10 @@
             let regen = meta.regenPerSec;
             if (typeof window.getWizardRegenMult === 'function') {
                 regen *= window.getWizardRegenMult(player);
+            }
+            if (typeof window.getSetModifier === 'function') {
+                const chronosBonus = window.getSetModifier(player, 'chronosRegenBonus', 0);
+                if (chronosBonus > 0) regen *= 1 + chronosBonus;
             }
             player.classResource.current = Math.min(
                 player.classResource.max,
@@ -1510,10 +1549,27 @@
             });
         }
         if (entityType === 'instant' && c.shape === 'fissure') {
+            const distance = c.range || def.range || 300;
+            const width = (c.pierceWidth || 40) * 2;
+            const hasRiftHowl = window.EquipmentEffectSystem
+                && typeof window.EquipmentEffectSystem.has === 'function'
+                && (window.EquipmentEffectSystem.has(player, 'rift_howl')
+                    || window.EquipmentEffectSystem.has(player, 'rift_howl_apex'));
+            // 碎界怒嚎：指示器改为正前 + 左前/右前三向裂波，与实际命中范围一致
+            if (hasRiftHowl && (def.id === 'devastation_rift' || def.id === 'lab_devastation_rift')) {
+                return markDisplacementProfile({
+                    mode: 'rift_bloom',
+                    distance,
+                    width,
+                    sideDistance: Math.min(220, Math.round(distance * 0.78)),
+                    sideWidth: Math.max(64, Math.round(width * 0.9)),
+                    armSpreadDeg: 42
+                });
+            }
             return markDisplacementProfile({
                 mode: 'direction_line',
-                distance: c.range || def.range || 300,
-                width: (c.pierceWidth || 40) * 2
+                distance,
+                width
             });
         }
         if (entityType === 'instant' && c.leapSlam && c.targeted) {
@@ -1587,6 +1643,9 @@
         if (typeof window.applyBuildEquipmentSkillModifiers === 'function') {
             skillDef = window.applyBuildEquipmentSkillModifiers(player, skillDef);
         }
+        if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.beforeSkill === 'function') {
+            skillDef = window.EquipmentEffectSystem.beforeSkill(player, skillDef) || skillDef;
+        }
         const now = Date.now();
         if (player.isDashing || player.isCastingSkill) return false;
         if (player._leapSlam || player._backstepShot) return false;
@@ -1621,7 +1680,7 @@
         const packRoarFree = skillDef.id === 'pack_roar'
             && typeof window.isPackRoarFreeMark === 'function'
             && window.isPackRoarFreeMark(player);
-        const skipCost = stormFreeBlade || beastFreeCmd || packRoarFree;
+        const skipCost = stormFreeBlade || beastFreeCmd || packRoarFree || !!skillDef._equipmentFreeCost;
         if (!stormFreeBlade && !beastFreeCmd && window.getSkillCooldownRemaining(player, cooldownKey) > 0) return false;
         if (!skipCost && !window.canAffordSkillCost(player, skillDef)) {
             if (gameInstance && typeof gameInstance.addFloatingText === 'function') {
@@ -1665,6 +1724,12 @@
             }
             if (packRoarFree) player._packRoarFreeMark = false;
             const activeCombo = window.recordSkillComboCast(player, skillDef);
+            if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.onSkillCast === 'function') {
+                window.EquipmentEffectSystem.onSkillCast(player, skillDef);
+            }
+            if (typeof window.onBuildEquipmentSkillCast === 'function') {
+                window.onBuildEquipmentSkillCast(player, skillDef);
+            }
 
             const hasEntity = skillDef.entityType && skillDef.entityConfig;
             const isPrimary = typeof window.isPrimaryUtilitySkill === 'function'
@@ -1843,7 +1908,7 @@
             const skipDirectDamage = isHybrid && ['backstep', 'charge', 'freeze', 'blink_behind'].includes(se.type)
                 || (isHybrid && se.type === 'dodge_buff' && se.damageMult === 0);
 
-            const targets = (monsters || []).filter(m => m && m.hp > 0 && !(typeof TrainingDummy !== 'undefined' && m instanceof TrainingDummy && !(gameInstance && gameInstance.currentScene === 'skill_lab')));
+            const targets = (monsters || []).filter(m => m && m.hp > 0 && !(typeof TrainingDummy !== 'undefined' && m instanceof TrainingDummy && !(gameInstance && (gameInstance.currentScene === 'skill_lab' || gameInstance.currentScene === 'equipment_lab'))));
             if (!skipDirectDamage) {
                 if (aoe > 0) {
                     targets.forEach(m => {

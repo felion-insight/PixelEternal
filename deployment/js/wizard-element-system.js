@@ -56,7 +56,10 @@
 
     window.getWizardResonanceStacks = function getWizardResonanceStacks(player) {
         if (!isWizardTree(player)) return 0;
-        return Math.min(MAX_RESONANCE, player._resonanceStacks || 0);
+        const capBonus = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'resonanceCapBonus', 0) : 0;
+        const cap = MAX_RESONANCE + Math.max(0, Math.floor(capBonus));
+        return Math.min(cap, player._resonanceStacks || 0);
     };
 
     window.getElementPhaseModifiers = function getElementPhaseModifiers(player) {
@@ -132,8 +135,14 @@
 
     function addResonanceStack(player, g) {
         const prev = player._resonanceStacks || 0;
-        const gain = (classId(player) === 'archmage' && player._triSanctuaryActive) ? 2 : 1;
-        player._resonanceStacks = Math.min(MAX_RESONANCE, prev + gain);
+        const capBonus = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'resonanceCapBonus', 0) : 0;
+        const cap = MAX_RESONANCE + Math.max(0, Math.floor(capBonus));
+        let gain = (classId(player) === 'archmage' && player._triSanctuaryActive) ? 2 : 1;
+        const gainBonus = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'resonanceGainBonus', 0) : 0;
+        if (gainBonus > 0) gain = Math.max(1, Math.ceil(gain * (1 + gainBonus)));
+        player._resonanceStacks = Math.min(cap, prev + gain);
         player._lastPhaseSwitchTime = Date.now();
         if (player._resonanceStacks > prev) {
             floatText(g, player.x, player.y - 44, `共鸣 ${player._resonanceStacks}`, '#ffdd44', 13);
@@ -249,6 +258,14 @@
         }
         if (player._wizardAwakeningUntil && Date.now() < player._wizardAwakeningUntil) {
             mult *= 1 + (player._wizardAwakeningDmg || 40) / 100;
+        }
+        const phaseBonus = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'phaseSkillDamage', 0) : 0;
+        if (phaseBonus > 0) mult *= 1 + phaseBonus;
+        const fusionBonus = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'fusionDamage', 0) : 0;
+        if (fusionBonus > 0 && window.isInBridgeWindow && window.isInBridgeWindow(player)) {
+            mult *= 1 + fusionBonus;
         }
         return mult;
     };

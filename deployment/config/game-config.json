@@ -63,7 +63,10 @@
     "TOWN": "town",
     "TOWER": "tower",
     "TRAINING": "training",
-    "TRIAL": "trial"
+    "TRIAL": "trial",
+    "DUNGEON": "dungeon",
+    "SKILL_LAB": "skill_lab",
+    "EQUIPMENT_LAB": "equipment_lab"
   },
   "DROP_BIAS_CONFIG": {
     "weaponAffinityChance": 0.7,

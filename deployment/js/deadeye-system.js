@@ -74,8 +74,10 @@
         if ((mark.markId || '') !== 'weakness_mark_de') return 1;
         if (mark.owner && mark.owner !== attacker) return 1;
         const ownerBonus = mark.ownerDamageBonus || 0;
-        if (ownerBonus > 0 && isDeadeye(attacker)) {
-            return 1 + ownerBonus / 100;
+        const setWeak = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(attacker, 'weaknessDamage', 0) : 0;
+        if ((ownerBonus > 0 || setWeak > 0) && isDeadeye(attacker)) {
+            return 1 + ownerBonus / 100 + setWeak;
         }
         return 1;
     };
@@ -113,6 +115,9 @@
 
     window.applyBreathHold = function applyBreathHold(player, skillDef, g, now) {
         if (!isDeadeye(player) || !skillDef) return false;
+        // 屏息的冷却从状态结束后开始计算；重复按键不能在状态期间
+        // 不断刷新持续时间，否则自动轮转会永久占用输出窗口。
+        if (window.isBreathHoldActive(player, now)) return false;
         const c = skillDef.entityConfig || {};
         const t = now != null ? now : Date.now();
         const dur = c.durationMs || 8000;

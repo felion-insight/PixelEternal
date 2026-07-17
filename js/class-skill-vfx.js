@@ -90,12 +90,14 @@
 
     function addVfx(gameInstance, x, y, opts) {
         if (!gameInstance || typeof gameInstance.addEquipmentEffect !== 'function') return;
+        if (window.SkillLabMetrics) window.SkillLabMetrics.recordVfx(opts && opts.skillId, 'effect');
         gameInstance.addEquipmentEffect('class_skill_vfx', x, y, opts);
     }
 
     function burstParticles(gameInstance, x, y, family, count, spread) {
         const pm = gameInstance && gameInstance.particleManager;
         if (!pm || typeof pm.createSystem !== 'function') return;
+        if (window.SkillLabMetrics) window.SkillLabMetrics.recordVfx(null, 'particle');
         const pal = paletteFor(family);
         pm.createSystem(x, y, {
             color: pal.main,
@@ -331,6 +333,7 @@
      */
     window.playClassSkillVfx = function playClassSkillVfx(player, skillDef, gameInstance, context) {
         if (!gameInstance || !player || !skillDef) return;
+        if (window.SkillLabMetrics) window.SkillLabMetrics.recordVfx(skillDef.id, 'skill');
 
         const family = (typeof window.getSkillVfxFamilyForPlayer === 'function'
             ? window.getSkillVfxFamilyForPlayer(player, skillDef)
@@ -931,15 +934,23 @@
 
         if (skillDef.id === 'devastation_rift' || ec.shape === 'fissure') {
             const fissureR = ec.range || skillDef.range || 300;
+            const hasRiftHowl = window.EquipmentEffectSystem
+                && typeof window.EquipmentEffectSystem.has === 'function'
+                && (window.EquipmentEffectSystem.has(player, 'rift_howl')
+                    || window.EquipmentEffectSystem.has(player, 'rift_howl_apex'));
+            const armSpread = Math.PI * 42 / 180;
             castFlash(gameInstance, px, py, family, 50);
+            // 碎界怒嚎：起手圆环改为「三向裂波绽放」，而不是360°圆环
             addVfx(gameInstance, px, py, {
                 variant: 'earth_split_slam',
-                duration: 620,
-                radius: fissureR * 0.55,
+                duration: hasRiftHowl ? 700 : 620,
+                radius: hasRiftHowl ? fissureR * 0.72 : fissureR * 0.55,
                 angle,
                 family,
                 ox: px,
-                oy: py
+                oy: py,
+                riftBloom: hasRiftHowl,
+                armSpread: hasRiftHowl ? armSpread : undefined
             });
             addVfx(gameInstance, px, py, {
                 variant: 'devastation_slam',
@@ -952,6 +963,33 @@
                 ox: px,
                 oy: py
             });
+            if (hasRiftHowl) {
+                // 左前 / 右前副裂隙：从绽放中长出，比主裂隙稍短
+                [-armSpread, armSpread].forEach((off, i) => {
+                    addVfx(gameInstance, px, py, {
+                        variant: 'devastation_slam',
+                        duration: 560,
+                        delayMs: 90 + i * 20,
+                        radius: fissureR * 0.78,
+                        angle: angle + off,
+                        family,
+                        halfAngleDeg: 26,
+                        ox: px,
+                        oy: py
+                    });
+                    addVfx(gameInstance, px, py, {
+                        variant: 'aoe_shock',
+                        duration: 480,
+                        delayMs: 120 + i * 20,
+                        radius: fissureR * 0.65,
+                        angle: angle + off,
+                        family,
+                        halfAngleDeg: 22,
+                        ox: px,
+                        oy: py
+                    });
+                });
+            }
             addVfx(gameInstance, px, py, {
                 variant: 'aoe_shock',
                 duration: 480,
@@ -978,7 +1016,8 @@
             });
             if (gameInstance.addEquipmentEffect) {
                 gameInstance.addEquipmentEffect('fire_explosion', px, py, {
-                    radius: fissureR * 0.4, duration: 520
+                    radius: fissureR * (hasRiftHowl ? 0.32 : 0.4),
+                    duration: 520
                 });
             }
             return;
@@ -3818,38 +3857,111 @@
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.globalCompositeOperation = 'lighter';
-                ctx.globalAlpha = alpha * fade * 0.55;
-                ctx.strokeStyle = '#ffcc88';
-                ctx.lineWidth = 3;
-                for (let i = 0; i < 8; i++) {
-                    const a = (i / 8) * Math.PI * 2 + elapsed * 0.002;
-                    const cr = r * (0.35 + t * 0.65);
-                    const jitter = Math.sin(i * 1.9 + elapsed * 0.012) * 10;
+                if (effect.riftBloom) {
+                    // 碎界怒嚎：三向裂波绽放（正前 + 左前 + 右前），替代360°圆环
+                    const spread = effect.armSpread != null ? effect.armSpread : (Math.PI * 42 / 180);
+                    const arms = [ang - spread, ang, ang + spread];
+                    const reach = r * (0.3 + t * 0.85);
+                    arms.forEach((armAng, ai) => {
+                        const armLen = reach * (ai === 1 ? 1 : 0.82);
+                        ctx.save();
+                        ctx.rotate(armAng);
+                        // 主裂纹
+                        ctx.globalAlpha = alpha * fade * 0.7;
+                        ctx.strokeStyle = ai === 1 ? '#ffeebb' : '#ffcc88';
+                        ctx.lineWidth = ai === 1 ? 4.5 : 3.2;
+                        ctx.lineCap = 'round';
+                        ctx.beginPath();
+                        ctx.moveTo(0, 0);
+                        for (let i = 1; i <= 5; i++) {
+                            const pct = i / 5;
+                            const jitter = Math.sin(i * 2.1 + elapsed * 0.012 + ai) * (6 + i * 2);
+                            ctx.lineTo(armLen * pct, jitter * (i % 2 ? 1 : -1) * 0.4);
+                        }
+                        ctx.stroke();
+                        // 旁支裂纹
+                        ctx.globalAlpha = alpha * fade * 0.45;
+                        ctx.lineWidth = 2;
+                        for (let b = 0; b < 3; b++) {
+                            const base = armLen * (0.25 + b * 0.22);
+                            const side = (b % 2 ? 1 : -1) * (10 + b * 6) * t;
+                            ctx.beginPath();
+                            ctx.moveTo(base * 0.85, 0);
+                            ctx.lineTo(base, side);
+                            ctx.stroke();
+                        }
+                        // 沿臂扩张的短弧，强调「裂开」而不是整圆
+                        for (let w = 0; w < 2; w++) {
+                            const wp = (t + w * 0.18 + ai * 0.05) % 1;
+                            const wr = armLen * (0.35 + wp * 0.65);
+                            ctx.globalAlpha = alpha * (1 - wp) * 0.4;
+                            ctx.strokeStyle = w === 0 ? pal.core : pal.main;
+                            ctx.lineWidth = w === 0 ? 3 : 2;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, wr, -0.35, 0.35);
+                            ctx.stroke();
+                        }
+                        ctx.restore();
+                    });
+                    // 前方扇形轻波（覆盖三臂夹角），不再画完整圆环
+                    const fanHalf = spread + 0.22;
+                    for (let w = 0; w < 3; w++) {
+                        const wp = (t + w * 0.12) % 1;
+                        const wr = r * wp * 1.05;
+                        ctx.save();
+                        ctx.rotate(ang);
+                        ctx.globalAlpha = alpha * (1 - wp) * 0.42;
+                        ctx.strokeStyle = w === 0 ? pal.core : pal.main;
+                        ctx.lineWidth = w === 0 ? 3.5 : 2;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, wr, -fanHalf, fanHalf);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                    const coreR = r * 0.22 * t;
+                    const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, coreR);
+                    grd.addColorStop(0, '#ffffff');
+                    grd.addColorStop(0.4, pal.core);
+                    grd.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.globalAlpha = alpha * (1 - t * 0.4);
+                    ctx.fillStyle = grd;
                     ctx.beginPath();
-                    ctx.moveTo(0, 0);
-                    ctx.lineTo(Math.cos(a) * cr + jitter * Math.sin(a), Math.sin(a) * cr - jitter * Math.cos(a));
-                    ctx.stroke();
-                }
-                for (let w = 0; w < 3; w++) {
-                    const wp = (t + w * 0.12) % 1;
-                    const wr = r * wp * 1.05;
-                    ctx.globalAlpha = alpha * (1 - wp) * 0.55;
-                    ctx.strokeStyle = w === 0 ? pal.core : pal.main;
-                    ctx.lineWidth = w === 0 ? 4 : 2;
+                    ctx.arc(0, 0, coreR, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    ctx.globalAlpha = alpha * fade * 0.55;
+                    ctx.strokeStyle = '#ffcc88';
+                    ctx.lineWidth = 3;
+                    for (let i = 0; i < 8; i++) {
+                        const a = (i / 8) * Math.PI * 2 + elapsed * 0.002;
+                        const cr = r * (0.35 + t * 0.65);
+                        const jitter = Math.sin(i * 1.9 + elapsed * 0.012) * 10;
+                        ctx.beginPath();
+                        ctx.moveTo(0, 0);
+                        ctx.lineTo(Math.cos(a) * cr + jitter * Math.sin(a), Math.sin(a) * cr - jitter * Math.cos(a));
+                        ctx.stroke();
+                    }
+                    for (let w = 0; w < 3; w++) {
+                        const wp = (t + w * 0.12) % 1;
+                        const wr = r * wp * 1.05;
+                        ctx.globalAlpha = alpha * (1 - wp) * 0.55;
+                        ctx.strokeStyle = w === 0 ? pal.core : pal.main;
+                        ctx.lineWidth = w === 0 ? 4 : 2;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, wr, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    const coreR = r * 0.25 * t;
+                    const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, coreR);
+                    grd.addColorStop(0, '#ffffff');
+                    grd.addColorStop(0.4, pal.core);
+                    grd.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.globalAlpha = alpha * (1 - t * 0.4);
+                    ctx.fillStyle = grd;
                     ctx.beginPath();
-                    ctx.arc(0, 0, wr, 0, Math.PI * 2);
-                    ctx.stroke();
+                    ctx.arc(0, 0, coreR, 0, Math.PI * 2);
+                    ctx.fill();
                 }
-                const coreR = r * 0.25 * t;
-                const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, coreR);
-                grd.addColorStop(0, '#ffffff');
-                grd.addColorStop(0.4, pal.core);
-                grd.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.globalAlpha = alpha * (1 - t * 0.4);
-                ctx.fillStyle = grd;
-                ctx.beginPath();
-                ctx.arc(0, 0, coreR, 0, Math.PI * 2);
-                ctx.fill();
                 ctx.restore();
                 break;
             }

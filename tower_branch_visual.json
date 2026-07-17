@@ -1,0 +1,2832 @@
+{
+  "config": {
+    "floors": [
+      1
+    ],
+    "classes": [
+      "warrior"
+    ],
+    "repeats": 1,
+    "timeoutSeconds": 8.0,
+    "level": 30,
+    "roomType": "battle"
+  },
+  "episodes": [
+    {
+      "floor": 1,
+      "classId": "warrior",
+      "result": "timeout",
+      "durationMs": 11889,
+      "snapshots": [
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": {
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 600,
+                "id": "battle_zone_1",
+                "index": 2,
+                "label": "战斗区 1",
+                "radius": 124,
+                "width": 900,
+                "x": 960,
+                "y": 620
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_2",
+                "index": 5,
+                "label": "战斗区 2",
+                "radius": 124,
+                "width": 900,
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_3",
+                "index": 7,
+                "label": "战斗区 3",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1340
+              }
+            ],
+            "branches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 780,
+                "y": 600
+              },
+              {
+                "x": 2220,
+                "y": 600
+              }
+            ],
+            "floor": 1,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 600,
+              "id": "battle_zone_2",
+              "index": 5,
+              "label": "战斗区 2",
+              "radius": 124,
+              "width": 900,
+              "x": 1290,
+              "y": 1340
+            },
+            "mechanism": null,
+            "obstacles": [
+              {
+                "height": 40.559108534920966,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 164.16782026039436,
+                "x": 168.1194331170991,
+                "y": 341.3879960598424
+              },
+              {
+                "height": 38.22324653025717,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.81391370110214,
+                "x": 2419.47031577304,
+                "y": 416.8061306900345
+              },
+              {
+                "height": 40.425865202676505,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.62850201083347,
+                "x": 253.69105718191713,
+                "y": 1576.4921029135585
+              },
+              {
+                "height": 43.526080476120114,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 186.54034489765763,
+                "x": 2290.7876270916313,
+                "y": 1613.4235773873515
+              },
+              {
+                "height": 63.15150493895635,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 1245.2201585033908,
+                "y": 789.8289730353281
+              },
+              {
+                "height": 69.96001413743943,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.96686885673553,
+                "x": 1685.913756377995,
+                "y": 1098.2397836479358
+              },
+              {
+                "height": 55.821035937871784,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 55.821035937871784,
+                "x": 1225.7736579580233,
+                "y": 1532.6723945792764
+              },
+              {
+                "height": 80.53515266776085,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 56.96388847231865,
+                "x": 1769.176420578733,
+                "y": 684.5210777469911
+              },
+              {
+                "height": 81.73104000249877,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.80976000176743,
+                "x": 1166.9570763902739,
+                "y": 1163.06425882224
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1405,
+                "x": 0,
+                "y": 506
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1405,
+                "x": 1595,
+                "y": 506
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 865,
+                "x": 0,
+                "y": 776
+              }
+            ],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 1500,
+                "y": 620
+              },
+              {
+                "x": 960,
+                "y": 620
+              },
+              {
+                "x": 960,
+                "y": 980
+              },
+              {
+                "x": 1290,
+                "y": 980
+              },
+              {
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1496.1234581756278,
+              "y": 1440.862888451307
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 2052.47268874441,
+              "y": 1449.967421110315
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1030.425779991103,
+              "y": 626.8988323190393
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1323.5556550393737,
+              "y": 1414.6203667261204
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1981.016121390658,
+              "y": 1410.7939720405534
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 884.6490756152957,
+              "y": 611.1382880272646
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1268.8979872018908,
+              "y": 1288.7234169826042
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 2073.8577356625074,
+              "y": 1305.1978988267647
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 0,
+            "vy": 0,
+            "x": 1500,
+            "y": 1560
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "battle",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784083479127,
+          "transitioning": false,
+          "elapsedMs": 59
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": {
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 600,
+                "id": "battle_zone_1",
+                "index": 2,
+                "label": "战斗区 1",
+                "radius": 124,
+                "width": 900,
+                "x": 960,
+                "y": 620
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_2",
+                "index": 5,
+                "label": "战斗区 2",
+                "radius": 124,
+                "width": 900,
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_3",
+                "index": 7,
+                "label": "战斗区 3",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1340
+              }
+            ],
+            "branches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 780,
+                "y": 600
+              },
+              {
+                "x": 2220,
+                "y": 600
+              }
+            ],
+            "floor": 1,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 600,
+              "id": "battle_zone_2",
+              "index": 5,
+              "label": "战斗区 2",
+              "radius": 124,
+              "width": 900,
+              "x": 1290,
+              "y": 1340
+            },
+            "mechanism": null,
+            "obstacles": [
+              {
+                "height": 40.559108534920966,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 164.16782026039436,
+                "x": 168.1194331170991,
+                "y": 341.3879960598424
+              },
+              {
+                "height": 38.22324653025717,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.81391370110214,
+                "x": 2419.47031577304,
+                "y": 416.8061306900345
+              },
+              {
+                "height": 40.425865202676505,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.62850201083347,
+                "x": 253.69105718191713,
+                "y": 1576.4921029135585
+              },
+              {
+                "height": 43.526080476120114,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 186.54034489765763,
+                "x": 2290.7876270916313,
+                "y": 1613.4235773873515
+              },
+              {
+                "height": 63.15150493895635,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 1245.2201585033908,
+                "y": 789.8289730353281
+              },
+              {
+                "height": 69.96001413743943,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.96686885673553,
+                "x": 1685.913756377995,
+                "y": 1098.2397836479358
+              },
+              {
+                "height": 55.821035937871784,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 55.821035937871784,
+                "x": 1225.7736579580233,
+                "y": 1532.6723945792764
+              },
+              {
+                "height": 80.53515266776085,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 56.96388847231865,
+                "x": 1769.176420578733,
+                "y": 684.5210777469911
+              },
+              {
+                "height": 81.73104000249877,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.80976000176743,
+                "x": 1166.9570763902739,
+                "y": 1163.06425882224
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1405,
+                "x": 0,
+                "y": 506
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1405,
+                "x": 1595,
+                "y": 506
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 865,
+                "x": 0,
+                "y": 776
+              }
+            ],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 1500,
+                "y": 620
+              },
+              {
+                "x": 960,
+                "y": 620
+              },
+              {
+                "x": 960,
+                "y": 980
+              },
+              {
+                "x": 1290,
+                "y": 980
+              },
+              {
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": -17,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1496.1234581756278,
+              "y": 1440.862888451307
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 2052.47268874441,
+              "y": 1449.967421110315
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1030.425779991103,
+              "y": 626.8988323190393
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1323.5556550393737,
+              "y": 1414.6203667261204
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1981.016121390658,
+              "y": 1410.7939720405534
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 884.6490756152957,
+              "y": 611.1382880272646
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1268.8979872018908,
+              "y": 1288.7234169826042
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 2073.8577356625074,
+              "y": 1305.1978988267647
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 764,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 0,
+            "vy": -3.6479999999997923,
+            "x": 1500,
+            "y": 1403.1359999999995
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "battle",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784083480288,
+          "transitioning": false,
+          "elapsedMs": 1244
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": {
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 600,
+                "id": "battle_zone_1",
+                "index": 2,
+                "label": "战斗区 1",
+                "radius": 124,
+                "width": 900,
+                "x": 960,
+                "y": 620
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_2",
+                "index": 5,
+                "label": "战斗区 2",
+                "radius": 124,
+                "width": 900,
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_3",
+                "index": 7,
+                "label": "战斗区 3",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1340
+              }
+            ],
+            "branches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 780,
+                "y": 600
+              },
+              {
+                "x": 2220,
+                "y": 600
+              }
+            ],
+            "floor": 1,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 600,
+              "id": "battle_zone_2",
+              "index": 5,
+              "label": "战斗区 2",
+              "radius": 124,
+              "width": 900,
+              "x": 1290,
+              "y": 1340
+            },
+            "mechanism": null,
+            "obstacles": [
+              {
+                "height": 40.559108534920966,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 164.16782026039436,
+                "x": 168.1194331170991,
+                "y": 341.3879960598424
+              },
+              {
+                "height": 38.22324653025717,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.81391370110214,
+                "x": 2419.47031577304,
+                "y": 416.8061306900345
+              },
+              {
+                "height": 40.425865202676505,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.62850201083347,
+                "x": 253.69105718191713,
+                "y": 1576.4921029135585
+              },
+              {
+                "height": 43.526080476120114,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 186.54034489765763,
+                "x": 2290.7876270916313,
+                "y": 1613.4235773873515
+              },
+              {
+                "height": 63.15150493895635,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 1245.2201585033908,
+                "y": 789.8289730353281
+              },
+              {
+                "height": 69.96001413743943,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.96686885673553,
+                "x": 1685.913756377995,
+                "y": 1098.2397836479358
+              },
+              {
+                "height": 55.821035937871784,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 55.821035937871784,
+                "x": 1225.7736579580233,
+                "y": 1532.6723945792764
+              },
+              {
+                "height": 80.53515266776085,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 56.96388847231865,
+                "x": 1769.176420578733,
+                "y": 684.5210777469911
+              },
+              {
+                "height": 81.73104000249877,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.80976000176743,
+                "x": 1166.9570763902739,
+                "y": 1163.06425882224
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1405,
+                "x": 0,
+                "y": 506
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1405,
+                "x": 1595,
+                "y": 506
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 865,
+                "x": 0,
+                "y": 776
+              }
+            ],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 1500,
+                "y": 620
+              },
+              {
+                "x": 960,
+                "y": 620
+              },
+              {
+                "x": 960,
+                "y": 980
+              },
+              {
+                "x": 1290,
+                "y": 980
+              },
+              {
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": -17,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1496.1234581756278,
+              "y": 1440.862888451307
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 2052.47268874441,
+              "y": 1449.967421110315
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1030.425779991103,
+              "y": 626.8988323190393
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1323.5556550393737,
+              "y": 1414.6203667261204
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1981.016121390658,
+              "y": 1410.7939720405534
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 884.6490756152957,
+              "y": 611.1382880272646
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1268.8979872018908,
+              "y": 1288.7234169826042
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 2073.8577356625074,
+              "y": 1305.1978988267647
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 764,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -3.647999565124511,
+            "vy": -4.3487548828124996e-07,
+            "x": 1419.7439995651246,
+            "y": 1344.7680004348763
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "battle",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784083481008,
+          "transitioning": false,
+          "elapsedMs": 1946
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": true,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": {
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 600,
+                "id": "battle_zone_1",
+                "index": 2,
+                "label": "战斗区 1",
+                "radius": 124,
+                "width": 900,
+                "x": 960,
+                "y": 620
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_2",
+                "index": 5,
+                "label": "战斗区 2",
+                "radius": 124,
+                "width": 900,
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_3",
+                "index": 7,
+                "label": "战斗区 3",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1340
+              }
+            ],
+            "branches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 780,
+                "y": 600
+              },
+              {
+                "x": 2220,
+                "y": 600
+              }
+            ],
+            "floor": 1,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 600,
+              "id": "battle_zone_2",
+              "index": 5,
+              "label": "战斗区 2",
+              "radius": 124,
+              "width": 900,
+              "x": 1290,
+              "y": 1340
+            },
+            "mechanism": null,
+            "obstacles": [
+              {
+                "height": 40.559108534920966,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 164.16782026039436,
+                "x": 168.1194331170991,
+                "y": 341.3879960598424
+              },
+              {
+                "height": 38.22324653025717,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.81391370110214,
+                "x": 2419.47031577304,
+                "y": 416.8061306900345
+              },
+              {
+                "height": 40.425865202676505,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.62850201083347,
+                "x": 253.69105718191713,
+                "y": 1576.4921029135585
+              },
+              {
+                "height": 43.526080476120114,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 186.54034489765763,
+                "x": 2290.7876270916313,
+                "y": 1613.4235773873515
+              },
+              {
+                "height": 63.15150493895635,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 1245.2201585033908,
+                "y": 789.8289730353281
+              },
+              {
+                "height": 69.96001413743943,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.96686885673553,
+                "x": 1685.913756377995,
+                "y": 1098.2397836479358
+              },
+              {
+                "height": 55.821035937871784,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 55.821035937871784,
+                "x": 1225.7736579580233,
+                "y": 1532.6723945792764
+              },
+              {
+                "height": 80.53515266776085,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 56.96388847231865,
+                "x": 1769.176420578733,
+                "y": 684.5210777469911
+              },
+              {
+                "height": 81.73104000249877,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.80976000176743,
+                "x": 1166.9570763902739,
+                "y": 1163.06425882224
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1405,
+                "x": 0,
+                "y": 506
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1405,
+                "x": 1595,
+                "y": 506
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 865,
+                "x": 0,
+                "y": 776
+              }
+            ],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 1500,
+                "y": 620
+              },
+              {
+                "x": 960,
+                "y": 620
+              },
+              {
+                "x": 960,
+                "y": 980
+              },
+              {
+                "x": 1290,
+                "y": 980
+              },
+              {
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": -17,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1496.1234581756278,
+              "y": 1440.862888451307
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 2052.47268874441,
+              "y": 1449.967421110315
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1030.425779991103,
+              "y": 626.8988323190393
+            },
+            {
+              "hp": -17,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1323.5556550393737,
+              "y": 1414.6203667261204
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1981.016121390658,
+              "y": 1410.7939720405534
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 884.6490756152957,
+              "y": 611.1382880272646
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1296.8712047877111,
+              "y": 1309.8939169894954
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 2073.8577356625074,
+              "y": 1305.1978988267647
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 764,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -2.5791441547851557,
+            "vy": 2.5791163227539053,
+            "x": 1327.405832154785,
+            "y": 1386.034195677247
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "battle",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784083481605,
+          "transitioning": false,
+          "elapsedMs": 2551
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": {
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 600,
+                "id": "battle_zone_1",
+                "index": 2,
+                "label": "战斗区 1",
+                "radius": 124,
+                "width": 900,
+                "x": 960,
+                "y": 620
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_2",
+                "index": 5,
+                "label": "战斗区 2",
+                "radius": 124,
+                "width": 900,
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_3",
+                "index": 7,
+                "label": "战斗区 3",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1340
+              }
+            ],
+            "branches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 780,
+                "y": 600
+              },
+              {
+                "x": 2220,
+                "y": 600
+              }
+            ],
+            "floor": 1,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 600,
+              "id": "battle_zone_2",
+              "index": 5,
+              "label": "战斗区 2",
+              "radius": 124,
+              "width": 900,
+              "x": 1290,
+              "y": 1340
+            },
+            "mechanism": null,
+            "obstacles": [
+              {
+                "height": 40.559108534920966,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 164.16782026039436,
+                "x": 168.1194331170991,
+                "y": 341.3879960598424
+              },
+              {
+                "height": 38.22324653025717,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.81391370110214,
+                "x": 2419.47031577304,
+                "y": 416.8061306900345
+              },
+              {
+                "height": 40.425865202676505,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.62850201083347,
+                "x": 253.69105718191713,
+                "y": 1576.4921029135585
+              },
+              {
+                "height": 43.526080476120114,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 186.54034489765763,
+                "x": 2290.7876270916313,
+                "y": 1613.4235773873515
+              },
+              {
+                "height": 63.15150493895635,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 1245.2201585033908,
+                "y": 789.8289730353281
+              },
+              {
+                "height": 69.96001413743943,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.96686885673553,
+                "x": 1685.913756377995,
+                "y": 1098.2397836479358
+              },
+              {
+                "height": 55.821035937871784,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 55.821035937871784,
+                "x": 1225.7736579580233,
+                "y": 1532.6723945792764
+              },
+              {
+                "height": 80.53515266776085,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 56.96388847231865,
+                "x": 1769.176420578733,
+                "y": 684.5210777469911
+              },
+              {
+                "height": 81.73104000249877,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.80976000176743,
+                "x": 1166.9570763902739,
+                "y": 1163.06425882224
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1405,
+                "x": 0,
+                "y": 506
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1405,
+                "x": 1595,
+                "y": 506
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 865,
+                "x": 0,
+                "y": 776
+              }
+            ],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 1500,
+                "y": 620
+              },
+              {
+                "x": 960,
+                "y": 620
+              },
+              {
+                "x": 960,
+                "y": 980
+              },
+              {
+                "x": 1290,
+                "y": 980
+              },
+              {
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": -17,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1496.1234581756278,
+              "y": 1440.862888451307
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 2052.47268874441,
+              "y": 1449.967421110315
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1030.425779991103,
+              "y": 626.8988323190393
+            },
+            {
+              "hp": -17,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1323.5556550393737,
+              "y": 1414.6203667261204
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1981.016121390658,
+              "y": 1410.7939720405534
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 884.6490756152957,
+              "y": 611.1382880272646
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1222.0912559444187,
+              "y": 1326.98290894839
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 2073.8577356625074,
+              "y": 1305.1978988267647
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 764,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -2.579136,
+            "vy": -2.579135999999999,
+            "x": 1110.5723519999983,
+            "y": 1239.0234240000004
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "battle",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784083483195,
+          "transitioning": false,
+          "elapsedMs": 4160
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": true,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": {
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 600,
+                "id": "battle_zone_1",
+                "index": 2,
+                "label": "战斗区 1",
+                "radius": 124,
+                "width": 900,
+                "x": 960,
+                "y": 620
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_2",
+                "index": 5,
+                "label": "战斗区 2",
+                "radius": 124,
+                "width": 900,
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_3",
+                "index": 7,
+                "label": "战斗区 3",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1340
+              }
+            ],
+            "branches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 780,
+                "y": 600
+              },
+              {
+                "x": 2220,
+                "y": 600
+              }
+            ],
+            "floor": 1,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 600,
+              "id": "battle_zone_2",
+              "index": 5,
+              "label": "战斗区 2",
+              "radius": 124,
+              "width": 900,
+              "x": 1290,
+              "y": 1340
+            },
+            "mechanism": null,
+            "obstacles": [
+              {
+                "height": 40.559108534920966,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 164.16782026039436,
+                "x": 168.1194331170991,
+                "y": 341.3879960598424
+              },
+              {
+                "height": 38.22324653025717,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.81391370110214,
+                "x": 2419.47031577304,
+                "y": 416.8061306900345
+              },
+              {
+                "height": 40.425865202676505,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.62850201083347,
+                "x": 253.69105718191713,
+                "y": 1576.4921029135585
+              },
+              {
+                "height": 43.526080476120114,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 186.54034489765763,
+                "x": 2290.7876270916313,
+                "y": 1613.4235773873515
+              },
+              {
+                "height": 63.15150493895635,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 1245.2201585033908,
+                "y": 789.8289730353281
+              },
+              {
+                "height": 69.96001413743943,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.96686885673553,
+                "x": 1685.913756377995,
+                "y": 1098.2397836479358
+              },
+              {
+                "height": 55.821035937871784,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 55.821035937871784,
+                "x": 1225.7736579580233,
+                "y": 1532.6723945792764
+              },
+              {
+                "height": 80.53515266776085,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 56.96388847231865,
+                "x": 1769.176420578733,
+                "y": 684.5210777469911
+              },
+              {
+                "height": 81.73104000249877,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.80976000176743,
+                "x": 1166.9570763902739,
+                "y": 1163.06425882224
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1405,
+                "x": 0,
+                "y": 506
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1405,
+                "x": 1595,
+                "y": 506
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 865,
+                "x": 0,
+                "y": 776
+              }
+            ],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 1500,
+                "y": 620
+              },
+              {
+                "x": 960,
+                "y": 620
+              },
+              {
+                "x": 960,
+                "y": 980
+              },
+              {
+                "x": 1290,
+                "y": 980
+              },
+              {
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": -17,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1496.1234581756278,
+              "y": 1440.862888451307
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 2052.47268874441,
+              "y": 1449.967421110315
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1030.425779991103,
+              "y": 626.8988323190393
+            },
+            {
+              "hp": -17,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1323.5556550393737,
+              "y": 1414.6203667261204
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1981.016121390658,
+              "y": 1410.7939720405534
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 884.6490756152957,
+              "y": 611.1382880272646
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1145.328617212245,
+              "y": 1264.8066113758268
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 2073.8577356625074,
+              "y": 1305.1978988267647
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 764,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.5791359998498624,
+            "vy": 2.5791360000613865,
+            "x": 1037.9101259666465,
+            "y": 1229.5071369299471
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "battle",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784083485277,
+          "transitioning": false,
+          "elapsedMs": 6242
+        }
+      ],
+      "actions": [
+        {
+          "elapsedMs": 59,
+          "mode": "fight",
+          "target": {
+            "hp": 65,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 65,
+            "optionalHidden": false,
+            "size": 30,
+            "x": 1496.1234581756278,
+            "y": 1440.862888451307
+          },
+          "keys": [
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 1244,
+          "mode": "fight",
+          "target": {
+            "hp": 65,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 65,
+            "optionalHidden": false,
+            "size": 30,
+            "x": 1323.5556550393737,
+            "y": 1414.6203667261204
+          },
+          "keys": [
+            "KeyA",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 1946,
+          "mode": "fight",
+          "target": {
+            "hp": 65,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 65,
+            "optionalHidden": false,
+            "size": 30,
+            "x": 1323.5556550393737,
+            "y": 1414.6203667261204
+          },
+          "keys": [
+            "KeyA",
+            "KeyS",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 2551,
+          "mode": "fight",
+          "target": {
+            "hp": 60,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 60,
+            "optionalHidden": false,
+            "size": 30,
+            "x": 1296.8712047877111,
+            "y": 1309.8939169894954
+          },
+          "keys": [
+            "KeyA",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 4160,
+          "mode": "fight",
+          "target": {
+            "hp": 60,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 60,
+            "optionalHidden": false,
+            "size": 30,
+            "x": 1222.0912559444187,
+            "y": 1326.98290894839
+          },
+          "keys": [
+            "KeyD",
+            "KeyS",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 6242,
+          "mode": "fight",
+          "target": {
+            "hp": 60,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 60,
+            "optionalHidden": false,
+            "size": 30,
+            "x": 1145.328617212245,
+            "y": 1264.8066113758268
+          },
+          "keys": [
+            "KeyD",
+            "KeyS",
+            "KeyJ"
+          ]
+        }
+      ],
+      "screenshot": "tower_branch_screens\\warrior_floor_1_1784083479.png"
+    }
+  ],
+  "issues": [
+    {
+      "severity": "严重",
+      "code": "FLOOR_TIMEOUT",
+      "message": "在限定时间内没有完成当前楼层",
+      "floor": 1,
+      "classId": "warrior",
+      "evidence": {
+        "durationMs": 11889,
+        "lastSnapshot": {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": true,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": {
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "battleZones": [
+              {
+                "height": 600,
+                "id": "battle_zone_1",
+                "index": 2,
+                "label": "战斗区 1",
+                "radius": 124,
+                "width": 900,
+                "x": 960,
+                "y": 620
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_2",
+                "index": 5,
+                "label": "战斗区 2",
+                "radius": 124,
+                "width": 900,
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "height": 600,
+                "id": "battle_zone_3",
+                "index": 7,
+                "label": "战斗区 3",
+                "radius": 124,
+                "width": 900,
+                "x": 2040.0000000000002,
+                "y": 1340
+              }
+            ],
+            "branches": [
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 1340
+                },
+                {
+                  "x": 600,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 970
+                },
+                {
+                  "x": 1080,
+                  "y": 600
+                },
+                {
+                  "x": 780,
+                  "y": 600
+                }
+              ],
+              [
+                {
+                  "x": 1290,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1340
+                },
+                {
+                  "x": 1920,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 1140
+                },
+                {
+                  "x": 2400,
+                  "y": 600
+                },
+                {
+                  "x": 2220,
+                  "y": 600
+                }
+              ]
+            ],
+            "exit": {
+              "x": 1500,
+              "y": 440
+            },
+            "exitChoices": [
+              {
+                "x": 780,
+                "y": 600
+              },
+              {
+                "x": 2220,
+                "y": 600
+              }
+            ],
+            "floor": 1,
+            "hiddenSpaces": [],
+            "hordeZone": {
+              "height": 600,
+              "id": "battle_zone_2",
+              "index": 5,
+              "label": "战斗区 2",
+              "radius": 124,
+              "width": 900,
+              "x": 1290,
+              "y": 1340
+            },
+            "mechanism": null,
+            "obstacles": [
+              {
+                "height": 40.559108534920966,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 164.16782026039436,
+                "x": 168.1194331170991,
+                "y": 341.3879960598424
+              },
+              {
+                "height": 38.22324653025717,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.81391370110214,
+                "x": 2419.47031577304,
+                "y": 416.8061306900345
+              },
+              {
+                "height": 40.425865202676505,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 163.62850201083347,
+                "x": 253.69105718191713,
+                "y": 1576.4921029135585
+              },
+              {
+                "height": 43.526080476120114,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 186.54034489765763,
+                "x": 2290.7876270916313,
+                "y": 1613.4235773873515
+              },
+              {
+                "height": 63.15150493895635,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 1245.2201585033908,
+                "y": 789.8289730353281
+              },
+              {
+                "height": 69.96001413743943,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.96686885673553,
+                "x": 1685.913756377995,
+                "y": 1098.2397836479358
+              },
+              {
+                "height": 55.821035937871784,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 55.821035937871784,
+                "x": 1225.7736579580233,
+                "y": 1532.6723945792764
+              },
+              {
+                "height": 80.53515266776085,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 56.96388847231865,
+                "x": 1769.176420578733,
+                "y": 684.5210777469911
+              },
+              {
+                "height": 81.73104000249877,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 57.80976000176743,
+                "x": 1166.9570763902739,
+                "y": 1163.06425882224
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1405,
+                "x": 0,
+                "y": 506
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1405,
+                "x": 1595,
+                "y": 506
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 865,
+                "x": 0,
+                "y": 776
+              }
+            ],
+            "route": [
+              {
+                "x": 1500,
+                "y": 440
+              },
+              {
+                "x": 1500,
+                "y": 620
+              },
+              {
+                "x": 960,
+                "y": 620
+              },
+              {
+                "x": 960,
+                "y": 980
+              },
+              {
+                "x": 1290,
+                "y": 980
+              },
+              {
+                "x": 1290,
+                "y": 1340
+              },
+              {
+                "x": 1709.9999999999998,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1340
+              },
+              {
+                "x": 2040.0000000000002,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1450
+              },
+              {
+                "x": 1500,
+                "y": 1560
+              }
+            ],
+            "routeWidth": 112,
+            "start": {
+              "x": 1500,
+              "y": 1560
+            }
+          },
+          "monsters": [
+            {
+              "hp": -17,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1496.1234581756278,
+              "y": 1440.862888451307
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 2052.47268874441,
+              "y": 1449.967421110315
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1030.425779991103,
+              "y": 626.8988323190393
+            },
+            {
+              "hp": -17,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1323.5556550393737,
+              "y": 1414.6203667261204
+            },
+            {
+              "hp": 90,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 90,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1981.016121390658,
+              "y": 1410.7939720405534
+            },
+            {
+              "hp": 75,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 75,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 884.6490756152957,
+              "y": 611.1382880272646
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 1145.328617212245,
+              "y": 1264.8066113758268
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "optionalHidden": false,
+              "size": 30,
+              "x": 2073.8577356625074,
+              "y": 1305.1978988267647
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 764,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 2.5791359998498624,
+            "vy": 2.5791360000613865,
+            "x": 1037.9101259666465,
+            "y": 1229.5071369299471
+          },
+          "portals": [],
+          "roomHeight": 2000,
+          "roomType": "battle",
+          "roomWidth": 3000,
+          "scene": "tower",
+          "timestamp": 1784083485277,
+          "transitioning": false,
+          "elapsedMs": 6242
+        }
+      }
+    }
+  ]
+}

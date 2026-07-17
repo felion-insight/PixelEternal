@@ -736,7 +736,11 @@ class DroppedItem {
             const dy = this.y - gameInstance.player.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            if (distance < this.pickupRange) {
+            const pickupMultiplier = window.EquipmentEffectSystem
+                && typeof window.EquipmentEffectSystem.getPickupRangeMultiplier === 'function'
+                ? window.EquipmentEffectSystem.getPickupRangeMultiplier(gameInstance.player)
+                : 1;
+            if (distance < this.pickupRange * pickupMultiplier) {
                 if (!pickupTriggered) return false;
                 const now = Date.now();
                 if (now < (this.nextPickupTryAt || 0)) return false;
@@ -3390,6 +3394,11 @@ class Room {
         this.treasureChest = null;
         this.restItem = null;
         this.cleared = false;
+        this.towerEncounter = null;
+        // 恶魔塔第一阶段地图：先生成明确的主路线，再在路线外布置主题障碍物。
+        this.map = typeof window.createTowerMap === 'function'
+            ? window.createTowerMap(this.floor, this.width, this.height, this.type)
+            : null;
         // 预加载贴图
         this._preloadTextures();
     }
@@ -3435,7 +3444,33 @@ class Room {
     generateRoom(playerLevel = 1) {
         if (this.type === ROOM_TYPES.BATTLE) {
             // 战斗房间：根据玩家水平动态生成怪物
-            const monsterCount = Math.min(16, 3 + Math.floor(this.floor / 3));
+            const isTowerBattle = !!(this.map && this.gameInstance
+                && this.gameInstance.currentScene === SCENE_TYPES.TOWER);
+            const monsterCount = isTowerBattle
+                ? 2
+                : Math.min(16, 3 + Math.floor(this.floor / 3));
+            let towerSpawnIndex = 0;
+            const getSpawnPosition = () => {
+                if (isTowerBattle) {
+                    return this.getTowerRouteSpawnPosition(towerSpawnIndex++);
+                }
+                return {
+                    x: 100 + Math.random() * (this.width - 200),
+                    y: 100 + Math.random() * (this.height - 200)
+                };
+            };
+            if (isTowerBattle) {
+                const branchCount = Array.isArray(this.map.exitBranches)
+                    ? this.map.exitBranches.length
+                    : 0;
+                this.towerEncounter = {
+                    routeWaveCleared: false,
+                    hordeSpawned: false,
+                    branchCleared: Array(branchCount).fill(false),
+                    branchPortalSpawned: Array(branchCount).fill(false),
+                    branchRoomTypes: Array(branchCount).fill(null)
+                };
+            }
             
             // 根据玩家等级和楼层动态生成怪物
             // 一层里会生成几只超过玩家水平/等级的怪物
@@ -3467,8 +3502,9 @@ class Room {
             // 生成超过玩家水平的怪物
             for (let i = 0; i < overLevelCount && overLevelMonsters.length > 0; i++) {
                 const selected = overLevelMonsters[Math.floor(Math.random() * overLevelMonsters.length)];
-                const x = 100 + Math.random() * (this.width - 200);
-                const y = 100 + Math.random() * (this.height - 200);
+                const spawn = getSpawnPosition();
+                const x = spawn.x;
+                const y = spawn.y;
                 const monster = new Monster(x, y, selected.type, this.gameInstance);
                 const tLo = Math.max(1, maxLevelForFloor - 10);
                 const tHi = maxLevelForFloor;
@@ -3485,8 +3521,9 @@ class Room {
                 );
                 const candidates = suitableMonsters.length > 0 ? suitableMonsters : availableMonsters;
                 const selected = candidates[Math.floor(Math.random() * candidates.length)];
-                const x = 100 + Math.random() * (this.width - 200);
-                const y = 100 + Math.random() * (this.height - 200);
+                const spawn = getSpawnPosition();
+                const x = spawn.x;
+                const y = spawn.y;
                 const monster = new Monster(x, y, selected.type, this.gameInstance);
                 {
                     const tLo = Math.max(1, maxLevelForFloor - 10);
@@ -3511,12 +3548,13 @@ class Room {
             }
             
             // 当玩家超出怪物等级时添加新的超过玩家水平的怪物
-            if (spawnPlayerLevel > 20) {
+            if (spawnPlayerLevel > 20 && !isTowerBattle) {
                 const newOverLevelMonsters = availableMonsters.filter(m => m.level > spawnPlayerLevel - 5);
                 if (newOverLevelMonsters.length > 0) {
                     const selected = newOverLevelMonsters[Math.floor(Math.random() * newOverLevelMonsters.length)];
-                    const x = 100 + Math.random() * (this.width - 200);
-                    const y = 100 + Math.random() * (this.height - 200);
+                    const spawn = getSpawnPosition();
+                    const x = spawn.x;
+                    const y = spawn.y;
                     const monster = new Monster(x, y, selected.type, this.gameInstance);
                     {
                         const tLo = Math.max(1, maxLevelForFloor - 10);
@@ -3536,8 +3574,17 @@ class Room {
                     this.monsters.push(monster);
                 }
             }
+            if (isTowerBattle) {
+                // 路线小怪与开阔区大波次均在进入房间时完成生成，
+                // 玩家只会在接近时引起仇恨，不会看到怪物凭空出现。
+                this.spawnTowerHorde(playerLevel);
+                this.spawnTowerBranchEncounters(playerLevel);
+                this.spawnForestHiddenEnemies(playerLevel);
+            }
         } else if (this.type === (ROOM_TYPES && ROOM_TYPES.ELITE) || this.type === 'elite') {
             // 精英房间：生成2~4只精英怪，按楼层选择精英类型
+            const isTowerElite = !!(this.map && this.gameInstance
+                && this.gameInstance.currentScene === SCENE_TYPES.TOWER);
             const elitePools = {
                 low: ['goblin_elite', 'goblinWarrior_elite', 'goblinShaman_elite'],
                 mid: ['goblin_elite', 'goblinWarrior_elite', 'goblinShaman_elite', 'skeletonKnight_elite', 'skeletonMage_elite'],
@@ -3554,11 +3601,20 @@ class Room {
             else if (this.floor >= 16) pool = elitePools.high;
             else if (this.floor >= 6) pool = elitePools.mid;
             const cap = maxMonsterLevelForFloor(this.floor);
-            const monsterCount = 2 + Math.floor(Math.random() * 3);
+            const monsterCount = isTowerElite ? 3 : 2 + Math.floor(Math.random() * 3);
             for (let i = 0; i < monsterCount; i++) {
                 const eliteType = pool[Math.floor(Math.random() * pool.length)];
-                const x = 100 + Math.random() * (this.width - 200);
-                const y = 100 + Math.random() * (this.height - 200);
+                let x;
+                let y;
+                if (isTowerElite && this.map.hordeZone) {
+                    const angle = (Math.PI * 2 * i) / monsterCount;
+                    const distance = 52 + i * 18;
+                    x = this.map.hordeZone.x + Math.cos(angle) * distance;
+                    y = this.map.hordeZone.y + Math.sin(angle) * distance;
+                } else {
+                    x = 100 + Math.random() * (this.width - 200);
+                    y = 100 + Math.random() * (this.height - 200);
+                }
                 const monster = new Monster(x, y, eliteType, this.gameInstance);
                 boostMonsterTowardLevel(monster, Math.max(1, cap - Math.floor(Math.random() * 8)));
                 this.monsters.push(monster);
@@ -3575,9 +3631,13 @@ class Room {
             this.cleared = false;
         } else if (this.type === ROOM_TYPES.TREASURE) {
             // 宝箱房间：生成宝箱
+            const rewardNode = this.map && this.map.topology
+                ? this.map.topology.nodes.find(node => node.id === 'branch_reward')
+                : null;
+            const towerRewardPosition = this.getTowerInteractionPosition(rewardNode);
             this.treasureChest = {
-                x: this.width / 2,
-                y: this.height / 2,
+                x: towerRewardPosition.x,
+                y: towerRewardPosition.y,
                 opened: false,
                 quality: this.getRandomQuality()
             };
@@ -3597,9 +3657,13 @@ class Room {
                 }
             }
             
+            const rewardNode = this.map && this.map.topology
+                ? this.map.topology.nodes.find(node => node.id === 'branch_reward')
+                : null;
+            const towerRestPosition = this.getTowerInteractionPosition(rewardNode);
             this.restItem = {
-                x: this.width / 2,
-                y: this.height / 2,
+                x: towerRestPosition.x,
+                y: towerRestPosition.y,
                 type: selectedType,
                 used: false
             };
@@ -3609,8 +3673,261 @@ class Room {
             if (typeof pairTwinSoulMonstersInRoom === 'function') pairTwinSoulMonstersInRoom(this.monsters);
         }
 
+        this.normalizeEntitiesToMap();
+
         // 生成房间内容后，再次预加载实体贴图
         this._preloadTextures();
+    }
+
+    getTowerRouteSpawnPosition(index) {
+        const route = this.map && this.map.route;
+        if (!route || route.length < 2) {
+            return { x: this.width / 2, y: this.height / 2 };
+        }
+        const routeIndex = Math.max(1, route.length - 2 - (index % 2));
+        const point = route[routeIndex];
+        return {
+            x: point.x + (Math.random() - 0.5) * 34,
+            y: point.y + (Math.random() - 0.5) * 34
+        };
+    }
+
+    getTowerInteractionPosition(preferredNode = null) {
+        if (!this.map || !Array.isArray(this.map.route) || !this.map.route.length) {
+            return {
+                x: preferredNode ? preferredNode.x : this.width / 2,
+                y: preferredNode ? preferredNode.y : this.height / 2
+            };
+        }
+        const candidates = [];
+        if (preferredNode) candidates.push(preferredNode);
+        const route = this.map.route;
+        // 交互点优先放在主路线内部节点，不使用可能位于密林中的房间中心。
+        for (let i = 1; i < route.length - 1; i++) {
+            candidates.push(route[i]);
+        }
+        candidates.push(this.map.start, this.map.exit);
+        for (const point of candidates) {
+            if (point && !this.isPositionBlocked(point.x, point.y, 34)) {
+                return { x: point.x, y: point.y };
+            }
+        }
+        const fallback = preferredNode || route[Math.floor(route.length / 2)];
+        if (typeof window.towerMapFindOpenPosition === 'function') {
+            return window.towerMapFindOpenPosition(
+                this.map,
+                fallback.x,
+                fallback.y,
+                this.width,
+                this.height,
+                34
+            );
+        }
+        return { x: fallback.x, y: fallback.y };
+    }
+
+    spawnTowerHorde(playerLevel = 1) {
+        if (!this.towerEncounter || this.towerEncounter.hordeSpawned || !this.map) return;
+        const hordeZone = this.map.hordeZone || {
+            x: this.width / 2,
+            y: this.height / 2,
+            radius: 150
+        };
+        const battleZones = Array.isArray(this.map.battleZones) && this.map.battleZones.length
+            ? this.map.battleZones
+            : [hordeZone];
+        const available = Object.keys(MONSTER_TYPES).filter(type => {
+            const data = MONSTER_TYPES[type];
+            return data && !data.isElite
+                && !(typeof type === 'string' && type.endsWith('_elite'))
+                && this.floor >= towerMinFloorForMonsterType(type, data);
+        });
+        if (!available.length) return;
+        const maxLevel = maxMonsterLevelForFloor(this.floor);
+        const count = Math.min(10, 6 + Math.floor(this.floor / 18));
+        for (let i = 0; i < count; i++) {
+            const angle = (Math.PI * 2 * i) / count + Math.random() * 0.25;
+            const zone = battleZones[i % battleZones.length];
+            const zoneRadius = zone.radius || hordeZone.radius || 150;
+            const distance = 48 + Math.random() * Math.max(20, zoneRadius - 70);
+            const type = available[Math.floor(Math.random() * available.length)];
+            const monster = new Monster(
+                zone.x + Math.cos(angle) * distance,
+                zone.y + Math.sin(angle) * distance,
+                type,
+                this.gameInstance
+            );
+            boostMonsterTowardLevel(monster, Math.max(1, maxLevel - Math.floor(Math.random() * 6)));
+            this.monsters.push(monster);
+        }
+        this.towerEncounter.hordeSpawned = true;
+        this.towerEncounter.routeWaveCleared = true;
+        this.normalizeEntitiesToMap();
+        this.cleared = false;
+    }
+
+    spawnTowerBranchEncounters(playerLevel = 1) {
+        if (!this.map || !this.towerEncounter) return;
+        const zones = Array.isArray(this.map.branchBattleZones)
+            ? this.map.branchBattleZones
+            : [];
+        if (!zones.length) return;
+        const available = Object.keys(MONSTER_TYPES).filter(type => {
+            const data = MONSTER_TYPES[type];
+            return data && !data.isElite
+                && !(typeof type === 'string' && type.endsWith('_elite'))
+                && this.floor >= towerMinFloorForMonsterType(type, data);
+        });
+        if (!available.length) return;
+        const maxLevel = maxMonsterLevelForFloor(this.floor);
+        zones.forEach(zone => {
+            const count = 3 + (this.floor >= 80 ? 1 : 0);
+            for (let i = 0; i < count; i++) {
+                const angle = (Math.PI * 2 * i) / count + 0.3;
+                const distance = 50 + (i % 2) * 32;
+                const type = available[Math.floor(Math.random() * available.length)];
+                const monster = new Monster(
+                    zone.x + Math.cos(angle) * distance,
+                    zone.y + Math.sin(angle) * distance,
+                    type,
+                    this.gameInstance
+                );
+                boostMonsterTowardLevel(monster, Math.max(1, maxLevel - Math.floor(Math.random() * 5)));
+                monster.towerExitBranchIndex = zone.branchIndex;
+                this.monsters.push(monster);
+            }
+        });
+        this.normalizeEntitiesToMap();
+    }
+
+    spawnForestHiddenEnemies(playerLevel = 1) {
+        if (!this.map || this.map.theme?.id !== 'forest') return;
+        const spaces = (this.map.hiddenSpaces || []).filter(space => space.content === 'enemy');
+        if (!spaces.length) return;
+        const available = Object.keys(MONSTER_TYPES).filter(type => {
+            const data = MONSTER_TYPES[type];
+            return data && !data.isElite
+                && !(typeof type === 'string' && type.endsWith('_elite'))
+                && this.floor >= towerMinFloorForMonsterType(type, data);
+        });
+        if (!available.length) return;
+        const maxLevel = maxMonsterLevelForFloor(this.floor);
+        spaces.forEach(space => {
+            for (let i = 0; i < 2; i++) {
+                const type = available[Math.floor(Math.random() * available.length)];
+                const monster = new Monster(
+                    space.x + space.width * (0.3 + i * 0.4),
+                    space.y + space.height * 0.5,
+                    type,
+                    this.gameInstance
+                );
+                boostMonsterTowardLevel(monster, Math.max(1, maxLevel - 3));
+                // 隐藏敌人是探索奖励，不阻断主路线清场。
+                monster.optionalHidden = true;
+                this.monsters.push(monster);
+            }
+        });
+    }
+
+    isPositionBlocked(x, y, radius) {
+        return !!(this.map && typeof window.towerMapIsBlocked === 'function'
+            && window.towerMapIsBlocked(this.map, x, y, radius));
+    }
+
+    resolvePlayerMovement(player, previousX, previousY) {
+        if (!player || !this.map || typeof window.towerMapIsBlocked !== 'function') return;
+        const radius = Math.max(1, (player.size || 30) / 2);
+        if (!this.isPositionBlocked(player.x, player.y, radius)) return;
+
+        const canUseX = !this.isPositionBlocked(player.x, previousY, radius);
+        const canUseY = !this.isPositionBlocked(previousX, player.y, radius);
+        const wasDisplacing = player.isDashing || player._pierceDash || player._backstepShot;
+        if (canUseX && canUseY) {
+            // 允许沿障碍物边缘滑动，避免斜向移动时完全卡住。
+            const dx = Math.abs(player.x - previousX);
+            const dy = Math.abs(player.y - previousY);
+            if (dx >= dy) {
+                player.y = previousY;
+            } else {
+                player.x = previousX;
+            }
+        } else if (canUseX) {
+            player.y = previousY;
+        } else if (canUseY) {
+            player.x = previousX;
+        } else {
+            player.x = previousX;
+            player.y = previousY;
+        }
+        player.vx = 0;
+        player.vy = 0;
+        // 位移技能撞到墙体时立即结束位移，避免下一帧继续把角色推回墙内。
+        if (player.isDashing) {
+            player.isDashing = false;
+            player.dashEndTime = Date.now();
+        }
+        if (player._pierceDash) delete player._pierceDash;
+        if (player._backstepShot) delete player._backstepShot;
+        if (wasDisplacing) player.isCastingSkill = false;
+    }
+
+    resolvePlayerDisplacement(player) {
+        if (!player || !this.map || typeof window.towerMapFindOpenPosition !== 'function') return false;
+        const radius = Math.max(1, (player.size || 30) / 2);
+        if (!this.isPositionBlocked(player.x, player.y, radius)) return false;
+        const wasDisplacing = player.isDashing || player._pierceDash || player._backstepShot;
+        const position = window.towerMapFindOpenPosition(
+            this.map,
+            player.x,
+            player.y,
+            this.width,
+            this.height,
+            radius
+        );
+        player.x = position.x;
+        player.y = position.y;
+        player.vx = 0;
+        player.vy = 0;
+        if (player.isDashing) {
+            player.isDashing = false;
+            player.dashEndTime = Date.now();
+        }
+        if (player._pierceDash) delete player._pierceDash;
+        if (player._backstepShot) delete player._backstepShot;
+        if (wasDisplacing) player.isCastingSkill = false;
+        return true;
+    }
+
+    resolveMonsterMovement(monster, previousX, previousY) {
+        if (!monster || !this.map || typeof window.towerMapIsBlocked !== 'function') return;
+        const radius = Math.max(1, (monster.size || 30) / 2);
+        if (!this.isPositionBlocked(monster.x, monster.y, radius)) return;
+        monster.x = previousX;
+        monster.y = previousY;
+        monster.vx = 0;
+        monster.vy = 0;
+    }
+
+    normalizeEntitiesToMap() {
+        if (!this.map || typeof window.towerMapFindOpenPosition !== 'function') return;
+        const moveEntity = entity => {
+            if (!entity || !Number.isFinite(entity.x) || !Number.isFinite(entity.y)) return;
+            const radius = Math.max(1, (entity.size || 30) / 2);
+            if (!this.isPositionBlocked(entity.x, entity.y, radius)) return;
+            const position = window.towerMapFindOpenPosition(
+                this.map,
+                entity.x,
+                entity.y,
+                this.width,
+                this.height,
+                radius
+            );
+            entity.x = position.x;
+            entity.y = position.y;
+        };
+        this.monsters.forEach(moveEntity);
+        if (this.treasureChest) moveEntity(this.treasureChest);
+        if (this.restItem) moveEntity(this.restItem);
     }
 
     getRandomQuality() {
@@ -3629,12 +3946,45 @@ class Room {
             applyMarshalAurasToMonsters(this.monsters);
             this.monsters.forEach(monster => {
                 if (monster.hp > 0) {
+                    const previousX = monster.x;
+                    const previousY = monster.y;
                     monster.update(player);
+                    this.resolveMonsterMovement(monster, previousX, previousY);
                 }
             });
+
+            if (this.towerEncounter && Array.isArray(this.towerEncounter.branchCleared)) {
+                this.towerEncounter.branchCleared = this.towerEncounter.branchCleared.map((cleared, branchIndex) => {
+                    if (cleared) return true;
+                    const branchMonsters = this.monsters.filter(monster =>
+                        monster.towerExitBranchIndex === branchIndex
+                    );
+                    return branchMonsters.length > 0
+                        && branchMonsters.every(monster => monster.hp <= 0);
+                });
+            }
             
+            if (this.towerEncounter && !this.towerEncounter.hordeSpawned) {
+                const hordeZone = this.map && this.map.hordeZone;
+                const requiredMonsters = this.monsters.filter(monster => !monster.optionalHidden);
+                const routeWaveDead = requiredMonsters.length > 0
+                    && requiredMonsters.every(monster => monster.hp <= 0);
+                const distanceToZone = hordeZone
+                    ? Math.hypot(player.x - hordeZone.x, player.y - hordeZone.y)
+                    : Infinity;
+                if (routeWaveDead && distanceToZone <= (hordeZone.radius || 150)) {
+                    this.spawnTowerHorde(player.level);
+                }
+                // 路线小波次清完但尚未抵达空旷区时，房间不能提前结束。
+                if (!this.towerEncounter.hordeSpawned) {
+                    this.cleared = false;
+                    return;
+                }
+            }
+
             // 检查是否清空
-            if (this.monsters.every(m => m.hp <= 0) && !this.cleared) {
+            const requiredMonsters = this.monsters.filter(monster => !monster.optionalHidden);
+            if (requiredMonsters.every(m => m.hp <= 0) && !this.cleared) {
                 this.cleared = true;
             }
         }
@@ -3679,12 +4029,32 @@ class Room {
                 return { type: 'rest', object: this.restItem, x: this.restItem.x, y: this.restItem.y };
             }
         } else if ((this.type === (ROOM_TYPES && ROOM_TYPES.GAP_SHOP) || this.type === 'gap_shop') && !this.cleared) {
-            const cx = this.width / 2;
-            const cy = this.height / 2;
+            const shopPoint = this.map && this.map.interactionPoint;
+            const cx = shopPoint ? shopPoint.x : this.width / 2;
+            const cy = shopPoint ? shopPoint.y : this.height / 2;
             const dx = cx - player.x;
             const dy = cy - player.y;
             if (Math.sqrt(dx * dx + dy * dy) < 90) {
                 return { type: 'gap_shop', object: this, x: cx, y: cy - 30 };
+            }
+        }
+        if (this.map && this.map.mechanism && !this.map.mechanism.unlocked) {
+            const mechanism = this.map.mechanism;
+            const keys = Array.isArray(mechanism.keys) ? mechanism.keys : [mechanism.key];
+            for (let index = 0; index < keys.length; index++) {
+                if (mechanism.activatedKeys && mechanism.activatedKeys[index]) continue;
+                const key = keys[index];
+                const dx = key.x - player.x;
+                const dy = key.y - player.y;
+                if (Math.sqrt(dx * dx + dy * dy) < 60) {
+                    return {
+                        type: 'tower_mechanism',
+                        object: mechanism,
+                        keyIndex: index,
+                        x: key.x,
+                        y: key.y
+                    };
+                }
             }
         }
         return null;
@@ -3726,6 +4096,10 @@ class Room {
             // 回退：绘制默认背景
             ctx.fillStyle = '#2a2a2a';
             ctx.fillRect(0, 0, this.width, this.height);
+        }
+
+        if (this.map && typeof window.drawTowerMap === 'function') {
+            window.drawTowerMap(ctx, this.map);
         }
         
         // 绘制房间内容
@@ -3775,18 +4149,21 @@ class Room {
                 }
             }
         } else if ((this.type === (ROOM_TYPES && ROOM_TYPES.GAP_SHOP) || this.type === 'gap_shop')) {
+            const shopPoint = this.map && this.map.interactionPoint;
+            const shopX = shopPoint ? shopPoint.x : this.width / 2;
+            const shopY = shopPoint ? shopPoint.y : this.height / 2;
             ctx.fillStyle = 'rgba(60, 45, 30, 0.92)';
-            ctx.fillRect(this.width / 2 - 140, this.height / 2 - 50, 280, 100);
+            ctx.fillRect(shopX - 140, shopY - 50, 280, 100);
             ctx.strokeStyle = '#ffd700';
             ctx.lineWidth = 3;
-            ctx.strokeRect(this.width / 2 - 140, this.height / 2 - 50, 280, 100);
+            ctx.strokeRect(shopX - 140, shopY - 50, 280, 100);
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 18px "Courier New", monospace';
             ctx.textAlign = 'center';
-            ctx.fillText('隙间商店', this.width / 2, this.height / 2 - 8);
+            ctx.fillText('隙间商店', shopX, shopY - 8);
             ctx.font = '12px "Courier New", monospace';
             ctx.fillStyle = '#aaa';
-            ctx.fillText('按 E 打开商店', this.width / 2, this.height / 2 + 22);
+            ctx.fillText('按 E 打开商店', shopX, shopY + 22);
         }
     }
 
@@ -4281,12 +4658,13 @@ class Player {
         this.damageReductionPercent = Math.min(35, this.damageReductionPercent);
         this.towerGoldBonusPercent = Math.min(100, this.towerGoldBonusPercent);
         
-        // 应用套装效果（旧版 + 新版 2/4 件）
+        // 应用 Phase 3 套装效果（2/4/6 件）
         this.activeSetEffects = typeof getAllActiveSetEffects === 'function'
             ? getAllActiveSetEffects(this.equipment)
-            : getActiveSetEffects(this.equipment);
+            : [];
         let setStatsMultiplier = 1; // 套装属性百分比加成
         this.setSpecialEffects = {};
+        this._setModifiers = Object.create(null);
 
         this.activeSetEffects.forEach(setEffect => {
             const effect = setEffect.effect;
@@ -4294,6 +4672,7 @@ class Player {
             // 应用基础属性加成
             if (effect.stats) {
                 if (effect.stats.attack) this.baseAttack += effect.stats.attack;
+                if (effect.stats.magicAttack) this.baseMagicAttack += effect.stats.magicAttack;
                 if (effect.stats.defense) this.baseDefense += effect.stats.defense;
                 if (effect.stats.health) this.maxHp += effect.stats.health;
                 if (effect.stats.critRate) this.baseCritRate += effect.stats.critRate;
@@ -4301,11 +4680,26 @@ class Player {
                 if (effect.stats.dodge) this.baseDodge += effect.stats.dodge;
                 if (effect.stats.attackSpeed) this.baseAttackSpeed += effect.stats.attackSpeed;
                 if (effect.stats.moveSpeed) moveSpeedPercent += effect.stats.moveSpeed;
-                
+                if (effect.stats.skillHaste) this.skillHaste = (this.skillHaste || 0) + effect.stats.skillHaste;
+                if (effect.stats.lifeSteal) this.lifeSteal = (this.lifeSteal || 0) + effect.stats.lifeSteal;
+                if (effect.stats.damageReduction) this.damageReductionPercent += effect.stats.damageReduction;
+
                 // 处理百分比属性加成
                 if (effect.stats.allStats) {
                     setStatsMultiplier += effect.stats.allStats;
                 }
+            }
+
+            // 机制向 modifiers（供战斗系统 / 职业系统读取）
+            if (effect.modifiers && typeof effect.modifiers === 'object') {
+                this._setModifiers = this._setModifiers || Object.create(null);
+                Object.entries(effect.modifiers).forEach(([key, value]) => {
+                    if (typeof value === 'number') {
+                        this._setModifiers[key] = (this._setModifiers[key] || 0) + value;
+                    } else {
+                        this._setModifiers[key] = value;
+                    }
+                });
             }
             
             // 记录特殊效果
@@ -4316,6 +4710,9 @@ class Player {
                 };
             }
         });
+        if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.sync === 'function') {
+            window.EquipmentEffectSystem.sync(this);
+        }
         
         // 应用百分比属性加成
         if (setStatsMultiplier > 1) {
@@ -4338,11 +4735,14 @@ class Player {
         });
         
         this.buffs.forEach(buff => {
+            if (buff.effects.health) this.maxHp += buff.effects.health;
             if (buff.effects.attack) this.baseAttack += buff.effects.attack;
+            if (buff.effects.magicAttack) this.baseMagicAttack += buff.effects.magicAttack;
             if (buff.effects.attackPercent) {
                 this.baseAttack += Math.floor(this.baseAttack * buff.effects.attackPercent / 100);
             }
             if (buff.effects.defense) this.baseDefense += buff.effects.defense;
+            if (buff.effects.magicDefense) this.baseMagicDefense += buff.effects.magicDefense;
             if (buff.effects.defensePenalty) {
                 this.baseDefense = Math.floor(this.baseDefense * (1 - buff.effects.defensePenalty / 100));
             }
@@ -4358,127 +4758,8 @@ class Player {
             // 视野也受buff影响
             if (buff.effects.vision) this.baseVision += buff.effects.vision;
         });
-        
-        // 应用词条属性加成
-        const traitIds = this.getEquipmentTraitIds();
-        let traitStatsMultiplier = 1.0;
-        
-        // 百分比属性加成词条
-        if (traitIdsIncludeBase(traitIds, 'medal')) traitStatsMultiplier += 0.02;
-        if (traitIdsIncludeBase(traitIds, 'woven')) traitStatsMultiplier += 0.01;
-        if (traitIdsIncludeBase(traitIds, 'iron_belt')) traitStatsMultiplier += 0.05;
-        if (traitIdsIncludeBase(traitIds, 'divine_crown')) traitStatsMultiplier += 0.1;
-        if (traitIdsIncludeBase(traitIds, 'divine_favor')) traitStatsMultiplier += 0.12;
-        if (traitIdsIncludeBase(traitIds, 'celestial')) traitStatsMultiplier += 0.12;
-        if (traitIdsIncludeBase(traitIds, 'law')) traitStatsMultiplier += 0.08;
-        if (traitIdsIncludeBase(traitIds, 'creation_law')) traitStatsMultiplier += 0.15;
-        if (traitIdsIncludeBase(traitIds, 'divine_helmet')) traitStatsMultiplier += 0.12; // 神威头盔
-        
-        // 应用百分比加成
-        if (traitStatsMultiplier > 1.0) {
-            this.baseAttack = Math.floor(this.baseAttack * traitStatsMultiplier);
-            this.baseDefense = Math.floor(this.baseDefense * traitStatsMultiplier);
-            this.maxHp = Math.floor(this.maxHp * traitStatsMultiplier);
-            this.baseCritRate = Math.floor(this.baseCritRate * traitStatsMultiplier);
-            this.baseCritDamage = Math.floor(this.baseCritDamage * traitStatsMultiplier);
-            this.baseDodge = Math.floor(this.baseDodge * traitStatsMultiplier);
-            this.baseAttackSpeed = Math.floor(this.baseAttackSpeed * traitStatsMultiplier);
-            moveSpeedPercent = Math.floor(moveSpeedPercent * traitStatsMultiplier);
-        }
-        
-        // 固定属性加成词条
-        if (traitIdsIncludeBase(traitIds, 'armor_belt')) this.baseDefense = Math.floor(this.baseDefense * 1.03);
-        if (traitIdsIncludeBase(traitIds, 'dragon_scale')) this.baseDefense = Math.floor(this.baseDefense * 1.15); // 龙鳞护甲
-        if (traitIdsIncludeBase(traitIds, 'mithril_armor')) this.baseDefense = Math.floor(this.baseDefense * 1.2); // 秘银战甲
-        if (traitIdsIncludeBase(traitIds, 'steel_buckle')) {
-            this.baseAttack = Math.floor(this.baseAttack * 1.03);
-            this.baseDefense = Math.floor(this.baseDefense * 1.03);
-        }
-        if (traitIdsIncludeBase(traitIds, 'fortress')) {
-            this.baseDefense = Math.floor(this.baseDefense * 1.1);
-            this.baseAttack = Math.floor(this.baseAttack * 0.95);
-        }
-        if (traitIdsIncludeBase(traitIds, 'dragon_leather')) {
-            this.maxHp = Math.floor(this.maxHp * 1.15);
-            this.baseDefense = Math.floor(this.baseDefense * 1.08);
-        }
-        if (traitIdsIncludeBase(traitIds, 'mottled')) this.baseDefense = Math.floor(this.baseDefense * 1.05);
-        if (traitIdsIncludeBase(traitIds, 'heavy')) {
-            this.baseDefense = Math.floor(this.baseDefense * 1.08);
-            moveSpeedPercent = Math.max(0, moveSpeedPercent - 5);
-        }
-        if (traitIdsIncludeBase(traitIds, 'sturdy')) {
-            this.baseDefense = Math.floor(this.baseDefense * 1.05);
-            moveSpeedPercent += 3;
-        }
-        
-        // 攻击速度加成词条
-        if (traitIdsIncludeBase(traitIds, 'thumb_ring')) this.baseAttackSpeed += Math.floor(this.baseAttackSpeed * 0.03);
-        if (traitIdsIncludeBase(traitIds, 'swift_shadow')) {
-            this.baseAttackSpeed += Math.floor(this.baseAttackSpeed * 0.08);
-            moveSpeedPercent += 5;
-        }
-        if (traitIdsIncludeBase(traitIds, 'flowing_silver')) this.baseAttackSpeed += Math.floor(this.baseAttackSpeed * 0.05);
-        if (traitIdsIncludeBase(traitIds, 'silver_wing')) {
-            moveSpeedPercent += 5;
-            this.baseAttackSpeed += Math.floor(this.baseAttackSpeed * 0.05);
-        }
-        
-        // 移动速度加成词条
-        if (traitIdsIncludeBase(traitIds, 'ranger')) {
-            moveSpeedPercent += 5;
-            this.baseDodge += Math.floor(this.baseDodge * 0.03);
-        }
-        if (traitIdsIncludeBase(traitIds, 'traveler')) moveSpeedPercent += 8;
-        if (traitIdsIncludeBase(traitIds, 'cheetah')) moveSpeedPercent += 10;
-        if (traitIdsIncludeBase(traitIds, 'god_chase')) moveSpeedPercent += 15;
-        if (traitIdsIncludeBase(traitIds, 'dragon_tendon')) moveSpeedPercent += 10;
-        
-        // 暴击相关词条
-        if (traitIdsIncludeBase(traitIds, 'discipline')) {
-            this.baseCritRate += Math.floor(this.baseCritRate * 0.05);
-            this.baseCritDamage += Math.floor(this.baseCritDamage * 0.1);
-        }
-        if (traitIdsIncludeBase(traitIds, 'astrology')) {
-            this.baseCritRate += Math.floor(this.baseCritRate * 0.05);
-        }
-        if (traitIdBase(this.getCurrentWeaponTraitId()) === 'divine_judgment') {
-            this.baseCritDamage = Math.floor(this.baseCritDamage * 1.5);
-        }
-        
-        // 闪避相关词条
-        if (traitIdsIncludeBase(traitIds, 'bright_moon') && this.hp < this.maxHp * 0.3) {
-            this.baseDodge += Math.floor(this.baseDodge * 0.15);
-            this.baseAttackSpeed += Math.floor(this.baseAttackSpeed * 0.15);
-        }
-        if (traitIdsIncludeBase(traitIds, 'moon_shadow') && this.hp < this.maxHp * 0.3) {
-            this.baseDodge += Math.floor(this.baseDodge * 0.15);
-            this.baseAttackSpeed += Math.floor(this.baseAttackSpeed * 0.15);
-        }
-        
-        // 生命值相关词条
-        if (traitIdsIncludeBase(traitIds, 'dragon_heart') && this.hp < this.maxHp * 0.3) {
-            // 每秒恢复5%最大生命值（在update中处理）
-        }
-        
-        // 攻击力相关词条
-        if (traitIdsIncludeBase(traitIds, 'brute_force')) {
-            this.baseAttack = Math.floor(this.baseAttack * 1.05);
-            this.baseDefense = Math.floor(this.baseDefense * 0.97);
-        }
-        if (traitIdBase(this.getCurrentWeaponTraitId()) === 'reverse_scale' && this.hp < this.maxHp * 0.3) {
-            this.baseAttack = Math.floor(this.baseAttack * 1.3);
-        }
-        if (traitIdsIncludeBase(traitIds, 'perseverance') && this.hp < this.maxHp * 0.5) {
-            this.baseDefense = Math.floor(this.baseDefense * 1.2);
-        }
-        if (traitIdsIncludeBase(traitIds, 'lion') && this.hp > this.maxHp * 0.7) {
-            this.baseAttack = Math.floor(this.baseAttack * 1.15);
-        }
-        if (traitIdsIncludeBase(traitIds, 'charge') && this.hp < this.maxHp * 0.4) {
-            this.baseAttack = Math.floor(this.baseAttack * 1.2);
-            this.baseDefense = Math.floor(this.baseDefense * 1.2);
-        }
+        if (this._buildAttackSpeedBonus) this.baseAttackSpeed += this._buildAttackSpeedBonus;
+        if (this._buildMoveSpeedPenalty) moveSpeedPercent += this._buildMoveSpeedPenalty;
         
         // 精英房加护（词条之后、移速封顶与恶魔干扰之前）
         if (typeof window.applyTalentStatsToPlayer === 'function') {
@@ -4623,13 +4904,20 @@ class Player {
         let damageReductionPercent = 0;
         let towerGoldBonusPercent = 0;
 
+        const activeClassId = typeof window.getActiveClassId === 'function'
+            ? window.getActiveClassId(this.classData) : null;
         Object.values(this.equipment).forEach(eq => {
             if (eq) {
-                if (eq.stats.health) maxHp += eq.stats.health;
-                if (eq.stats.attack) baseAttack += eq.stats.attack;
-                if (eq.stats.magicAttack) baseMagicAttack += eq.stats.magicAttack;
-                if (eq.stats.defense) baseDefense += eq.stats.defense;
-                if (eq.stats.magicDefense) baseMagicDefense += eq.stats.magicDefense;
+                const affMult = (activeClassId && typeof window.getEquipmentAffinityMultiplier === 'function')
+                    ? window.getEquipmentAffinityMultiplier(eq, activeClassId) : 1;
+                const scale = value => (typeof value === 'number' && affMult !== 1
+                    ? Math.round(value * affMult)
+                    : value);
+                if (eq.stats.health) maxHp += scale(eq.stats.health);
+                if (eq.stats.attack) baseAttack += scale(eq.stats.attack);
+                if (eq.stats.magicAttack) baseMagicAttack += scale(eq.stats.magicAttack);
+                if (eq.stats.defense) baseDefense += scale(eq.stats.defense);
+                if (eq.stats.magicDefense) baseMagicDefense += scale(eq.stats.magicDefense);
                 if (eq.stats.critRate) baseCritRate += eq.stats.critRate;
                 if (eq.stats.critDamage) baseCritDamage += eq.stats.critDamage;
                 if (eq.stats.dodge) baseDodge += eq.stats.dodge;
@@ -4648,7 +4936,9 @@ class Player {
         damageReductionPercent = Math.min(35, damageReductionPercent);
         towerGoldBonusPercent = Math.min(100, towerGoldBonusPercent);
 
-        const activeSetEffects = getActiveSetEffects(this.equipment);
+        const activeSetEffects = typeof getAllActiveSetEffects === 'function'
+            ? getAllActiveSetEffects(this.equipment)
+            : [];
         let setStatsMultiplier = 1;
         activeSetEffects.forEach(setEffect => {
             const effect = setEffect.effect;
@@ -4676,83 +4966,6 @@ class Player {
             baseAttackSpeed = Math.floor(baseAttackSpeed * setStatsMultiplier);
             moveSpeedPercent = Math.floor(moveSpeedPercent * setStatsMultiplier);
         }
-
-        const traitIds = this.getEquipmentTraitIds();
-        let traitStatsMultiplier = 1.0;
-        if (traitIdsIncludeBase(traitIds, 'medal')) traitStatsMultiplier += 0.02;
-        if (traitIdsIncludeBase(traitIds, 'woven')) traitStatsMultiplier += 0.01;
-        if (traitIdsIncludeBase(traitIds, 'iron_belt')) traitStatsMultiplier += 0.05;
-        if (traitIdsIncludeBase(traitIds, 'divine_crown')) traitStatsMultiplier += 0.1;
-        if (traitIdsIncludeBase(traitIds, 'divine_favor')) traitStatsMultiplier += 0.12;
-        if (traitIdsIncludeBase(traitIds, 'celestial')) traitStatsMultiplier += 0.12;
-        if (traitIdsIncludeBase(traitIds, 'law')) traitStatsMultiplier += 0.08;
-        if (traitIdsIncludeBase(traitIds, 'creation_law')) traitStatsMultiplier += 0.15;
-        if (traitIdsIncludeBase(traitIds, 'divine_helmet')) traitStatsMultiplier += 0.12;
-        if (traitStatsMultiplier > 1.0) {
-            baseAttack = Math.floor(baseAttack * traitStatsMultiplier);
-            baseDefense = Math.floor(baseDefense * traitStatsMultiplier);
-            maxHp = Math.floor(maxHp * traitStatsMultiplier);
-            baseCritRate = Math.floor(baseCritRate * traitStatsMultiplier);
-            baseCritDamage = Math.floor(baseCritDamage * traitStatsMultiplier);
-            baseDodge = Math.floor(baseDodge * traitStatsMultiplier);
-            baseAttackSpeed = Math.floor(baseAttackSpeed * traitStatsMultiplier);
-            moveSpeedPercent = Math.floor(moveSpeedPercent * traitStatsMultiplier);
-        }
-
-        if (traitIdsIncludeBase(traitIds, 'armor_belt')) baseDefense = Math.floor(baseDefense * 1.03);
-        if (traitIdsIncludeBase(traitIds, 'dragon_scale')) baseDefense = Math.floor(baseDefense * 1.15);
-        if (traitIdsIncludeBase(traitIds, 'mithril_armor')) baseDefense = Math.floor(baseDefense * 1.2);
-        if (traitIdsIncludeBase(traitIds, 'steel_buckle')) {
-            baseAttack = Math.floor(baseAttack * 1.03);
-            baseDefense = Math.floor(baseDefense * 1.03);
-        }
-        if (traitIdsIncludeBase(traitIds, 'fortress')) {
-            baseDefense = Math.floor(baseDefense * 1.1);
-            baseAttack = Math.floor(baseAttack * 0.95);
-        }
-        if (traitIdsIncludeBase(traitIds, 'dragon_leather')) {
-            maxHp = Math.floor(maxHp * 1.15);
-            baseDefense = Math.floor(baseDefense * 1.08);
-        }
-        if (traitIdsIncludeBase(traitIds, 'mottled')) baseDefense = Math.floor(baseDefense * 1.05);
-        if (traitIdsIncludeBase(traitIds, 'heavy')) {
-            baseDefense = Math.floor(baseDefense * 1.08);
-            moveSpeedPercent = Math.max(0, moveSpeedPercent - 5);
-        }
-        if (traitIdsIncludeBase(traitIds, 'sturdy')) {
-            baseDefense = Math.floor(baseDefense * 1.05);
-            moveSpeedPercent += 3;
-        }
-        if (traitIdsIncludeBase(traitIds, 'thumb_ring')) baseAttackSpeed += Math.floor(baseAttackSpeed * 0.03);
-        if (traitIdsIncludeBase(traitIds, 'swift_shadow')) {
-            baseAttackSpeed += Math.floor(baseAttackSpeed * 0.08);
-            moveSpeedPercent += 5;
-        }
-        if (traitIdsIncludeBase(traitIds, 'flowing_silver')) baseAttackSpeed += Math.floor(baseAttackSpeed * 0.05);
-        if (traitIdsIncludeBase(traitIds, 'silver_wing')) {
-            moveSpeedPercent += 5;
-            baseAttackSpeed += Math.floor(baseAttackSpeed * 0.05);
-        }
-        if (traitIdsIncludeBase(traitIds, 'ranger')) {
-            moveSpeedPercent += 5;
-            baseDodge += Math.floor(baseDodge * 0.03);
-        }
-        if (traitIdsIncludeBase(traitIds, 'traveler')) moveSpeedPercent += 8;
-        if (traitIdsIncludeBase(traitIds, 'cheetah')) moveSpeedPercent += 10;
-        if (traitIdsIncludeBase(traitIds, 'god_chase')) moveSpeedPercent += 15;
-        if (traitIdsIncludeBase(traitIds, 'dragon_tendon')) moveSpeedPercent += 10;
-        if (traitIdsIncludeBase(traitIds, 'discipline')) {
-            baseCritRate += Math.floor(baseCritRate * 0.05);
-            baseCritDamage += Math.floor(baseCritDamage * 0.1);
-        }
-        if (traitIdsIncludeBase(traitIds, 'astrology')) {
-            baseCritRate += Math.floor(baseCritRate * 0.05);
-        }
-        if (traitIdBase(this.getCurrentWeaponTraitId()) === 'divine_judgment') {
-            baseCritDamage = Math.floor(baseCritDamage * 1.5);
-        }
-
-        // 依赖当前血量的装备词条（如亮月、逆鳞、狮心、坚守、冲锋等）不参与展示战力，避免掉血/回血时数字跳动
 
         if (typeof applyEliteBoonPassivesInUpdateStats === 'function') {
             const eliteStub = {
@@ -4998,19 +5211,31 @@ class Player {
             this.x += this.vx;
             this.y += this.vy;
             
+            // 恶魔塔房间可能大于视口，边界应使用当前房间尺寸而不是固定画布尺寸。
+            const sceneWidth = this.gameInstance
+                && this.gameInstance.currentScene === SCENE_TYPES.TOWER
+                && this.gameInstance.currentRoom
+                ? this.gameInstance.currentRoom.width
+                : CONFIG.CANVAS_WIDTH;
+            const sceneHeight = this.gameInstance
+                && this.gameInstance.currentScene === SCENE_TYPES.TOWER
+                && this.gameInstance.currentRoom
+                ? this.gameInstance.currentRoom.height
+                : CONFIG.CANVAS_HEIGHT;
+
             // 边界限制（碰撞后停止速度）
             if (this.x < this.size / 2) {
                 this.x = this.size / 2;
                 this.vx = 0;
-            } else if (this.x > CONFIG.CANVAS_WIDTH - this.size / 2) {
-                this.x = CONFIG.CANVAS_WIDTH - this.size / 2;
+            } else if (this.x > sceneWidth - this.size / 2) {
+                this.x = sceneWidth - this.size / 2;
                 this.vx = 0;
             }
             if (this.y < this.size / 2) {
                 this.y = this.size / 2;
                 this.vy = 0;
-            } else if (this.y > CONFIG.CANVAS_HEIGHT - this.size / 2) {
-                this.y = CONFIG.CANVAS_HEIGHT - this.size / 2;
+            } else if (this.y > sceneHeight - this.size / 2) {
+                this.y = sceneHeight - this.size / 2;
                 this.vy = 0;
             }
             
@@ -5195,9 +5420,9 @@ class Player {
         if (traitIdsIncludeBase(traitIds, 'star_bond')) cooldownReduction -= 0.15;
         if (traitIdsIncludeBase(traitIds, 'creation_law')) cooldownReduction -= 0.2;
         // 套装：银月8（12%）/ 星辰4（10%）等对武器技能冷却；多件取最高，且套装部分单独封顶 15%
-        if (typeof getActiveSetEffects === 'function') {
+        if (typeof getAllActiveSetEffects === 'function') {
             let setCdrFrac = 0;
-            getActiveSetEffects(this.equipment).forEach(se => {
+            getAllActiveSetEffects(this.equipment).forEach(se => {
                 const e = se.effect;
                 if (!e || e.special !== 'cooldownReduction') return;
                 const p = e.cooldownReductionPercent;
@@ -6213,6 +6438,9 @@ class Player {
             }
         }
         
+        if (window.WeaponRefinementSystem && typeof window.WeaponRefinementSystem.onWeaponSkill === 'function') {
+            window.WeaponRefinementSystem.onWeaponSkill(this, weapon, monsters);
+        }
         this.processKillRewards(killedMonsters);
         
         return hit;
@@ -6291,18 +6519,22 @@ class Player {
                 this.lastDirection = dx >= 0 ? 1 : -1;
                 let isCrit = Math.random() * 100 < this.baseCritRate;
                 let damage = this.effectiveAttack != null ? this.effectiveAttack : this.baseAttack;
-                if (isCrit) damage = applyCritDamageMultiplier(damage, this.baseCritDamage);
-                const traitResult = this.processAttackTraits(nearest, damage, isCrit);
-                damage = traitResult.damage || damage;
-                let damageType = traitResult.damageType || 'physical';
-                const setEffectResult = this.applySetAttackEffects(damage, nearest);
-                damage = setEffectResult.damage || damage;
-                if (setEffectResult.damageType && setEffectResult.damageType !== 'physical') damageType = setEffectResult.damageType;
+                let equipmentAttack = { damage, isCrit, critDamageBonus: 0 };
+                if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.modifyBasicAttack === 'function') {
+                    equipmentAttack = window.EquipmentEffectSystem.modifyBasicAttack(this, nearest, equipmentAttack);
+                    damage = equipmentAttack.damage;
+                    isCrit = equipmentAttack.isCrit;
+                }
+                if (isCrit) damage = applyCritDamageMultiplier(damage, this.baseCritDamage + (equipmentAttack.critDamageBonus || 0));
+                let damageType = 'physical';
                 damage = applyDeepExposeDamageBonus(nearest, damage);
                 if (nearest instanceof TrainingDummy || nearest instanceof MonsterTrainingDummy) {
                     nearest._pendingDamageSource = 'basic';
                 }
                 const killed = nearest.takeDamage(damage);
+                if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.afterBasicAttack === 'function') {
+                    window.EquipmentEffectSystem.afterBasicAttack(this, nearest, { damage, isCrit });
+                }
                 if (this._ebOnHitHeal > 0 && damage > 0) {
                     this.heal(this._ebOnHitHeal, { playSound: false });
                 }
@@ -6365,22 +6597,17 @@ class Player {
                 hit = true;
                 let isCrit = Math.random() * 100 < this.baseCritRate;
                 let damage = this.effectiveAttack != null ? this.effectiveAttack : this.baseAttack;
+                let equipmentAttack = { damage, isCrit, critDamageBonus: 0 };
+                if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.modifyBasicAttack === 'function') {
+                    equipmentAttack = window.EquipmentEffectSystem.modifyBasicAttack(this, monster, equipmentAttack);
+                    damage = equipmentAttack.damage;
+                    isCrit = equipmentAttack.isCrit;
+                }
                 if (isCrit) {
-                    damage = applyCritDamageMultiplier(damage, this.baseCritDamage);
+                    damage = applyCritDamageMultiplier(damage, this.baseCritDamage + (equipmentAttack.critDamageBonus || 0));
                 }
                 
-                // 处理词条攻击效果（对训练桩和怪物都有效）
-                const traitResult = this.processAttackTraits(monster, damage, isCrit);
-                damage = traitResult.damage || damage;
-                let damageType = traitResult.damageType || 'physical'; // 获取伤害类型
-                
-                // 处理套装攻击效果（对训练桩和怪物都有效）
-                const setEffectResult = this.applySetAttackEffects(damage, monster);
-                damage = setEffectResult.damage || damage;
-                // 如果套装效果改变了伤害类型，使用套装的伤害类型
-                if (setEffectResult.damageType && setEffectResult.damageType !== 'physical') {
-                    damageType = setEffectResult.damageType;
-                }
+                let damageType = 'physical';
                 
                 // 对于Boss，如果已经死亡，直接处理死亡逻辑
                 if (isBoss && monster.hp <= 0) {
@@ -6396,6 +6623,9 @@ class Player {
                     monster._pendingDamageSource = 'basic';
                 }
                 const killed = monster.takeDamage(damage);
+                if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.afterBasicAttack === 'function') {
+                    window.EquipmentEffectSystem.afterBasicAttack(this, monster, { damage, isCrit });
+                }
                 if (!isDummy && damage > 0) this.applyLifeStealFromHit(Math.floor(damage));
                 if (!isDummy && this._ebOnHitHeal > 0 && damage > 0) {
                     this.heal(this._ebOnHitHeal, { playSound: false });
@@ -6470,6 +6700,10 @@ class Player {
             // 计算闪避
             const dodgeSuccess = Math.random() * 100 < this.baseDodge;
             if (dodgeSuccess) {
+                if (window.SkillLabMetrics) window.SkillLabMetrics.recordDamageTaken(amount, 0, 'dodge');
+                if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.onDodge === 'function') {
+                    window.EquipmentEffectSystem.onDodge(this);
+                }
                 // 暗影词条：闪避后下次攻击必定暴击（须手持幽冥绝影刃）
                 if (traitIdBase(this.getCurrentWeaponTraitId()) === 'shadow') {
                     this.nextAttackCrit = true;
@@ -6518,6 +6752,7 @@ class Player {
             
             // 检查无敌状态
             if (this.invincibleUntil && Date.now() < this.invincibleUntil) {
+                if (window.SkillLabMetrics) window.SkillLabMetrics.recordDamageTaken(amount, 0, 'immune');
                 return false; // 无敌中，不受到伤害
             }
 
@@ -6525,22 +6760,20 @@ class Player {
                 if (this.gameInstance) {
                     this.gameInstance.addFloatingText(this.x, this.y - 10, '霸体', '#ffaa44', 700, 12, true);
                 }
+                if (window.SkillLabMetrics) window.SkillLabMetrics.recordDamageTaken(amount, 0, 'immune');
                 return false;
             }
             
-            // 处理词条防御效果
-            amount = this.processDefenseTraits(amount, attacker, isCrit);
-            
-            // 如果词条效果将伤害降为0（免疫），直接返回
-            if (amount <= 0) {
-                return false; // 免疫成功，不受到伤害
+            if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.beforeDamage === 'function') {
+                amount = window.EquipmentEffectSystem.beforeDamage(this, amount, attacker);
             }
-            
-            // 应用套装防御效果
-            amount = this.applySetDefenseEffects(amount, attacker);
-            
-            // 如果套装效果将伤害降为0（免疫），直接返回
+            if (typeof window.applyRaiseShieldBlock === 'function') {
+                amount = window.applyRaiseShieldBlock(this, amount, attacker);
+            }
+
+            // 如果格挡或装备效果将伤害降为0（免疫），直接返回
             if (amount <= 0) {
+                if (window.SkillLabMetrics) window.SkillLabMetrics.recordDamageTaken(amount, 0, 'immune');
                 return false; // 免疫成功，不受到伤害
             }
             
@@ -6554,7 +6787,13 @@ class Player {
             const totalDefense = (this.baseDefense || 0) + (this.baseMagicDefense || 0) * 0.5;
             const defenseReduction = Math.max(0.5, 100 / (100 + totalDefense * 0.2));
             const drEquip = Math.min(35, this.damageReductionPercent || 0);
-            let damageAfterDefense = amount * defenseReduction * (1 - drEquip / 100);
+            let holyShieldDR = 0;
+            if (typeof window.getHolyShieldStacks === 'function' && window.getHolyShieldStacks(this) > 0
+                && typeof window.getSetModifier === 'function') {
+                holyShieldDR = window.getSetModifier(this, 'holyShieldDR', 0);
+            }
+            let damageAfterDefense = amount * defenseReduction
+                * (1 - drEquip / 100) * (1 - Math.min(25, holyShieldDR) / 100);
             // 确保至少造成1点伤害（除非完全免疫），并向下取整
             let actualDamage = Math.max(1, Math.floor(damageAfterDefense));
 
@@ -6573,6 +6812,7 @@ class Player {
                 }
             }
             if (actualDamage <= 0) {
+                if (window.SkillLabMetrics) window.SkillLabMetrics.recordDamageTaken(amount, 0, 'shield');
                 return false;
             }
             
@@ -6592,6 +6832,16 @@ class Player {
             
             // 扣血
             this.hp -= actualDamage;
+            if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.afterDamage === 'function') {
+                window.EquipmentEffectSystem.afterDamage(this, attacker, actualDamage);
+            }
+            if (window.SkillLabMetrics) window.SkillLabMetrics.recordDamageTaken(amount, actualDamage, 'hit');
+            if (this.hp <= 0 && window.EquipmentEffectSystem
+                && typeof window.EquipmentEffectSystem.preventDeath === 'function'
+                && window.EquipmentEffectSystem.preventDeath(this)) {
+                this.hurtUntil = Date.now() + 500;
+                return false;
+            }
             if (this.hp <= 0 && typeof window.applyParadoxMinimumHp === 'function') {
                 if (window.applyParadoxMinimumHp(this, this)) {
                     this.hurtUntil = Date.now() + 500;
@@ -6641,7 +6891,11 @@ class Player {
                 this.gameInstance.addFloatingText(this.x, this.y, damageText, damageColor, 1500, fontSize, true, direction);
             }
             
-            return this.hp <= 0;
+            const died = this.hp <= 0;
+            if (died && window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.reset === 'function') {
+                window.EquipmentEffectSystem.reset(this);
+            }
+            return died;
         } catch (error) {
             console.error('玩家受到伤害处理出错:', error, error.stack);
             // 出错时，至少造成1点伤害，避免完全免疫
@@ -7157,9 +7411,12 @@ class Player {
     }
 
     heal(amount, opts) {
-        this.hp = Math.min(this.maxHp, this.hp + amount);
+        const before = this.hp;
+        const requested = Math.max(0, Number(amount) || 0);
+        this.hp = Math.min(this.maxHp, this.hp + requested);
+        if (window.SkillLabMetrics) window.SkillLabMetrics.recordHealing(requested, this.hp - before);
         const playSound = !opts || opts.playSound !== false;
-        if (playSound && this.gameInstance && this.gameInstance.soundManager && amount > 0) {
+        if (playSound && this.gameInstance && this.gameInstance.soundManager && requested > 0) {
             this.gameInstance.soundManager.playSound('heal');
         }
     }
@@ -7200,21 +7457,7 @@ class Player {
      * @returns {Array} 词条ID数组
      */
     getEquipmentTraitIds() {
-        try {
-            const traitIds = [];
-            if (!this.equipment) {
-                return traitIds;
-            }
-            Object.values(this.equipment).forEach(eq => {
-                if (eq && eq.equipmentTraits && eq.equipmentTraits.id) {
-                    traitIds.push(eq.equipmentTraits.id);
-                }
-            });
-            return traitIds;
-        } catch (error) {
-            console.error('获取装备词条ID出错:', error);
-            return []; // 出错时返回空数组，避免影响游戏
-        }
+        return [];
     }
     
     /**
@@ -7222,12 +7465,6 @@ class Player {
      * 武器类效果必须以此为准，避免仅靠全装备 trait 列表误判（如换装后仍触发旧武器特效）。
      */
     getCurrentWeaponTraitId() {
-        try {
-            const w = this.equipment && this.equipment.weapon;
-            if (w && w.equipmentTraits && w.equipmentTraits.id) {
-                return w.equipmentTraits.id;
-            }
-        } catch (e) { /* ignore */ }
         return null;
     }
     
@@ -7236,6 +7473,9 @@ class Player {
      * @param {string|null} slot - 变化的部位；null 表示多处变化或读档后整体同步
      */
     onEquipmentSlotChanged(slot) {
+        if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.reset === 'function') {
+            window.EquipmentEffectSystem.reset(this);
+        }
         const all = slot === null || slot === undefined;
         const weaponTouched = all || slot === 'weapon';
         const chestTouched = all || slot === 'chest' || slot === 'body';
@@ -8575,7 +8815,9 @@ class Player {
         // 检查是否有套装效果（套装效果也会产生轨迹，只是颜色不同）
         let hasSetTrail = false;
         if (typeof getActiveSetEffects === 'function') {
-            const activeSets = getActiveSetEffects(this.equipment);
+            const activeSets = typeof getAllActiveSetEffects === 'function'
+                ? getAllActiveSetEffects(this.equipment)
+                : [];
             activeSets.forEach(set => {
                 if (set.setName === '烈焰套装' || set.setName === '霜寒套装' || set.setName === '雷霆套装') {
                     hasSetTrail = true;
@@ -9592,6 +9834,9 @@ class Player {
             const isBoss = monster instanceof Boss;
             if (isBoss) {
                 if (!inTraining) {
+                    if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.onKill === 'function') {
+                        window.EquipmentEffectSystem.onKill(this, monster);
+                    }
                     if (typeof this.gameInstance.onMonsterSlain === 'function') {
                         this.gameInstance.onMonsterSlain(monster);
                     }
@@ -9607,13 +9852,26 @@ class Player {
                 this.gameInstance.onMonsterSlain(monster);
             }
             if (typeof this.gameInstance.spawnRewardPickupOrbs === 'function') {
-                this.gameInstance.spawnRewardPickupOrbs(monster.x, monster.y, monster.goldReward, monster.expReward, 32);
+                const goldMultiplier = window.EquipmentEffectSystem
+                    && typeof window.EquipmentEffectSystem.getGoldMultiplier === 'function'
+                    ? window.EquipmentEffectSystem.getGoldMultiplier(this) : 1;
+                this.gameInstance.spawnRewardPickupOrbs(
+                    monster.x,
+                    monster.y,
+                    Math.floor(monster.goldReward * goldMultiplier),
+                    monster.expReward,
+                    32
+                );
             } else {
                 this.gameInstance.gainExp(monster.expReward);
-                this.gameInstance.gainGold(monster.goldReward);
+                const goldMultiplier = window.EquipmentEffectSystem
+                    && typeof window.EquipmentEffectSystem.getGoldMultiplier === 'function'
+                    ? window.EquipmentEffectSystem.getGoldMultiplier(this) : 1;
+                this.gameInstance.gainGold(Math.floor(monster.goldReward * goldMultiplier));
             }
-            this.processKillTraits(monster);
-            this.handleSetKillEffects(monster);
+            if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.onKill === 'function') {
+                window.EquipmentEffectSystem.onKill(this, monster);
+            }
             rollEquipmentDropAtMonster(monster, this.gameInstance, 0.22);
         });
     }

@@ -697,7 +697,7 @@
     },
     {
       "id": "ward",
-      "name": "减伤",
+      "name": "守御",
       "stat": "damageReduction",
       "isPercent": true,
       "slots": [

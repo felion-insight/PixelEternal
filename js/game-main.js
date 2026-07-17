@@ -60,6 +60,9 @@ class Game {
         this.townScene = new TownScene(this); // 主城场景
         this.trainingGroundScene = new TrainingGroundScene(this); // 训练场场景
         this.skillLabScene = new SkillLabScene(this); // 技能实验场
+        this.equipmentLabScene = typeof EquipmentLabScene !== 'undefined' ? new EquipmentLabScene(this) : null;
+        this.equipmentLabController = typeof window.EquipmentLabController !== 'undefined'
+            ? new window.EquipmentLabController(this) : null;
         this.trialScene = new TrialScene(this); // 转职试炼场景
         this.dungeonScene = typeof window.DungeonScene !== 'undefined' ? new window.DungeonScene(this) : null;
         this.activeTrial = null; // { kind, targetId, bossId, title }
@@ -737,6 +740,11 @@ class Game {
                     if (this.skillLabUI) this.skillLabUI.close();
                     return;
                 }
+                const equipmentLabModal = document.getElementById('equipment-lab-modal');
+                if (equipmentLabModal && equipmentLabModal.classList.contains('show')) {
+                    if (this.equipmentLabUI) this.equipmentLabUI.close();
+                    return;
+                }
                 if (characterPanelModal && characterPanelModal.classList.contains('show')) {
                     this.classUI.hideCharacterPanel();
                     return;
@@ -757,6 +765,10 @@ class Game {
                 }
                 if (this.currentScene === SCENE_TYPES.SKILL_LAB) {
                     this.exitSkillLab();
+                    return;
+                }
+                if (this.currentScene === SCENE_TYPES.EQUIPMENT_LAB) {
+                    this.exitEquipmentLab();
                     return;
                 }
                 if (this.currentScene === SCENE_TYPES.TRIAL) {
@@ -853,6 +865,11 @@ class Game {
                 if (this.skillLabUI.isOpen()) this.skillLabUI.close();
                 else this.skillLabUI.open();
             }
+            if (!e.repeat && e.code === 'KeyO' && this.currentScene === SCENE_TYPES.EQUIPMENT_LAB && this.equipmentLabUI) {
+                e.preventDefault();
+                if (this.equipmentLabUI.isOpen()) this.equipmentLabUI.close();
+                else this.equipmentLabUI.open();
+            }
         });
 
         document.addEventListener('keyup', (e) => {
@@ -881,7 +898,7 @@ class Game {
         });
         
         this.canvas.addEventListener('contextmenu', (e) => {
-            if (this.currentScene === SCENE_TYPES.TOWER || this.currentScene === SCENE_TYPES.TRAINING || this.currentScene === SCENE_TYPES.SKILL_LAB || this.currentScene === SCENE_TYPES.TRIAL || this.currentScene === SCENE_TYPES.DUNGEON) {
+            if (this.currentScene === SCENE_TYPES.TOWER || this.currentScene === SCENE_TYPES.TRAINING || this.currentScene === SCENE_TYPES.SKILL_LAB || this.currentScene === SCENE_TYPES.EQUIPMENT_LAB || this.currentScene === SCENE_TYPES.TRIAL || this.currentScene === SCENE_TYPES.DUNGEON) {
                 e.preventDefault();
             }
         });
@@ -1098,6 +1115,7 @@ class Game {
         this.classUI = new ClassUI(this);
         this.classUI.init();
         this.skillLabUI = typeof SkillLabUI !== 'undefined' ? new SkillLabUI(this) : null;
+        this.equipmentLabUI = typeof EquipmentLabUI !== 'undefined' ? new EquipmentLabUI(this) : null;
         this.npcUI = new NpcUI(this);
         this.npcUI.init();
         if (typeof window.DungeonUI !== 'undefined') {
@@ -1369,22 +1387,34 @@ class Game {
         for (let i = existing; i < minCount; i++) {
             const slot = document.createElement('div');
             slot.className = 'inventory-slot';
-            slot.addEventListener('mouseenter', (e) => {
-                this.showItemTooltip(e.currentTarget, e.clientX, e.clientY);
-            });
-            slot.addEventListener('mouseleave', () => {
-                this.tooltipManager.hideItemTooltip();
-            });
             slot.addEventListener('click', (e) => {
-                const index = parseInt((e.currentTarget && e.currentTarget.dataset.index) || e.target.dataset.index);
+                e.stopPropagation();
+                const index = parseInt((e.currentTarget && e.currentTarget.dataset.index) || e.target.dataset.index, 10);
+                if (isNaN(index)) return;
+                const item = this.player.inventory[index];
+                if (!item) {
+                    this.tooltipManager.closeItemDetailPanel();
+                    return;
+                }
+                this.tooltipManager.openItemDetailPanel(e.currentTarget, e.clientX, e.clientY, {
+                    source: 'inventory',
+                    index
+                });
+            });
+            slot.addEventListener('dblclick', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const index = parseInt((e.currentTarget && e.currentTarget.dataset.index) || e.target.dataset.index, 10);
                 if (!isNaN(index)) {
+                    this.tooltipManager.closeItemDetailPanel();
                     this.handleInventorySlotClick(index);
                 }
             });
             slot.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
-                const index = parseInt((e.currentTarget && e.currentTarget.dataset.index) || e.target.dataset.index);
+                const index = parseInt((e.currentTarget && e.currentTarget.dataset.index) || e.target.dataset.index, 10);
                 if (!isNaN(index) && this.player.inventory[index]) {
+                    this.tooltipManager.closeItemDetailPanel();
                     if (this.currentScene === SCENE_TYPES.TOWER) {
                         this.dropInventoryItemToGround(index);
                     } else {
@@ -1419,15 +1449,24 @@ class Game {
             });
         });
         
-        // 装备栏事件
+        // 装备栏事件：点击展开详情，双击卸下
         document.querySelectorAll('.equipment-item').forEach(slot => {
-            slot.addEventListener('mouseenter', (e) => {
-                this.showItemTooltip(e.currentTarget, e.clientX, e.clientY);
+            slot.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const slotName = slot.dataset.slot;
+                if (!this.player.equipment[slotName]) {
+                    this.tooltipManager.closeItemDetailPanel();
+                    return;
+                }
+                this.tooltipManager.openItemDetailPanel(slot, e.clientX, e.clientY, {
+                    source: 'equipment',
+                    slot: slotName
+                });
             });
-            slot.addEventListener('mouseleave', () => {
-                this.tooltipManager.hideItemTooltip();
-            });
-            slot.addEventListener('click', () => {
+            slot.addEventListener('dblclick', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.tooltipManager.closeItemDetailPanel();
                 this.handleEquipmentSlotClick(slot.dataset.slot);
             });
         });
@@ -1497,6 +1536,7 @@ class Game {
             this.paused = true; // 暂停游戏
             this.updateInventoryUI();
         } else {
+            if (this.tooltipManager) this.tooltipManager.closeItemDetailPanel();
             // 如果开发者模式和图鉴也没有打开，才恢复游戏
             const codexModal = document.getElementById('codex-modal');
             if (!this.devMode && !codexModal.classList.contains('show')) {
@@ -1543,9 +1583,21 @@ class Game {
                 const normalPanel = document.getElementById('dev-panel');
                 normalPanel.classList.remove('show');
                 codexDevPanel.classList.add('show');
-                this.updateDevCodexPanel();
+                this.updateDevCodexPanel(this._devCodexActiveTab || 'custom');
             }
         }
+    }
+
+    /** 按当前激活的图鉴分区刷新 DEV 点击发放绑定 */
+    refreshCodexDevGrantBindings() {
+        const active = document.querySelector('.codex-section.active');
+        if (!active) return;
+        const id = active.id || '';
+        if (id === 'codex-equipments') this.updateCodexEquipments();
+        else if (id === 'codex-base_types') this.updateCodexBaseTypes();
+        else if (id === 'codex-affixes') this.updateCodexAffixes();
+        else if (id === 'codex-powers') this.updateCodexPowers();
+        else if (id === 'codex-sets_v2') this.updateCodexSetsV2();
     }
 
     /**
@@ -1755,7 +1807,11 @@ class Game {
 
         let allEquipments = [];
         if ((filterSource === 'procedural' || filterSource === 'all') && window.EquipmentCodex) {
-            const cacheKey = [filterLevel, normSlot, normQuality, filterSet, filterSource].join('|');
+            const activeClassId = this.player && typeof window.getActiveClassId === 'function'
+                ? window.getActiveClassId(this.player.classData) : null;
+            const baseClassId = this.player && typeof window.getPlayerBaseClassId === 'function'
+                ? window.getPlayerBaseClassId(this.player.classData) : activeClassId;
+            const cacheKey = [filterLevel, normSlot, normQuality, filterSet, filterSource, activeClassId].join('|');
             if (!this._codexProcCache || this._codexProcCacheKey !== cacheKey) {
                 this._codexProcCacheKey = cacheKey;
                 this._codexProcCache = window.EquipmentCodex.generateProceduralSamples({
@@ -1764,16 +1820,27 @@ class Game {
                     quality: normQuality,
                     level: filterLevel,
                     setId: String(filterSet).startsWith('v2_') ? filterSet.slice(3) : null,
-                    classId: this.player && typeof window.getPlayerBaseClassId === 'function'
-                        ? window.getPlayerBaseClassId(this.player.classData) : null
+                    classId: activeClassId,
+                    playerClass: baseClassId
                 });
+                if (filterSet === 'all' || filterSet === 'none') {
+                    this._codexProcCache = this._codexProcCache.concat(
+                        window.EquipmentCodex.generateBuildEquipmentSamples({
+                            slot: normSlot,
+                            quality: normQuality,
+                            level: filterLevel === 'all' ? 60 : parseInt(filterLevel, 10),
+                            classId: activeClassId,
+                            playerClass: baseClassId
+                        })
+                    );
+                }
             }
             allEquipments = allEquipments.concat(this._codexProcCache || []);
         }
         
         // 缓存套装效果计算结果，避免在循环中重复计算
-        const cachedActiveSetEffects = typeof getActiveSetEffects === 'function' 
-            ? getActiveSetEffects(this.player.equipment) 
+        const cachedActiveSetEffects = typeof getAllActiveSetEffects === 'function'
+            ? getAllActiveSetEffects(this.player.equipment)
             : [];
         const cachedActiveSet = new Set(cachedActiveSetEffects.map(e => e.setId + '-' + e.pieceCount));
         
@@ -1901,6 +1968,9 @@ class Game {
                 let statsHTML = '';
                 if ((eq.procedural || eq.baseTypeId) && typeof eq.getTooltipHTML === 'function') {
                     statsHTML = eq.getTooltipHTML(this.player.equipment);
+                    if (typeof window.appendBuildEquipmentTooltip === 'function') {
+                        statsHTML = window.appendBuildEquipmentTooltip(statsHTML, eq);
+                    }
                     statsHTML = statsHTML.replace(/<h4[^>]*>[\s\S]*?<\/h4>/, '');
                 } else {
                     statsHTML = `<p><strong>品质:</strong> <span style="color: ${QUALITY_COLORS[eq.quality]}">${QUALITY_NAMES[eq.quality] || eq.quality}</span></p>`;
@@ -1926,11 +1996,6 @@ class Game {
                 }
                 
                 if (!(eq.procedural || eq.baseTypeId)) {
-                    if (eq.equipmentTraits && eq.equipmentTraits.description) {
-                        statsHTML += `<p>---</p>`;
-                        statsHTML += `<p style="color: #88ff88;"><strong>装备词条:</strong></p>`;
-                        statsHTML += `<p style="color: #88ff88; font-size: 11px;">${eq.equipmentTraits.description}</p>`;
-                    }
                     // 显示武器技能（含图标）
                     if (eq.slot === 'weapon' && eq.skill) {
                         const skillIconUrl = this.getSkillIconUrl(eq.skill.name);
@@ -1945,7 +2010,10 @@ class Game {
                             for (let i = 0; i < eq.refineEffects.length; i++) {
                                 const refineEffect = eq.refineEffects[i];
                                 const refineLevel = i + 1;
-                                statsHTML += `<p style="color: #ffd700; font-size: 10px; margin-left: 10px;">${'★'.repeat(refineLevel)} 精炼${refineLevel}级: ${refineEffect.description}</p>`;
+                                const description = typeof window.getWeaponRefineEffectDescription === 'function'
+                                    ? window.getWeaponRefineEffectDescription(eq, refineEffect, refineLevel)
+                                    : refineEffect.description;
+                                statsHTML += `<p style="color: #ffd700; font-size: 10px; margin-left: 10px;">${'★'.repeat(refineLevel)} 精炼${refineLevel}级: ${description}</p>`;
                             }
                         }
                     }
@@ -1969,11 +2037,25 @@ class Game {
                 
                 entry.appendChild(headerDiv);
                 entry.appendChild(stats);
+                if (this.devMode) {
+                    entry.classList.add('codex-dev-clickable');
+                    entry.title = 'DEV：点击发放到背包';
+                    entry.onclick = (ev) => {
+                        if (ev.target.closest('a,button,input,select')) return;
+                        this.devAddSpecificEquipment(eq);
+                    };
+                }
                 fragment.appendChild(entry);
         });
         
         // 立即添加所有元素到DOM
         container.appendChild(fragment);
+        if (this.devMode) {
+            const hint = document.createElement('p');
+            hint.className = 'codex-dev-grant-hint';
+            hint.textContent = 'DEV 模式：点击装备条目即可发放到背包';
+            container.insertBefore(hint, container.firstChild);
+        }
         
         // 批量设置图片（已缓存的立即设置，未缓存的异步加载）
         requestAnimationFrame(() => {
@@ -2065,24 +2147,118 @@ class Game {
             slot: slot === 'all' ? null : slot,
             weaponType: weaponType === 'all' ? null : weaponType
         });
+        if (this.devMode) {
+            const hint = document.createElement('p');
+            hint.className = 'codex-dev-grant-hint';
+            hint.textContent = 'DEV 模式：点击基型发放史诗样例';
+            container.insertBefore(hint, container.firstChild);
+            container.querySelectorAll('.codex-base-type-entry').forEach(el => {
+                el.classList.add('codex-dev-clickable');
+                el.onclick = () => this.devGrantFromBaseTypeId(el.dataset.baseTypeId);
+            });
+        }
     }
 
     updateCodexAffixes() {
         const container = document.getElementById('affixes-list');
         if (!container || !window.EquipmentCodex) return;
         container.innerHTML = window.EquipmentCodex.buildAffixReferenceHtml();
+        if (this.devMode) {
+            const hint = document.createElement('p');
+            hint.className = 'codex-dev-grant-hint';
+            hint.textContent = 'DEV 模式：点击词缀 → 打开自定义台并预勾；也可直接发放「仅含该词缀」装备';
+            container.insertBefore(hint, container.firstChild);
+            container.querySelectorAll('.codex-affix-entry').forEach(el => {
+                el.classList.add('codex-dev-clickable');
+                el.title = '点击打开装配台；Shift+点击直接发放';
+                el.onclick = (ev) => {
+                    const id = el.dataset.affixId;
+                    const type = el.dataset.affixType;
+                    if (!id) return;
+                    if (ev.shiftKey) {
+                        const opts = {
+                            quality: 'legendary',
+                            level: this.player.level || 20,
+                            forcePrefixes: type === 'prefix' ? [{ id, tier: 5 }] : [],
+                            forceSuffixes: type === 'suffix' ? [{ id, tier: 5 }] : [],
+                            forcePowers: []
+                        };
+                        const res = window.EquipmentCodex.grantCustomEquipment(this, opts);
+                        if (res.ok) {
+                            this.addFloatingText(this.player.x, this.player.y, `${res.message} (DEV)`, '#ffd700');
+                        }
+                    } else {
+                        this.openDevForgeWithPreset({
+                            quality: 'legendary',
+                            level: this.player.level || 20,
+                            forcePrefixes: type === 'prefix' ? [{ id, tier: 5 }] : [],
+                            forceSuffixes: type === 'suffix' ? [{ id, tier: 5 }] : [],
+                            forcePowers: []
+                        });
+                    }
+                };
+            });
+        }
     }
 
     updateCodexPowers() {
         const container = document.getElementById('powers-list');
         if (!container || !window.EquipmentCodex) return;
         container.innerHTML = window.EquipmentCodex.buildLegendaryPowersHtml();
+        if (this.devMode) {
+            const hint = document.createElement('p');
+            hint.className = 'codex-dev-grant-hint';
+            hint.textContent = 'DEV 模式：点击威能 → 打开自定义台并预勾；Shift+点击直接发放';
+            container.insertBefore(hint, container.firstChild);
+            container.querySelectorAll('.codex-power-entry').forEach(el => {
+                el.classList.add('codex-dev-clickable');
+                el.title = '点击打开装配台；Shift+点击直接发放';
+                el.onclick = (ev) => {
+                    const id = el.dataset.powerId;
+                    if (!id) return;
+                    if (ev.shiftKey) {
+                        const found = typeof window.findLegendaryPowerById === 'function'
+                            ? window.findLegendaryPowerById(id) : null;
+                        const slot = found && found.power && found.power.slots && found.power.slots[0];
+                        const res = window.EquipmentCodex.grantCustomEquipment(this, {
+                            quality: 'legendary',
+                            level: this.player.level || 20,
+                            slot: slot || 'weapon',
+                            forcePrefixes: [],
+                            forceSuffixes: [],
+                            forcePowers: [id]
+                        });
+                        if (res.ok) {
+                            this.addFloatingText(this.player.x, this.player.y, `${res.message} (DEV)`, '#ffd700');
+                        }
+                    } else {
+                        this.openDevForgeWithPreset({
+                            quality: 'legendary',
+                            level: this.player.level || 20,
+                            forcePrefixes: [],
+                            forceSuffixes: [],
+                            forcePowers: [id]
+                        });
+                    }
+                };
+            });
+        }
     }
 
     updateCodexSetsV2() {
         const container = document.getElementById('sets-v2-list');
         if (!container || !window.EquipmentCodex) return;
         container.innerHTML = window.EquipmentCodex.buildSetV2Html(this.player.equipment);
+        if (this.devMode) {
+            const hint = document.createElement('p');
+            hint.className = 'codex-dev-grant-hint';
+            hint.textContent = 'DEV 模式：点击套装发放整套';
+            container.insertBefore(hint, container.firstChild);
+            container.querySelectorAll('.codex-set-entry').forEach(el => {
+                el.classList.add('codex-dev-clickable');
+                el.onclick = () => this.devGrantFullSetById(el.dataset.setId);
+            });
+        }
     }
 
     /**
@@ -2423,7 +2599,11 @@ class Game {
             // 支持装备和药水，装备传入当前已穿戴以区分套装激活/未激活
             if (item.getTooltipHTML) {
                 const isEquipment = (item.type === 'equipment') || (item.slot != null && item.stats != null);
-                tooltip.innerHTML = isEquipment ? item.getTooltipHTML(this.player.equipment) : item.getTooltipHTML();
+                let tooltipHtml = isEquipment ? item.getTooltipHTML(this.player.equipment) : item.getTooltipHTML();
+                if (isEquipment && typeof window.appendBuildEquipmentTooltip === 'function') {
+                    tooltipHtml = window.appendBuildEquipmentTooltip(tooltipHtml, item);
+                }
+                tooltip.innerHTML = tooltipHtml;
             } else {
                 // 兼容旧代码
                 tooltip.innerHTML = `<h4>${item.name || '未知物品'}</h4>`;
@@ -2771,6 +2951,11 @@ class Game {
         // 离开恶魔塔时清空仅塔内生效的状态（精英加护、恶魔干扰）
         const previousScene = this.currentScene;
         this.currentScene = targetScene;
+        if (previousScene !== targetScene && this.player && window.EquipmentEffectSystem
+            && typeof window.EquipmentEffectSystem.reset === 'function') {
+            window.EquipmentEffectSystem.reset(this.player);
+            this.player.updateStats();
+        }
         if (previousScene === SCENE_TYPES.TOWER && targetScene !== SCENE_TYPES.TOWER && this.player) {
             this.resetDemonTowerTransientPlayerState();
         }
@@ -2862,7 +3047,24 @@ class Game {
             }
         }
         
-        this.currentRoom = new Room(CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT, selectedType, this.floor, this);
+        // 恶魔塔房间比视口更大，通过路线闸墙拉长探索距离；其他场景不受影响。
+        const towerRoomWidth = CONFIG.CANVAS_WIDTH * 2.5;
+        const towerRoomHeight = CONFIG.CANVAS_HEIGHT * 2.5;
+        this.currentRoom = new Room(towerRoomWidth, towerRoomHeight, selectedType, this.floor, this);
+        if (this.currentRoom.map
+            && ![ROOM_TYPES.BATTLE, ROOM_TYPES.ELITE, ROOM_TYPES.BOSS].includes(selectedType)) {
+            // 锁钥机制只出现在战斗型房间，避免宝箱/休整房间被机关墙误封。
+            this.currentRoom.map.mechanism = null;
+        }
+        if (this.currentRoom.map && this.currentRoom.map.start) {
+            // 进入下一层时从新房间入口开始，而不是继承上一层出口坐标。
+            this.player.x = this.currentRoom.map.start.x;
+            this.player.y = this.currentRoom.map.start.y;
+            this.player.vx = 0;
+            this.player.vy = 0;
+            this.player.isDashing = false;
+            this.player.isCastingSkill = false;
+        }
         this.currentRoom.generateRoom(this.player.level);
         
         // 调用统一的场景切换函数（虽然是在同一场景内切换房间，但也需要冷却）
@@ -2878,12 +3080,14 @@ class Game {
             boss: 'Boss'
         };
         const hudRt = selectedType === 'alchemy' ? 'battle' : selectedType;
-        document.getElementById('room-type').textContent = typeNames[hudRt] || hudRt;
+        const themeName = this.currentRoom && this.currentRoom.map && this.currentRoom.map.theme
+            ? this.currentRoom.map.theme.name
+            : '';
+        document.getElementById('room-type').textContent = themeName
+            ? `${themeName} · ${typeNames[hudRt] || hudRt}`
+            : (typeNames[hudRt] || hudRt);
         document.getElementById('floor-number').textContent = this.floor;
         
-        if (selectedType === ROOM_TYPES.GAP_SHOP) {
-            setTimeout(() => this.openGapShopModal(), 100);
-        }
     }
 
     gainExp(amount) {
@@ -3185,7 +3389,9 @@ class Game {
         const inventoryModalEl = document.getElementById('inventory-modal');
         const inventoryModalOpen = inventoryModalEl && inventoryModalEl.classList.contains('show');
         if (setEffectsList && typeof getActiveSetEffects === 'function' && inventoryModalOpen) {
-            const active = getActiveSetEffects(this.player.equipment);
+            const active = typeof getAllActiveSetEffects === 'function'
+                ? getAllActiveSetEffects(this.player.equipment)
+                : [];
             if (active.length > 0) {
                 // 只显示每个套装激活的最高件数效果
                 const highestEffects = new Map();
@@ -3210,26 +3416,10 @@ class Game {
                     effectDiv.dataset.setId = e.setId;
                     effectDiv.dataset.pieceCount = e.pieceCount;
                     
-                    // 添加鼠标事件
-                    let hideTooltipTimeout = null;
-                    effectDiv.addEventListener('mouseenter', (event) => {
-                        if (hideTooltipTimeout) {
-                            clearTimeout(hideTooltipTimeout);
-                            hideTooltipTimeout = null;
-                        }
-                        this.showSetEffectTooltip(e.setId, e.pieceCount, event.clientX, event.clientY);
-                    });
-                    effectDiv.addEventListener('mouseleave', () => {
-                        hideTooltipTimeout = setTimeout(() => {
-                            this.tooltipManager.hideItemTooltip();
-                            hideTooltipTimeout = null;
-                        }, 100);
-                    });
-                    effectDiv.addEventListener('mousemove', (event) => {
-                        if (hideTooltipTimeout) {
-                            clearTimeout(hideTooltipTimeout);
-                            hideTooltipTimeout = null;
-                        }
+                    // 点击展开套装详情
+                    effectDiv.title = '点击查看套装详情';
+                    effectDiv.addEventListener('click', (event) => {
+                        event.stopPropagation();
                         this.showSetEffectTooltip(e.setId, e.pieceCount, event.clientX, event.clientY);
                     });
                     
@@ -3522,6 +3712,7 @@ class Game {
             }
 
             const inCombatLab = this.currentScene === SCENE_TYPES.SKILL_LAB
+                || this.currentScene === SCENE_TYPES.EQUIPMENT_LAB
                 || this.currentScene === SCENE_TYPES.TRAINING;
             const castBarActive = this.player._skillCastBar
                 && Date.now() < this.player._skillCastBar.endTime;
@@ -3560,9 +3751,18 @@ class Game {
                 this.player.dash(dx, dy);
             }
             
+            // 记录移动前位置，恶魔塔地图会在移动后进行障碍物碰撞修正。
+            const previousPlayerX = this.player.x;
+            const previousPlayerY = this.player.y;
+
             // 无论是否冲刺，都要调用move来执行移动
             // move函数内部会根据isDashing状态决定使用冲刺速度还是正常速度
             this.player.move(dx, dy);
+            if (this.currentScene === SCENE_TYPES.TOWER
+                && this.currentRoom
+                && typeof this.currentRoom.resolvePlayerMovement === 'function') {
+                this.currentRoom.resolvePlayerMovement(this.player, previousPlayerX, previousPlayerY);
+            }
             }
             
             const KB = window.KeybindSystem;
@@ -3576,6 +3776,8 @@ class Game {
                 } else if (this.currentScene === SCENE_TYPES.SKILL_LAB && this.skillLabScene) {
                     this._ensureSkillLabAttackTargets();
                     this.player.attack(this.skillLabScene.dummies);
+                } else if (this.currentScene === SCENE_TYPES.EQUIPMENT_LAB && this.equipmentLabScene) {
+                    this.player.attack(this.equipmentLabScene.dummies);
                 } else if (this.currentScene === SCENE_TYPES.TRIAL && this.trialScene) {
                     this.player.attack(this.trialScene.getMonsters());
                 } else if (this.currentScene === SCENE_TYPES.DUNGEON && this.dungeonScene) {
@@ -4026,7 +4228,7 @@ class Game {
                 window.tickTutorialProgress(this);
             }
             if (typeof window.tickPlayerClassResource === 'function') {
-                const inCombat = this.currentScene === SCENE_TYPES.TOWER || this.currentScene === SCENE_TYPES.TRAINING || this.currentScene === SCENE_TYPES.SKILL_LAB || this.currentScene === SCENE_TYPES.TRIAL || this.currentScene === SCENE_TYPES.DUNGEON;
+                const inCombat = this.currentScene === SCENE_TYPES.TOWER || this.currentScene === SCENE_TYPES.TRAINING || this.currentScene === SCENE_TYPES.SKILL_LAB || this.currentScene === SCENE_TYPES.EQUIPMENT_LAB || this.currentScene === SCENE_TYPES.TRIAL || this.currentScene === SCENE_TYPES.DUNGEON;
                 window.tickPlayerClassResource(this.player, this.fixedTimeStep / 1000, inCombat);
             }
             if (typeof window.tickBuildPassive === 'function') {
@@ -4065,6 +4267,9 @@ class Game {
             // 更新玩家buff（移除过期的buff并更新属性）
             const oldBuffCount = this.player.buffs.length;
             this.player.updateStats(); // 这会自动清理过期的buff
+            if (window.EquipmentEffectSystem && typeof window.EquipmentEffectSystem.tick === 'function') {
+                window.EquipmentEffectSystem.tick(this.player);
+            }
             
             // 更新持续伤害效果
             if (this.player.weaponSkillDots && this.player.weaponSkillDots.length > 0) {
@@ -4150,6 +4355,8 @@ class Game {
                     targets = this.trainingGroundScene.dummies;
                 } else if (this.currentScene === SCENE_TYPES.SKILL_LAB && this.skillLabScene) {
                     targets = this.skillLabScene.dummies;
+                } else if (this.currentScene === SCENE_TYPES.EQUIPMENT_LAB && this.equipmentLabScene) {
+                    targets = this.equipmentLabScene.dummies;
                 } else if (this.currentScene === SCENE_TYPES.TRIAL && this.trialScene) {
                     targets = this.trialScene.getMonsters();
                 } else if (this.currentScene === SCENE_TYPES.DUNGEON && this.dungeonScene) {
@@ -4405,6 +4612,15 @@ class Game {
                     x: interactions[0].x,
                     y: interactions[0].y - interactions[0].size / 2 - 30
                 } : null;
+            } else if (this.currentScene === SCENE_TYPES.EQUIPMENT_LAB) {
+                this.updateEquipmentLab();
+                const interactions = this.equipmentLabScene.checkInteraction(this.player);
+                this.currentInteraction = interactions.length > 0 ? {
+                    type: 'portal',
+                    object: interactions[0],
+                    x: interactions[0].x,
+                    y: interactions[0].y - interactions[0].size / 2 - 30
+                } : null;
             } else if (this.currentScene === SCENE_TYPES.TRIAL) {
                 this.updateTrial();
                 const interactions = this.trialScene.checkInteraction(this.player);
@@ -4427,6 +4643,7 @@ class Game {
                 // 恶魔塔场景
                 if (this.currentRoom) {
                     this.currentRoom.update(this.player);
+                    this.syncTowerBranchPortals();
                     this.player._towerSilenceAttackCdMult = 1;
                     if (this.currentRoom.monsters) {
                         for (let mi = 0; mi < this.currentRoom.monsters.length; mi++) {
@@ -4446,6 +4663,9 @@ class Game {
                     this.updateSoulCircles();
                     if (typeof window.updateSkillEntities === 'function') {
                         window.updateSkillEntities(this, this.currentRoom.monsters, deltaTime / 1000);
+                    }
+                    if (typeof this.currentRoom.resolvePlayerDisplacement === 'function') {
+                        this.currentRoom.resolvePlayerDisplacement(this.player);
                     }
                 // 检查房间交互提示
                 if (this.portals.length > 0) {
@@ -4531,6 +4751,26 @@ class Game {
                             this.updateHUD();
                         }
                         return; // 立即返回，避免继续执行后续代码
+                    }
+
+                    const towerMechanism = this.currentRoom.checkInteraction(this.player, []);
+                    if (towerMechanism && towerMechanism.type === 'tower_mechanism' && interactPressed) {
+                        const mechanism = towerMechanism.object;
+                        if (Array.isArray(mechanism.activatedKeys)) {
+                            mechanism.activatedKeys[towerMechanism.keyIndex] = true;
+                            mechanism.unlocked = mechanism.activatedKeys.every(Boolean);
+                        } else {
+                            mechanism.unlocked = true;
+                        }
+                        if (this.soundManager) this.soundManager.playSound('portal');
+                        this.addFloatingText(
+                            towerMechanism.x,
+                            towerMechanism.y,
+                            mechanism.type === 'dual_switch' && !mechanism.unlocked
+                                ? `开关 ${towerMechanism.keyIndex + 1}/2`
+                                : (mechanism.type === 'dual_switch' ? '双开关已同步' : '封印已解除'),
+                            '#ffd76a'
+                        );
                     }
                 
                 // 检查房间是否清空，如果清空则生成传送门
@@ -4620,6 +4860,7 @@ class Game {
                                 suffixes: rawEq.suffixes || [],
                                 legendaryPowers: rawEq.legendaryPowers || [],
                                 setId: rawEq.setId,
+                                buildEquipmentId: rawEq.buildEquipmentId || null,
                                 procedural: true,
                                 refineLevel: 0,
                                 enhanceLevel: 0
@@ -4745,8 +4986,9 @@ class Game {
                     });
                 }
             } else if (this.currentRoom.type === ROOM_TYPES.GAP_SHOP) {
-                const cx = this.currentRoom.width / 2;
-                const cy = this.currentRoom.height / 2;
+                const shopPoint = this.currentRoom.map && this.currentRoom.map.interactionPoint;
+                const cx = shopPoint ? shopPoint.x : this.currentRoom.width / 2;
+                const cy = shopPoint ? shopPoint.y : this.currentRoom.height / 2;
                 const dx = cx - this.player.x;
                 const dy = cy - this.player.y;
                 if (interactPressed && Math.sqrt(dx * dx + dy * dy) < 95 && !this.currentRoom.cleared) {
@@ -4838,6 +5080,9 @@ class Game {
         }
         if (this.currentScene === SCENE_TYPES.SKILL_LAB && this.skillLabScene) {
             return this.skillLabScene.dummies || [];
+        }
+        if (this.currentScene === SCENE_TYPES.EQUIPMENT_LAB && this.equipmentLabScene) {
+            return this.equipmentLabScene.dummies || [];
         }
         if (this.currentScene === SCENE_TYPES.TRIAL && this.trialScene) {
             return this.trialScene.getMonsters();
@@ -5527,6 +5772,9 @@ class Game {
         }
 
         this.equipmentEffects = [];
+        if (this.particleManager && typeof this.particleManager.clear === 'function') {
+            this.particleManager.clear();
+        }
         this._syncSkillLabCamera();
         if (typeof p.updateStats === 'function') p.updateStats();
     }
@@ -5583,6 +5831,58 @@ class Game {
     /** 离开技能实验场（恢复进入前状态） */
     exitSkillLab() {
         this.returnToTown();
+    }
+
+    /** 开发者：进入装备试验场景 */
+    enterEquipmentLab() {
+        if (!this.equipmentLabScene || !this.equipmentLabController || !this.equipmentLabUI) {
+            console.error('[EquipmentLab] 模块未加载');
+            return;
+        }
+        document.getElementById('dev-panel')?.classList.remove('show');
+        document.getElementById('dev-codex-panel')?.classList.remove('show');
+        this.devMode = false;
+        this._equipmentLabReturnState = typeof window.captureSkillLabPlayerState === 'function'
+            ? window.captureSkillLabPlayerState(this.player)
+            : null;
+        this.transitionScene(SCENE_TYPES.EQUIPMENT_LAB);
+        this.resetSkillLabCombatState();
+        const cx = CONFIG.CANVAS_WIDTH / 2;
+        const cy = CONFIG.CANVAS_HEIGHT / 2;
+        this.player.x = cx;
+        this.player.y = cy;
+        this.equipmentLabScene.clearAllDummies();
+        this.equipmentLabScene.addDummy(cx + 58, cy, { invincible: true, chasePlayer: false });
+        this.equipmentLabScene.addDummy(cx + 54, cy + 45, { invincible: true, chasePlayer: false });
+        this.equipmentLabScene.addDummy(cx + 54, cy - 45, { invincible: true, chasePlayer: false });
+        this.equipmentLabUI.open();
+        this.addFloatingText(cx, cy - 28, '已进入装备试验场', '#ffbb66');
+    }
+
+    /** 离开装备试验场，returnToTown 会恢复进入前的完整状态 */
+    exitEquipmentLab() {
+        if (this.equipmentLabController) this.equipmentLabController.stop(false);
+        this.returnToTown();
+    }
+
+    updateEquipmentLab() {
+        const scene = this.equipmentLabScene;
+        if (!scene || !this.player) return;
+        const now = Date.now();
+        const canInteract = now - this.lastSceneTransitionTime >= 3000;
+        const interactions = scene.checkInteraction(this.player);
+        if (interactions.length && this._isInteractKeyEdge(canInteract)) {
+            this.exitEquipmentLab();
+            return;
+        }
+        scene.dummies.forEach(dummy => {
+            if (dummy instanceof TrainingDummy || dummy instanceof MonsterTrainingDummy) dummy.update(this.player);
+        });
+        if (typeof window.updateSkillEntities === 'function') {
+            window.updateSkillEntities(this, scene.dummies, this.fixedTimeStep / 1000);
+        }
+        if (this.equipmentLabController) this.equipmentLabController.update();
+        this._syncSkillLabCamera();
     }
 
     _saveSkillLabReturnState() {
@@ -5767,7 +6067,7 @@ class Game {
     resetAllBattleStats() {
         if (!this.trainingGroundScene || !this.trainingGroundScene.dummies) return;
         this.trainingGroundScene.dummies.forEach(dummy => {
-            dummy._battleStats = { basic: { hits: 0, damage: 0 }, skills: {} };
+            dummy._battleStats = { basic: { hits: 0, damage: 0 }, skills: {}, dot: { hits: 0, damage: 0 } };
             dummy.totalDamage = 0;
             dummy.damageHistory = [];
         });
@@ -6182,6 +6482,15 @@ class Game {
             if (dummy instanceof TrainingDummy || dummy instanceof MonsterTrainingDummy) {
                 dummy.update(this.player);
             }
+            if (dummy instanceof MonsterTrainingDummy && dummy.attack && dummy.attack(this.player)) {
+                const killed = this.player.takeDamage(dummy.damage, dummy, false);
+                if (typeof applyMonsterOnHitPlayerEffects === 'function') {
+                    applyMonsterOnHitPlayerEffects(this.player, dummy);
+                }
+                if (killed && window.SkillLabMetrics) {
+                    window.SkillLabMetrics.state.player.deaths++;
+                }
+            }
         });
 
         if (typeof window.updateSkillEntities === 'function') {
@@ -6346,6 +6655,16 @@ class Game {
             if (this.skillLabScene) this.skillLabScene.clearAllDummies();
             if (this.skillLabUI) this.skillLabUI.close();
             this._restoreSkillLabReturnState();
+        }
+        if (this.currentScene === SCENE_TYPES.EQUIPMENT_LAB) {
+            if (this.equipmentLabController) this.equipmentLabController.stop(false);
+            this.resetSkillLabCombatState();
+            if (this.equipmentLabScene) this.equipmentLabScene.clearAllDummies();
+            if (this.equipmentLabUI) this.equipmentLabUI.close();
+            if (this._equipmentLabReturnState && typeof window.restoreSkillLabPlayerState === 'function') {
+                window.restoreSkillLabPlayerState(this.player, this._equipmentLabReturnState);
+            }
+            this._equipmentLabReturnState = null;
         }
         if (this.currentScene === SCENE_TYPES.TRIAL) {
             if (this.trialScene) this.trialScene.reset();
@@ -7176,8 +7495,11 @@ class Game {
                         const isUnlocked = equipment.refineLevel >= refineLevel;
                         const color = isCurrentLevel ? '#ffd700' : (isUnlocked ? '#88ff88' : '#888888');
                         const starText = '★'.repeat(refineLevel);
-                        
-                        html += `<p style="color: ${color}; font-size: 10px; margin-left: 10px; margin-top: 3px;">${starText} 精炼${refineLevel}级: ${refineEffect.description}</p>`;
+                        const description = typeof window.getWeaponRefineEffectDescription === 'function'
+                            ? window.getWeaponRefineEffectDescription(equipment, refineEffect, refineLevel)
+                            : refineEffect.description;
+
+                        html += `<p style="color: ${color}; font-size: 10px; margin-left: 10px; margin-top: 3px;">${starText} 精炼${refineLevel}级: ${description}</p>`;
                     }
                 }
             }
@@ -7269,7 +7591,11 @@ class Game {
         
         const nextRefineLevel = currentRefineLevel + 1;
         const nextRefineEffect = equipment.refineEffects && equipment.refineEffects[nextRefineLevel - 1];
-        const nextEffectText = nextRefineEffect ? nextRefineEffect.description : '基础数值显著提高';
+        const nextEffectText = nextRefineEffect
+            ? (typeof window.getWeaponRefineEffectDescription === 'function'
+                ? window.getWeaponRefineEffectDescription(equipment, nextRefineEffect, nextRefineLevel)
+                : nextRefineEffect.description)
+            : '基础数值显著提高';
         
         const requiredRefineText = requiredRefineLevel === 0 ? '零星' : '★'.repeat(requiredRefineLevel);
         refineInfo.innerHTML = `
@@ -7755,11 +8081,11 @@ class Game {
             nameDiv.textContent = listing.name;
             nameDiv.dataset.itemId = listing.id;
 
-            nameDiv.addEventListener('mouseenter', (e) => {
+            nameDiv.title = '点击查看详情';
+            nameDiv.classList.add('shop-item-name');
+            nameDiv.addEventListener('click', (e) => {
+                e.stopPropagation();
                 this.showShopEquipmentTooltip(listing, e.clientX, e.clientY);
-            });
-            nameDiv.addEventListener('mouseleave', () => {
-                this.tooltipManager.hideItemTooltip();
             });
 
             const typeLine = isHoly
@@ -8053,9 +8379,20 @@ class Game {
 
     showShopEquipmentTooltip(equipment, x, y) {
         const tooltip = document.getElementById('item-tooltip');
-        if (equipment && equipment.getTooltipHTML) {
+        if (!tooltip || !equipment) return;
+        if (equipment.getTooltipHTML) {
             const isEquipment = equipment.type === 'equipment' && equipment.slot;
-            tooltip.innerHTML = isEquipment ? equipment.getTooltipHTML(this.player.equipment) : equipment.getTooltipHTML();
+            let tooltipHtml = isEquipment ? equipment.getTooltipHTML(this.player.equipment) : equipment.getTooltipHTML();
+            if (isEquipment && typeof window.appendBuildEquipmentTooltip === 'function') {
+                tooltipHtml = window.appendBuildEquipmentTooltip(tooltipHtml, equipment);
+            }
+            tooltipHtml += '<div class="item-detail-actions"><button type="button" class="item-detail-btn" data-detail-action="close">关闭</button></div>';
+            this.tooltipManager.pinned = { source: 'shop', itemId: String(equipment.id || 'shop') };
+            this.tooltipManager._clearDetailHighlight();
+            tooltip.classList.add('pinned');
+            tooltip.style.display = '';
+            tooltip.innerHTML = tooltipHtml;
+            this.tooltipManager._bindPanelActions(tooltip);
             this.tooltipManager.adjustTooltipPosition(tooltip, x, y);
         }
     }
@@ -8112,7 +8449,7 @@ class Game {
 
         // 创建新装备实例（避免引用问题）
         // 注意：新购买的装备应该是未精炼的，所以不传递refineLevel（默认为0）
-        const newEq = new Equipment({
+        const newEq = window.EquipmentCodex?.cloneEquipmentForGrant(equipment) || new Equipment({
             id: equipment.id,
             name: equipment.name,
             slot: equipment.slot,
@@ -8122,6 +8459,9 @@ class Game {
             stats: JSON.parse(JSON.stringify(equipment.stats)),
             refineLevel: 0
         });
+        newEq.refineLevel = 0;
+        newEq.enhanceLevel = 0;
+        newEq.applyEnhancement();
 
         if (this.addItemToInventory(newEq)) {
             this.player.gold -= price;
@@ -8201,16 +8541,25 @@ class Game {
             itemNameDiv.textContent = item.name;
             itemNameDiv.dataset.itemId = item.id;
             
-            // 为物品名称添加鼠标悬停事件
-            itemNameDiv.addEventListener('mouseenter', (e) => {
-                if (item.getTooltipHTML) {
-                    const tooltip = document.getElementById('item-tooltip');
-                    tooltip.innerHTML = item.type === 'equipment' ? item.getTooltipHTML(this.player.equipment) : item.getTooltipHTML();
-                    this.adjustTooltipPosition(tooltip, e.clientX, e.clientY);
+            // 点击名称展开详情
+            itemNameDiv.title = '点击查看详情';
+            itemNameDiv.classList.add('shop-item-name');
+            itemNameDiv.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!item.getTooltipHTML) return;
+                const tooltip = document.getElementById('item-tooltip');
+                let tooltipHtml = item.type === 'equipment' ? item.getTooltipHTML(this.player.equipment) : item.getTooltipHTML();
+                if (item.type === 'equipment' && typeof window.appendBuildEquipmentTooltip === 'function') {
+                    tooltipHtml = window.appendBuildEquipmentTooltip(tooltipHtml, item);
                 }
-            });
-            itemNameDiv.addEventListener('mouseleave', () => {
-                this.tooltipManager.hideItemTooltip();
+                tooltipHtml += '<div class="item-detail-actions"><button type="button" class="item-detail-btn" data-detail-action="close">关闭</button></div>';
+                this.tooltipManager.pinned = { source: 'shop', itemId: String(item.id || 'sell') };
+                this.tooltipManager._clearDetailHighlight();
+                tooltip.classList.add('pinned');
+                tooltip.style.display = '';
+                tooltip.innerHTML = tooltipHtml;
+                this.tooltipManager._bindPanelActions(tooltip);
+                this.tooltipManager.adjustTooltipPosition(tooltip, e.clientX, e.clientY);
             });
             
             let typeInfo = '';
@@ -8396,6 +8745,8 @@ class Game {
             this.trainingGroundScene.draw(this.ctx);
         } else if (this.currentScene === SCENE_TYPES.SKILL_LAB) {
             this.skillLabScene.draw(this.ctx);
+        } else if (this.currentScene === SCENE_TYPES.EQUIPMENT_LAB && this.equipmentLabScene) {
+            this.equipmentLabScene.draw(this.ctx);
         } else if (this.currentScene === SCENE_TYPES.TRIAL) {
             this.trialScene.draw(this.ctx);
         } else if (this.currentScene === SCENE_TYPES.DUNGEON && this.dungeonScene) {
@@ -8412,7 +8763,7 @@ class Game {
             this.rewardPickups.forEach(p => p.draw(this.ctx));
         }
         
-        // 绘制传送门
+        // 绘制传送门：出口选择属于玩家已知目标。
         this.portals.forEach(portal => {
             portal.draw(this.ctx, this);
         });
@@ -8474,7 +8825,7 @@ class Game {
         this.ctx.translate(this.cameraX, this.cameraY);
 
         // 技能实验场：职业特效绘制在角色之后，需再绘一层角色避免被全屏/贴身 VFX 遮住
-        if (this.currentScene === SCENE_TYPES.SKILL_LAB && this.player) {
+        if ((this.currentScene === SCENE_TYPES.SKILL_LAB || this.currentScene === SCENE_TYPES.EQUIPMENT_LAB) && this.player) {
             this.ctx.save();
             const labOffsetX = CONFIG.CANVAS_WIDTH / 2 - this.player.x;
             const labOffsetY = CONFIG.CANVAS_HEIGHT / 2 - this.player.y;
@@ -8527,11 +8878,93 @@ class Game {
         // 计算偏移量，使场景居中
         const offsetX = (minimapWidth - sceneWidth * scale) / 2;
         const offsetY = (minimapHeight - sceneHeight * scale) / 2;
+        let towerPointRevealed = () => true;
         
         // 绘制场景边界
         ctx.strokeStyle = '#666';
         ctx.lineWidth = 1;
         ctx.strokeRect(offsetX, offsetY, sceneWidth * scale, sceneHeight * scale);
+
+        if (this.currentScene === SCENE_TYPES.TOWER && this.currentRoom && this.currentRoom.map) {
+            const map = this.currentRoom.map;
+            ctx.save();
+            const paths = [map.route, ...(map.branches || [])].filter(path => path && path.length > 1);
+            if (!map._minimapExploration
+                || map._minimapExploration.length !== paths.length) {
+                map._minimapExploration = paths.map(path => Array(path.length - 1).fill(false));
+            }
+            const distanceToSegment = (x, y, from, to) => {
+                const dx = to.x - from.x;
+                const dy = to.y - from.y;
+                const lengthSquared = dx * dx + dy * dy;
+                if (lengthSquared <= 0.0001) return Math.hypot(x - from.x, y - from.y);
+                const ratio = Math.max(0, Math.min(1,
+                    ((x - from.x) * dx + (y - from.y) * dy) / lengthSquared
+                ));
+                return Math.hypot(
+                    x - (from.x + dx * ratio),
+                    y - (from.y + dy * ratio)
+                );
+            };
+            paths.forEach((path, pathIndex) => {
+                for (let segmentIndex = 0; segmentIndex < path.length - 1; segmentIndex++) {
+                    if (distanceToSegment(
+                        this.player.x,
+                        this.player.y,
+                        path[segmentIndex],
+                        path[segmentIndex + 1]
+                    ) <= 210) {
+                        map._minimapExploration[pathIndex][segmentIndex] = true;
+                    }
+                }
+            });
+            towerPointRevealed = (x, y) => {
+                if (Math.hypot(this.player.x - x, this.player.y - y) <= 300) return true;
+                return paths.some((path, pathIndex) =>
+                    map._minimapExploration[pathIndex].some((explored, segmentIndex) =>
+                        explored && distanceToSegment(
+                            x,
+                            y,
+                            path[segmentIndex],
+                            path[segmentIndex + 1]
+                        ) <= 150
+                    )
+                );
+            };
+            paths.forEach((path, pathIndex) => {
+                ctx.strokeStyle = pathIndex === 0
+                    ? 'rgba(220, 190, 255, 0.68)'
+                    : 'rgba(220, 190, 255, 0.48)';
+                ctx.lineWidth = pathIndex === 0 ? 2 : 1.5;
+                map._minimapExploration[pathIndex].forEach((explored, segmentIndex) => {
+                    if (!explored) return;
+                    ctx.beginPath();
+                    ctx.moveTo(
+                        offsetX + path[segmentIndex].x * scale,
+                        offsetY + path[segmentIndex].y * scale
+                    );
+                    ctx.lineTo(
+                        offsetX + path[segmentIndex + 1].x * scale,
+                        offsetY + path[segmentIndex + 1].y * scale
+                    );
+                    ctx.stroke();
+                });
+            });
+            (map.obstacles || []).forEach(obstacle => {
+                if (!towerPointRevealed(
+                    obstacle.x + obstacle.width / 2,
+                    obstacle.y + obstacle.height / 2
+                )) return;
+                ctx.fillStyle = 'rgba(20, 16, 28, 0.82)';
+                ctx.fillRect(
+                    offsetX + obstacle.x * scale,
+                    offsetY + obstacle.y * scale,
+                    obstacle.width * scale,
+                    obstacle.height * scale
+                );
+            });
+            ctx.restore();
+        }
         
         // 绘制玩家（白色）
         const playerX = offsetX + this.player.x * scale;
@@ -8546,7 +8979,12 @@ class Game {
             // 绘制怪物（红色）
             if (this.currentRoom.monsters) {
                 this.currentRoom.monsters.forEach(monster => {
-                    if (monster.hp > 0) {
+                    const playerDistance = Math.hypot(
+                        monster.x - this.player.x,
+                        monster.y - this.player.y
+                    );
+                    if (monster.hp > 0 && playerDistance <= 360
+                        && towerPointRevealed(monster.x, monster.y)) {
                         const monsterX = offsetX + monster.x * scale;
                         const monsterY = offsetY + monster.y * scale;
                         ctx.fillStyle = '#ff0000';
@@ -8558,7 +8996,12 @@ class Game {
             }
             
             // 绘制宝箱（原本颜色）
-            if (this.currentRoom.treasureChest && !this.currentRoom.treasureChest.opened) {
+            if (this.currentRoom.treasureChest
+                && !this.currentRoom.treasureChest.opened
+                && towerPointRevealed(
+                    this.currentRoom.treasureChest.x,
+                    this.currentRoom.treasureChest.y
+                )) {
                 const chestX = offsetX + this.currentRoom.treasureChest.x * scale;
                 const chestY = offsetY + this.currentRoom.treasureChest.y * scale;
                 ctx.fillStyle = '#8B4513';
@@ -8566,7 +9009,12 @@ class Game {
             }
             
             // 绘制休整物品（原本颜色）
-            if (this.currentRoom.restItem && !this.currentRoom.restItem.used) {
+            if (this.currentRoom.restItem
+                && !this.currentRoom.restItem.used
+                && towerPointRevealed(
+                    this.currentRoom.restItem.x,
+                    this.currentRoom.restItem.y
+                )) {
                 const itemX = offsetX + this.currentRoom.restItem.x * scale;
                 const itemY = offsetY + this.currentRoom.restItem.y * scale;
                 const colors = {
@@ -8612,9 +9060,12 @@ class Game {
                     ctx.fill();
                 });
             }
-        } else if (this.currentScene === SCENE_TYPES.SKILL_LAB && this.skillLabScene) {
-            if (this.skillLabScene.dummies) {
-                this.skillLabScene.dummies.forEach(dummy => {
+        } else if ((this.currentScene === SCENE_TYPES.SKILL_LAB && this.skillLabScene)
+            || (this.currentScene === SCENE_TYPES.EQUIPMENT_LAB && this.equipmentLabScene)) {
+            const labScene = this.currentScene === SCENE_TYPES.EQUIPMENT_LAB
+                ? this.equipmentLabScene : this.skillLabScene;
+            if (labScene.dummies) {
+                labScene.dummies.forEach(dummy => {
                     const dummyX = offsetX + dummy.x * scale;
                     const dummyY = offsetY + dummy.y * scale;
                     ctx.fillStyle = dummy.color || '#666666';
@@ -8627,6 +9078,8 @@ class Game {
         
         // 绘制传送门（原本颜色）
         this.portals.forEach(portal => {
+            if (this.currentScene === SCENE_TYPES.TOWER
+                && !towerPointRevealed(portal.x, portal.y)) return;
             const portalX = offsetX + portal.x * scale;
             const portalY = offsetY + portal.y * scale;
             if (portal.type === 'exit') {
@@ -8668,6 +9121,7 @@ class Game {
             ox: options.ox,
             oy: options.oy,
             variant: options.variant || null,
+            style: options.style || null,
             family: options.family || null,
             followTarget: options.followTarget || null,
             projectileSpriteId: options.projectileSpriteId || null,
@@ -8676,7 +9130,15 @@ class Game {
             strikeIndex: options.strikeIndex,
             strikeTotal: options.strikeTotal,
             cloneCount: options.cloneCount,
-            fail: options.fail
+            chainPoints: options.chainPoints || null,
+            fail: options.fail,
+            apex: !!options.apex,
+            mode: options.mode || null,
+            halfAngleDeg: options.halfAngleDeg,
+            spread: options.spread,
+            forceBright: !!options.forceBright,
+            riftBloom: !!options.riftBloom,
+            armSpread: options.armSpread
         };
         this.equipmentEffects.push(effect);
     }
@@ -8776,7 +9238,8 @@ class Game {
 
     _getClassSkillDefForHotbarSlot(slotIndex) {
         if (!window.hasPlayerClass(this.player.classData)) return null;
-        const labMode = this.currentScene === SCENE_TYPES.SKILL_LAB;
+        const labMode = this.currentScene === SCENE_TYPES.SKILL_LAB
+            || this.currentScene === SCENE_TYPES.EQUIPMENT_LAB;
         if (typeof window.getHotbarSkillAtSlot === 'function') {
             return window.getHotbarSkillAtSlot(this.player, slotIndex, { labMode });
         }
@@ -8866,7 +9329,7 @@ class Game {
                 castOptions.groundPoint = { x: g.aimX, y: g.aimY };
             } else if (profile.mode === 'target_lock' && g.lockTarget) {
                 castOptions.lockTarget = g.lockTarget;
-            } else if (profile.mode === 'direction_line' || profile.mode === 'cone') {
+            } else if (profile.mode === 'direction_line' || profile.mode === 'cone' || profile.mode === 'rift_bloom') {
                 castOptions.angle = g.aimAngle;
             }
         }
@@ -9000,6 +9463,49 @@ class Game {
             ctx.arc(px, py, dist, 0, Math.PI * 2);
             ctx.stroke();
             ctx.setLineDash([]);
+        } else if (profile.mode === 'rift_bloom') {
+            // 碎界怒嚎：三向裂波指示（正前主臂 + 左前/右前副臂）
+            const ang = g.aimAngle;
+            const spread = ((profile.armSpreadDeg != null ? profile.armSpreadDeg : 42) * Math.PI) / 180;
+            const mainDist = profile.distance || 300;
+            const sideDist = profile.sideDistance != null ? profile.sideDistance : Math.round(mainDist * 0.78);
+            const mainW = profile.width || 80;
+            const sideW = profile.sideWidth != null ? profile.sideWidth : Math.round(mainW * 0.9);
+            const arms = [
+                { a: ang - spread, dist: sideDist, width: sideW, main: false },
+                { a: ang, dist: mainDist, width: mainW, main: true },
+                { a: ang + spread, dist: sideDist, width: sideW, main: false }
+            ];
+            // 轻扇形底，标出三臂夹角覆盖区（不是整圆）
+            const fanHalf = spread + 0.18;
+            ctx.fillStyle = 'rgba(255, 120, 60, 0.08)';
+            ctx.strokeStyle = 'rgba(255, 140, 70, 0.45)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 4]);
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.arc(px, py, sideDist, ang - fanHalf, ang + fanHalf);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.setLineDash([]);
+            arms.forEach((arm) => {
+                const ex = px + Math.cos(arm.a) * arm.dist;
+                const ey = py + Math.sin(arm.a) * arm.dist;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = arm.main ? 'rgba(255, 190, 90, 0.9)' : 'rgba(255, 140, 70, 0.72)';
+                ctx.lineWidth = arm.width;
+                ctx.globalAlpha = arm.main ? 0.55 : 0.38;
+                ctx.beginPath();
+                ctx.moveTo(px, py);
+                ctx.lineTo(ex, ey);
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = arm.main ? 'rgba(255, 200, 100, 0.28)' : 'rgba(255, 140, 70, 0.2)';
+                ctx.beginPath();
+                ctx.arc(ex, ey, arm.width * 0.38, 0, Math.PI * 2);
+                ctx.fill();
+            });
         }
         ctx.restore();
     }
@@ -9011,6 +9517,7 @@ class Game {
         }
         if (this.currentScene === SCENE_TYPES.TRAINING && this.trainingGroundScene) return true;
         if (this.currentScene === SCENE_TYPES.SKILL_LAB && this.skillLabScene) return true;
+        if (this.currentScene === SCENE_TYPES.EQUIPMENT_LAB && this.equipmentLabScene) return true;
         if (this.currentScene === SCENE_TYPES.TRIAL && this.trialScene) return true;
         if (this.currentScene === SCENE_TYPES.DUNGEON && this.dungeonScene) return true;
         return false;
@@ -9026,6 +9533,9 @@ class Game {
         }
         if (this.currentScene === SCENE_TYPES.SKILL_LAB && this.skillLabScene) {
             return this.skillLabScene.dummies;
+        }
+        if (this.currentScene === SCENE_TYPES.EQUIPMENT_LAB && this.equipmentLabScene) {
+            return this.equipmentLabScene.dummies;
         }
         if (this.currentScene === SCENE_TYPES.TRIAL && this.trialScene) {
             return this.trialScene.getMonsters();
@@ -9369,6 +9879,11 @@ class Game {
 
     applyPlayerKnockback(player, fromX, fromY, force) {
         if (!player) return;
+        if (window.EquipmentEffectSystem
+            && typeof window.EquipmentEffectSystem.isKnockbackImmune === 'function'
+            && window.EquipmentEffectSystem.isKnockbackImmune(player)) {
+            return;
+        }
         const dx = player.x - fromX;
         const dy = player.y - fromY;
         const d = Math.sqrt(dx * dx + dy * dy) || 1;
@@ -9376,10 +9891,15 @@ class Game {
         const ny = dy / d;
         player.x += nx * force;
         player.y += ny * force;
-        const w = CONFIG.CANVAS_WIDTH;
-        const h = CONFIG.CANVAS_HEIGHT;
+        const towerRoom = this.currentScene === SCENE_TYPES.TOWER && this.currentRoom
+            ? this.currentRoom : null;
+        const w = towerRoom ? towerRoom.width : CONFIG.CANVAS_WIDTH;
+        const h = towerRoom ? towerRoom.height : CONFIG.CANVAS_HEIGHT;
         player.x = Math.max(player.size / 2, Math.min(w - player.size / 2, player.x));
         player.y = Math.max(player.size / 2, Math.min(h - player.size / 2, player.y));
+        if (towerRoom && typeof towerRoom.resolvePlayerDisplacement === 'function') {
+            towerRoom.resolvePlayerDisplacement(player);
+        }
     }
 
     updateMonsterProjectiles() {
@@ -9493,6 +10013,22 @@ class Game {
         if (!this.equipmentEffects || this.equipmentEffects.length === 0) {
             return; // 没有特效时直接返回
         }
+        
+        // 辅助颜色转换函数
+        const hexToRgba = (hex, alpha) => {
+            if (typeof hex !== 'string') return `rgba(255,255,255,${alpha})`;
+            let cleanHex = hex.replace('#', '');
+            if (cleanHex.length === 3) {
+                cleanHex = cleanHex.split('').map(c => c + c).join('');
+            }
+            const num = parseInt(cleanHex, 16);
+            if (isNaN(num)) return `rgba(255,255,255,${alpha})`;
+            const r = (num >> 16) & 255;
+            const g = (num >> 8) & 255;
+            const b = num & 255;
+            return `rgba(${r},${g},${b},${alpha})`;
+        };
+
         const now = Date.now();
         this.equipmentEffects = this.equipmentEffects.filter(effect => {
             const elapsed = now - effect.startTime;
@@ -9509,12 +10045,1204 @@ class Game {
             }
             
             const progress = elapsed / effect.duration; // 0-1
-            const alpha = 1 - progress * 0.5; // 逐渐消失，但保持一定可见度
+            // 关键特效（如碎界裂波）保持高可见度，不被堆叠衰减压暗
+            const alpha = effect.forceBright
+                ? Math.max(0.55, 1 - progress * 0.55)
+                : (1 - progress);
             
             ctx.save();
-            ctx.globalAlpha = Math.max(0.3, alpha); // 确保最小可见度
-            
-            switch (effect.type) {
+            try {
+                // 动态超载衰减：如果当前在场装备特效过多，自动等比例调低每个特效的透明度，防止视觉堆叠过度闪烁
+                const activeCount = this.equipmentEffects.filter(e => now >= e.startTime && now - e.startTime < e.duration).length;
+                const overloadScale = effect.forceBright
+                    ? 1
+                    : (activeCount > 2 ? Math.max(0.4, 2.2 / activeCount) : 1.0);
+                ctx.globalAlpha = Math.max(effect.forceBright ? 0.55 : 0.1, alpha) * overloadScale;
+                
+                switch (effect.type) {
+                case 'set_two_piece_aura': {
+                    ctx.globalCompositeOperation = 'screen';
+                    const r = (effect.radius || 38) * (0.85 + 0.15 * Math.sin(progress * Math.PI));
+                    
+                    // 1. 底层：柔和的光能地面辐射（径向渐变）
+                    const groundGrad = ctx.createRadialGradient(effect.x, effect.y + 13, r * 0.1, effect.x, effect.y + 13, r);
+                    const colorAlpha = Math.max(0, 0.25 * (1 - progress));
+                    groundGrad.addColorStop(0, hexToRgba(effect.color || '#ffffff', colorAlpha));
+                    groundGrad.addColorStop(0.5, hexToRgba(effect.color || '#ffffff', colorAlpha * 0.4));
+                    groundGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.fillStyle = groundGrad;
+                    ctx.beginPath();
+                    ctx.ellipse(effect.x, effect.y + 13, r, r * 0.42, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // 2. 中层：高科技/魔法虚线旋转外环
+                    ctx.strokeStyle = effect.color || '#ffffff';
+                    ctx.lineWidth = 1.8;
+                    ctx.setLineDash([6, 5]);
+                    ctx.save();
+                    ctx.translate(effect.x, effect.y + 13);
+                    ctx.rotate(progress * 0.7);
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, r, r * 0.42, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.restore();
+                    
+                    // 3. 内层：反向旋转精细星轨
+                    ctx.lineWidth = 1.0;
+                    ctx.setLineDash([]);
+                    ctx.save();
+                    ctx.translate(effect.x, effect.y + 13);
+                    ctx.rotate(-progress * 1.1);
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, r * 0.72, r * 0.42 * 0.72, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // 4. 上升流光粒子系统
+                    const particles = 4;
+                    for (let i = 0; i < particles; i++) {
+                        const baseAngle = i * Math.PI * 2 / particles;
+                        const tAngle = baseAngle + progress * Math.PI * 2.0;
+                        const px = effect.x + Math.cos(tAngle) * r * 0.75;
+                        const py = (effect.y + 13) + Math.sin(tAngle) * r * 0.42 * 0.75 - progress * 28;
+                        const size = (1.5 + 1.5 * Math.sin(progress * Math.PI + i)) * (1 - progress);
+                        
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath();
+                        ctx.arc(px, py, size, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.fillStyle = effect.color || '#ffffff';
+                        ctx.beginPath();
+                        ctx.arc(px, py, size * 2.2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+                }
+
+                case 'set_special_vfx': {
+                    const r = Math.max(18, (effect.radius || 90) * (0.35 + progress * 0.75));
+                    const c1 = effect.color || '#ffffff';
+                    const c2 = effect.color2 || '#ffffff';
+                    ctx.translate(effect.x, effect.y);
+                    ctx.globalCompositeOperation = 'screen';
+                    
+                    if (effect.variant === 'fireheart') {
+                        // 烈焰：炽热喷涌核心
+                        
+                        // 地面熔岩渐变基座
+                        const fireGrad = ctx.createRadialGradient(0, 0, r * 0.1, 0, 0, r * 0.95);
+                        fireGrad.addColorStop(0, '#ffffff');
+                        fireGrad.addColorStop(0.3, hexToRgba(c2, 0.85 * (1 - progress)));
+                        fireGrad.addColorStop(0.65, hexToRgba(c1, 0.45 * (1 - progress)));
+                        fireGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                        ctx.fillStyle = fireGrad;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // 8个精美贝塞尔火舌
+                        const count = 8;
+                        ctx.lineWidth = 2.0;
+                        for (let i = 0; i < count; i++) {
+                            const a = i * Math.PI * 2 / count + progress * 1.5;
+                            const sizeMult = 0.55 + 0.45 * Math.sin(progress * Math.PI + i);
+                            const outerR = r * sizeMult;
+                            
+                            ctx.fillStyle = i % 2 ? c1 : c2;
+                            ctx.strokeStyle = '#ffffff';
+                            ctx.save();
+                            ctx.rotate(a);
+                            ctx.beginPath();
+                            ctx.moveTo(r * 0.25, 0);
+                            ctx.bezierCurveTo(
+                                r * 0.45, -r * 0.22,
+                                r * 0.72, -r * 0.18,
+                                outerR, 0
+                            );
+                            ctx.bezierCurveTo(
+                                r * 0.72, r * 0.18,
+                                r * 0.45, r * 0.22,
+                                r * 0.25, 0
+                            );
+                            ctx.closePath();
+                            ctx.fill();
+                            if (progress < 0.6) {
+                                ctx.globalAlpha = (1 - progress) * 0.5;
+                                ctx.stroke();
+                            }
+                            ctx.restore();
+                        }
+                        
+                        // 喷射上升的明亮火星
+                        ctx.fillStyle = '#ffffff';
+                        for (let i = 0; i < 6; i++) {
+                            const seedAngle = (i * 1.3 + progress * 2.5) % (Math.PI * 2);
+                            const pRadius = r * 0.5 * (1 - progress + 0.5 * Math.sin(progress * Math.PI));
+                            const px = Math.cos(seedAngle) * pRadius;
+                            const py = Math.sin(seedAngle) * pRadius - progress * r * 0.42;
+                            ctx.beginPath();
+                            ctx.arc(px, py, 2.5 * (1 - progress), 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    } else if (effect.variant === 'frostborn') {
+                        // 霜冻：六角立体冰晶结界
+
+                        // 1. 冰雾底座（六边形极寒星阵）
+                        ctx.fillStyle = hexToRgba(c1, 0.12 * (1 - progress));
+                        ctx.beginPath();
+                        for (let i = 0; i < 6; i++) {
+                            const a = i * Math.PI / 3 + progress * 0.1;
+                            const px = Math.cos(a) * r * 0.85;
+                            const py = Math.sin(a) * r * 0.85;
+                            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                        }
+                        ctx.closePath();
+                        ctx.fill();
+
+                        // 2. 六个立体冰刃（冰晶碎片菱形）
+                        ctx.lineWidth = 1.0;
+                        for (let i = 0; i < 6; i++) {
+                            const a = i * Math.PI / 3 + progress * 0.1;
+                            ctx.save();
+                            ctx.rotate(a);
+                            
+                            // 绘制晶莹透亮的冰棱
+                            const iceGrad = ctx.createLinearGradient(0, 0, r * 0.9, 0);
+                            iceGrad.addColorStop(0, '#ffffff');
+                            iceGrad.addColorStop(0.5, c1);
+                            iceGrad.addColorStop(1, 'rgba(114, 231, 255, 0)');
+                            ctx.fillStyle = iceGrad;
+                            
+                            ctx.beginPath();
+                            ctx.moveTo(0, 0);
+                            ctx.lineTo(r * 0.42, -r * 0.08);
+                            ctx.lineTo(r * 0.9, 0);
+                            ctx.lineTo(r * 0.42, r * 0.08);
+                            ctx.closePath();
+                            ctx.fill();
+                            
+                            // 冰晶高光线
+                            ctx.strokeStyle = '#ffffff';
+                            ctx.globalAlpha = 0.5 * (1 - progress);
+                            ctx.beginPath();
+                            ctx.moveTo(0, 0);
+                            ctx.lineTo(r * 0.9, 0);
+                            ctx.stroke();
+                            
+                            ctx.restore();
+                        }
+                        
+                        // 3. 六角冰晶外边框
+                        ctx.strokeStyle = c2;
+                        ctx.lineWidth = 1.8;
+                        ctx.globalAlpha = 0.6 * (1 - progress);
+                        ctx.beginPath();
+                        for (let i = 0; i <= 6; i++) {
+                            const a = i * Math.PI / 3 + progress * 0.1;
+                            const px = Math.cos(a) * r * 0.65;
+                            const py = Math.sin(a) * r * 0.65;
+                            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                        }
+                        ctx.stroke();
+                    } else if (effect.variant === 'stormfury') {
+                        // 风暴：带有高频电离震荡的狂烈电域
+
+                        // 1. 地面旋转气旋
+                        ctx.strokeStyle = hexToRgba(c1, 0.22);
+                        ctx.lineWidth = 5;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r * 0.72, 0, Math.PI * 2);
+                        ctx.stroke();
+
+                        // 2. 闪电高频电涌
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 2.5;
+                        const branches = 4;
+                        for (let b = 0; b < branches; b++) {
+                            const baseAngle = b * Math.PI / 2 + Math.sin(progress * 12) * 0.12;
+                            ctx.beginPath();
+                            ctx.moveTo(0, 0);
+                            
+                            let lastX = 0, lastY = 0;
+                            const segments = 5;
+                            for (let s = 1; s <= segments; s++) {
+                                const segmentRatio = s / segments;
+                                const currentR = r * segmentRatio;
+                                const jag = (Math.random() - 0.5) * r * 0.18;
+                                const targetX = Math.cos(baseAngle) * currentR + Math.cos(baseAngle + Math.PI / 2) * jag;
+                                const targetY = Math.sin(baseAngle) * currentR + Math.sin(baseAngle + Math.PI / 2) * jag;
+                                ctx.lineTo(targetX, targetY);
+                                lastX = targetX;
+                                lastY = targetY;
+                            }
+                            ctx.stroke();
+
+                            // 闪电末端爆裂星花
+                            ctx.fillStyle = c2;
+                            ctx.beginPath();
+                            ctx.arc(lastX, lastY, 3, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    } else if (effect.variant === 'starlight') {
+                        // 星耀：璀璨超新星爆发与旋涡星云
+
+                        // 1. 星云星光粒子流
+                        ctx.fillStyle = c2;
+                        const dustCount = 8;
+                        for (let i = 0; i < dustCount; i++) {
+                            const offsetAngle = i * Math.PI * 2 / dustCount + progress * Math.PI * 1.5;
+                            const dist = r * 0.58 * (0.4 + 0.6 * progress);
+                            const dx = Math.cos(offsetAngle) * dist;
+                            const dy = Math.sin(offsetAngle) * dist * 0.5;
+                            ctx.beginPath();
+                            ctx.arc(dx, dy, 2.5 * (1 - progress), 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+
+                        // 2. 四个对称的闪烁星状结晶体
+                        const stars = Math.max(1, effect.strikeIndex || 3);
+                        for (let i = 0; i < stars; i++) {
+                            const a = progress * Math.PI * 2 + i * Math.PI * 2 / stars;
+                            const x = Math.cos(a) * r * 0.75;
+                            const y = Math.sin(a) * r * 0.42;
+                            
+                            ctx.fillStyle = '#ffffff';
+                            ctx.save();
+                            ctx.translate(x, y);
+                            ctx.rotate(-progress * Math.PI * 1.8);
+                            
+                            // 精美的四星芒（向内凹陷的华丽几何）
+                            ctx.beginPath();
+                            const starSize = 10 * (1 - progress * 0.3);
+                            ctx.moveTo(0, -starSize);
+                            ctx.quadraticCurveTo(0, 0, starSize, 0);
+                            ctx.quadraticCurveTo(0, 0, 0, starSize);
+                            ctx.quadraticCurveTo(0, 0, -starSize, 0);
+                            ctx.quadraticCurveTo(0, 0, 0, -starSize);
+                            ctx.closePath();
+                            ctx.fill();
+                            
+                            // 星体外层彩色光晕
+                            ctx.globalAlpha = 0.4 * (1 - progress);
+                            ctx.fillStyle = c1;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, starSize * 1.6, 0, Math.PI * 2);
+                            ctx.fill();
+                            
+                            ctx.restore();
+                        }
+                    } else if (effect.variant === 'shadowmantle') {
+                        // 暗影：暗夜星食、虚空吞噬黑洞
+
+                        // 1. 深渊核心阴影球体
+                        const holeGrad = ctx.createRadialGradient(0, 0, r * 0.1, 0, 0, r * 0.85);
+                        holeGrad.addColorStop(0, '#0a0314');
+                        holeGrad.addColorStop(0.35, '#200b36');
+                        holeGrad.addColorStop(0.7, hexToRgba(c1, 0.4 * (1 - progress)));
+                        holeGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                        ctx.fillStyle = holeGrad;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // 2. 双环偏心暗影刃环（呈现立体的日食效果）
+                        ctx.strokeStyle = c2;
+                        ctx.lineWidth = 3.5;
+                        ctx.save();
+                        ctx.rotate(progress * 1.1);
+                        ctx.beginPath();
+                        ctx.arc(-r * 0.14, 0, r * 0.72, -1.35, 1.35);
+                        ctx.stroke();
+                        
+                        ctx.strokeStyle = c1;
+                        ctx.beginPath();
+                        ctx.arc(r * 0.14, 0, r * 0.72, Math.PI - 1.35, Math.PI + 1.35);
+                        ctx.stroke();
+                        ctx.restore();
+                    } else if (effect.variant === 'dragonblood') {
+                        // 龙血：血龙图腾与契约符阵
+
+                        // 1. 契约法阵底盘外圈与刻线
+                        ctx.strokeStyle = hexToRgba(c1, 0.62 * (1 - progress));
+                        ctx.lineWidth = 1.8;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r * 0.85, 0, Math.PI * 2);
+                        ctx.stroke();
+                        
+                        // 内置同轴虚线印记
+                        ctx.strokeStyle = hexToRgba(c2, 0.5 * (1 - progress));
+                        ctx.lineWidth = 1.0;
+                        ctx.setLineDash([4, 6]);
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r * 0.65, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+
+                        // 2. 喷射突出的尖锐龙血结晶
+                        const dragons = 6;
+                        for (let i = 0; i < dragons; i++) {
+                            const angle = i * Math.PI * 2 / dragons + progress * 0.42;
+                            ctx.fillStyle = i % 2 ? c1 : c2;
+                            ctx.save();
+                            ctx.rotate(angle);
+                            ctx.beginPath();
+                            // 绘制一个类似锐利爪牙的封闭多边形
+                            ctx.moveTo(r * 0.38, -r * 0.05);
+                            ctx.lineTo(r * 0.9, 0);
+                            ctx.lineTo(r * 0.38, r * 0.05);
+                            ctx.quadraticCurveTo(r * 0.22, 0, r * 0.38, -r * 0.05);
+                            ctx.closePath();
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    } else if (effect.variant === 'valor') {
+                        // 英勇：圣洁圣殿盾墙防护网
+
+                        // 1. 内部蜂巢光网晶面（填充淡淡的科技底色）
+                        ctx.fillStyle = hexToRgba(c2, 0.12 * (1 - progress));
+                        ctx.beginPath();
+                        for (let i = 0; i <= 6; i++) {
+                            const a = -Math.PI / 2 + i * Math.PI / 3;
+                            const x = Math.cos(a) * r * 0.8;
+                            const y = Math.sin(a) * r * 0.8;
+                            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                        }
+                        ctx.closePath();
+                        ctx.fill();
+
+                        // 2. 外部晶格坚塔骨架
+                        ctx.strokeStyle = c1;
+                        ctx.lineWidth = 3.0;
+                        ctx.beginPath();
+                        for (let i = 0; i <= 6; i++) {
+                            const a = -Math.PI / 2 + i * Math.PI / 3;
+                            const x = Math.cos(a) * r * 0.8;
+                            const y = Math.sin(a) * r * 0.8;
+                            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                        }
+                        ctx.stroke();
+
+                        // 3. 内部核心防护晶体
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        for (let i = 0; i <= 6; i++) {
+                            const a = -Math.PI / 2 + i * Math.PI / 3;
+                            const x = Math.cos(a) * r * 0.48;
+                            const y = Math.sin(a) * r * 0.48;
+                            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                        }
+                        ctx.stroke();
+
+                        // 晶盾斜棱连接线
+                        ctx.strokeStyle = hexToRgba(c2, 0.4);
+                        ctx.beginPath();
+                        for (let i = 0; i < 6; i++) {
+                            const a = -Math.PI / 2 + i * Math.PI / 3;
+                            ctx.moveTo(Math.cos(a) * r * 0.48, Math.sin(a) * r * 0.48);
+                            ctx.lineTo(Math.cos(a) * r * 0.8, Math.sin(a) * r * 0.8);
+                        }
+                        ctx.stroke();
+                    } else if (effect.variant === 'windchaser') {
+                        // 追风：流萤翡翠极风与落叶
+
+                        // 1. 3道丰满的半透明螺旋翠风缎带
+                        ctx.strokeStyle = c1;
+                        ctx.lineWidth = 3.5;
+                        ctx.save();
+                        ctx.rotate(progress * Math.PI * 1.6);
+                        for (let i = 0; i < 3; i++) {
+                            const a = i * Math.PI * 2 / 3;
+                            ctx.beginPath();
+                            // 用二次贝塞尔画具有宽度变化的羽流缎带
+                            ctx.arc(
+                                Math.cos(a) * r * 0.32, Math.sin(a) * r * 0.32,
+                                r * 0.48 * (1 - progress * 0.15),
+                                a, a + Math.PI * 0.7
+                            );
+                            ctx.stroke();
+                        }
+                        ctx.restore();
+
+                        // 2. 风之落叶（落叶在风中旋转飘散）
+                        const leaves = 4;
+                        for (let i = 0; i < leaves; i++) {
+                            const angle = i * Math.PI * 2 / leaves + progress * Math.PI * 2.2;
+                            const leafDist = r * (0.3 + 0.65 * progress);
+                            const lx = Math.cos(angle) * leafDist;
+                            const ly = Math.sin(angle) * leafDist * 0.6;
+                            
+                            ctx.fillStyle = i % 2 ? c1 : c2;
+                            ctx.save();
+                            ctx.translate(lx, ly);
+                            ctx.rotate(angle * 1.5);
+                            
+                            // 绘制一片有机枫叶/树叶几何图形
+                            ctx.beginPath();
+                            ctx.moveTo(0, -6 * (1 - progress));
+                            ctx.quadraticCurveTo(4 * (1 - progress), 0, 0, 8 * (1 - progress));
+                            ctx.quadraticCurveTo(-4 * (1 - progress), 0, 0, -6 * (1 - progress));
+                            ctx.closePath();
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    } else if (effect.variant === 'arcane') {
+                        // 奥术：层叠旋转魔法术式与六芒符阵
+
+                        // 1. 外围高亮铭文虚线圈
+                        ctx.strokeStyle = c1;
+                        ctx.lineWidth = 1.6;
+                        ctx.setLineDash([8, 4, 2, 4]);
+                        ctx.save();
+                        ctx.rotate(progress * Math.PI * 0.5);
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r * 0.88, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.restore();
+
+                        // 2. 六芒星交叉充能图腾
+                        ctx.strokeStyle = c2;
+                        ctx.lineWidth = 1.8;
+                        ctx.setLineDash([]);
+                        ctx.save();
+                        ctx.rotate(-progress * Math.PI * 0.7);
+                        ctx.beginPath();
+                        for (let i = 0; i < 6; i++) {
+                            const a = i * Math.PI * 2 / 6;
+                            const px = Math.cos(a) * r * 0.65;
+                            const py = Math.sin(a) * r * 0.65;
+                            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                        }
+                        ctx.closePath();
+                        ctx.stroke();
+                        
+                        // 错位三角形形成完美六芒星
+                        ctx.beginPath();
+                        for (let i = 0; i < 3; i++) {
+                            const a1 = i * Math.PI * 2 / 3;
+                            const px1 = Math.cos(a1) * r * 0.65;
+                            const py1 = Math.sin(a1) * r * 0.65;
+                            if (i === 0) ctx.moveTo(px1, py1); else ctx.lineTo(px1, py1);
+                        }
+                        ctx.closePath();
+                        ctx.stroke();
+                        ctx.beginPath();
+                        for (let i = 0; i < 3; i++) {
+                            const a2 = i * Math.PI * 2 / 3 + Math.PI / 3;
+                            const px2 = Math.cos(a2) * r * 0.65;
+                            const py2 = Math.sin(a2) * r * 0.65;
+                            if (i === 0) ctx.moveTo(px2, py2); else ctx.lineTo(px2, py2);
+                        }
+                        ctx.closePath();
+                        ctx.stroke();
+
+                        // 核心符印原点
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 5, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    } else {
+                        // 毕业套装职业族样式（style）/ 默认弧影
+                        const style = effect.style || effect.variant || '';
+                        const fade = 1 - progress;
+                        const apexBoost = effect.apex ? 1.12 : 1;
+                        if (style === 'shield_burst' || style === 'valor') {
+                            const rg = ctx.createRadialGradient(0, 0, r * 0.1, 0, 0, r * 0.95);
+                            rg.addColorStop(0, hexToRgba('#ffffff', 0.7 * fade));
+                            rg.addColorStop(0.45, hexToRgba(c2, 0.55 * fade));
+                            rg.addColorStop(1, 'rgba(0,0,0,0)');
+                            ctx.fillStyle = rg;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, r * apexBoost, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.strokeStyle = c1;
+                            ctx.lineWidth = 2.4;
+                            ctx.beginPath();
+                            for (let i = 0; i <= 6; i++) {
+                                const a = -Math.PI / 2 + i * Math.PI / 3 + progress * 0.2;
+                                const x = Math.cos(a) * r * 0.72;
+                                const y = Math.sin(a) * r * 0.72;
+                                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                            }
+                            ctx.closePath();
+                            ctx.stroke();
+                            ctx.strokeStyle = '#ffffff';
+                            ctx.lineWidth = 1.2;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, r * 0.38, 0, Math.PI * 2);
+                            ctx.stroke();
+                        } else if (style === 'blood_surge' || style === 'dragonblood') {
+                            const rg = ctx.createRadialGradient(0, 0, 4, 0, 0, r);
+                            rg.addColorStop(0, hexToRgba('#ffffff', 0.55 * fade));
+                            rg.addColorStop(0.35, hexToRgba(c1, 0.5 * fade));
+                            rg.addColorStop(1, 'rgba(0,0,0,0)');
+                            ctx.fillStyle = rg;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, r * 0.9 * apexBoost, 0, Math.PI * 2);
+                            ctx.fill();
+                            for (let i = 0; i < 6; i++) {
+                                const a = i * Math.PI / 3 + progress * 2;
+                                ctx.strokeStyle = i % 2 ? c1 : c2;
+                                ctx.lineWidth = 2.2 * fade;
+                                ctx.beginPath();
+                                ctx.moveTo(Math.cos(a) * r * 0.2, Math.sin(a) * r * 0.2);
+                                ctx.lineTo(Math.cos(a) * r * 0.95, Math.sin(a) * r * 0.95);
+                                ctx.stroke();
+                            }
+                        } else if (style === 'rift_wave') {
+                            // 碎界怒嚎：左前/右前粗裂波（强制高亮，不受堆叠压暗）
+                            const facing = effect.angle || 0;
+                            const spread = effect.spread != null ? effect.spread : (Math.PI * 42 / 180);
+                            const baseLen = Math.max(effect.radius || 240, 220) * apexBoost;
+                            const waveLen = baseLen * (0.88 + progress * 0.2);
+                            const waveFade = Math.max(0.65, 1 - progress * 0.4);
+                            ctx.save();
+                            ctx.rotate(facing);
+                            // 先用不透明层画暗底裂痕，再用 lighter 叠高光
+                            [-1, 1].forEach(side => {
+                                ctx.save();
+                                ctx.rotate(side * spread);
+                                ctx.globalCompositeOperation = 'source-over';
+                                const halfW = 42 * apexBoost * (1.2 - progress * 0.25);
+                                // 暗红色地面裂开底
+                                ctx.fillStyle = hexToRgba('#4a0800', 0.85 * waveFade);
+                                ctx.beginPath();
+                                ctx.moveTo(0, -halfW * 1.15);
+                                ctx.lineTo(waveLen, -halfW * 0.45);
+                                ctx.lineTo(waveLen, halfW * 0.45);
+                                ctx.lineTo(0, halfW * 1.15);
+                                ctx.closePath();
+                                ctx.fill();
+                                // 实心橙红主带
+                                const beam = ctx.createLinearGradient(0, 0, waveLen, 0);
+                                beam.addColorStop(0, hexToRgba('#ffffff', 1.0 * waveFade));
+                                beam.addColorStop(0.12, hexToRgba('#ffe566', 1.0 * waveFade));
+                                beam.addColorStop(0.4, hexToRgba('#ff3a14', 0.98 * waveFade));
+                                beam.addColorStop(0.75, hexToRgba('#ff6622', 0.85 * waveFade));
+                                beam.addColorStop(1, hexToRgba('#ff2200', 0.15 * waveFade));
+                                ctx.fillStyle = beam;
+                                ctx.beginPath();
+                                ctx.moveTo(0, -halfW);
+                                ctx.lineTo(waveLen, -halfW * 0.4);
+                                ctx.lineTo(waveLen, halfW * 0.4);
+                                ctx.lineTo(0, halfW);
+                                ctx.closePath();
+                                ctx.fill();
+                                ctx.globalCompositeOperation = 'lighter';
+                                // 超亮白芯
+                                ctx.strokeStyle = '#ffffff';
+                                ctx.lineWidth = 14 * (effect.apex ? 1.4 : 1.2);
+                                ctx.lineCap = 'round';
+                                ctx.globalAlpha = waveFade;
+                                ctx.beginPath();
+                                ctx.moveTo(0, 0);
+                                for (let i = 1; i <= 6; i++) {
+                                    const t = i / 6;
+                                    const jitter = Math.sin(i * 2.1 + progress * 10) * (8 + i * 3);
+                                    ctx.lineTo(waveLen * t, jitter * (i % 2 ? 1 : -1) * 0.35);
+                                }
+                                ctx.stroke();
+                                ctx.strokeStyle = '#ffe08a';
+                                ctx.lineWidth = 7;
+                                ctx.beginPath();
+                                ctx.moveTo(4, -halfW * 0.55);
+                                ctx.lineTo(waveLen * 0.97, -halfW * 0.2);
+                                ctx.moveTo(4, halfW * 0.55);
+                                ctx.lineTo(waveLen * 0.95, halfW * 0.2);
+                                ctx.stroke();
+                                // 大块碎石火团
+                                for (let i = 0; i < 8; i++) {
+                                    const t = 0.12 + i * 0.11;
+                                    const px = waveLen * Math.min(0.98, t + progress * 0.08);
+                                    const py = Math.sin(i * 2.4 + progress * 7) * (20 + i * 2);
+                                    ctx.fillStyle = i % 2 ? '#ffffff' : '#ffcc44';
+                                    ctx.beginPath();
+                                    ctx.arc(px, py, 10 + (1 - progress) * 10, 0, Math.PI * 2);
+                                    ctx.fill();
+                                }
+                                // 末端爆点
+                                const tip = ctx.createRadialGradient(waveLen * 0.92, 0, 2, waveLen * 0.92, 0, 48);
+                                tip.addColorStop(0, hexToRgba('#ffffff', 1.0 * waveFade));
+                                tip.addColorStop(0.35, hexToRgba('#ffaa33', 0.9 * waveFade));
+                                tip.addColorStop(1, 'rgba(0,0,0,0)');
+                                ctx.fillStyle = tip;
+                                ctx.beginPath();
+                                ctx.arc(waveLen * 0.92, 0, 48 * (1.1 - progress * 0.4), 0, Math.PI * 2);
+                                ctx.fill();
+                                ctx.restore();
+                            });
+                            ctx.globalCompositeOperation = 'lighter';
+                            const core = ctx.createRadialGradient(0, 0, 2, 0, 0, 56 * apexBoost);
+                            core.addColorStop(0, hexToRgba('#ffffff', 1.0 * waveFade));
+                            core.addColorStop(0.35, hexToRgba('#ffcc55', 0.95 * waveFade));
+                            core.addColorStop(0.7, hexToRgba('#ff3311', 0.55 * waveFade));
+                            core.addColorStop(1, 'rgba(0,0,0,0)');
+                            ctx.fillStyle = core;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, 56 * apexBoost * (1.05 - progress * 0.25), 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.restore();
+                        } else if (style === 'pack_mark') {
+                            ctx.strokeStyle = c1;
+                            ctx.lineWidth = 2;
+                            for (let i = 0; i < 3; i++) {
+                                const a = i * Math.PI * 2 / 3 + progress * 1.4;
+                                const cx = Math.cos(a) * r * 0.35;
+                                const cy = Math.sin(a) * r * 0.35;
+                                ctx.beginPath();
+                                ctx.arc(cx, cy, r * 0.28 * apexBoost, 0, Math.PI * 2);
+                                ctx.stroke();
+                                ctx.fillStyle = hexToRgba(c2, 0.35 * fade);
+                                ctx.beginPath();
+                                ctx.moveTo(cx, cy - 6);
+                                ctx.lineTo(cx + 5, cy + 4);
+                                ctx.lineTo(cx - 5, cy + 4);
+                                ctx.closePath();
+                                ctx.fill();
+                            }
+                        } else if (style === 'sniper_gaze') {
+                            ctx.strokeStyle = c1;
+                            ctx.lineWidth = 1.6;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, r * 0.85 * apexBoost, 0, Math.PI * 2);
+                            ctx.stroke();
+                            ctx.beginPath();
+                            ctx.arc(0, 0, r * 0.45, 0, Math.PI * 2);
+                            ctx.stroke();
+                            ctx.strokeStyle = c2;
+                            ctx.beginPath();
+                            ctx.moveTo(-r * 0.95, 0); ctx.lineTo(r * 0.95, 0);
+                            ctx.moveTo(0, -r * 0.95); ctx.lineTo(0, r * 0.95);
+                            ctx.stroke();
+                            ctx.fillStyle = hexToRgba('#ffffff', 0.7 * fade);
+                            ctx.beginPath();
+                            ctx.arc(0, 0, 3 + 4 * (1 - progress), 0, Math.PI * 2);
+                            ctx.fill();
+                        } else if (style === 'wind_feather' || style === 'windchaser') {
+                            ctx.save();
+                            ctx.rotate(progress * Math.PI * 1.8);
+                            ctx.strokeStyle = c1;
+                            ctx.lineWidth = 2.5;
+                            for (let i = 0; i < 4; i++) {
+                                const a = i * Math.PI / 2;
+                                ctx.beginPath();
+                                ctx.arc(Math.cos(a) * r * 0.25, Math.sin(a) * r * 0.25, r * 0.4, a, a + 1.2);
+                                ctx.stroke();
+                            }
+                            ctx.restore();
+                            for (let i = 0; i < 5; i++) {
+                                const a = i * 1.2 + progress * 4;
+                                const d = r * (0.3 + 0.55 * progress);
+                                ctx.fillStyle = i % 2 ? c1 : c2;
+                                ctx.beginPath();
+                                ctx.ellipse(Math.cos(a) * d, Math.sin(a) * d * 0.7, 5 * fade, 2.5 * fade, a, 0, Math.PI * 2);
+                                ctx.fill();
+                            }
+                        } else if (style === 'element_wave' || style === 'arcane') {
+                            ctx.strokeStyle = c1;
+                            ctx.lineWidth = 2;
+                            ctx.setLineDash([6, 4]);
+                            ctx.beginPath();
+                            ctx.arc(0, 0, r * 0.9 * apexBoost * (0.7 + 0.3 * progress), 0, Math.PI * 2);
+                            ctx.stroke();
+                            ctx.setLineDash([]);
+                            ctx.strokeStyle = c2;
+                            for (let i = 0; i < 3; i++) {
+                                ctx.beginPath();
+                                ctx.arc(0, 0, r * (0.35 + i * 0.18), -progress * 2 + i, -progress * 2 + i + Math.PI);
+                                ctx.stroke();
+                            }
+                            ctx.fillStyle = hexToRgba(c1, 0.35 * fade);
+                            ctx.beginPath();
+                            ctx.arc(0, 0, r * 0.25, 0, Math.PI * 2);
+                            ctx.fill();
+                        } else if (style === 'chronos_ring' || style === 'starlight') {
+                            ctx.strokeStyle = c1;
+                            ctx.lineWidth = 2;
+                            ctx.save();
+                            ctx.rotate(progress * Math.PI);
+                            ctx.beginPath();
+                            ctx.arc(0, 0, r * 0.8 * apexBoost, 0.2, Math.PI * 1.6);
+                            ctx.stroke();
+                            ctx.restore();
+                            ctx.strokeStyle = c2;
+                            ctx.save();
+                            ctx.rotate(-progress * Math.PI * 1.3);
+                            ctx.beginPath();
+                            ctx.arc(0, 0, r * 0.5, 0, Math.PI * 2);
+                            ctx.stroke();
+                            ctx.restore();
+                            for (let i = 0; i < 6; i++) {
+                                const a = -Math.PI / 2 + i * Math.PI / 3;
+                                ctx.fillStyle = i % 2 ? c1 : '#ffffff';
+                                ctx.beginPath();
+                                ctx.arc(Math.cos(a) * r * 0.8, Math.sin(a) * r * 0.8, 2.2 * fade, 0, Math.PI * 2);
+                                ctx.fill();
+                            }
+                        } else if (style === 'curse_chain') {
+                            ctx.strokeStyle = c1;
+                            ctx.lineWidth = 2.2;
+                            for (let i = 0; i < 5; i++) {
+                                const t = (i + progress) / 5;
+                                const a = t * Math.PI * 2;
+                                const rr = r * (0.25 + 0.65 * t);
+                                ctx.beginPath();
+                                ctx.arc(Math.cos(a) * rr * 0.2, Math.sin(a) * rr * 0.2, rr * 0.22, 0, Math.PI * 2);
+                                ctx.stroke();
+                            }
+                            ctx.fillStyle = hexToRgba(c2, 0.4 * fade);
+                            ctx.beginPath();
+                            ctx.arc(0, 0, r * 0.3 * apexBoost, 0, Math.PI * 2);
+                            ctx.fill();
+                        } else if (style === 'shadow_slash' || style === 'shadowmantle' || style === 'shadow') {
+                            ctx.rotate(effect.angle || 0);
+                            const g1 = ctx.createLinearGradient(-r, 0, r, 0);
+                            g1.addColorStop(0, 'rgba(255,255,255,0)');
+                            g1.addColorStop(0.5, c1);
+                            g1.addColorStop(1, 'rgba(255,255,255,0)');
+                            ctx.strokeStyle = g1;
+                            ctx.lineWidth = (effect.apex ? 7 : 5) * fade;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, r * 0.8, -0.75, 0.75);
+                            ctx.stroke();
+                            ctx.strokeStyle = c2;
+                            ctx.lineWidth = 2 * fade;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, r * 0.55, Math.PI - 0.5, Math.PI + 0.5);
+                            ctx.stroke();
+                        } else if (style === 'mirror_shatter') {
+                            ctx.strokeStyle = c1;
+                            ctx.lineWidth = 1.8;
+                            for (let i = 0; i < 6; i++) {
+                                const a = i * Math.PI / 3 + progress;
+                                ctx.beginPath();
+                                ctx.moveTo(0, 0);
+                                ctx.lineTo(Math.cos(a) * r * 0.9, Math.sin(a) * r * 0.9);
+                                ctx.stroke();
+                                ctx.fillStyle = hexToRgba(c2, 0.35 * fade);
+                                ctx.beginPath();
+                                ctx.moveTo(Math.cos(a) * r * 0.4, Math.sin(a) * r * 0.4);
+                                ctx.lineTo(Math.cos(a + 0.25) * r * 0.75, Math.sin(a + 0.25) * r * 0.75);
+                                ctx.lineTo(Math.cos(a - 0.25) * r * 0.75, Math.sin(a - 0.25) * r * 0.75);
+                                ctx.closePath();
+                                ctx.fill();
+                            }
+                        } else if (style === 'poison_cloud') {
+                            for (let i = 0; i < 7; i++) {
+                                const a = i * Math.PI * 2 / 7 + progress * 1.5;
+                                const d = r * (0.25 + 0.45 * Math.sin(progress * Math.PI + i));
+                                const br = r * (0.22 + 0.08 * (i % 3)) * apexBoost;
+                                const rg = ctx.createRadialGradient(
+                                    Math.cos(a) * d, Math.sin(a) * d, 2,
+                                    Math.cos(a) * d, Math.sin(a) * d, br
+                                );
+                                rg.addColorStop(0, hexToRgba(c2, 0.55 * fade));
+                                rg.addColorStop(1, 'rgba(0,0,0,0)');
+                                ctx.fillStyle = rg;
+                                ctx.beginPath();
+                                ctx.arc(Math.cos(a) * d, Math.sin(a) * d, br, 0, Math.PI * 2);
+                                ctx.fill();
+                            }
+                            ctx.strokeStyle = c1;
+                            ctx.lineWidth = 1.5;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, r * 0.7, 0, Math.PI * 2);
+                            ctx.stroke();
+                        } else {
+                            // 默认：幻境弧影斩裂
+                            ctx.rotate(effect.angle || 0);
+                            const defaultGrad = ctx.createLinearGradient(-r * 0.7, 0, r * 0.7, 0);
+                            defaultGrad.addColorStop(0, 'rgba(255,255,255,0)');
+                            defaultGrad.addColorStop(0.5, c1);
+                            defaultGrad.addColorStop(1, 'rgba(255,255,255,0)');
+                            ctx.strokeStyle = defaultGrad;
+                            ctx.lineWidth = 5.0 * fade;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, r * 0.75, -0.6, 0.6);
+                            ctx.stroke();
+                            ctx.strokeStyle = c2;
+                            ctx.lineWidth = 2.0 * fade;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, r * 0.75, Math.PI - 0.6, Math.PI + 0.6);
+                            ctx.stroke();
+                        }
+                    }
+                    break;
+                }
+
+                case 'power_vfx': {
+                    const c1 = effect.color || '#ffffff';
+                    const c2 = effect.color2 || '#ffffff';
+                    const variant = effect.variant || '';
+                    const style = effect.style || (['greed_power', 'blood_rage', 'war_god_fury', 'immortal_shield', 'titan_body', 'arcane_surge', 'mana_shield', 'element_avatar', 'phantom_step', 'shadow_dance'].includes(variant) ? 'buff' : 'attack');
+                    const baseR = effect.radius || 90;
+                    ctx.translate(effect.x, effect.y);
+                    ctx.globalCompositeOperation = 'screen';
+
+                    // 增益型：两件套式轻量地面环，不绕球、不放大特效
+                    if (style === 'buff') {
+                        const r = (baseR || 36) * (0.9 + 0.1 * Math.sin(progress * Math.PI));
+                        const groundGrad = ctx.createRadialGradient(0, 13, r * 0.12, 0, 13, r);
+                        const a0 = 0.22 * (1 - progress);
+                        groundGrad.addColorStop(0, hexToRgba(c1, a0));
+                        groundGrad.addColorStop(0.55, hexToRgba(c1, a0 * 0.35));
+                        groundGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                        ctx.fillStyle = groundGrad;
+                        ctx.beginPath();
+                        ctx.ellipse(0, 13, r, r * 0.42, 0, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        ctx.strokeStyle = hexToRgba(c1, 0.75 * (1 - progress));
+                        ctx.lineWidth = 1.6;
+                        ctx.setLineDash([5, 4]);
+                        ctx.beginPath();
+                        ctx.ellipse(0, 13, r, r * 0.42, 0, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+
+                        ctx.strokeStyle = hexToRgba(c2, 0.55 * (1 - progress));
+                        ctx.lineWidth = 1.0;
+                        ctx.beginPath();
+                        ctx.ellipse(0, 13, r * 0.62, r * 0.42 * 0.62, 0, 0, Math.PI * 2);
+                        ctx.stroke();
+                        break;
+                    }
+
+                    const r = Math.max(24, baseR * (0.78 + Math.sin(progress * Math.PI) * 0.22));
+                    ctx.strokeStyle = c1;
+                    ctx.fillStyle = c2;
+                    ctx.lineWidth = 3.0;
+
+                    if (variant === 'dragon_breath') {
+                        ctx.rotate(effect.angle || 0);
+                        for (let i = 0; i < 5; i++) {
+                            const ratio = i / 5;
+                            const distance = r * ratio * (0.65 + 0.35 * progress);
+                            const blobRadius = r * (0.15 + 0.35 * ratio) * (1 - progress * 0.35);
+                            const blobX = distance;
+                            const blobY = Math.sin(progress * 6 + i) * r * 0.04 * ratio;
+                            const blobGrad = ctx.createRadialGradient(blobX, blobY, blobRadius * 0.1, blobX, blobY, blobRadius);
+                            blobGrad.addColorStop(0, '#ffffff');
+                            blobGrad.addColorStop(0.3, hexToRgba(c2, 0.85 * (1 - progress)));
+                            blobGrad.addColorStop(0.7, hexToRgba(c1, 0.45 * (1 - progress)));
+                            blobGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                            ctx.fillStyle = blobGrad;
+                            ctx.beginPath();
+                            ctx.arc(blobX, blobY, blobRadius, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    } else if (variant === 'thorn_aura') {
+                        ctx.rotate(progress * 0.8);
+                        ctx.strokeStyle = hexToRgba(c1, 0.55);
+                        ctx.lineWidth = 2.5;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r * 0.72, 0, Math.PI * 1.7);
+                        ctx.stroke();
+                        const thorns = 8;
+                        for (let i = 0; i < thorns; i++) {
+                            const a = i * Math.PI * 2 / thorns;
+                            ctx.fillStyle = i % 2 ? c1 : c2;
+                            ctx.save();
+                            ctx.rotate(a);
+                            ctx.beginPath();
+                            ctx.moveTo(r * 0.72, -3);
+                            ctx.lineTo(r * 0.95, 0);
+                            ctx.lineTo(r * 0.72, 3);
+                            ctx.closePath();
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    } else if (variant === 'chain_lightning') {
+                        // 使用触发时烘焙的怪间跳跃点；局部坐标绘制
+                        let pts = Array.isArray(effect.chainPoints) ? effect.chainPoints : null;
+                        const localPts = [];
+                        if (pts && pts.length >= 2) {
+                            for (let i = 0; i < pts.length; i++) {
+                                localPts.push({ x: pts[i].x - effect.x, y: pts[i].y - effect.y });
+                            }
+                        } else {
+                            // 兜底：扇形假链
+                            localPts.push({ x: 0, y: 0 });
+                            for (let b = 0; b < 3; b++) {
+                                const angle = (b * Math.PI * 2 / 3) + progress * 0.4;
+                                localPts.push({ x: Math.cos(angle) * r * 0.75, y: Math.sin(angle) * r * 0.75 });
+                            }
+                        }
+
+                        // 逐段显现：前半段展开链条
+                        const reveal = Math.min(1, progress * 2.2);
+                        const maxSeg = Math.max(1, Math.floor((localPts.length - 1) * reveal + 0.001));
+                        for (let h = 0; h < maxSeg; h++) {
+                            const from = localPts[h];
+                            const to = localPts[h + 1];
+                            if (!from || !to) continue;
+                            const dx = to.x - from.x;
+                            const dy = to.y - from.y;
+                            const len = Math.hypot(dx, dy) || 1;
+                            const steps = Math.max(4, Math.floor(len / 16));
+                            const drawBolt = (w, col, seed) => {
+                                ctx.strokeStyle = col;
+                                ctx.lineWidth = w;
+                                ctx.lineCap = 'round';
+                                ctx.beginPath();
+                                ctx.moveTo(from.x, from.y);
+                                for (let s = 1; s <= steps; s++) {
+                                    const ratio = s / steps;
+                                    const tx = from.x + dx * ratio;
+                                    const ty = from.y + dy * ratio;
+                                    if (s === steps) {
+                                        ctx.lineTo(tx, ty);
+                                    } else {
+                                        const nx = -dy / len;
+                                        const ny = dx / len;
+                                        const jag = Math.sin(progress * 18 + s * 2.1 + seed) * 9;
+                                        ctx.lineTo(tx + nx * jag, ty + ny * jag);
+                                    }
+                                }
+                                ctx.stroke();
+                            };
+                            drawBolt(4.2, hexToRgba(c1, 0.4), h);
+                            drawBolt(1.5, '#ffffff', h + 0.5);
+
+                            ctx.fillStyle = hexToRgba(c2, 0.55 * (1 - progress));
+                            ctx.beginPath();
+                            ctx.arc(to.x, to.y, 7 * (1 - progress * 0.3), 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    } else if (variant === 'phoenix') {
+                        // 涅槃双翼 + 核心光晕，无尾部摆动线
+                        const flap = 0.92 + 0.08 * Math.sin(progress * Math.PI);
+                        const drawWing = (dir) => {
+                            ctx.fillStyle = hexToRgba(c1, 0.85 * (1 - progress * 0.35));
+                            ctx.beginPath();
+                            ctx.moveTo(0, r * 0.2);
+                            ctx.bezierCurveTo(
+                                dir * r * 0.4 * flap, -r * 0.25,
+                                dir * r * 0.8 * flap, -r * 0.08,
+                                dir * r * 1.05 * flap, -r * 0.48
+                            );
+                            ctx.bezierCurveTo(
+                                dir * r * 0.65, -r * 0.18,
+                                dir * r * 0.32, -r * 0.06,
+                                0, r * 0.2
+                            );
+                            ctx.closePath();
+                            ctx.fill();
+                            ctx.strokeStyle = hexToRgba('#ffffff', 0.35 * (1 - progress));
+                            ctx.lineWidth = 1.0;
+                            ctx.stroke();
+                        };
+                        drawWing(-1);
+                        drawWing(1);
+                        const coreGrad = ctx.createRadialGradient(0, -r * 0.05, 1, 0, -r * 0.05, r * 0.36);
+                        coreGrad.addColorStop(0, hexToRgba('#ffffff', 0.7 * (1 - progress)));
+                        coreGrad.addColorStop(0.4, hexToRgba(c2, 0.55 * (1 - progress)));
+                        coreGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                        ctx.fillStyle = coreGrad;
+                        ctx.beginPath();
+                        ctx.arc(0, -r * 0.05, r * 0.36, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (variant === 'frost_nova') {
+                        const novaGrad = ctx.createRadialGradient(0, 0, r * 0.2, 0, 0, r);
+                        novaGrad.addColorStop(0, 'rgba(255,255,255,0)');
+                        novaGrad.addColorStop(0.55, hexToRgba(c1, 0.4 * (1 - progress)));
+                        novaGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                        ctx.fillStyle = novaGrad;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r, 0, Math.PI * 2);
+                        ctx.fill();
+                        for (let i = 0; i < 8; i++) {
+                            const a = i * Math.PI * 2 / 8;
+                            ctx.save();
+                            ctx.rotate(a);
+                            const sLen = r * (0.4 + 0.55 * progress);
+                            ctx.fillStyle = c1;
+                            ctx.beginPath();
+                            ctx.moveTo(r * 0.2, 0);
+                            ctx.lineTo(sLen * 0.7, -r * 0.08);
+                            ctx.lineTo(sLen, 0);
+                            ctx.lineTo(sLen * 0.7, r * 0.08);
+                            ctx.closePath();
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    } else if (variant === 'arrow_rain') {
+                        // 明确生效范围 + 快速落地
+                        const rangeRx = r * 0.92;
+                        const rangeRy = r * 0.42 * 0.92;
+                        ctx.strokeStyle = hexToRgba(c1, 0.85 * (1 - progress * 0.5));
+                        ctx.lineWidth = 2.2;
+                        ctx.setLineDash([6, 4]);
+                        ctx.beginPath();
+                        ctx.ellipse(0, 8, rangeRx, rangeRy, 0, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                        ctx.fillStyle = hexToRgba(c1, 0.12 * (1 - progress * 0.4));
+                        ctx.beginPath();
+                        ctx.ellipse(0, 8, rangeRx, rangeRy, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        // 内圈强调范围
+                        ctx.strokeStyle = hexToRgba(c2, 0.45 * (1 - progress));
+                        ctx.lineWidth = 1.2;
+                        ctx.beginPath();
+                        ctx.ellipse(0, 8, rangeRx * 0.72, rangeRy * 0.72, 0, 0, Math.PI * 2);
+                        ctx.stroke();
+
+                        ctx.save();
+                        ctx.rotate(-0.28);
+                        const arrowCount = 8;
+                        for (let i = 0; i < arrowCount; i++) {
+                            const colX = (i - (arrowCount - 1) / 2) * r * 0.2;
+                            const phaseOffset = (i % 4) * 0.07;
+                            // 一次快速落下，约前 55% 进度完成落地
+                            const fallVal = Math.min(1, Math.max(0, (progress - phaseOffset) / 0.55));
+                            if (fallVal <= 0) continue;
+                            const headY = -r * 1.15 + fallVal * r * 1.85;
+                            const tailGrad = ctx.createLinearGradient(colX, headY - 16, colX, headY);
+                            tailGrad.addColorStop(0, 'rgba(255,255,255,0)');
+                            tailGrad.addColorStop(1, hexToRgba(c1, 0.7));
+                            ctx.strokeStyle = tailGrad;
+                            ctx.lineWidth = 2.0;
+                            ctx.beginPath();
+                            ctx.moveTo(colX, headY - 16);
+                            ctx.lineTo(colX, headY);
+                            ctx.stroke();
+                            ctx.fillStyle = '#ffffff';
+                            ctx.beginPath();
+                            ctx.moveTo(colX, headY);
+                            ctx.lineTo(colX - 3, headY - 5);
+                            ctx.lineTo(colX + 3, headY - 5);
+                            ctx.closePath();
+                            ctx.fill();
+                            if (fallVal > 0.88) {
+                                ctx.strokeStyle = hexToRgba(c2, (1 - fallVal) / 0.12);
+                                ctx.lineWidth = 1.2;
+                                ctx.beginPath();
+                                ctx.ellipse(colX, headY, 10, 3.5, 0, 0, Math.PI * 2);
+                                ctx.stroke();
+                            }
+                        }
+                        ctx.restore();
+                    } else if (variant === 'wind_soul') {
+                        // 风行者之魂：三道螺旋风带，代表强攻触发
+                        for (let b = 0; b < 3; b++) {
+                            const phase = progress * Math.PI * 2 + b * 2.1;
+                            ctx.strokeStyle = b % 2 ? hexToRgba(c2, 0.7 * (1 - progress)) : hexToRgba(c1, 0.65 * (1 - progress));
+                            ctx.lineWidth = 2.2 - b * 0.3;
+                            ctx.beginPath();
+                            for (let s = 0; s <= 14; s++) {
+                                const t = s / 14;
+                                const ang = phase + t * Math.PI * 1.6;
+                                const rad = r * (0.25 + t * 0.55);
+                                const px = Math.cos(ang) * rad;
+                                const py = Math.sin(ang) * rad * 0.55 - t * r * 0.15;
+                                if (s === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                            }
+                            ctx.stroke();
+                        }
+                        ctx.fillStyle = hexToRgba(c2, 0.5 * (1 - progress));
+                        for (let i = 0; i < 5; i++) {
+                            const a = i * 1.25 + progress * 4;
+                            const lx = Math.cos(a) * r * 0.55;
+                            const ly = Math.sin(a) * r * 0.3 - progress * 12;
+                            ctx.beginPath();
+                            ctx.ellipse(lx, ly, 4, 2, a, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    } else if (variant === 'eagle_eye') {
+                        ctx.strokeStyle = c1;
+                        ctx.lineWidth = 1.6;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r * 0.7, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.setLineDash([2, 7]);
+                        ctx.strokeStyle = c2;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r * 0.52, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                        ctx.strokeStyle = c1;
+                        ctx.lineWidth = 2.2;
+                        for (let i = 0; i < 4; i++) {
+                            const a = i * Math.PI / 2 - progress * 0.35;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, r * 0.42, a - 0.18, a + 0.18);
+                            ctx.stroke();
+                        }
+                        ctx.fillStyle = '#ff3b30';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 2.4, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (variant === 'assassinate') {
+                        ctx.lineWidth = 5 * (1 - progress * 0.5);
+                        ctx.strokeStyle = c1;
+                        ctx.beginPath();
+                        ctx.moveTo(-r * 0.85, -r * 0.35);
+                        ctx.quadraticCurveTo(0, 0, r * 0.85, r * 0.35);
+                        ctx.stroke();
+                        ctx.strokeStyle = c2;
+                        ctx.beginPath();
+                        ctx.moveTo(r * 0.85, -r * 0.35);
+                        ctx.quadraticCurveTo(0, 0, -r * 0.85, r * 0.35);
+                        ctx.stroke();
+                    } else if (variant === 'death_arrival') {
+                        ctx.save();
+                        ctx.rotate(-progress * Math.PI * 0.35);
+                        const scytheGrad = ctx.createLinearGradient(-r * 0.8, -r * 0.3, r * 0.8, r * 0.3);
+                        scytheGrad.addColorStop(0, 'rgba(141, 85, 206, 0)');
+                        scytheGrad.addColorStop(0.6, hexToRgba(c1, 0.85));
+                        scytheGrad.addColorStop(0.85, '#ffffff');
+                        scytheGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                        ctx.fillStyle = scytheGrad;
+                        ctx.beginPath();
+                        ctx.moveTo(-r * 0.85, -r * 0.4);
+                        ctx.quadraticCurveTo(0, -r * 0.7, r * 0.85, -r * 0.4);
+                        ctx.quadraticCurveTo(0, -r * 0.55, -r * 0.85, -r * 0.4);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.restore();
+                    } else {
+                        // 默认攻击闪光：短促冲击环
+                        ctx.strokeStyle = hexToRgba(c1, 0.7 * (1 - progress));
+                        ctx.lineWidth = 2.5;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, r * (0.4 + progress * 0.5), 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    break;
+                }
+
+                case 'refine_mechanic': {
+                    const r = Math.max(16, (effect.radius || 70) * (0.3 + progress * 0.8));
+                    const colors = {
+                        sword: '#9ed7ff', axe: '#ff6b4a', hammer: '#ffd06b', spear: '#d7e8ff',
+                        bow: '#8dff9f', crossbow: '#ffb45d', longbow: '#b6f4ff', shortbow: '#9dffce',
+                        staff: '#a774ff', book: '#e5b8ff', orb: '#68dfff', rune: '#c487ff',
+                        dagger: '#ce75ff', claw: '#ff5577', shortblade: '#ff8de1', chainblade: '#a45cff',
+                        resonance_fireheart: '#ff5a36', resonance_stormfury: '#55ddff',
+                        resonance_dragonblood: '#d65b45', resonance_arcane: '#b06dff',
+                        resonance_shadow: '#9d66d9', resonance_dragon_breath: '#ff7a3d',
+                        resonance_chain_lightning: '#70e7ff', resonance_war_god_fury: '#ffb14a',
+                        resonance_eagle_eye: '#b9ff85', resonance_arrow_rain: '#89e66f',
+                        resonance_arcane_surge: '#d18cff', resonance_assassinate: '#ff638f',
+                        resonance_death_arrival: '#bb83ff'
+                    };
+                    ctx.translate(effect.x, effect.y);
+                    ctx.rotate((effect.angle || 0) + progress * 0.7);
+                    ctx.strokeStyle = colors[effect.family] || '#ffd27a';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, r, -0.9, 1.8);
+                    ctx.stroke();
+                    ctx.globalAlpha *= 0.65;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, r * 0.62, 2.1, 5.5);
+                    ctx.stroke();
+                    break;
+                }
+
                 case 'skill_hit': // 通用技能命中 - 斩击/冲击光圈
                     const hitRadius = Math.max(15, (effect.radius || 48) * Math.min(1, progress * 1.3));
                     ctx.strokeStyle = 'rgba(255, 220, 100, ' + Math.max(0.4, alpha) + ')';
@@ -10006,7 +11734,11 @@ class Game {
                     break;
             }
             
-            ctx.restore();
+            } catch (err) {
+                console.error("Error rendering equipment effect:", err);
+            } finally {
+                ctx.restore();
+            }
             return true; // 保留未过期的特效
         });
     }
@@ -10030,7 +11762,9 @@ class Game {
         
         // 检查套装效果
         if (typeof getActiveSetEffects === 'function') {
-            const activeSets = getActiveSetEffects(this.player.equipment);
+            const activeSets = typeof getAllActiveSetEffects === 'function'
+                ? getAllActiveSetEffects(this.player.equipment)
+                : [];
             activeSets.forEach(set => {
                 if (set.setName === '烈焰套装') trailColor = '#ff4400';
                 else if (set.setName === '霜寒套装') trailColor = '#00ffff';
@@ -10552,6 +12286,7 @@ class Game {
                     suffixes: rawEq.suffixes || [],
                     legendaryPowers: rawEq.legendaryPowers || [],
                     setId: rawEq.setId,
+                    buildEquipmentId: rawEq.buildEquipmentId || null,
                     procedural: true,
                     refineLevel: 0
                 });
@@ -10725,11 +12460,61 @@ class Game {
     /**
      * 生成传送门
      */
+    syncTowerBranchPortals() {
+        const room = this.currentRoom;
+        const encounter = room && room.towerEncounter;
+        const map = room && room.map;
+        if (this.currentScene !== SCENE_TYPES.TOWER
+            || !room
+            || room.type !== ROOM_TYPES.BATTLE
+            || !encounter
+            || !Array.isArray(encounter.branchCleared)
+            || !map
+            || !Array.isArray(map.exitChoices)) {
+            return;
+        }
+        const nextFloor = this.floor + 1;
+        const maxFloor = typeof window.getTowerMaxFloor === 'function'
+            ? window.getTowerMaxFloor()
+            : 240;
+        if (nextFloor > maxFloor) return;
+        const availableTypes = [ROOM_TYPES.BATTLE, ROOM_TYPES.TREASURE, ROOM_TYPES.REST, ROOM_TYPES.ELITE];
+        encounter.branchCleared.forEach((cleared, branchIndex) => {
+            if (!cleared || encounter.branchPortalSpawned[branchIndex]) return;
+            const exit = map.exitChoices[branchIndex];
+            if (!exit) return;
+            let roomType = encounter.branchRoomTypes[branchIndex];
+            if (!roomType) {
+                if (typeof window.isTowerGapShopFloor === 'function'
+                    && window.isTowerGapShopFloor(nextFloor)) {
+                    roomType = ROOM_TYPES.GAP_SHOP;
+                } else if (this.demonInterferenceFlags
+                    && Array.isArray(this.demonInterferenceFlags.forceRoomTypes)
+                    && this.demonInterferenceFlags.forceRoomTypes.length) {
+                    const forced = this.demonInterferenceFlags.forceRoomTypes;
+                    roomType = forced[branchIndex % forced.length];
+                } else {
+                    roomType = availableTypes[(this.floor + branchIndex * 2) % availableTypes.length];
+                }
+                encounter.branchRoomTypes[branchIndex] = roomType;
+            }
+            const portal = new Portal(exit.x, exit.y, nextFloor, 'next', roomType);
+            portal._towerBranchIndex = branchIndex;
+            this.portals.push(portal);
+            encounter.branchPortalSpawned[branchIndex] = true;
+            this.addFloatingText(exit.x, exit.y - 40, `岔路 ${branchIndex + 1} 出口已开启`, '#9ee6ff');
+        });
+    }
+
     generatePortals() {
         this.portals = [];
-        const centerX = CONFIG.CANVAS_WIDTH / 2;
-        const centerY = CONFIG.CANVAS_HEIGHT / 2;
-        const distance = 250; // 传送门距离中心的距离
+        const roomWidth = this.currentRoom && this.currentRoom.width
+            ? this.currentRoom.width : CONFIG.CANVAS_WIDTH;
+        const roomHeight = this.currentRoom && this.currentRoom.height
+            ? this.currentRoom.height : CONFIG.CANVAS_HEIGHT;
+        const centerX = roomWidth / 2;
+        const centerY = roomHeight / 2;
+        const distance = 390; // 与 tower-map-system 的起点/终点保持一致
         
         const maxF = typeof window.getTowerMaxFloor === 'function' ? window.getTowerMaxFloor() : 240;
         const nextFloor = this.floor + 1;
@@ -10793,14 +12578,31 @@ class Game {
                 nextPortals.push(new Portal(centerX + offsetX, centerY - distance, nextFloor, 'next', types[2]));
             }
         }
+
+        if (this.currentScene === SCENE_TYPES.TOWER && nextPortals.length > 0) {
+            const map = this.currentRoom && this.currentRoom.map;
+            const exitChoices = map && Array.isArray(map.exitChoices)
+                ? map.exitChoices
+                : [map && map.exit ? map.exit : { x: centerX, y: centerY - distance }];
+            nextPortals = nextPortals.slice(0, Math.min(nextPortals.length, exitChoices.length))
+                .map((portal, index) => new Portal(
+                    exitChoices[index].x,
+                    exitChoices[index].y,
+                    nextFloor,
+                    'next',
+                    portal.roomType
+                ));
+        }
         
         // 先添加下一层传送门
         nextPortals.forEach(portal => {
             this.portals.push(portal);
         });
         
-        // 添加结束传送门（返回主城）- 效果b封印出口时不添加
-        if (!(this.demonInterferenceFlags && this.demonInterferenceFlags.sealExit)) {
+        // 恶魔塔入口是出生点，不能在同一位置生成返回主城传送门；
+        // 塔内只保留顶部的下一层传送门，其他副本仍保留原有出口。
+        if (this.currentScene !== SCENE_TYPES.TOWER
+            && !(this.demonInterferenceFlags && this.demonInterferenceFlags.sealExit)) {
             this.portals.push(new Portal(centerX, centerY + distance, 0, 'exit'));
         }
         
@@ -10816,6 +12618,120 @@ class Game {
                 }
             });
         }
+    }
+
+    /**
+     * 为恶魔塔浏览器游玩测试提供只读状态快照。
+     * 测试器通过此接口观察游戏，不通过测试接口改变游戏规则。
+     */
+    getTowerPlaytestSnapshot() {
+        const room = this.currentRoom;
+        const map = room && room.map;
+        const player = this.player;
+        return {
+            timestamp: Date.now(),
+            scene: this.currentScene,
+            paused: !!this.paused,
+            actionKeyState: this.actionKeyState ? Object.assign({}, this.actionKeyState) : {},
+            floor: this.floor,
+            roomType: room ? room.type : null,
+            roomWidth: room ? room.width : null,
+            roomHeight: room ? room.height : null,
+            player: player ? {
+                x: player.x,
+                y: player.y,
+                hp: player.hp,
+                maxHp: player.maxHp,
+                level: player.level,
+                isDashing: !!player.isDashing,
+                isCastingSkill: !!player.isCastingSkill,
+                vx: player.vx,
+                vy: player.vy,
+                maxSpeed: player.maxSpeed,
+                acceleration: player.acceleration,
+                friction: player.friction
+            } : null,
+            map: map ? {
+                floor: map.floor,
+                route: map.route,
+                start: map.start,
+                exit: map.exit,
+                exitChoices: map.exitChoices || [],
+                hordeZone: map.hordeZone,
+                battleZones: map.battleZones || [],
+                branchBattleZones: map.branchBattleZones || [],
+                hiddenSpaces: map.hiddenSpaces || [],
+                mechanism: map.mechanism ? {
+                    type: map.mechanism.type,
+                    unlocked: !!map.mechanism.unlocked,
+                    keys: map.mechanism.keys || [map.mechanism.key],
+                    activatedKeys: map.mechanism.activatedKeys || null
+                } : null,
+                routeWidth: map.routeWidth,
+                obstacles: map.obstacles,
+                branches: map.branches || [],
+                exitBranches: map.exitBranches || []
+            } : null,
+            encounter: room && room.towerEncounter ? {
+                routeWaveCleared: !!room.towerEncounter.routeWaveCleared,
+                hordeSpawned: !!room.towerEncounter.hordeSpawned,
+                branchCleared: room.towerEncounter.branchCleared || [],
+                branchPortalSpawned: room.towerEncounter.branchPortalSpawned || []
+            } : null,
+            interactable: room && room.treasureChest && !room.treasureChest.opened
+                ? {
+                    type: "treasure",
+                    x: room.treasureChest.x,
+                    y: room.treasureChest.y,
+                    opened: false
+                }
+                : room && room.restItem && !room.restItem.used
+                    ? {
+                        type: "rest",
+                        x: room.restItem.x,
+                        y: room.restItem.y,
+                        used: false
+                    }
+                    : room && room.type === ROOM_TYPES.GAP_SHOP && !room.cleared
+                        ? {
+                            type: "gap_shop",
+                            x: room.map && room.map.interactionPoint
+                                ? room.map.interactionPoint.x : room.width / 2,
+                            y: room.map && room.map.interactionPoint
+                                ? room.map.interactionPoint.y : room.height / 2
+                        }
+                        : null,
+            monsters: room && Array.isArray(room.monsters)
+                ? room.monsters.map(monster => ({
+                    x: monster.x,
+                    y: monster.y,
+                    hp: monster.hp,
+                    maxHp: monster.maxHp,
+                    size: monster.size,
+                    isBoss: !!monster.isBoss,
+                    isElite: !!monster.isElite,
+                    optionalHidden: !!monster.optionalHidden,
+                    towerExitBranchIndex: Number.isInteger(monster.towerExitBranchIndex)
+                        ? monster.towerExitBranchIndex
+                        : null
+                }))
+                : [],
+            portals: Array.isArray(this.portals)
+                ? this.portals.map(portal => ({
+                    x: portal.x,
+                    y: portal.y,
+                    size: portal.size,
+                    type: portal.type,
+                    floor: portal.floor,
+                    roomType: portal.roomType || null,
+                    towerBranchIndex: Number.isInteger(portal._towerBranchIndex)
+                        ? portal._towerBranchIndex
+                        : null
+                }))
+                : [],
+            cleared: !!(room && room.cleared),
+            transitioning: !!this.isTransitioning
+        };
     }
 
     /**
@@ -10860,7 +12776,7 @@ class Game {
      */
     buildSaveDataObject() {
         const saveData = {
-            version: '1.0',
+            version: '3.0',
             timestamp: Date.now(),
             player: {
                 x: this.player.x,
@@ -11316,7 +13232,10 @@ class Game {
         const quiet = options && options.quiet === true;
         try {
             // 验证存档版本
-            if (!saveData.version || !saveData.player || !saveData.game) {
+            if (saveData.version !== '3.0' || !saveData.player || !saveData.game) {
+                if (saveData.version && saveData.version !== '3.0') {
+                    throw new Error(`不支持旧存档版本 ${saveData.version}，当前仅支持 Phase 3 存档`);
+                }
                 throw new Error('存档格式不正确');
             }
             
@@ -11499,7 +13418,6 @@ class Game {
             refineLevel: equipment.refineLevel,
             baseStats: equipment.baseStats,
             stats: equipment.stats,
-            equipmentTraits: equipment.equipmentTraits,
             isCrafted: equipment.isCrafted || false,
             baseTypeId: equipment.baseTypeId || null,
             implicit: equipment.implicit || null,
@@ -11507,6 +13425,7 @@ class Game {
             suffixes: equipment.suffixes || [],
             legendaryPowers: equipment.legendaryPowers || [],
             setId: equipment.setId || null,
+            buildEquipmentId: equipment.buildEquipmentId || null,
             classAffinity: equipment.classAffinity || null,
             procedural: equipment.procedural || false,
             gearScore: equipment.gearScore || 0
@@ -11539,19 +13458,16 @@ class Game {
             suffixes: data.suffixes || [],
             legendaryPowers: data.legendaryPowers || [],
             setId: data.setId || null,
+            buildEquipmentId: data.buildEquipmentId || null,
             classAffinity: data.classAffinity || null,
             procedural: data.procedural || false
         });
-        
-        // 如果存档中有装备词条，恢复它；若缺少 id（旧存档），则按名称重新生成 id，确保恢复生命值等词条能生效
-        if (data.equipmentTraits) {
-            eq.equipmentTraits = data.equipmentTraits;
-        }
         
         // 恢复isCrafted属性
         if (data.isCrafted) {
             eq.isCrafted = true;
         }
+        eq.buildEquipmentId = data.buildEquipmentId || null;
         
         return eq;
     }
@@ -11739,6 +13655,7 @@ class Game {
      * 启动游戏循环（分离逻辑和渲染）
      */
     startGameLoop() {
+        this._gameLoopStarted = true;
         this.lastUpdateTime = performance.now();
         this.lastRenderTime = performance.now();
         this.accumulator = 0;
@@ -11784,7 +13701,8 @@ class Game {
                 // 图鉴打开时，显示图鉴开发者面板
                 normalPanel.classList.remove('show');
                 codexPanel.classList.add('show');
-                this.updateDevCodexPanel();
+                this.updateDevCodexPanel(this._devCodexActiveTab || 'custom');
+                this.refreshCodexDevGrantBindings();
             } else {
                 // 图鉴未打开时，显示普通开发者面板
                 normalPanel.classList.add('show');
@@ -11795,6 +13713,9 @@ class Game {
         } else {
             normalPanel.classList.remove('show');
             codexPanel.classList.remove('show');
+            if (isCodexOpen) {
+                this.refreshCodexDevGrantBindings();
+            }
             // 如果背包界面和图鉴也没有打开，才恢复游戏
             const inventoryModal = document.getElementById('inventory-modal');
             if (!inventoryModal.classList.contains('show') && !codexModal.classList.contains('show')) {
@@ -11805,46 +13726,333 @@ class Game {
     
     /**
      * 显示图鉴开发者面板的指定标签页
-     * @param {string} tab - 标签页名称 ('equipments', 'consumables', 'recipes')
+     * @param {string} tab
      */
     showDevCodexTab(tab) {
-        // 更新标签按钮状态
         document.querySelectorAll('.dev-codex-tab').forEach(btn => {
             btn.classList.remove('active');
-            if (btn.dataset.tab === tab) {
-                btn.classList.add('active');
-            }
+            if (btn.dataset.tab === tab) btn.classList.add('active');
         });
-        
-        // 更新内容
+        this._devCodexActiveTab = tab;
         this.updateDevCodexPanel(tab);
     }
-    
+
     /**
      * 更新图鉴开发者面板内容
-     * @param {string} activeTab - 当前激活的标签页
+     * @param {string} activeTab
      */
-    updateDevCodexPanel(activeTab = 'equipments') {
+    updateDevCodexPanel(activeTab) {
+        const tab = activeTab || this._devCodexActiveTab || 'custom';
+        this._devCodexActiveTab = tab;
         const content = document.getElementById('dev-codex-content');
+        if (!content) return;
         content.innerHTML = '';
-        
-        if (activeTab === 'equipments') {
-            this.updateDevCodexEquipments(content);
-        } else if (activeTab === 'procedural') {
-            this.updateDevCodexProcedural(content);
-        } else if (activeTab === 'base_types') {
-            this.updateDevCodexBaseTypes(content);
-        } else if (activeTab === 'consumables') {
-            this.updateDevCodexConsumables(content);
-        } else if (activeTab === 'recipes') {
-            this.updateDevCodexRecipes(content);
-        }
+
+        if (tab === 'custom') this.updateDevCodexCustomForge(content);
+        else if (tab === 'samples' || tab === 'equipments' || tab === 'procedural') this.updateDevCodexProcedural(content);
+        else if (tab === 'builds') this.updateDevCodexBuilds(content);
+        else if (tab === 'base_types') this.updateDevCodexBaseTypes(content);
+        else if (tab === 'sets') this.updateDevCodexSets(content);
+        else if (tab === 'consumables') this.updateDevCodexConsumables(content);
     }
-    
+
+    /** 读取自定义装配台表单选项 */
+    readDevForgeOptions(root) {
+        const q = (sel) => root.querySelector(sel);
+        const baseTypeId = q('#dev-forge-base')?.value || '';
+        const slot = q('#dev-forge-slot')?.value || '';
+        const quality = q('#dev-forge-quality')?.value || 'legendary';
+        const level = parseInt(q('#dev-forge-level')?.value, 10) || 20;
+        const setId = q('#dev-forge-set')?.value || '';
+        const buildEquipmentId = q('#dev-forge-build')?.value || '';
+        const compatibleOnly = !!q('#dev-forge-compatible')?.checked;
+
+        const prefixes = [];
+        root.querySelectorAll('.dev-forge-chip[data-affix-type="prefix"] input[type="checkbox"]:checked').forEach(cb => {
+            const chip = cb.closest('.dev-forge-chip');
+            const tierSel = chip && chip.querySelector('select');
+            prefixes.push({
+                id: cb.value,
+                tier: tierSel ? parseInt(tierSel.value, 10) : 5
+            });
+        });
+        const suffixes = [];
+        root.querySelectorAll('.dev-forge-chip[data-affix-type="suffix"] input[type="checkbox"]:checked').forEach(cb => {
+            const chip = cb.closest('.dev-forge-chip');
+            const tierSel = chip && chip.querySelector('select');
+            suffixes.push({
+                id: cb.value,
+                tier: tierSel ? parseInt(tierSel.value, 10) : 5
+            });
+        });
+        const powers = [];
+        root.querySelectorAll('.dev-forge-chip[data-power-id] input[type="checkbox"]:checked').forEach(cb => {
+            powers.push(cb.value);
+        });
+
+        let resolvedSlot = slot || null;
+        let weaponType = null;
+        if (baseTypeId && typeof window.findBaseTypeById === 'function') {
+            const found = window.findBaseTypeById(baseTypeId);
+            if (found && found.def) {
+                resolvedSlot = found.def.slot;
+                weaponType = found.def.weaponType || null;
+            }
+        }
+
+        return {
+            baseTypeId: baseTypeId || null,
+            slot: resolvedSlot,
+            weaponType,
+            quality,
+            level,
+            setId: setId || null,
+            buildEquipmentId: buildEquipmentId || null,
+            forcePrefixes: prefixes,
+            forceSuffixes: suffixes,
+            forcePowers: powers,
+            compatibleOnly,
+            playerClass: typeof window.getPlayerBaseClassId === 'function'
+                ? window.getPlayerBaseClassId(this.player.classData) : null,
+            classId: typeof window.getActiveClassId === 'function'
+                ? window.getActiveClassId(this.player.classData)
+                : (typeof window.getPlayerBaseClassId === 'function'
+                    ? window.getPlayerBaseClassId(this.player.classData) : null)
+        };
+    }
+
+    refreshDevForgePreview(root) {
+        const preview = root.querySelector('#dev-forge-preview');
+        if (!preview || !window.EquipmentCodex) return;
+        const opts = this.readDevForgeOptions(root);
+        const eq = window.EquipmentCodex.buildCustomEquipment(opts);
+        if (!eq) {
+            preview.textContent = '预览失败：请检查基型/部位配置';
+            return;
+        }
+        const aff = (eq.prefixes || []).map(a => a.name).concat((eq.suffixes || []).map(a => a.name));
+        const pow = (eq.legendaryPowers || []).map(p => p.name);
+        preview.innerHTML = `<strong style="color:${QUALITY_COLORS[eq.quality] || '#fff'}">${eq.name}</strong>`
+            + `<br>${SLOT_NAMES[eq.slot] || eq.slot} · Lv.${eq.level} · ${QUALITY_NAMES[eq.quality] || eq.quality}`
+            + `<br>词缀(${aff.length}): ${aff.length ? aff.join('、') : '无'}`
+            + `<br>威能(${pow.length}): ${pow.length ? pow.join('、') : '无'}`
+            + (eq.setId ? `<br>套装: ${eq.setId}` : '')
+            + (eq.buildEquipmentId ? `<br>流派: ${eq.buildEquipmentId}` : '');
+    }
+
+    filterDevForgeChips(root) {
+        const compatibleOnly = !!root.querySelector('#dev-forge-compatible')?.checked;
+        const opts = this.readDevForgeOptions(root);
+        const slot = opts.slot;
+        root.querySelectorAll('.dev-forge-chip[data-slots]').forEach(chip => {
+            if (!compatibleOnly || !slot) {
+                chip.style.display = '';
+                return;
+            }
+            const slots = (chip.dataset.slots || '').split(',').filter(Boolean);
+            chip.style.display = (!slots.length || slots.includes(slot)) ? '' : 'none';
+        });
+    }
+
+    updateDevCodexCustomForge(container, preset) {
+        if (!window.AFFIX_POOL || !window.BASE_TYPES) {
+            container.innerHTML = '<p style="color:#888;padding:12px;">程序化配置未加载</p>';
+            return;
+        }
+        const presetCfg = preset || this._devForgePreset || {};
+        this._devForgePreset = null;
+
+        const slotNames = window.SLOT_NAMES || {};
+        const bases = window.EquipmentCodex
+            ? window.EquipmentCodex.listBaseTypes({})
+            : [];
+        const builds = (window.CLASS_BUILD_EQUIPMENT && window.CLASS_BUILD_EQUIPMENT.items) || [];
+        const sets = (window.SET_DEFINITIONS_V2 && window.SET_DEFINITIONS_V2.sets) || {};
+        const powers = typeof window.listAllLegendaryPowers === 'function'
+            ? window.listAllLegendaryPowers()
+            : [];
+
+        const wrap = document.createElement('div');
+        wrap.className = 'dev-forge-root';
+
+        const grid = document.createElement('div');
+        grid.className = 'dev-forge-grid';
+        grid.innerHTML = `
+            <label>基型
+                <select id="dev-forge-base">
+                    <option value="">（按部位随机）</option>
+                    ${bases.map(({ id, def }) =>
+                        `<option value="${id}" ${presetCfg.baseTypeId === id ? 'selected' : ''}>${def.name} [${id}]</option>`
+                    ).join('')}
+                </select>
+            </label>
+            <label>部位
+                <select id="dev-forge-slot">
+                    <option value="">自动/随机</option>
+                    ${['weapon','offHand','helmet','body','hands','legs','feet','amulet','ring','belt'].map(s =>
+                        `<option value="${s}" ${presetCfg.slot === s ? 'selected' : ''}>${slotNames[s] || s}</option>`
+                    ).join('')}
+                </select>
+            </label>
+            <label>品质
+                <select id="dev-forge-quality">
+                    ${['normal','magic','rare','epic','legendary','mythic'].map(q =>
+                        `<option value="${q}" ${(presetCfg.quality || 'legendary') === q ? 'selected' : ''}>${QUALITY_NAMES[q] || q}</option>`
+                    ).join('')}
+                </select>
+            </label>
+            <label>等级
+                <input type="number" id="dev-forge-level" min="1" max="60" value="${presetCfg.level || this.player.level || 20}">
+            </label>
+            <label>套装
+                <select id="dev-forge-set">
+                    <option value="">无</option>
+                    ${Object.entries(sets).map(([id, s]) =>
+                        `<option value="${id}" ${presetCfg.setId === id ? 'selected' : ''}>${s.name || id}</option>`
+                    ).join('')}
+                </select>
+            </label>
+            <label>流派核心
+                <select id="dev-forge-build">
+                    <option value="">无</option>
+                    ${builds.map(b =>
+                        `<option value="${b.equipmentId}" ${presetCfg.buildEquipmentId === b.equipmentId ? 'selected' : ''}>${b.name}</option>`
+                    ).join('')}
+                </select>
+            </label>
+        `;
+        wrap.appendChild(grid);
+
+        const check = document.createElement('label');
+        check.className = 'dev-forge-check';
+        check.innerHTML = '<input type="checkbox" id="dev-forge-compatible"> 仅显示当前部位兼容的词缀/威能';
+        wrap.appendChild(check);
+
+        const makeAffixSection = (title, list, type, preselected) => {
+            const sec = document.createElement('div');
+            sec.className = 'dev-forge-section';
+            sec.innerHTML = `<h4>${title}</h4>`;
+            const chips = document.createElement('div');
+            chips.className = 'dev-forge-chips';
+            const selected = new Set((preselected || []).map(x => typeof x === 'string' ? x : x.id));
+            (list || []).forEach(a => {
+                const chip = document.createElement('label');
+                chip.className = 'dev-forge-chip' + (selected.has(a.id) ? ' is-on' : '');
+                chip.dataset.affixType = type;
+                chip.dataset.slots = (a.slots || []).join(',');
+                const tiers = (a.tiers || []).map(t => t.tier);
+                const tierOpts = (tiers.length ? tiers : [1, 2, 3, 4, 5])
+                    .map(t => `<option value="${t}" ${t === 5 ? 'selected' : ''}>T${t}</option>`).join('');
+                chip.innerHTML = `<input type="checkbox" value="${a.id}" ${selected.has(a.id) ? 'checked' : ''}>`
+                    + `<span>${a.name}</span>`
+                    + `<select title="阶">${tierOpts}</select>`;
+                const cb = chip.querySelector('input');
+                cb.addEventListener('change', () => {
+                    chip.classList.toggle('is-on', cb.checked);
+                    this.refreshDevForgePreview(wrap);
+                });
+                chip.querySelector('select').addEventListener('change', () => this.refreshDevForgePreview(wrap));
+                chips.appendChild(chip);
+            });
+            sec.appendChild(chips);
+            return sec;
+        };
+
+        wrap.appendChild(makeAffixSection('前缀（可多选）', window.AFFIX_POOL.prefixes, 'prefix', presetCfg.forcePrefixes));
+        wrap.appendChild(makeAffixSection('后缀（可多选）', window.AFFIX_POOL.suffixes, 'suffix', presetCfg.forceSuffixes));
+
+        const powSec = document.createElement('div');
+        powSec.className = 'dev-forge-section';
+        powSec.innerHTML = '<h4>威能（可多选，可无视槽位）</h4>';
+        const powChips = document.createElement('div');
+        powChips.className = 'dev-forge-chips';
+        const selPowers = new Set(presetCfg.forcePowers || []);
+        powers.forEach(p => {
+            const chip = document.createElement('label');
+            chip.className = 'dev-forge-chip' + (selPowers.has(p.id) ? ' is-on' : '');
+            chip.dataset.powerId = p.id;
+            chip.dataset.slots = (p.slots || []).join(',');
+            chip.innerHTML = `<input type="checkbox" value="${p.id}" ${selPowers.has(p.id) ? 'checked' : ''}>`
+                + `<span>${p.name}</span>`
+                + `<span style="color:#888">(${p.groupLabel || ''})</span>`;
+            const cb = chip.querySelector('input');
+            cb.addEventListener('change', () => {
+                chip.classList.toggle('is-on', cb.checked);
+                this.refreshDevForgePreview(wrap);
+            });
+            powChips.appendChild(chip);
+        });
+        powSec.appendChild(powChips);
+        wrap.appendChild(powSec);
+
+        const preview = document.createElement('div');
+        preview.id = 'dev-forge-preview';
+        preview.className = 'dev-forge-preview';
+        preview.textContent = '选择词缀/威能后显示预览';
+        wrap.appendChild(preview);
+
+        const actions = document.createElement('div');
+        actions.className = 'dev-forge-actions';
+        const grantBtn = document.createElement('button');
+        grantBtn.type = 'button';
+        grantBtn.className = 'pe-btn pe-btn--sm pe-btn--info';
+        grantBtn.textContent = '发放到背包';
+        grantBtn.onclick = () => {
+            const opts = this.readDevForgeOptions(wrap);
+            const res = window.EquipmentCodex.grantCustomEquipment(this, opts);
+            if (res.ok) {
+                this.addFloatingText(this.player.x, this.player.y, `${res.message} (DEV)`, QUALITY_COLORS[res.equipment.quality] || '#fff');
+                this.updateInventoryUI?.();
+            } else {
+                this.addFloatingText(this.player.x, this.player.y, res.message || '发放失败', '#ff6666');
+            }
+        };
+        const grantClearBtn = document.createElement('button');
+        grantClearBtn.type = 'button';
+        grantClearBtn.className = 'pe-btn pe-btn--sm';
+        grantClearBtn.textContent = '发放并清空选择';
+        grantClearBtn.onclick = () => {
+            grantBtn.onclick();
+            wrap.querySelectorAll('.dev-forge-chip input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+                cb.closest('.dev-forge-chip')?.classList.remove('is-on');
+            });
+            this.refreshDevForgePreview(wrap);
+        };
+        const previewBtn = document.createElement('button');
+        previewBtn.type = 'button';
+        previewBtn.className = 'pe-btn pe-btn--sm pe-btn--secondary';
+        previewBtn.textContent = '刷新预览';
+        previewBtn.onclick = () => this.refreshDevForgePreview(wrap);
+        actions.appendChild(grantBtn);
+        actions.appendChild(grantClearBtn);
+        actions.appendChild(previewBtn);
+        wrap.appendChild(actions);
+
+        const onMetaChange = () => {
+            this.filterDevForgeChips(wrap);
+            this.refreshDevForgePreview(wrap);
+        };
+        grid.querySelectorAll('select, input').forEach(el => el.addEventListener('change', onMetaChange));
+        check.querySelector('input').addEventListener('change', onMetaChange);
+
+        container.appendChild(wrap);
+        this.filterDevForgeChips(wrap);
+        this.refreshDevForgePreview(wrap);
+    }
+
     /**
-     * 更新图鉴开发者面板的装备列表
-     * @param {HTMLElement} container - 容器元素
+     * 打开自定义台并预勾指定词缀/威能
      */
+    openDevForgeWithPreset(preset) {
+        this._devForgePreset = preset || {};
+        const panel = document.getElementById('dev-codex-panel');
+        if (panel && !panel.classList.contains('show')) {
+            panel.classList.add('show');
+        }
+        this.showDevCodexTab('custom');
+    }
+
     updateDevCodexEquipments(container) {
         this.updateDevCodexProcedural(container);
     }
@@ -11893,6 +14101,43 @@ class Game {
         container.appendChild(grid);
     }
 
+    updateDevCodexBuilds(container) {
+        const items = window.CLASS_BUILD_EQUIPMENT && window.CLASS_BUILD_EQUIPMENT.items;
+        if (!items || !items.length) {
+            container.innerHTML = '<p style="color:#888;padding:12px;">流派核心配置未加载</p>';
+            return;
+        }
+        const hint = document.createElement('p');
+        hint.style.cssText = 'color:#8cf;font-size:12px;margin:0 0 10px;';
+        hint.textContent = '点击发放对应流派核心装备（传说品质）';
+        container.appendChild(hint);
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;';
+        items.forEach(def => {
+            const card = document.createElement('div');
+            card.style.cssText = 'padding:10px;background:rgba(40,40,50,0.9);border:1px solid #c9a227;border-radius:6px;cursor:pointer;';
+            card.innerHTML = `<div style="color:#ffd700;font-weight:bold;">${def.name}</div>`
+                + `<div style="color:#aaa;font-size:11px;margin-top:4px;">${SLOT_NAMES[def.slot] || def.slot}`
+                + (def.weaponType ? ` · ${def.weaponType}` : '')
+                + `</div>`;
+            card.onclick = () => {
+                const eq = window.EquipmentCodex.buildCustomEquipment({
+                    quality: 'legendary',
+                    level: Math.max(20, this.player.level || 20),
+                    buildEquipmentId: def.equipmentId,
+                    slot: def.slot,
+                    weaponType: def.weaponType,
+                    forcePrefixes: [],
+                    forceSuffixes: [],
+                    forcePowers: []
+                });
+                if (eq) this.devAddSpecificEquipment(eq);
+            };
+            grid.appendChild(card);
+        });
+        container.appendChild(grid);
+    }
+
     updateDevCodexBaseTypes(container) {
         if (!window.EquipmentCodex) {
             container.innerHTML = '<p style="color:#888;padding:12px;">基型配置未加载</p>';
@@ -11902,34 +14147,28 @@ class Game {
         wrap.innerHTML = window.EquipmentCodex.buildBaseTypesHtml({});
         container.appendChild(wrap);
         wrap.querySelectorAll('.codex-base-type-entry').forEach(el => {
-            el.onclick = () => {
-                const baseTypeId = el.dataset.baseTypeId;
-                if (!baseTypeId) return;
-                const bt = window.BASE_TYPES;
-                const def = (bt.weapons && bt.weapons[baseTypeId])
-                    || (bt.offHand && bt.offHand[baseTypeId])
-                    || (bt.armor && bt.armor[baseTypeId])
-                    || (bt.accessories && bt.accessories[baseTypeId]);
-                if (!def) return;
-                const eq = window.EquipmentCodex.generateProceduralSample({
-                    slot: def.slot,
-                    quality: 'epic',
-                    monsterLevel: this.player.level || 20,
-                    monsterTier: 'boss',
-                    playerClass: def.classAffinity || (typeof window.getPlayerBaseClassId === 'function'
-                        ? window.getPlayerBaseClassId(this.player.classData) : 'warrior')
-                });
-                if (eq) {
-                    eq.baseTypeId = baseTypeId;
-                    this.devAddSpecificEquipment(eq);
-                }
-            };
+            el.classList.add('codex-dev-clickable');
+            el.onclick = () => this.devGrantFromBaseTypeId(el.dataset.baseTypeId);
         });
     }
-    
+
+    updateDevCodexSets(container) {
+        if (!window.EquipmentCodex || !window.SET_DEFINITIONS_V2) {
+            container.innerHTML = '<p style="color:#888;padding:12px;">套装配置未加载</p>';
+            return;
+        }
+        const wrap = document.createElement('div');
+        wrap.innerHTML = window.EquipmentCodex.buildSetV2Html(this.player.equipment);
+        container.appendChild(wrap);
+        wrap.querySelectorAll('.codex-set-entry').forEach(el => {
+            el.classList.add('codex-dev-clickable');
+            el.title = '点击发放整套';
+            el.onclick = () => this.devGrantFullSetById(el.dataset.setId);
+        });
+    }
+
     /**
      * 更新图鉴开发者面板的消耗品（药水已移除，仅保留神圣十字架等）
-     * @param {HTMLElement} container - 容器元素
      */
     updateDevCodexConsumables(container) {
         container.innerHTML = '';
@@ -11947,12 +14186,40 @@ class Game {
         container.appendChild(wrap);
     }
 
+    devGrantFromBaseTypeId(baseTypeId) {
+        if (!baseTypeId || !window.EquipmentCodex) return;
+        const found = typeof window.findBaseTypeById === 'function'
+            ? window.findBaseTypeById(baseTypeId) : null;
+        if (!found) return;
+        const eq = window.EquipmentCodex.buildCustomEquipment({
+            baseTypeId,
+            slot: found.def.slot,
+            weaponType: found.def.weaponType,
+            quality: 'epic',
+            level: this.player.level || 20,
+            forcePrefixes: [],
+            forceSuffixes: [],
+            forcePowers: []
+        });
+        if (eq) this.devAddSpecificEquipment(eq);
+    }
+
+    devGrantFullSetById(setId) {
+        if (!setId || !window.EquipmentCodex) return;
+        const res = window.EquipmentCodex.grantFullSetV2(setId, this);
+        const msg = res.ok
+            ? `发放套装 ${res.name || setId}: ${res.added}/${res.total}`
+            : (res.message || '发放失败');
+        this.addFloatingText(this.player.x, this.player.y, `${msg} (DEV)`, res.ok ? '#ffd700' : '#ff6666');
+        if (res.ok) this.updateInventoryUI?.();
+    }
+
     /**
      * 开发者功能：添加指定装备
      * @param {Equipment} equipment - 装备对象
      */
     devAddSpecificEquipment(equipment) {
-        const newEq = window.EquipmentCodex && equipment.procedural
+        const newEq = window.EquipmentCodex && (equipment.procedural || equipment.baseTypeId || equipment.prefixes)
             ? window.EquipmentCodex.cloneEquipmentForGrant(equipment)
             : new Equipment({
                 id: equipment.id,
@@ -11968,7 +14235,7 @@ class Game {
         this.addItemToInventory(newEq);
         this.addFloatingText(this.player.x, this.player.y, `获得: ${equipment.name} (DEV)`, QUALITY_COLORS[equipment.quality] || '#ffffff');
     }
-    
+
     /**
      * 开发者功能：添加指定打造装备
      * @param {Object} recipe - 图纸数据
@@ -11988,7 +14255,7 @@ class Game {
             stats.attackSpeed = recipe.resultEquipment.attackSpeed || 0;
             stats.moveSpeed = recipe.resultEquipment.moveSpeed || 0;
         }
-        
+
         const weaponType = recipe.resultEquipment.weaponType || null;
         const newEquipment = new Equipment({
             id: Date.now(),
@@ -12003,7 +14270,7 @@ class Game {
         this.addItemToInventory(newEquipment);
         this.addFloatingText(this.player.x, this.player.y, `获得: ${recipe.resultEquipment.name} (DEV)`, QUALITY_COLORS[recipe.resultEquipment.quality] || '#ffffff');
     }
-    
+
     /**
      * 开发者功能：添加神圣十字架（背包用消耗品实例）
      */
@@ -12025,15 +14292,14 @@ class Game {
     }
 
     /**
-     * 更新图鉴开发者面板的图纸列表
-     * @param {HTMLElement} container - 容器元素
+     * 更新图鉴开发者面板的图纸列表（遗留，主面板仍可能调用）
      */
     updateDevCodexRecipes(container) {
         if (typeof CRAFTING_RECIPE_DEFINITIONS === 'undefined' || !CRAFTING_RECIPE_DEFINITIONS.length) {
             container.innerHTML = '<p style="color: #aaa; text-align: center; padding: 20px;">暂无图纸数据</p>';
             return;
         }
-        
+
         const qualityColors = {
             common: '#ffffff',
             rare: '#1eff00',
@@ -12041,12 +14307,12 @@ class Game {
             epic: '#a335ee',
             legendary: '#ff8000'
         };
-        
+
         const grid = document.createElement('div');
         grid.style.display = 'grid';
         grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(250px, 1fr))';
         grid.style.gap = '10px';
-        
+
         CRAFTING_RECIPE_DEFINITIONS.forEach(recipe => {
             const quality = recipe.resultEquipment.quality;
             const itemDiv = document.createElement('div');
@@ -12056,19 +14322,18 @@ class Game {
             itemDiv.style.borderRadius = '5px';
             itemDiv.style.cursor = 'pointer';
             itemDiv.style.transition = 'background 0.2s';
-            
+
             itemDiv.onmouseover = () => {
                 itemDiv.style.background = 'rgba(60, 60, 70, 0.9)';
             };
             itemDiv.onmouseout = () => {
                 itemDiv.style.background = 'rgba(40, 40, 50, 0.8)';
             };
-            
+
             itemDiv.onclick = () => {
                 this.devAddSpecificRecipe(recipe);
             };
-            
-            // 双击添加打造装备
+
             let clickTimer = null;
             itemDiv.ondblclick = (e) => {
                 e.preventDefault();
@@ -12078,29 +14343,28 @@ class Game {
                 }
                 this.devAddSpecificCraftedEquipment(recipe);
             };
-            
+
             const nameDiv = document.createElement('div');
             nameDiv.style.color = qualityColors[quality];
             nameDiv.style.fontWeight = 'bold';
             nameDiv.style.marginBottom = '5px';
             nameDiv.textContent = recipe.name;
-            
+
             const infoDiv = document.createElement('div');
             infoDiv.style.color = '#aaa';
             infoDiv.style.fontSize = '11px';
             infoDiv.innerHTML = `<div>结果: ${recipe.resultEquipment.name}</div><div>价格: ${recipe.price} 金币</div><div style="color: #ffaa00; margin-top: 3px; font-size: 10px;">单击: 添加图纸 | 双击: 添加装备</div>`;
-            
+
             itemDiv.appendChild(nameDiv);
             itemDiv.appendChild(infoDiv);
             grid.appendChild(itemDiv);
         });
-        
+
         container.appendChild(grid);
     }
-    
+
     /**
      * 开发者功能：添加指定图纸
-     * @param {Object} recipe - 图纸数据
      */
     devAddSpecificRecipe(recipe) {
         const recipeConsumable = new Consumable({
@@ -12115,7 +14379,7 @@ class Game {
         this.addItemToInventory(recipeConsumable);
         this.addFloatingText(this.player.x, this.player.y, `获得: ${recipe.name} (DEV)`, QUALITY_COLORS[recipe.resultEquipment.quality] || '#ffffff');
     }
-    
+
     /**
      * 开发者功能：添加所有打造装备
      */
@@ -12124,11 +14388,11 @@ class Game {
             this.addFloatingText(this.player.x, this.player.y, '没有找到打造装备数据 (DEV)', '#ff0000');
             return;
         }
-        
+
         CRAFTING_RECIPE_DEFINITIONS.forEach(recipe => {
             this.devAddSpecificCraftedEquipment(recipe);
         });
-        
+
         this.addFloatingText(this.player.x, this.player.y, `已添加所有打造装备 (${CRAFTING_RECIPE_DEFINITIONS.length}件)`, '#ffaa00');
     }
 

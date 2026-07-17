@@ -1,0 +1,2447 @@
+{
+  "config": {
+    "floors": [
+      1
+    ],
+    "classes": [
+      "warrior"
+    ],
+    "repeats": 1,
+    "timeoutSeconds": 8.0,
+    "level": 30
+  },
+  "episodes": [
+    {
+      "floor": 1,
+      "classId": "warrior",
+      "result": "timeout",
+      "durationMs": 9652,
+      "snapshots": [
+        {
+          "actionKeyState": {
+            "attack": false,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": {
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "branches": [],
+            "exit": {
+              "x": 900,
+              "y": 210
+            },
+            "floor": 1,
+            "hordeZone": {
+              "radius": 150,
+              "x": 612,
+              "y": 612
+            },
+            "obstacles": [
+              {
+                "height": 34.7649501727894,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 125.54009784618394,
+                "x": 132.1194331170991,
+                "y": 265.3879960598424
+              },
+              {
+                "height": 32.76278274022043,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 113.75966229243205,
+                "x": 1441.47031577304,
+                "y": 832.8061306900346
+              },
+              {
+                "height": 72.54346746020019,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 60.107444467023015,
+                "x": 1102.7876270916313,
+                "y": 673.4235773873515
+              },
+              {
+                "height": 52.325532663706696,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 615.2201585033908,
+                "y": 921.8289730353281
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 897
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 897
+              }
+            ],
+            "route": [
+              {
+                "x": 900,
+                "y": 210
+              },
+              {
+                "x": 900,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 612
+              },
+              {
+                "x": 612,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 990
+              }
+            ],
+            "routeWidth": 96,
+            "start": {
+              "x": 900,
+              "y": 990
+            }
+          },
+          "monsters": [
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 905.3117371917992,
+              "y": 910.4529911367035
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 599.5051176471528,
+              "y": 867.0864795398971
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 686.3701718346867,
+              "y": 620.2342062440873
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "size": 30,
+              "x": 639.612150766018,
+              "y": 705.6859824493384
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 561.181319529502,
+              "y": 683.2171648512987
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 552.3825123923774,
+              "y": 601.2446446201938
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 574.4574557024712,
+              "y": 505.1013041063999
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 660.6692583658667,
+              "y": 558.9443848350796
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 788,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 0,
+            "vy": 0,
+            "x": 900,
+            "y": 990
+          },
+          "portals": [],
+          "roomHeight": 1200,
+          "roomType": "battle",
+          "roomWidth": 1800,
+          "scene": "tower",
+          "timestamp": 1784015351005,
+          "transitioning": false,
+          "elapsedMs": 99
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": {
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "branches": [],
+            "exit": {
+              "x": 900,
+              "y": 210
+            },
+            "floor": 1,
+            "hordeZone": {
+              "radius": 150,
+              "x": 612,
+              "y": 612
+            },
+            "obstacles": [
+              {
+                "height": 34.7649501727894,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 125.54009784618394,
+                "x": 132.1194331170991,
+                "y": 265.3879960598424
+              },
+              {
+                "height": 32.76278274022043,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 113.75966229243205,
+                "x": 1441.47031577304,
+                "y": 832.8061306900346
+              },
+              {
+                "height": 72.54346746020019,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 60.107444467023015,
+                "x": 1102.7876270916313,
+                "y": 673.4235773873515
+              },
+              {
+                "height": 52.325532663706696,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 615.2201585033908,
+                "y": 921.8289730353281
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 897
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 897
+              }
+            ],
+            "route": [
+              {
+                "x": 900,
+                "y": 210
+              },
+              {
+                "x": 900,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 612
+              },
+              {
+                "x": 612,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 990
+              }
+            ],
+            "routeWidth": 96,
+            "start": {
+              "x": 900,
+              "y": 990
+            }
+          },
+          "monsters": [
+            {
+              "hp": -22,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 903.1201264745927,
+              "y": 942.944062982704
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 599.5051176471528,
+              "y": 867.0864795398971
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 686.3701718346867,
+              "y": 620.2342062440873
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "size": 30,
+              "x": 639.612150766018,
+              "y": 705.6859824493384
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 561.181319529502,
+              "y": 683.2171648512987
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 552.3825123923774,
+              "y": 601.2446446201938
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 574.4574557024712,
+              "y": 505.1013041063999
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 660.6692583658667,
+              "y": 558.9443848350796
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 766,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 0,
+            "vy": -3.6479997825622554,
+            "x": 900,
+            "y": 906.0959997825622
+          },
+          "portals": [],
+          "roomHeight": 1200,
+          "roomType": "battle",
+          "roomWidth": 1800,
+          "scene": "tower",
+          "timestamp": 1784015351805,
+          "transitioning": false,
+          "elapsedMs": 913
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": {
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "branches": [],
+            "exit": {
+              "x": 900,
+              "y": 210
+            },
+            "floor": 1,
+            "hordeZone": {
+              "radius": 150,
+              "x": 612,
+              "y": 612
+            },
+            "obstacles": [
+              {
+                "height": 34.7649501727894,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 125.54009784618394,
+                "x": 132.1194331170991,
+                "y": 265.3879960598424
+              },
+              {
+                "height": 32.76278274022043,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 113.75966229243205,
+                "x": 1441.47031577304,
+                "y": 832.8061306900346
+              },
+              {
+                "height": 72.54346746020019,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 60.107444467023015,
+                "x": 1102.7876270916313,
+                "y": 673.4235773873515
+              },
+              {
+                "height": 52.325532663706696,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 615.2201585033908,
+                "y": 921.8289730353281
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 897
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 897
+              }
+            ],
+            "route": [
+              {
+                "x": 900,
+                "y": 210
+              },
+              {
+                "x": 900,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 612
+              },
+              {
+                "x": 612,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 990
+              }
+            ],
+            "routeWidth": 96,
+            "start": {
+              "x": 900,
+              "y": 990
+            }
+          },
+          "monsters": [
+            {
+              "hp": -22,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 903.1201264745927,
+              "y": 942.944062982704
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 599.5051176471528,
+              "y": 867.0864795398971
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 686.3701718346867,
+              "y": 620.2342062440873
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "size": 30,
+              "x": 639.612150766018,
+              "y": 705.6859824493384
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 561.181319529502,
+              "y": 683.2171648512987
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 552.3825123923774,
+              "y": 601.2446446201938
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 574.4574557024712,
+              "y": 505.1013041063999
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 660.6692583658667,
+              "y": 558.9443848350796
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 766,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 0,
+            "vy": 0,
+            "x": 863.8919385820311,
+            "y": 776.6504984765628
+          },
+          "portals": [],
+          "roomHeight": 1200,
+          "roomType": "battle",
+          "roomWidth": 1800,
+          "scene": "tower",
+          "timestamp": 1784015352685,
+          "transitioning": false,
+          "elapsedMs": 1758
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": {
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "branches": [],
+            "exit": {
+              "x": 900,
+              "y": 210
+            },
+            "floor": 1,
+            "hordeZone": {
+              "radius": 150,
+              "x": 612,
+              "y": 612
+            },
+            "obstacles": [
+              {
+                "height": 34.7649501727894,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 125.54009784618394,
+                "x": 132.1194331170991,
+                "y": 265.3879960598424
+              },
+              {
+                "height": 32.76278274022043,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 113.75966229243205,
+                "x": 1441.47031577304,
+                "y": 832.8061306900346
+              },
+              {
+                "height": 72.54346746020019,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 60.107444467023015,
+                "x": 1102.7876270916313,
+                "y": 673.4235773873515
+              },
+              {
+                "height": 52.325532663706696,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 615.2201585033908,
+                "y": 921.8289730353281
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 897
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 897
+              }
+            ],
+            "route": [
+              {
+                "x": 900,
+                "y": 210
+              },
+              {
+                "x": 900,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 612
+              },
+              {
+                "x": 612,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 990
+              }
+            ],
+            "routeWidth": 96,
+            "start": {
+              "x": 900,
+              "y": 990
+            }
+          },
+          "monsters": [
+            {
+              "hp": -22,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 903.1201264745927,
+              "y": 942.944062982704
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 599.5051176471528,
+              "y": 867.0864795398971
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 686.3701718346867,
+              "y": 620.2342062440873
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "size": 30,
+              "x": 639.612150766018,
+              "y": 705.6859824493384
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 561.181319529502,
+              "y": 683.2171648512987
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 552.3825123923774,
+              "y": 601.2446446201938
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 574.4574557024712,
+              "y": 505.1013041063999
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 660.6692583658667,
+              "y": 558.9443848350796
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 754,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 0,
+            "vy": 0,
+            "x": 826.4944665820302,
+            "y": 776.6504984765628
+          },
+          "portals": [],
+          "roomHeight": 1200,
+          "roomType": "battle",
+          "roomWidth": 1800,
+          "scene": "tower",
+          "timestamp": 1784015353271,
+          "transitioning": false,
+          "elapsedMs": 2381
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": {
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "branches": [],
+            "exit": {
+              "x": 900,
+              "y": 210
+            },
+            "floor": 1,
+            "hordeZone": {
+              "radius": 150,
+              "x": 612,
+              "y": 612
+            },
+            "obstacles": [
+              {
+                "height": 34.7649501727894,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 125.54009784618394,
+                "x": 132.1194331170991,
+                "y": 265.3879960598424
+              },
+              {
+                "height": 32.76278274022043,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 113.75966229243205,
+                "x": 1441.47031577304,
+                "y": 832.8061306900346
+              },
+              {
+                "height": 72.54346746020019,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 60.107444467023015,
+                "x": 1102.7876270916313,
+                "y": 673.4235773873515
+              },
+              {
+                "height": 52.325532663706696,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 615.2201585033908,
+                "y": 921.8289730353281
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 897
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 897
+              }
+            ],
+            "route": [
+              {
+                "x": 900,
+                "y": 210
+              },
+              {
+                "x": 900,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 612
+              },
+              {
+                "x": 612,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 990
+              }
+            ],
+            "routeWidth": 96,
+            "start": {
+              "x": 900,
+              "y": 990
+            }
+          },
+          "monsters": [
+            {
+              "hp": -22,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 903.1201264745927,
+              "y": 942.944062982704
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 599.5051176471528,
+              "y": 867.0864795398971
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 686.3701718346867,
+              "y": 620.2342062440873
+            },
+            {
+              "hp": 65,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "size": 30,
+              "x": 639.612150766018,
+              "y": 705.6859824493384
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 561.181319529502,
+              "y": 683.2171648512987
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 552.3825123923774,
+              "y": 601.2446446201938
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 574.4574557024712,
+              "y": 505.1013041063999
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 660.6692583658667,
+              "y": 558.9443848350796
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 742,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 0,
+            "vy": 0,
+            "x": 705.2750745820273,
+            "y": 776.6504984765628
+          },
+          "portals": [],
+          "roomHeight": 1200,
+          "roomType": "battle",
+          "roomWidth": 1800,
+          "scene": "tower",
+          "timestamp": 1784015354962,
+          "transitioning": false,
+          "elapsedMs": 4041
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": true
+          },
+          "cleared": false,
+          "encounter": {
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "branches": [],
+            "exit": {
+              "x": 900,
+              "y": 210
+            },
+            "floor": 1,
+            "hordeZone": {
+              "radius": 150,
+              "x": 612,
+              "y": 612
+            },
+            "obstacles": [
+              {
+                "height": 34.7649501727894,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 125.54009784618394,
+                "x": 132.1194331170991,
+                "y": 265.3879960598424
+              },
+              {
+                "height": 32.76278274022043,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 113.75966229243205,
+                "x": 1441.47031577304,
+                "y": 832.8061306900346
+              },
+              {
+                "height": 72.54346746020019,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 60.107444467023015,
+                "x": 1102.7876270916313,
+                "y": 673.4235773873515
+              },
+              {
+                "height": 52.325532663706696,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 615.2201585033908,
+                "y": 921.8289730353281
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 897
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 897
+              }
+            ],
+            "route": [
+              {
+                "x": 900,
+                "y": 210
+              },
+              {
+                "x": 900,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 612
+              },
+              {
+                "x": 612,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 990
+              }
+            ],
+            "routeWidth": 96,
+            "start": {
+              "x": 900,
+              "y": 990
+            }
+          },
+          "monsters": [
+            {
+              "hp": -22,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 903.1201264745927,
+              "y": 942.944062982704
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 599.5051176471528,
+              "y": 867.0864795398971
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 670.7297439105839,
+              "y": 655.9724819248515
+            },
+            {
+              "hp": -49,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "size": 30,
+              "x": 639.612150766018,
+              "y": 705.6859824493384
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 561.181319529502,
+              "y": 683.2171648512987
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 560.4260451566482,
+              "y": 614.027261990928
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 574.4574557024712,
+              "y": 505.1013041063999
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 660.6692583658667,
+              "y": 558.9443848350796
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 730,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -2.5791359996997487,
+            "vy": -2.5791359996997487,
+            "x": 604.6887705817269,
+            "y": 694.1181464762628
+          },
+          "portals": [],
+          "roomHeight": 1200,
+          "roomType": "battle",
+          "roomWidth": 1800,
+          "scene": "tower",
+          "timestamp": 1784015355814,
+          "transitioning": false,
+          "elapsedMs": 4888
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": true,
+            "moveRight": false,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": {
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "branches": [],
+            "exit": {
+              "x": 900,
+              "y": 210
+            },
+            "floor": 1,
+            "hordeZone": {
+              "radius": 150,
+              "x": 612,
+              "y": 612
+            },
+            "obstacles": [
+              {
+                "height": 34.7649501727894,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 125.54009784618394,
+                "x": 132.1194331170991,
+                "y": 265.3879960598424
+              },
+              {
+                "height": 32.76278274022043,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 113.75966229243205,
+                "x": 1441.47031577304,
+                "y": 832.8061306900346
+              },
+              {
+                "height": 72.54346746020019,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 60.107444467023015,
+                "x": 1102.7876270916313,
+                "y": 673.4235773873515
+              },
+              {
+                "height": 52.325532663706696,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 615.2201585033908,
+                "y": 921.8289730353281
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 897
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 897
+              }
+            ],
+            "route": [
+              {
+                "x": 900,
+                "y": 210
+              },
+              {
+                "x": 900,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 612
+              },
+              {
+                "x": 612,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 990
+              }
+            ],
+            "routeWidth": 96,
+            "start": {
+              "x": 900,
+              "y": 990
+            }
+          },
+          "monsters": [
+            {
+              "hp": -22,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 903.1201264745927,
+              "y": 942.944062982704
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 599.5051176471528,
+              "y": 867.0864795398971
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 611.0141226079328,
+              "y": 665.5417500343318
+            },
+            {
+              "hp": -49,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "size": 30,
+              "x": 639.612150766018,
+              "y": 705.6859824493384
+            },
+            {
+              "hp": -27,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 561.181319529502,
+              "y": 683.2171648512987
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 542.7886228455656,
+              "y": 654.2503780857465
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 574.4574557024712,
+              "y": 505.1013041063999
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 660.6692583658667,
+              "y": 558.9443848350796
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 720,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": -3.6479999998755677,
+            "vy": -3.0025094747529677e-10,
+            "x": 464.7405465819027,
+            "y": 670.9059224768635
+          },
+          "portals": [],
+          "roomHeight": 1200,
+          "roomType": "battle",
+          "roomWidth": 1800,
+          "scene": "tower",
+          "timestamp": 1784015356623,
+          "transitioning": false,
+          "elapsedMs": 5723
+        },
+        {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": {
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "branches": [],
+            "exit": {
+              "x": 900,
+              "y": 210
+            },
+            "floor": 1,
+            "hordeZone": {
+              "radius": 150,
+              "x": 612,
+              "y": 612
+            },
+            "obstacles": [
+              {
+                "height": 34.7649501727894,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 125.54009784618394,
+                "x": 132.1194331170991,
+                "y": 265.3879960598424
+              },
+              {
+                "height": 32.76278274022043,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 113.75966229243205,
+                "x": 1441.47031577304,
+                "y": 832.8061306900346
+              },
+              {
+                "height": 72.54346746020019,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 60.107444467023015,
+                "x": 1102.7876270916313,
+                "y": 673.4235773873515
+              },
+              {
+                "height": 52.325532663706696,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 615.2201585033908,
+                "y": 921.8289730353281
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 897
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 897
+              }
+            ],
+            "route": [
+              {
+                "x": 900,
+                "y": 210
+              },
+              {
+                "x": 900,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 612
+              },
+              {
+                "x": 612,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 990
+              }
+            ],
+            "routeWidth": 96,
+            "start": {
+              "x": 900,
+              "y": 990
+            }
+          },
+          "monsters": [
+            {
+              "hp": -22,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 903.1201264745927,
+              "y": 942.944062982704
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 599.5051176471528,
+              "y": 867.0864795398971
+            },
+            {
+              "hp": -22,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 524.2095168264052,
+              "y": 668.2344081352612
+            },
+            {
+              "hp": -49,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "size": 30,
+              "x": 639.612150766018,
+              "y": 705.6859824493384
+            },
+            {
+              "hp": -27,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 561.181319529502,
+              "y": 683.2171648512987
+            },
+            {
+              "hp": -54,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 483.3819044108777,
+              "y": 662.0739567797596
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 574.4574557024712,
+              "y": 505.1013041063999
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 660.6692583658667,
+              "y": 558.9443848350796
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 710,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 3.6479999999992945,
+            "vy": -1.4242056917530217e-30,
+            "x": 525.2973465820281,
+            "y": 670.9059224765632
+          },
+          "portals": [],
+          "roomHeight": 1200,
+          "roomType": "battle",
+          "roomWidth": 1800,
+          "scene": "tower",
+          "timestamp": 1784015358079,
+          "transitioning": false,
+          "elapsedMs": 7202
+        }
+      ],
+      "actions": [
+        {
+          "elapsedMs": 99,
+          "mode": "fight",
+          "target": {
+            "hp": 60,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 60,
+            "size": 30,
+            "x": 905.3117371917992,
+            "y": 910.4529911367035
+          },
+          "keys": [
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 913,
+          "mode": "fight",
+          "target": {
+            "hp": 55,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 55,
+            "size": 30,
+            "x": 599.5051176471528,
+            "y": 867.0864795398971
+          },
+          "keys": [
+            "KeyA",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 1758,
+          "mode": "fight",
+          "target": {
+            "hp": 65,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 65,
+            "size": 30,
+            "x": 639.612150766018,
+            "y": 705.6859824493384
+          },
+          "keys": [
+            "KeyA",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 2381,
+          "mode": "fight",
+          "target": {
+            "hp": 65,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 65,
+            "size": 30,
+            "x": 639.612150766018,
+            "y": 705.6859824493384
+          },
+          "keys": [
+            "KeyA",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 4041,
+          "mode": "fight",
+          "target": {
+            "hp": 65,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 65,
+            "size": 30,
+            "x": 639.612150766018,
+            "y": 705.6859824493384
+          },
+          "keys": [
+            "KeyA",
+            "KeyW",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 4888,
+          "mode": "fight",
+          "target": {
+            "hp": 55,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 55,
+            "size": 30,
+            "x": 561.181319529502,
+            "y": 683.2171648512987
+          },
+          "keys": [
+            "KeyA",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 5723,
+          "mode": "fight",
+          "target": {
+            "hp": 60,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 60,
+            "size": 30,
+            "x": 542.7886228455656,
+            "y": 654.2503780857465
+          },
+          "keys": [
+            "KeyD",
+            "KeyJ"
+          ]
+        },
+        {
+          "elapsedMs": 7202,
+          "mode": "fight",
+          "target": {
+            "hp": 60,
+            "isBoss": false,
+            "isElite": false,
+            "maxHp": 60,
+            "size": 30,
+            "x": 574.4574557024712,
+            "y": 505.1013041063999
+          },
+          "keys": [
+            "KeyD",
+            "KeyW",
+            "KeyJ"
+          ]
+        }
+      ],
+      "screenshot": null
+    }
+  ],
+  "issues": [
+    {
+      "severity": "严重",
+      "code": "FLOOR_TIMEOUT",
+      "message": "在限定时间内没有完成当前楼层",
+      "floor": 1,
+      "classId": "warrior",
+      "evidence": {
+        "durationMs": 9652,
+        "lastSnapshot": {
+          "actionKeyState": {
+            "attack": true,
+            "interact": false,
+            "moveDown": false,
+            "moveLeft": false,
+            "moveRight": true,
+            "moveUp": false
+          },
+          "cleared": false,
+          "encounter": {
+            "hordeSpawned": true,
+            "routeWaveCleared": true
+          },
+          "floor": 1,
+          "interactable": null,
+          "map": {
+            "branches": [],
+            "exit": {
+              "x": 900,
+              "y": 210
+            },
+            "floor": 1,
+            "hordeZone": {
+              "radius": 150,
+              "x": 612,
+              "y": 612
+            },
+            "obstacles": [
+              {
+                "height": 34.7649501727894,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 125.54009784618394,
+                "x": 132.1194331170991,
+                "y": 265.3879960598424
+              },
+              {
+                "height": 32.76278274022043,
+                "kind": "wall",
+                "variantFloor": 1,
+                "width": 113.75966229243205,
+                "x": 1441.47031577304,
+                "y": 832.8061306900346
+              },
+              {
+                "height": 72.54346746020019,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 60.107444467023015,
+                "x": 1102.7876270916313,
+                "y": 673.4235773873515
+              },
+              {
+                "height": 52.325532663706696,
+                "kind": "column",
+                "variantFloor": 1,
+                "width": 52.325532663706696,
+                "x": 615.2201585033908,
+                "y": 921.8289730353281
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 267
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 468
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 517,
+                "x": 0,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 1093,
+                "x": 707,
+                "y": 708
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 0,
+                "y": 897
+              },
+              {
+                "height": 48,
+                "kind": "route_gate",
+                "width": 805,
+                "x": 995,
+                "y": 897
+              }
+            ],
+            "route": [
+              {
+                "x": 900,
+                "y": 210
+              },
+              {
+                "x": 900,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 372
+              },
+              {
+                "x": 612,
+                "y": 612
+              },
+              {
+                "x": 612,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 852
+              },
+              {
+                "x": 900,
+                "y": 990
+              }
+            ],
+            "routeWidth": 96,
+            "start": {
+              "x": 900,
+              "y": 990
+            }
+          },
+          "monsters": [
+            {
+              "hp": -22,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 903.1201264745927,
+              "y": 942.944062982704
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 599.5051176471528,
+              "y": 867.0864795398971
+            },
+            {
+              "hp": -22,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 524.2095168264052,
+              "y": 668.2344081352612
+            },
+            {
+              "hp": -49,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 65,
+              "size": 30,
+              "x": 639.612150766018,
+              "y": 705.6859824493384
+            },
+            {
+              "hp": -27,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 561.181319529502,
+              "y": 683.2171648512987
+            },
+            {
+              "hp": -54,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 483.3819044108777,
+              "y": 662.0739567797596
+            },
+            {
+              "hp": 60,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 60,
+              "size": 30,
+              "x": 574.4574557024712,
+              "y": 505.1013041063999
+            },
+            {
+              "hp": 55,
+              "isBoss": false,
+              "isElite": false,
+              "maxHp": 55,
+              "size": 30,
+              "x": 660.6692583658667,
+              "y": 558.9443848350796
+            }
+          ],
+          "paused": false,
+          "player": {
+            "acceleration": 0.5,
+            "friction": 0.7,
+            "hp": 710,
+            "isCastingSkill": false,
+            "isDashing": false,
+            "level": 30,
+            "maxHp": 788,
+            "maxSpeed": 3.6479999999999997,
+            "vx": 3.6479999999992945,
+            "vy": -1.4242056917530217e-30,
+            "x": 525.2973465820281,
+            "y": 670.9059224765632
+          },
+          "portals": [],
+          "roomHeight": 1200,
+          "roomType": "battle",
+          "roomWidth": 1800,
+          "scene": "tower",
+          "timestamp": 1784015358079,
+          "transitioning": false,
+          "elapsedMs": 7202
+        }
+      }
+    }
+  ]
+}

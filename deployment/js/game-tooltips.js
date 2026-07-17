@@ -1,189 +1,270 @@
 /**
- * Pixel Eternal - 工具提示系统模块
- * 负责物品和套装效果的工具提示显示
+ * Pixel Eternal - 物品详情面板
+ * 点击装备格子展开详情；不再依赖鼠标悬浮。
  */
 
-/**
- * 工具提示管理器类
- */
 class TooltipManager {
     constructor(gameInstance) {
         this.game = gameInstance;
+        this.pinned = null; // { source: 'inventory'|'equipment'|'shop'|'set', index?, slot?, itemId }
+        this._outsideBound = null;
+        this._ensureOutsideClose();
     }
 
-    /**
-     * 调整工具提示位置，确保不超出屏幕
-     * @param {HTMLElement} tooltip - 工具提示元素
-     * @param {number} x - 鼠标X坐标
-     * @param {number} y - 鼠标Y坐标
-     * @param {number} offsetX - X偏移量
-     * @param {number} offsetY - Y偏移量
-     */
-    adjustTooltipPosition(tooltip, x, y, offsetX = 10, offsetY = 10) {
-        // 先设置初始位置（在屏幕外），以便获取实际尺寸而不显示
+    _ensureOutsideClose() {
+        if (this._outsideBound) return;
+        this._outsideBound = (e) => {
+            const tooltip = document.getElementById('item-tooltip');
+            if (!tooltip || !tooltip.classList.contains('show') || !tooltip.classList.contains('pinned')) return;
+            if (tooltip.contains(e.target)) return;
+            if (e.target.closest && (
+                e.target.closest('.inventory-slot') ||
+                e.target.closest('.equipment-item') ||
+                e.target.closest('.shop-item-name') ||
+                e.target.closest('.set-effect-line')
+            )) return;
+            this.closeItemDetailPanel();
+        };
+        document.addEventListener('mousedown', this._outsideBound, true);
+    }
+
+    adjustTooltipPosition(tooltip, x, y, offsetX = 14, offsetY = 14) {
         tooltip.style.left = '-9999px';
         tooltip.style.top = '-9999px';
         tooltip.classList.add('show');
-        
-        // 强制浏览器计算布局以获取实际尺寸
+
         const tooltipWidth = tooltip.offsetWidth;
         const tooltipHeight = tooltip.offsetHeight;
-        
-        // 获取视口尺寸
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-        
-        // 计算初始位置
+
         let finalX = x + offsetX;
         let finalY = y + offsetY;
-        
-        // 检查右边界：如果工具提示超出屏幕右边界，向左调整
+
         if (finalX + tooltipWidth > viewportWidth) {
-            finalX = viewportWidth - tooltipWidth - 10; // 留10px边距
-            // 如果调整后超出左边界，则放在鼠标左侧
+            finalX = viewportWidth - tooltipWidth - 10;
             if (finalX < 10) {
-                finalX = x - tooltipWidth - offsetX;
-                // 如果还是超出左边界，则紧贴左边界
-                if (finalX < 10) {
-                    finalX = 10;
-                }
+                finalX = Math.max(10, x - tooltipWidth - offsetX);
             }
         }
-        
-        // 检查左边界：如果工具提示超出屏幕左边界，向右调整
-        if (finalX < 10) {
-            finalX = 10;
-        }
-        
-        // 检查下边界：如果工具提示超出屏幕下边界，向上调整
+        if (finalX < 10) finalX = 10;
+
         if (finalY + tooltipHeight > viewportHeight) {
-            finalY = viewportHeight - tooltipHeight - 10; // 留10px边距
-            // 如果调整后超出上边界，则放在鼠标上方
+            finalY = viewportHeight - tooltipHeight - 10;
             if (finalY < 10) {
-                finalY = y - tooltipHeight - offsetY;
-                // 如果还是超出上边界，则紧贴上边界
-                if (finalY < 10) {
-                    finalY = 10;
-                }
+                finalY = Math.max(10, y - tooltipHeight - offsetY);
             }
         }
-        
-        // 检查上边界：如果工具提示超出屏幕上边界，向下调整
-        if (finalY < 10) {
-            finalY = 10;
-        }
-        
-        // 应用最终位置
+        if (finalY < 10) finalY = 10;
+
         tooltip.style.left = finalX + 'px';
         tooltip.style.top = finalY + 'px';
     }
 
-    /**
-     * 显示物品工具提示
-     * @param {HTMLElement} element - 触发元素
-     * @param {number} x - 鼠标X坐标
-     * @param {number} y - 鼠标Y坐标
-     */
-    showItemTooltip(element, x, y) {
-        const tooltip = document.getElementById('item-tooltip');
+    _resolveItemFromElement(element) {
         const root = element.closest && (element.closest('.inventory-slot') || element.closest('.equipment-item')) || element;
         const itemId = (root.dataset && root.dataset.itemId) || element.dataset.itemId;
-        
-        if (!itemId) {
-            tooltip.classList.remove('show');
-            return;
-        }
-        
-        // 查找物品
+        if (!itemId) return { root, itemId: null, item: null };
+
         let item = null;
         Object.values(this.game.player.equipment).forEach(eq => {
-            if (eq && eq.id.toString() === itemId) {
-                item = eq;
-            }
+            if (eq && eq.id.toString() === itemId) item = eq;
         });
         if (!item) {
             this.game.player.inventory.forEach(inv => {
-                if (inv && inv.id.toString() === itemId) {
-                    item = inv;
-                }
+                if (inv && inv.id.toString() === itemId) item = inv;
             });
         }
-        
-        if (item) {
-            let displayItem = item;
-            const looksLikeEquipment =
-                displayItem.type === 'equipment' ||
-                (displayItem.slot != null && displayItem.stats != null && displayItem.quality != null);
-            if (!displayItem.getTooltipHTML && looksLikeEquipment &&
-                typeof this.game.serializeEquipment === 'function' &&
-                typeof this.game.deserializeEquipment === 'function') {
-                try {
-                    displayItem = this.game.deserializeEquipment(this.game.serializeEquipment(displayItem));
-                } catch (e) {
-                    console.warn('showItemTooltip: 无法将背包/穿戴数据还原为 Equipment 实例', e);
-                }
+        return { root, itemId, item };
+    }
+
+    _buildDetailHtml(displayItem, actions) {
+        let html = '';
+        if (displayItem.getTooltipHTML) {
+            const isEquipment = (displayItem.type === 'equipment')
+                || (displayItem.slot != null && displayItem.stats != null);
+            html = isEquipment
+                ? displayItem.getTooltipHTML(this.game.player.equipment)
+                : displayItem.getTooltipHTML();
+            if (isEquipment && typeof window.appendBuildEquipmentTooltip === 'function') {
+                html = window.appendBuildEquipmentTooltip(html, displayItem);
             }
-            // 支持装备和药水，装备传入当前已穿戴以区分套装激活/未激活
-            if (displayItem.getTooltipHTML) {
-                const isEquipment = (displayItem.type === 'equipment') || (displayItem.slot != null && displayItem.stats != null);
-                tooltip.innerHTML = isEquipment ? displayItem.getTooltipHTML(this.game.player.equipment) : displayItem.getTooltipHTML();
-            } else {
-                // 兼容旧代码
-                tooltip.innerHTML = `<h4>${displayItem.name || '未知物品'}</h4>`;
+        } else {
+            html = `<h4>${displayItem.name || '未知物品'}</h4>`;
+        }
+
+        const buttons = [];
+        if (actions && actions.primaryLabel) {
+            buttons.push(`<button type="button" class="item-detail-btn primary" data-detail-action="primary">${actions.primaryLabel}</button>`);
+        }
+        buttons.push('<button type="button" class="item-detail-btn" data-detail-action="close">关闭</button>');
+        html += `<div class="item-detail-actions">${buttons.join('')}</div>`;
+        return html;
+    }
+
+    _bindPanelActions(tooltip) {
+        const actions = tooltip.querySelector('.item-detail-actions');
+        if (!actions) return;
+        actions.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-detail-action]');
+            if (!btn) return;
+            e.preventDefault();
+            e.stopPropagation();
+            const action = btn.dataset.detailAction;
+            if (action === 'close') {
+                this.closeItemDetailPanel();
+                return;
             }
-            // 使用位置调整函数
-            this.adjustTooltipPosition(tooltip, x, y);
+            if (action === 'primary' && this.pinned) {
+                this._runPrimaryAction();
+            }
+        });
+    }
+
+    _runPrimaryAction() {
+        const pin = this.pinned;
+        if (!pin) return;
+        if (pin.source === 'inventory' && typeof pin.index === 'number') {
+            this.closeItemDetailPanel();
+            this.game.handleInventorySlotClick(pin.index);
+            return;
+        }
+        if (pin.source === 'equipment' && pin.slot) {
+            this.closeItemDetailPanel();
+            this.game.handleEquipmentSlotClick(pin.slot);
         }
     }
 
+    _clearDetailHighlight() {
+        document.querySelectorAll('.inventory-slot.detail-open, .equipment-item.detail-open').forEach(el => {
+            el.classList.remove('detail-open');
+        });
+    }
+
     /**
-     * 隐藏物品工具提示
+     * 点击展开物品详情面板（钉住）
      */
-    hideItemTooltip() {
+    openItemDetailPanel(element, clientX, clientY, meta) {
         const tooltip = document.getElementById('item-tooltip');
-        if (tooltip) {
-            tooltip.classList.remove('show');
-            tooltip.style.display = 'none'; // 强制隐藏
-            tooltip.innerHTML = ''; // 清空内容，确保完全隐藏
-            // 延迟后移除 display 样式，让 CSS 控制
-            setTimeout(() => {
-                if (tooltip && !tooltip.classList.contains('show')) {
-                    tooltip.style.display = '';
-                }
-            }, 50);
+        if (!tooltip) return;
+
+        const { root, itemId, item } = this._resolveItemFromElement(element);
+        if (!itemId || !item) {
+            this.closeItemDetailPanel();
+            return;
         }
+
+        // 再次点击同一物品 → 关闭
+        if (this.pinned && this.pinned.itemId === itemId
+            && this.pinned.source === (meta && meta.source)
+            && ((meta && meta.source === 'inventory' && this.pinned.index === meta.index)
+                || (meta && meta.source === 'equipment' && this.pinned.slot === meta.slot))) {
+            this.closeItemDetailPanel();
+            return;
+        }
+
+        let displayItem = item;
+        const looksLikeEquipment =
+            displayItem.type === 'equipment' ||
+            (displayItem.slot != null && displayItem.stats != null && displayItem.quality != null);
+        if (!displayItem.getTooltipHTML && looksLikeEquipment &&
+            typeof this.game.serializeEquipment === 'function' &&
+            typeof this.game.deserializeEquipment === 'function') {
+            try {
+                displayItem = this.game.deserializeEquipment(this.game.serializeEquipment(displayItem));
+            } catch (e) {
+                console.warn('openItemDetailPanel: 无法还原 Equipment 实例', e);
+            }
+        }
+
+        const isEquipment = (displayItem.type === 'equipment')
+            || (displayItem.slot != null && displayItem.stats != null);
+        let primaryLabel = null;
+        if (meta && meta.source === 'inventory' && isEquipment) primaryLabel = '装备';
+        else if (meta && meta.source === 'equipment') primaryLabel = '卸下';
+
+        this.pinned = {
+            source: meta && meta.source,
+            index: meta && meta.index,
+            slot: meta && meta.slot,
+            itemId: String(itemId)
+        };
+
+        this._clearDetailHighlight();
+        if (root && root.classList) root.classList.add('detail-open');
+
+        tooltip.classList.add('pinned');
+        tooltip.style.display = '';
+        tooltip.innerHTML = this._buildDetailHtml(displayItem, { primaryLabel });
+        this._bindPanelActions(tooltip);
+
+        const rect = root.getBoundingClientRect ? root.getBoundingClientRect() : null;
+        const x = rect ? rect.right : clientX;
+        const y = rect ? rect.top : clientY;
+        this.adjustTooltipPosition(tooltip, x, y, 12, 0);
+    }
+
+    closeItemDetailPanel() {
+        const tooltip = document.getElementById('item-tooltip');
+        this.pinned = null;
+        this._clearDetailHighlight();
+        if (!tooltip) return;
+        tooltip.classList.remove('show', 'pinned');
+        tooltip.style.display = 'none';
+        tooltip.innerHTML = '';
+        setTimeout(() => {
+            if (tooltip && !tooltip.classList.contains('show')) {
+                tooltip.style.display = '';
+            }
+        }, 50);
+    }
+
+    /** 兼容旧调用名：改为关闭钉住面板 */
+    hideItemTooltip() {
+        this.closeItemDetailPanel();
     }
 
     /**
-     * 显示套装效果工具提示
-     * @param {string} setId - 套装ID
-     * @param {number} currentPieceCount - 当前激活的件数
-     * @param {number} x - 鼠标X坐标
-     * @param {number} y - 鼠标Y坐标
+     * 兼容旧 API：若仍被调用，改为钉住详情
+     */
+    showItemTooltip(element, x, y) {
+        const root = element.closest && (element.closest('.inventory-slot') || element.closest('.equipment-item')) || element;
+        const meta = {};
+        if (root.classList && root.classList.contains('inventory-slot')) {
+            meta.source = 'inventory';
+            meta.index = parseInt(root.dataset.index, 10);
+        } else if (root.classList && root.classList.contains('equipment-item')) {
+            meta.source = 'equipment';
+            meta.slot = root.dataset.slot;
+        }
+        this.openItemDetailPanel(element, x, y, meta);
+    }
+
+    /**
+     * 套装效果：点击展开（钉住）
      */
     showSetEffectTooltip(setId, currentPieceCount, x, y) {
         const tooltip = document.getElementById('item-tooltip');
         if (!tooltip) return;
-        
+
         if (!setId || typeof resolveSetDefinition !== 'function') {
-            tooltip.classList.remove('show');
+            this.closeItemDetailPanel();
             return;
         }
 
         const setData = resolveSetDefinition(setId);
         if (!setData) {
-            tooltip.classList.remove('show');
+            this.closeItemDetailPanel();
             return;
         }
+
         let html = `<h4 style="color: #ffaa00;">${setData.name}</h4>`;
         html += `<p style="color: #aaa; font-size: 11px;">套装效果:</p>`;
-        
+
         const activeSet = new Set();
         if (typeof getAllActiveSetEffects === 'function') {
             getAllActiveSetEffects(this.game.player.equipment).forEach(e => {
-                if (e.setId === setId) {
-                    activeSet.add(e.pieceCount);
-                }
+                if (e.setId === setId) activeSet.add(e.pieceCount);
             });
         }
 
@@ -195,14 +276,19 @@ class TooltipManager {
             const isActive = activeSet.has(pieceCount);
             const color = isActive ? '#33ff33' : '#888888';
             const activeText = isActive ? ' (已激活)' : '';
-            html += `<p style="color: ${color}; font-size: 10px;">${pieceCount}件: ${typeof stripSetDescriptionMarkdown === 'function' ? stripSetDescriptionMarkdown(effect.description) : effect.description}${activeText}</p>`;
+            const desc = typeof stripSetDescriptionMarkdown === 'function'
+                ? stripSetDescriptionMarkdown(effect.description)
+                : effect.description;
+            html += `<p style="color: ${color}; font-size: 10px;">${pieceCount}件: ${desc}${activeText}</p>`;
         }
+        html += '<div class="item-detail-actions"><button type="button" class="item-detail-btn" data-detail-action="close">关闭</button></div>';
 
-        tooltip.innerHTML = html;
-        tooltip.classList.add('show');
-        // 移除可能存在的 display: none 样式，让 CSS 的 .show 类控制显示
+        this.pinned = { source: 'set', itemId: `set:${setId}` };
+        this._clearDetailHighlight();
+        tooltip.classList.add('pinned');
         tooltip.style.display = '';
+        tooltip.innerHTML = html;
+        this._bindPanelActions(tooltip);
         this.adjustTooltipPosition(tooltip, x, y);
     }
 }
-

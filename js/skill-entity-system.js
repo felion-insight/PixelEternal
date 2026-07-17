@@ -103,6 +103,13 @@
             const bm = window.getBuildDamageMultiplier(player, monster, skillDef);
             dmg = sanitizeSkillDamage(dmg * (Number.isFinite(bm) ? bm : 1));
         }
+        if (skillDef && skillDef._buildBonusVsStatus && monster.combatStatuses) {
+            const statusBonus = Object.entries(skillDef._buildBonusVsStatus).reduce((mult, [statusId, bonus]) => {
+                const status = monster.combatStatuses[statusId];
+                return status && status.until > Date.now() ? Math.max(mult, Number(bonus) || 1) : mult;
+            }, 1);
+            dmg = sanitizeSkillDamage(dmg * statusBonus);
+        }
         if (typeof window.getWizardSkillDamageMult === 'function') {
             const wm = window.getWizardSkillDamageMult(player, skillDef, monster);
             dmg = sanitizeSkillDamage(dmg * (Number.isFinite(wm) ? wm : 1));
@@ -442,6 +449,11 @@
         if (monster && typeof window.getClassSkillMarkBonus === 'function') {
             critRate += window.getClassSkillMarkBonus(monster, null).crit || 0;
         }
+        if (typeof window.getSetModifier === 'function'
+            && (player._shadowDanceUntil && Date.now() < player._shadowDanceUntil
+                || (c && c.type === 'shadow_dance'))) {
+            critRate += window.getSetModifier(player, 'shadowDanceCrit', 0) * 100;
+        }
         return Math.random() * 100 < critRate;
     }
 
@@ -465,6 +477,11 @@
         }
         if (typeof window.getBreathHoldTeamCritDmgBonus === 'function' && player && player.gameInstance) {
             extra += window.getBreathHoldTeamCritDmgBonus(player, player.gameInstance);
+        }
+        if (typeof window.getSetModifier === 'function'
+            && (player._shadowDanceUntil && Date.now() < player._shadowDanceUntil
+                || (c && c.type === 'shadow_dance'))) {
+            extra += window.getSetModifier(player, 'shadowDanceCritDmg', 0) * 100;
         }
         return applyCritDamageMultiplier(dmg, player.baseCritDamage, 1 + extra / 100);
     }
@@ -1115,7 +1132,9 @@
         if (typeof window.clearComboPointDamageMult === 'function') {
             window.clearComboPointDamageMult(player);
         }
-        if (g && g.currentScene === window.SCENE_TYPES.SKILL_LAB && typeof g._syncSkillLabCamera === 'function') {
+        if (g && (g.currentScene === window.SCENE_TYPES.SKILL_LAB
+            || g.currentScene === window.SCENE_TYPES.EQUIPMENT_LAB)
+            && typeof g._syncSkillLabCamera === 'function') {
             g._syncSkillLabCamera();
         }
         return true;
@@ -1427,7 +1446,9 @@
         if (!ch.multiDash) {
             offerShadowRaidReturn(ch, g, now);
             scheduleShadowRaidAutoReturn(ch, g, monsters, now);
-            if (g && g.currentScene === window.SCENE_TYPES.SKILL_LAB && typeof g._syncSkillLabCamera === 'function') {
+            if (g && (g.currentScene === window.SCENE_TYPES.SKILL_LAB
+                || g.currentScene === window.SCENE_TYPES.EQUIPMENT_LAB)
+                && typeof g._syncSkillLabCamera === 'function') {
                 g._syncSkillLabCamera();
             }
         }
@@ -2028,6 +2049,12 @@
         }
         if (c.spawnMirrorClones && player && g && typeof window.spawnSkillSummon === 'function') {
             field._mirrorDomain = true;
+            var durAdd = typeof window.getSetModifier === 'function'
+                ? window.getSetModifier(player, 'mirrorDurationAdd', 0) : 0;
+            var mirrorDmg = typeof window.getSetModifier === 'function'
+                ? window.getSetModifier(player, 'mirrorDamage', 0) : 0;
+            var fieldDur = (c.fieldDurationMs || 10000) + durAdd;
+            field.expireTime = Math.max(field.expireTime || 0, Date.now() + fieldDur);
             var cloneCount = c.spawnMirrorClones;
             var cloneRadius = c.fieldRadius || 120;
             for (var ci = 0; ci < cloneCount; ci++) {
@@ -2038,7 +2065,7 @@
                 var cloneSummon = window.spawnSkillSummon(player, skillDef, g, {
                     x: cx, y: cy,
                     unitId: 'mirror_clone',
-                    durationMs: c.fieldDurationMs || 10000,
+                    durationMs: fieldDur,
                     size: 20,
                     color: '#4466cc'
                 });
@@ -2049,6 +2076,12 @@
                     cloneSummon.hp = cloneHp;
                     cloneSummon.maxHp = cloneHp;
                     cloneSummon._damageReduction = c.cloneDamageReduction || 40;
+                    if (mirrorDmg > 0) {
+                        cloneSummon.attack = Math.max(1, Math.floor(
+                            (cloneSummon.attack || player.baseAttack || 10) * (1 + mirrorDmg)
+                        ));
+                        cloneSummon._mirrorDamageBonus = mirrorDmg;
+                    }
                 }
             }
         }
@@ -2292,6 +2325,12 @@
                 pierceAngle: pierceCtx && pierceCtx.pierceAngle
             });
         }
+        // 碎界怒嚎：主裂隙/跃击落地时再放出左右裂波（与前摇对齐）
+        if (player._equipmentRiftWavePending
+            && window.EquipmentEffectSystem
+            && typeof window.EquipmentEffectSystem.releasePendingRiftWaves === 'function') {
+            window.EquipmentEffectSystem.releasePendingRiftWaves(player);
+        }
         if (pierceCtx) {
             startPierceDash(player, g, originX, originY, pierceCtx.dashEndX, pierceCtx.dashEndY, pierceCtx.pierceAngle, now, 220);
             if (typeof window.updatePlayerPierceDash === 'function') {
@@ -2392,7 +2431,7 @@
                 homingToMark: c.homingToMarkedTarget !== false
             }, skillDef, now);
         }
-        const p = clampInRoom(g, tx, ty);
+        const p = c.noDisplacement ? { x: originX, y: originY } : clampInRoom(g, tx, ty);
         player.x = p.x; player.y = p.y;
         player.invincibleUntil = Math.max(player.invincibleUntil || 0, now + (c.invincibleMs || 280));
         if (c.bonusDamageMultiplier && target) {
@@ -2400,12 +2439,15 @@
             applyDmg(player, target, bd, skillDef, g, c.statusOnHit);
         }
         if (c.grantMoveSpeed) {
+            const windBonus = (skillDef.id === 'wind_step' && typeof window.getSetModifier === 'function')
+                ? window.getSetModifier(player, 'windStepBonus', 0) : 0;
+            const moveVal = Math.floor(c.grantMoveSpeed * (1 + windBonus));
             player.buffs = player.buffs || [];
             player.buffs.push({
                 id: 'wind_step_' + skillDef.id,
                 name: skillDef.name,
                 expireTime: now + (c.grantMoveSpeedMs || 4000),
-                effects: { moveSpeed: c.grantMoveSpeed },
+                effects: { moveSpeed: moveVal },
                 _windSpeedBoost: true,
                 hudVisible: true
             });
@@ -2511,6 +2553,12 @@
             spawnTime: now
         };
         st.summons.push(summon);
+        if (player && typeof window.getSetModifier === 'function') {
+            const summonPower = window.getSetModifier(player, 'summonPower', 0);
+            if (summonPower > 0 && !isClone) {
+                summon._summonPowerBonus = summonPower;
+            }
+        }
         return summon;
     };
 

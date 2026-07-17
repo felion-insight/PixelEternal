@@ -1,87 +1,123 @@
 {
-  "version": "2.0",
+  "version": "4.1",
   "activationPieces": [
     2,
-    4
+    4,
+    6
   ],
+  "graduationSlots": [
+    "weapon",
+    "helmet",
+    "body",
+    "hands",
+    "legs",
+    "feet"
+  ],
+  "loadoutFormula": {
+    "set": [
+      "weapon",
+      "helmet",
+      "body",
+      "hands",
+      "legs",
+      "feet"
+    ],
+    "classCore": [
+      "offHand"
+    ],
+    "legendaryPowers": [
+      "amulet",
+      "ring",
+      "belt"
+    ]
+  },
+  "description": "通用过渡 + 12一转/12二转六件毕业（武器+五甲）；副手=核心，护符/指环/腰带=威能；文案与运行时效果对齐",
   "sets": {
     "fireheart": {
       "name": "烈焰之心",
+      "tier": "generic",
       "slots": [
         "weapon",
         "body",
         "hands",
         "feet"
       ],
-      "dropWeight": 1,
+      "dropWeight": 0.35,
+      "minLevelHint": 1,
       "effects": {
         "2": {
-          "description": "攻击力+20，火属性伤害+25%",
+          "description": "攻击力+20",
           "stats": {
             "attack": 20
           }
         },
         "4": {
-          "description": "暴击时释放火焰新星（150%攻击力AOE，冷却6s）",
+          "description": "暴击时释放火焰新星（150%攻击力范围伤害，冷却6秒）",
           "special": "fire_nova"
         }
       }
     },
     "frostborn": {
       "name": "霜寒之触",
+      "tier": "generic",
       "slots": [
         "helmet",
         "body",
         "legs",
         "amulet"
       ],
-      "dropWeight": 1,
+      "dropWeight": 0.35,
+      "minLevelHint": 1,
       "effects": {
         "2": {
-          "description": "防御+15，HP+100",
+          "description": "防御+15，生命+100",
           "stats": {
             "defense": 15,
             "health": 100
           }
         },
         "4": {
-          "description": "被击中时25%概率冰冻攻击者2s",
+          "description": "受到伤害时，25%概率冰冻攻击者2秒",
           "special": "frost_touch"
         }
       }
     },
     "stormfury": {
       "name": "雷霆之怒",
+      "tier": "generic",
       "slots": [
         "weapon",
         "hands",
         "feet",
         "ring"
       ],
-      "dropWeight": 1,
+      "dropWeight": 0.35,
+      "minLevelHint": 1,
       "effects": {
         "2": {
-          "description": "攻击速度+20%，移速+15%",
+          "description": "攻击速度+20%，移动速度+15%",
           "stats": {
             "attackSpeed": 20,
             "moveSpeed": 15
           }
         },
         "4": {
-          "description": "每第5次攻击释放闪电（200%攻击力连锁3个敌人）",
+          "description": "每第5次普攻释放闪电（200%攻击力，连锁最多3个敌人）",
           "special": "chain_strike"
         }
       }
     },
     "starlight": {
       "name": "星辰之辉",
+      "tier": "generic",
       "slots": [
         "helmet",
         "body",
         "amulet",
         "ring"
       ],
-      "dropWeight": 1,
+      "dropWeight": 0.35,
+      "minLevelHint": 1,
       "effects": {
         "2": {
           "description": "全属性+8%",
@@ -90,150 +126,924 @@
           }
         },
         "4": {
-          "description": "击杀敌人后全属性额外+5%（可叠3层，持续10s）",
+          "description": "击杀敌人后全属性额外+5%（最多叠3层，持续10秒）",
           "special": "star_stack"
         }
       }
     },
     "shadowmantle": {
       "name": "暗影之拥",
+      "tier": "generic",
       "slots": [
         "hands",
         "legs",
         "feet",
         "ring"
       ],
-      "dropWeight": 1,
+      "dropWeight": 0.35,
+      "minLevelHint": 1,
       "effects": {
         "2": {
-          "description": "闪避率+10%，暴伤+25%",
+          "description": "闪避率+10%，暴击伤害+25%",
           "stats": {
             "dodge": 10,
             "critDamage": 25
           }
         },
         "4": {
-          "description": "闪避成功时下一次攻击必暴击且+80%暴伤（冷却5s）",
+          "description": "闪避成功后，下一次攻击必定暴击且暴击伤害+80%（冷却5秒）",
           "special": "shadow_counter"
         }
       }
     },
     "dragonblood": {
       "name": "龙族血脉",
+      "tier": "generic",
       "slots": [
         "weapon",
         "helmet",
         "belt",
         "amulet"
       ],
-      "dropWeight": 0.8,
+      "dropWeight": 0.3,
+      "minLevelHint": 1,
       "effects": {
         "2": {
-          "description": "HP+150，防御+20",
+          "description": "生命+150，防御+20",
           "stats": {
             "health": 150,
             "defense": 20
           }
         },
         "4": {
-          "description": "HP低于50%时伤害+30%，减伤+15%",
+          "description": "生命低于50%时，伤害+30%，受到伤害降低15%",
           "special": "dragon_rage"
         }
       }
     },
-    "valor": {
-      "name": "无畏壁垒",
-      "classAffinity": "warrior",
+    "oath_shield": {
+      "name": "宣誓之盾",
+      "tier": "first",
+      "classAffinity": "knight",
       "slots": [
+        "weapon",
         "helmet",
         "body",
-        "offHand",
-        "belt"
-      ],
-      "dropWeight": 0.6,
-      "effects": {
-        "2": {
-          "description": "防御+25，生命+120",
-          "stats": {
-            "defense": 25,
-            "health": 120
-          }
-        },
-        "4": {
-          "description": "受到攻击时20%概率获得护盾（15%最大HP）",
-          "special": "valor_shield"
-        }
-      }
-    },
-    "windchaser": {
-      "name": "追风者",
-      "classAffinity": "archer",
-      "slots": [
-        "hands",
-        "feet",
-        "ring",
-        "amulet"
-      ],
-      "dropWeight": 0.6,
-      "effects": {
-        "2": {
-          "description": "攻速+25%，移速+15%",
-          "stats": {
-            "attackSpeed": 25,
-            "moveSpeed": 15
-          }
-        },
-        "4": {
-          "description": "与敌人距离>100时，伤害+20%",
-          "special": "windchaser_range"
-        }
-      }
-    },
-    "arcane": {
-      "name": "秘法之源",
-      "classAffinity": "mage",
-      "slots": [
-        "weapon",
-        "offHand",
-        "helmet",
-        "amulet"
-      ],
-      "dropWeight": 0.6,
-      "effects": {
-        "2": {
-          "description": "技能伤害+15%，法力恢复+30%",
-          "stats": {
-            "magicAttack": 15,
-            "skillHaste": 10
-          }
-        },
-        "4": {
-          "description": "释放技能后2秒内下一个技能伤害+35%",
-          "special": "arcane_combo"
-        }
-      }
-    },
-    "shadow": {
-      "name": "暗影行者",
-      "classAffinity": "assassin",
-      "slots": [
-        "weapon",
         "hands",
         "legs",
         "feet"
       ],
-      "dropWeight": 0.6,
+      "dropWeight": 1.25,
+      "minLevelHint": 20,
       "effects": {
         "2": {
-          "description": "暴率+12%，闪避+8%",
+          "description": "减伤+3%，生命+100；圣盾承伤减免与上限提高",
           "stats": {
-            "critRate": 12,
-            "dodge": 8
+            "damageReduction": 3,
+            "health": 100
+          },
+          "modifiers": {
+            "holyShieldDR": 8,
+            "holyShieldMaxBonus": 1
           }
         },
         "4": {
-          "description": "背刺伤害+40%，暴击后移速+30%",
-          "special": "shadow_strike"
+          "description": "盾击/奉献等圣光技能命中时释放圣光余波（80%攻击力，冷却4秒）；受击时也有概率获得短护盾",
+          "special": "oath_shield"
+        },
+        "6": {
+          "description": "受击后短时减伤+10%（持续3秒，冷却8秒）",
+          "special": "oath_shield_apex"
+        }
+      }
+    },
+    "crimson_scar": {
+      "name": "赤怒战痕",
+      "tier": "first",
+      "classAffinity": "berserker",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.25,
+      "minLevelHint": 20,
+      "effects": {
+        "2": {
+          "description": "攻击+18，暴击伤害+18%；生命低于60%时伤害+12%",
+          "stats": {
+            "attack": 18,
+            "critDamage": 18
+          },
+          "modifiers": {
+            "lowHpThreshold": 0.6,
+            "lowHpDamage": 0.12
+          }
+        },
+        "4": {
+          "description": "生命低于阈值时普攻与技能伤害提高；命中时回复1%最大生命（冷却0.8秒）",
+          "special": "crimson_scar"
+        },
+        "6": {
+          "description": "生命越低伤害越高（额外最多+35%）；命中回复提升至2%最大生命",
+          "special": "crimson_scar_apex"
+        }
+      }
+    },
+    "bulwark_oath": {
+      "name": "壁垒誓约",
+      "tier": "first",
+      "classAffinity": "guardian",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.25,
+      "minLevelHint": 20,
+      "effects": {
+        "2": {
+          "description": "减伤+4%，生命+120；格挡减伤与格挡回复提高",
+          "stats": {
+            "damageReduction": 4,
+            "health": 120
+          },
+          "modifiers": {
+            "blockHealGuard": 1,
+            "blockDRBonus": 6
+          }
+        },
+        "4": {
+          "description": "格挡成功时获得相当于10%最大生命的护盾（持续4秒，冷却5秒）",
+          "special": "bulwark_oath"
+        },
+        "6": {
+          "description": "格挡成功时额外获得减伤+8%（持续2.5秒）",
+          "special": "bulwark_oath_apex"
+        }
+      }
+    },
+    "trail_sigil": {
+      "name": "林踪猎印",
+      "tier": "first",
+      "classAffinity": "ranger",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.25,
+      "minLevelHint": 20,
+      "effects": {
+        "2": {
+          "description": "攻击速度+12%，生命+80；召唤物伤害与能量回复提高",
+          "stats": {
+            "attackSpeed": 12,
+            "health": 80
+          },
+          "modifiers": {
+            "petDamagePercent": 18,
+            "petEnergyRegenPercent": 15
+          }
+        },
+        "4": {
+          "description": "每只有活召唤物使自身伤害+4%（最多3只）",
+          "special": "trail_sigil"
+        },
+        "6": {
+          "description": "普攻标记目标3秒；对标记目标伤害+15%",
+          "special": "trail_sigil_apex"
+        }
+      }
+    },
+    "hundred_pace": {
+      "name": "百步凝视",
+      "tier": "first",
+      "classAffinity": "marksman",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.25,
+      "minLevelHint": 20,
+      "effects": {
+        "2": {
+          "description": "暴击率+8%，攻击+16；精准层获取加快25%",
+          "stats": {
+            "critRate": 8,
+            "attack": 16
+          },
+          "modifiers": {
+            "precisionGainBonus": 0.25
+          }
+        },
+        "4": {
+          "description": "攻击90距离外目标时伤害+10%，暴击伤害+10%",
+          "special": "hundred_pace"
+        },
+        "6": {
+          "description": "连续普攻5次后下一击触发「凝视」：必定暴击且伤害×1.35",
+          "special": "hundred_pace_apex"
+        }
+      }
+    },
+    "swift_plume": {
+      "name": "疾羽之风",
+      "tier": "first",
+      "classAffinity": "windrunner",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.25,
+      "minLevelHint": 20,
+      "effects": {
+        "2": {
+          "description": "攻击速度+14%，移动速度+12%；风之步效果提高",
+          "stats": {
+            "attackSpeed": 14,
+            "moveSpeed": 12
+          },
+          "modifiers": {
+            "windStepBonus": 0.12
+          }
+        },
+        "4": {
+          "description": "闪避成功后获得移速+35%（持续2秒，冷却4秒）",
+          "special": "swift_plume"
+        },
+        "6": {
+          "description": "闪避成功后疾羽强化：移速+45%、攻速+12%（持续2.8秒）",
+          "special": "swift_plume_apex"
+        }
+      }
+    },
+    "ember_residue": {
+      "name": "元素余烬",
+      "tier": "first",
+      "classAffinity": "wizard",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.25,
+      "minLevelHint": 20,
+      "effects": {
+        "2": {
+          "description": "法强+16，技能急速+10；共鸣获取与相位技能伤害提高",
+          "stats": {
+            "magicAttack": 16,
+            "skillHaste": 10
+          },
+          "modifiers": {
+            "resonanceGainBonus": 0.2,
+            "phaseSkillDamage": 0.08
+          }
+        },
+        "4": {
+          "description": "释放职业技能时留下元素余波（55%法强范围伤害，冷却3.5秒）；下一技能伤害+28%",
+          "special": "ember_residue"
+        },
+        "6": {
+          "description": "技能可额外触发一次元素连锁余波（40%法强，冷却5秒）",
+          "special": "ember_residue_apex"
+        }
+      }
+    },
+    "star_oracle": {
+      "name": "星轨启示",
+      "tier": "first",
+      "classAffinity": "sage",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.25,
+      "minLevelHint": 20,
+      "effects": {
+        "2": {
+          "description": "技能急速+12，生命+90；预知之盾吸收与时砂回复提高",
+          "stats": {
+            "skillHaste": 12,
+            "health": 90
+          },
+          "modifiers": {
+            "foresightAbsorbBonus": 0.15,
+            "chronosRegenBonus": 0.1
+          }
+        },
+        "4": {
+          "description": "释放职业技能时获得8%最大生命短护盾（冷却6秒）；下一技能伤害提高",
+          "special": "star_oracle"
+        },
+        "6": {
+          "description": "释放技能后短时技能急速+12、攻速+10%（持续4秒，冷却8秒）",
+          "special": "star_oracle_apex"
+        }
+      }
+    },
+    "curse_echo": {
+      "name": "咒缚残响",
+      "tier": "first",
+      "classAffinity": "warlock",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.25,
+      "minLevelHint": 20,
+      "effects": {
+        "2": {
+          "description": "法强+14，生命偷取+2%；诅咒叠层与诅咒持续伤害提高",
+          "stats": {
+            "magicAttack": 14,
+            "lifeSteal": 2
+          },
+          "modifiers": {
+            "curseStackBonus": 0.2,
+            "curseDotBonus": 0.1
+          }
+        },
+        "4": {
+          "description": "诅咒/收割类技能命中时对附近敌人造成残响连锁（60%法强，冷却4秒）",
+          "special": "curse_echo"
+        },
+        "6": {
+          "description": "额外触发灵魂爆发（90%法强范围伤害，冷却7秒）",
+          "special": "curse_echo_apex"
+        }
+      }
+    },
+    "night_veil": {
+      "name": "夜帷残影",
+      "tier": "first",
+      "classAffinity": "shadowdancer",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.25,
+      "minLevelHint": 20,
+      "effects": {
+        "2": {
+          "description": "暴击率+8%，闪避+8%；连击点获取加快，背刺角度更宽",
+          "stats": {
+            "critRate": 8,
+            "dodge": 8
+          },
+          "modifiers": {
+            "comboGainBonus": 0.15,
+            "backstabAngleBonus": 0.1
+          }
+        },
+        "4": {
+          "description": "暴击后追加一次残影斩（45%攻击力，冷却1.5秒），并获得移速+30%（2秒）",
+          "special": "night_veil"
+        },
+        "6": {
+          "description": "背刺伤害额外提高；暴击残影斩效果保留",
+          "special": "night_veil_apex"
+        }
+      }
+    },
+    "mirror_mask": {
+      "name": "镜戏面具",
+      "tier": "first",
+      "classAffinity": "trickster",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.25,
+      "minLevelHint": 20,
+      "effects": {
+        "2": {
+          "description": "闪避+10%，移动速度+10%；诱饵耐久与幻术资源回复提高",
+          "stats": {
+            "dodge": 10,
+            "moveSpeed": 10
+          },
+          "modifiers": {
+            "decoyDurability": 0.2,
+            "illusionRegenBonus": 0.1
+          }
+        },
+        "4": {
+          "description": "闪避成功后下一击伤害+20%且更容易暴击（冷却5秒），并获得短时移速",
+          "special": "mirror_mask"
+        },
+        "6": {
+          "description": "闪避成功时对周围造成镜碎伤害（80%攻击力，冷却8秒）",
+          "special": "mirror_mask_apex"
+        }
+      }
+    },
+    "venom_censer": {
+      "name": "毒雾薰笼",
+      "tier": "first",
+      "classAffinity": "venomancer",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.25,
+      "minLevelHint": 20,
+      "effects": {
+        "2": {
+          "description": "攻击+14，技能急速+8；额外叠毒层数与催化获取提高",
+          "stats": {
+            "attack": 14,
+            "skillHaste": 8
+          },
+          "modifiers": {
+            "poisonExtraStack": 1,
+            "catalystGainBonus": 0.1
+          }
+        },
+        "4": {
+          "description": "对中毒目标伤害+12%；每第5次普攻释放毒链（160%攻击力，连锁3个）",
+          "special": "venom_censer"
+        },
+        "6": {
+          "description": "对中毒目标伤害再+10%；毒链效果增强",
+          "special": "venom_censer_apex"
+        }
+      }
+    },
+    "holy_balance": {
+      "name": "圣裁天平",
+      "tier": "second",
+      "classAffinity": "paladin",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.0,
+      "minLevelHint": 40,
+      "effects": {
+        "2": {
+          "description": "攻击+12，防御+20，生命+100；审判类技能伤害+15%，命中回复神圣能量",
+          "stats": {
+            "attack": 12,
+            "defense": 20,
+            "health": 100
+          },
+          "modifiers": {
+            "judgmentDamage": 0.15,
+            "holyEnergyOnHit": 1
+          }
+        },
+        "4": {
+          "description": "审判/圣光技能积蓄能量；就绪后下一次审判释放神罚范围爆发（140%攻击力）",
+          "special": "holy_balance"
+        },
+        "6": {
+          "description": "审判/圣光技能直接强化并附带神罚爆发；审判伤害进一步提高",
+          "special": "holy_balance_apex"
+        }
+      }
+    },
+    "rift_howl": {
+      "name": "碎界怒嚎",
+      "tier": "second",
+      "classAffinity": "destroyer",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.0,
+      "minLevelHint": 40,
+      "effects": {
+        "2": {
+          "description": "攻击+22，暴击伤害+20%；碎界印记叠层加快25%",
+          "stats": {
+            "attack": 22,
+            "critDamage": 20
+          },
+          "modifiers": {
+            "destroyMarkGain": 0.25
+          }
+        },
+        "4": {
+          "description": "狂暴碎击/毁灭裂波命中时，向左前与右前斜向射出地面裂波（各70%攻击力）",
+          "special": "rift_howl"
+        },
+        "6": {
+          "description": "释放碎击时短时攻速+20%；斜向裂波伤害提高15%",
+          "special": "rift_howl_apex"
+        }
+      }
+    },
+    "temple_covenant": {
+      "name": "圣殿永约",
+      "tier": "second",
+      "classAffinity": "temple_knight",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.0,
+      "minLevelHint": 40,
+      "effects": {
+        "2": {
+          "description": "生命+120，减伤+3%，防御+18；圣约链接双方共享减伤提高",
+          "stats": {
+            "health": 120,
+            "damageReduction": 3,
+            "defense": 18
+          },
+          "modifiers": {
+            "bondSharedDR": 0.08
+          }
+        },
+        "4": {
+          "description": "受击时有概率获得18%最大生命护盾（冷却6秒）",
+          "special": "temple_covenant"
+        },
+        "6": {
+          "description": "致命伤害时触发圣殿庇护：保留20%生命并获得35%最大生命护盾（冷却120秒）",
+          "special": "temple_covenant_apex"
+        }
+      }
+    },
+    "beast_pact": {
+      "name": "万兽盟约",
+      "tier": "second",
+      "classAffinity": "beastmaster",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.0,
+      "minLevelHint": 40,
+      "effects": {
+        "2": {
+          "description": "攻击速度+14%，生命+80；猎物标记获取加快，切换指令后宠物伤害提高",
+          "stats": {
+            "attackSpeed": 14,
+            "health": 80
+          },
+          "modifiers": {
+            "preyMarkGain": 0.2,
+            "commandSwapPetDamage": 0.2
+          }
+        },
+        "4": {
+          "description": "自身伤害+12%，每只有活召唤物再+5%（最多3只）",
+          "special": "beast_pact"
+        },
+        "6": {
+          "description": "在4件基础上额外伤害+20%",
+          "special": "beast_pact_apex"
+        }
+      }
+    },
+    "breathless_hunt": {
+      "name": "绝息猎杀",
+      "tier": "second",
+      "classAffinity": "deadeye",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.0,
+      "minLevelHint": 40,
+      "effects": {
+        "2": {
+          "description": "暴击率+10%，攻击+18，暴击伤害+12%；对弱点目标伤害+20%，精准更易维持",
+          "stats": {
+            "critRate": 10,
+            "attack": 18,
+            "critDamage": 12
+          },
+          "modifiers": {
+            "weaknessDamage": 0.2,
+            "precisionSustain": 1
+          }
+        },
+        "4": {
+          "description": "攻击弱点标记目标时伤害与暴击伤害大幅提高；远距目标伤害+12%",
+          "special": "breathless_hunt"
+        },
+        "6": {
+          "description": "对生命低于35%的目标额外伤害+25%；弱点暴击伤害进一步提高",
+          "special": "breathless_hunt_apex"
+        }
+      }
+    },
+    "echo_fold": {
+      "name": "叠影回响",
+      "tier": "second",
+      "classAffinity": "phantom",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.0,
+      "minLevelHint": 40,
+      "effects": {
+        "2": {
+          "description": "攻击速度+14%，移动速度+12%，闪避+6%；残影回声伤害+18%，有残影时闪避再+8",
+          "stats": {
+            "attackSpeed": 14,
+            "moveSpeed": 12,
+            "dodge": 6
+          },
+          "modifiers": {
+            "echoDamageBonus": 0.18,
+            "echoDodge": 8
+          }
+        },
+        "4": {
+          "description": "闪避获得移速；风刃/幻影类技能追加叠影斩（45%攻击力，冷却6秒）",
+          "special": "echo_fold"
+        },
+        "6": {
+          "description": "闪避可预备额外复读；叠影斩伤害提高至65%，复读延迟缩短",
+          "special": "echo_fold_apex"
+        }
+      }
+    },
+    "torrent_throne": {
+      "name": "洪流法座",
+      "tier": "second",
+      "classAffinity": "archmage",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.0,
+      "minLevelHint": 40,
+      "effects": {
+        "2": {
+          "description": "法强+22，技能急速+12；熔合技能伤害+15%，共鸣上限+1",
+          "stats": {
+            "magicAttack": 22,
+            "skillHaste": 12
+          },
+          "modifiers": {
+            "fusionDamage": 0.15,
+            "resonanceCapBonus": 1
+          }
+        },
+        "4": {
+          "description": "释放职业技能后下一技能伤害+28%，并留下元素余波",
+          "special": "torrent_throne"
+        },
+        "6": {
+          "description": "下一技能伤害提高至+40%；可额外触发元素连锁余波（冷却5秒）",
+          "special": "torrent_throne_apex"
+        }
+      }
+    },
+    "fate_web": {
+      "name": "命运织网",
+      "tier": "second",
+      "classAffinity": "oracle",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.0,
+      "minLevelHint": 40,
+      "effects": {
+        "2": {
+          "description": "技能急速+14，生命+100；命运编织期间急速提高12%",
+          "stats": {
+            "skillHaste": 14,
+            "health": 100
+          },
+          "modifiers": {
+            "fateHaste": 0.12
+          }
+        },
+        "4": {
+          "description": "命运/时光类技能伤害+12%；击杀叠层强化全属性（与星辉同源机制）",
+          "special": "fate_web"
+        },
+        "6": {
+          "description": "命运/时光技能可短暂冻结附近敌人（约1.2秒）",
+          "special": "fate_web_apex"
+        }
+      }
+    },
+    "grave_throne": {
+      "name": "坟海王座",
+      "tier": "second",
+      "classAffinity": "necromancer",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.0,
+      "minLevelHint": 40,
+      "effects": {
+        "2": {
+          "description": "法强+18，生命+110，生命偷取+2%；召唤物强度与死亡共鸣提高15%",
+          "stats": {
+            "magicAttack": 18,
+            "health": 110,
+            "lifeSteal": 2
+          },
+          "modifiers": {
+            "summonPower": 0.15,
+            "deathResonanceBonus": 0.15
+          }
+        },
+        "4": {
+          "description": "亡灵/灵魂类技能伤害提高；击杀时对周围造成坟火伤害（40%法强）",
+          "special": "grave_throne"
+        },
+        "6": {
+          "description": "击杀坟火伤害提高至70%法强",
+          "special": "grave_throne_apex"
+        }
+      }
+    },
+    "evernight_seal": {
+      "name": "永夜契印",
+      "tier": "second",
+      "classAffinity": "nightblade",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.0,
+      "minLevelHint": 40,
+      "effects": {
+        "2": {
+          "description": "暴击率+10%，闪避+8%，暴击伤害+18%；影舞期间暴率与暴伤提高",
+          "stats": {
+            "critRate": 10,
+            "dodge": 8,
+            "critDamage": 18
+          },
+          "modifiers": {
+            "shadowDanceCrit": 0.12,
+            "shadowDanceCritDmg": 0.2
+          }
+        },
+        "4": {
+          "description": "背刺伤害大幅提高；暴击后追加残影斩并获得短时移速",
+          "special": "evernight_seal"
+        },
+        "6": {
+          "description": "背刺伤害再提高；暴击残影斩效果保留",
+          "special": "evernight_seal_apex"
+        }
+      }
+    },
+    "myriad_mirror": {
+      "name": "万象镜牢",
+      "tier": "second",
+      "classAffinity": "illusionist",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.0,
+      "minLevelHint": 40,
+      "effects": {
+        "2": {
+          "description": "闪避+10%，移动速度+12%，暴击伤害+12%；镜像伤害+15%，镜域持续时间+1秒",
+          "stats": {
+            "dodge": 10,
+            "moveSpeed": 12,
+            "critDamage": 12
+          },
+          "modifiers": {
+            "mirrorDamage": 0.15,
+            "mirrorDurationAdd": 1000
+          }
+        },
+        "4": {
+          "description": "闪避成功后下一击伤害提高，并获得短时移速",
+          "special": "myriad_mirror"
+        },
+        "6": {
+          "description": "幻术/镜像类技能可短暂束缚附近敌人（约1秒，冷却8秒）",
+          "special": "myriad_mirror_apex"
+        }
+      }
+    },
+    "plague_altar": {
+      "name": "瘟神祭坛",
+      "tier": "second",
+      "classAffinity": "plaguebringer",
+      "slots": [
+        "weapon",
+        "helmet",
+        "body",
+        "hands",
+        "legs",
+        "feet"
+      ],
+      "dropWeight": 1.0,
+      "minLevelHint": 40,
+      "effects": {
+        "2": {
+          "description": "攻击+18，技能急速+10%；毒传播与毒伤提高",
+          "stats": {
+            "attack": 18,
+            "skillHaste": 10
+          },
+          "modifiers": {
+            "poisonSpreadBonus": 0.2,
+            "poisonDamage": 0.12
+          }
+        },
+        "4": {
+          "description": "对中毒目标伤害提高；每第5次普攻释放毒链（最多连锁3个）",
+          "special": "plague_altar"
+        },
+        "6": {
+          "description": "对中毒目标伤害再提高；毒链最多连锁4个",
+          "special": "plague_altar_apex"
         }
       }
     }

@@ -53,25 +53,25 @@
 
 | ID | 状态 | 任务 | 来源 |
 |----|------|------|------|
-| C1 | ⬜ | 10槽位重构(old:8→new:10: weapon/helmet/body/hands/legs/feet/amulet/ring/belt/offHand) | equipment-system-rework |
-| C2 | ⬜ | 6层稀有度体系(normal/magic/rare/epic/legendary/mythic)+装备分数(Gear Score) | equipment-system-rework |
-| C3 | ⬜ | 基型系统：武器16种(4系×4基型)+副手12种(盾/箭袋/魔典/副手匕首×3)+防具饰品各3种 | equipment-system-rework |
-| C4 | ⬜ | 词缀系统(前缀8种+后缀9种)×5 Tier，职业权重偏向，可洗练可升级Tier | equipment-system-rework |
-| C5 | ⬜ | 传奇威能系统：通用池8个+每职业3个(2传说+1神话)，提取/刻印/覆盖 | equipment-system-rework |
-| C6 | ⬜ | 套装系统重做：2/4件激活，通用6套+职业专属4套，可混搭2+2 | equipment-system-rework |
-| C7 | ⬜ | 掉落智能分配：职业偏向50-80%+稀有度概率+掉落光柱6级特效 | equipment-system-rework |
-| C8 | ⬜ | 铁匠/附魔师/珠宝匠NPC(强化/洗练/威能提取刻印/合成套装) | equipment-system-rework |
-| C9 | ⬜ | 装备tooltip重做：基型/词缀/威能/套装/装备分数全展示 | equipment-system-rework |
+| C1 | ✅ | 10槽位重构(old:8→new:10: weapon/helmet/body/hands/legs/feet/amulet/ring/belt/offHand) | equipment-system-rework |
+| C2 | ✅ | 6层稀有度体系(normal/magic/rare/epic/legendary/mythic)+装备分数(Gear Score) | equipment-system-rework |
+| C3 | ✅ | 基型系统：武器16种(4系×4基型)+副手12种(盾/箭袋/魔典/副手匕首×3)+防具饰品各3种 | equipment-system-rework |
+| C4 | ◐ | 词缀系统与洗练已完成；独立的词缀 Tier 升级入口未实现 | equipment-system-rework |
+| C5 | ✅ | 传奇威能系统：通用池8个+每职业3个(2传说+1神话)，提取/刻印/覆盖 | equipment-system-rework |
+| C6 | ✅ | 套装系统重做：2/4件激活，通用6套+职业专属4套，可混搭2+2 | equipment-system-rework |
+| C7 | ✅ | 掉落智能分配：职业偏向50-80%+稀有度概率+掉落光效6级 | equipment-system-rework |
+| C8 | ✅ | 铁匠/附魔师/珠宝匠NPC(强化/洗练/威能提取刻印/合成套装) | equipment-system-rework |
+| C9 | ✅ | 装备tooltip重做：基型/词缀/威能/套装/装备分数全展示 | equipment-system-rework |
 
 ## D. 装备职业适配
 
 | ID | 状态 | 任务 | 来源 |
 |----|------|------|------|
-| D1 | ⬜ | 16种武器类型按职业亲和映射(战士:剑/斧/锤/枪，弓箭:弓/弩/长弓/短弓，法师:杖/书/球/符文，刺客:匕首/爪/短刀/链刃) | equipment-class-adaptation |
-| D2 | ⬜ | 新增职业属性：魔法攻击(MATK)/魔法防御(MDEF)，区分物理/法术职业 | equipment-class-adaptation |
-| D3 | ⬜ | 职业亲和评分系统(A/B/C/D四级，影响装备主属性×1.2/1.0/0.8/0.5) | equipment-class-adaptation |
-| D4 | ⬜ | 掉落偏向：主职业掉率50%，同系另2分支各15%，其他系各5% | equipment-class-adaptation |
-| D5 | ⬜ | 装备命名体系：基型名+稀有度前缀+词缀后缀，职业专属命名风格 | equipment-class-adaptation |
+| D1 | ✅ | 16种武器类型按职业亲和映射(战士:剑/斧/锤/枪，弓箭:弓/弩/长弓/短弓，法师:杖/书/球/符文，刺客:匕首/爪/短刀/链刃) | equipment-class-adaptation |
+| D2 | ✅ | 新增职业属性：魔法攻击(MATK)/魔法防御(MDEF)，区分物理/法术职业 | equipment-class-adaptation |
+| D3 | ✅ | 职业亲和评分系统(A/B/C/D四级，影响装备主属性×1.2/1.0/0.8/0.5) | equipment-class-adaptation |
+| D4 | ✅ | 掉落偏向：主职业掉率50%，同系另2分支各15%，其他系各5% | equipment-class-adaptation |
+| D5 | ✅ | 装备命名体系：基型名+稀有度前缀+词缀后缀，职业专属命名风格 | equipment-class-adaptation |
 
 ## E. 成长系统
 

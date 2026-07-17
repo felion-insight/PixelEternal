@@ -67,7 +67,8 @@
     function shouldShowBuffInHud(buff) {
         if (buff.hudVisible === false) return false;
         if (buff.hudVisible) return true;
-        const id = buff.id || '';
+        const id = buff.id || buff.equipmentEffectId || '';
+        if (buff.equipmentEffectId) return true;
         return id.startsWith('skill_') || id.startsWith('summon_bonus_') || id === 'ice_armor';
     }
 
@@ -211,10 +212,23 @@
         const ax = attacker.x != null ? attacker.x : player.x;
         const ay = attacker.y != null ? attacker.y : player.y;
         if (!isInFrontArc(player.x, player.y, player.angle, ax, ay, halfRad)) return amount;
-        const pct = Math.min(80, rs.blockPercent || 40);
+        const blockBonus = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'blockDRBonus', 0) : 0;
+        const pct = Math.min(80, (rs.blockPercent || 40) + blockBonus);
         const reduced = amount * (1 - pct / 100);
         if (player.gameInstance && reduced < amount) {
             floatText(player.gameInstance, player.x, player.y - 44, '格挡', '#ffee88');
+            const healPct = typeof window.getSetModifier === 'function'
+                ? window.getSetModifier(player, 'blockHealGuard', 0) : 0;
+            if (healPct > 0) {
+                const heal = Math.max(1, Math.floor((player.maxHp || 1) * (healPct / 100)));
+                if (typeof player.heal === 'function') player.heal(heal);
+                else player.hp = Math.min(player.maxHp, (player.hp || 0) + heal);
+            }
+        }
+        if (reduced < amount && window.EquipmentEffectSystem
+            && typeof window.EquipmentEffectSystem.onBlock === 'function') {
+            window.EquipmentEffectSystem.onBlock(player);
         }
         return Math.max(0, reduced);
     };
@@ -254,7 +268,9 @@
         if (!player || amount <= 0) return 0;
         opts = opts || {};
         const now = Date.now();
-        const stackMax = opts.stackMax || 3;
+        const setBonus = typeof window.getSetModifier === 'function'
+            ? window.getSetModifier(player, 'holyShieldMaxBonus', 0) : 0;
+        const stackMax = (opts.stackMax || 3) + setBonus;
         const pct = opts.absorbPercentPerStack || 5;
         player.buffs = player.buffs || [];
         let buff = findHolyShieldBuff(player);
@@ -990,7 +1006,10 @@
                     return false;
                 }
                 const dur = se.durationMs || 8000;
-                const dr = Math.min(75, Math.floor((se.selfDrPercent || 60) * enh));
+                const bondDR = typeof window.getSetModifier === 'function'
+                    ? window.getSetModifier(player, 'bondSharedDR', 0) : 0;
+                const dr = Math.min(75, Math.floor((se.selfDrPercent || 60) * enh)
+                    + Math.round(bondDR * 100));
                 player._sacredBond = {
                     expireTime: now + dur,
                     target: ally,
@@ -1003,6 +1022,16 @@
                     effects: { damageReduction: dr },
                     hudVisible: true
                 });
+                if (bondDR > 0 && ally) {
+                    ally.buffs = ally.buffs || [];
+                    ally.buffs.push({
+                        id: 'temple_bond_dr_' + now,
+                        name: '圣约守护',
+                        expireTime: now + dur,
+                        effects: { damageReduction: Math.round(bondDR * 100) },
+                        hudVisible: true
+                    });
+                }
                 ally._sacredBondGuardian = player;
                 ally._sacredBondUntil = now + dur;
                 ally._sacredBondAttackPct = Math.floor((se.allyAttackPercent || 25) * enh);

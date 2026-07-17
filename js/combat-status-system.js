@@ -40,7 +40,15 @@
         if (def && def.stackable) {
             const cur = st[type] || { stacks: 0, until: 0, lastTick: now };
             const maxStacks = (def.maxStacks != null && def.maxStacks > 0) ? def.maxStacks : null;
-            cur.stacks = maxStacks ? Math.min(maxStacks, (cur.stacks || 0) + stacks) : (cur.stacks || 0) + stacks;
+            let addStacks = stacks;
+            if (type === 'poison' && attacker && typeof window.getSetModifier === 'function') {
+                const extra = window.getSetModifier(attacker, 'poisonExtraStack', 0);
+                if (extra > 0 && (!attacker._poisonExtraStackCdUntil || now >= attacker._poisonExtraStackCdUntil)) {
+                    addStacks += Math.floor(extra);
+                    attacker._poisonExtraStackCdUntil = now + 800;
+                }
+            }
+            cur.stacks = maxStacks ? Math.min(maxStacks, (cur.stacks || 0) + addStacks) : (cur.stacks || 0) + addStacks;
             cur.until = now + durationMs;
             cur.lastTick = cur.lastTick || now;
             cur.appliedAt = now;
@@ -106,6 +114,7 @@
             monster._darkErosionDefReduction = (def && def.defenseReductionPercent) || 20;
         }
 
+        if (window.SkillLabMetrics) window.SkillLabMetrics.recordStatus(type, true);
         if (typeof window.checkStatusSynergy === 'function') {
             window.checkStatusSynergy(monster, attacker, gameInstance);
         }
@@ -162,6 +171,7 @@
         setTimeout(() => { if (monster) monster._lastSynergyId = null; }, 500);
 
         const eff = syn.effect || {};
+        if (window.SkillLabMetrics) window.SkillLabMetrics.recordSynergy(syn.id);
         const atk = attacker && typeof window.getPlayerEffectiveAttack === 'function'
             ? window.getPlayerEffectiveAttack(attacker) : (attacker && attacker.baseAttack) || 10;
         const float = (text, color) => {
@@ -602,6 +612,7 @@
             if (type === 'shock' && gameInstance) {
                 /* 感电：受击溅射在 takeDamage 时处理 */
             }
+            monster._pendingDamageSource = 'dot';
             monster.takeDamage(dmg);
             flashDotTick(inst);
             // 毒理学被动：敌人死于中毒时，30%剩余毒伤转为吸血

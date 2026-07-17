@@ -89,6 +89,23 @@
         if (typeof window.getCombatStatusDamageMultiplier === 'function') {
             dmg = Math.max(1, Math.floor(dmg * window.getCombatStatusDamageMultiplier(target)));
         }
+        const owner = pet.owner;
+        if (owner && typeof window.getSetModifier === 'function') {
+            const petPct = window.getSetModifier(owner, 'petDamagePercent', 0);
+            const cmdBonus = window.getSetModifier(owner, 'commandSwapPetDamage', 0);
+            const summonPower = window.getSetModifier(owner, 'summonPower', 0);
+            let mult = 1 + petPct / 100;
+            if (cmdBonus > 0 && owner._beastCommandPhase) mult += cmdBonus;
+            if (summonPower > 0) mult += summonPower;
+            if (mult !== 1) dmg = Math.max(1, Math.floor(dmg * mult));
+        }
+        // 宠物攻击不经过 applyDmg，需要手动写入技能来源，否则技能试验场
+        // 只能看到木桩实际掉血，却无法将伤害归入当前职业的技能统计。
+        if (target._battleStats) {
+            const sourceId = pet.skillDef && pet.skillDef.id
+                ? pet.skillDef.id : 'pet_attack';
+            target._pendingDamageSource = 'skill:' + sourceId;
+        }
         const killed = typeof target.takeDamage === 'function' ? target.takeDamage(dmg) : false;
         if (pet.statusOnHit && typeof window.applySkillStatusEffects === 'function') {
             window.applySkillStatusEffects({ statusEffects: pet.statusOnHit }, target, pet.owner, gameInstance);
@@ -133,7 +150,9 @@
         const owner = pet.owner;
         if (isPackLeaderClass(owner) && owner.classResource) {
             if (typeof window.grantSkillResource === 'function') {
-                window.grantSkillResource(owner, 3);
+                const regenBonus = typeof window.getSetModifier === 'function'
+                    ? window.getSetModifier(owner, 'petEnergyRegenPercent', 0) : 0;
+                window.grantSkillResource(owner, Math.max(1, Math.floor(3 * (1 + regenBonus / 100))));
             }
         }
         if (gameInstance && typeof gameInstance.addFloatingText === 'function') {

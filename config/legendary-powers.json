@@ -1,76 +1,61 @@
 {
-  "version": "1.0",
+  "version": "1.1",
+  "description": "传奇威能仅挂于护符/指环/腰带（满编可同时三威能）",
   "universal": [
     {
       "id": "dragon_breath",
       "name": "龙息",
-      "description": "暴击时释放火焰吐息，对前方造成80%攻击力火焰伤害（冷却8s）",
-      "slots": [
-        "weapon"
-      ],
+      "description": "暴击积累龙焰（最多3层）；满层时自动释放锥形吐息，造成90%攻击力火焰伤害（冷却6s）",
+      "slots": ["amulet"],
       "rarity": "legendary"
     },
     {
       "id": "chain_lightning",
       "name": "连锁闪电",
-      "description": "击杀敌人时释放闪电链，弹跳3次，每次50%攻击力伤害",
-      "slots": [
-        "weapon"
-      ],
+      "description": "击杀时为附近敌人挂上静电；对带电目标的下次普攻会弹跳2次，每次45%攻击力",
+      "slots": ["ring"],
       "rarity": "legendary"
     },
     {
       "id": "thorn_aura",
       "name": "荆棘光环",
       "description": "常驻荆棘光环，每秒对周围敌人造成20%防御力伤害",
-      "slots": [
-        "body"
-      ],
+      "slots": ["belt"],
       "rarity": "legendary"
     },
     {
       "id": "phoenix",
       "name": "不死鸟",
       "description": "受到致命伤害时恢复40%最大HP并获得3秒无敌（冷却300s）",
-      "slots": [
-        "body"
-      ],
+      "slots": ["amulet"],
       "rarity": "legendary"
     },
     {
       "id": "phantom_step",
       "name": "幻影步",
       "description": "闪避成功后移速+50%，持续2秒（冷却10s）",
-      "slots": [
-        "feet"
-      ],
+      "slots": ["ring"],
       "rarity": "legendary"
     },
     {
       "id": "frost_nova",
       "name": "霜冻新星",
       "description": "被击中时有20%概率释放冰霜新星，冰冻周围敌人2s",
-      "slots": [
-        "helmet"
-      ],
+      "slots": ["belt"],
       "rarity": "legendary"
     },
     {
       "id": "greed_power",
       "name": "贪婪",
       "description": "怪物掉落金币+50%，金币拾取范围+100%",
-      "slots": [
-        "belt"
-      ],
+      "slots": ["belt"],
       "rarity": "legendary"
     },
     {
       "id": "blood_rage",
       "name": "血怒",
       "description": "HP每降低10%，伤害+5%",
-      "slots": [
-        "amulet"
-      ],
+      "slots": ["amulet"],
       "rarity": "legendary"
     }
   ],
@@ -79,30 +64,22 @@
       {
         "id": "war_god_fury",
         "name": "战神之怒",
-        "description": "使用职业技能后，4秒内普攻伤害+60%",
-        "slots": [
-          "weapon",
-          "body"
-        ],
+        "description": "职业技能积累战意（最多3层）；满层后下一次职业技能伤害+45%",
+        "slots": ["amulet", "ring"],
         "rarity": "legendary"
       },
       {
         "id": "immortal_shield",
         "name": "不灭之盾",
         "description": "格挡成功时回复8%最大HP（冷却6s）",
-        "slots": [
-          "offHand",
-          "body"
-        ],
+        "slots": ["belt", "ring"],
         "rarity": "legendary"
       },
       {
         "id": "titan_body",
         "name": "泰坦之躯",
         "description": "免疫击退，HP>80%时伤害+40%，HP<30%时减伤+40%",
-        "slots": [
-          "body"
-        ],
+        "slots": ["amulet"],
         "rarity": "mythic"
       }
     ],
@@ -110,28 +87,22 @@
       {
         "id": "eagle_eye",
         "name": "鹰眼",
-        "description": "与敌人距离>150时，伤害+35%，暴率+15%",
-        "slots": [
-          "weapon"
-        ],
+        "description": "距离>150时攻击叠专注（最多3层）；满层后下一次职业技能必暴且伤害+35%、穿透25%防御",
+        "slots": ["amulet"],
         "rarity": "legendary"
       },
       {
         "id": "arrow_rain",
         "name": "箭雨",
-        "description": "使用职业技能后，3秒内对周围敌人造成300%总伤",
-        "slots": [
-          "weapon"
-        ],
+        "description": "移动积蓄风矢；积满后下一次职业技能在落点降下240%攻击力箭雨",
+        "slots": ["ring"],
         "rarity": "legendary"
       },
       {
         "id": "wind_soul",
         "name": "风行者之魂",
         "description": "移动时积累风能，满层时下次攻击必暴击且+150%暴伤",
-        "slots": [
-          "feet"
-        ],
+        "slots": ["belt"],
         "rarity": "mythic"
       }
     ],
@@ -139,29 +110,22 @@
       {
         "id": "arcane_surge",
         "name": "奥术洪流",
-        "description": "连续释放3个不同技能后，下一个技能伤害+80%且无消耗",
-        "slots": [
-          "weapon",
-          "offHand"
-        ],
+        "description": "连续释放3个不同职业技能完成编织后，下一次技能附加35%法强奥术余波（不再免费）",
+        "slots": ["amulet", "ring"],
         "rarity": "legendary"
       },
       {
         "id": "mana_shield",
         "name": "法力护盾",
         "description": "消耗法力时30%转化为临时护盾（上限25%最大HP）",
-        "slots": [
-          "amulet"
-        ],
+        "slots": ["amulet"],
         "rarity": "legendary"
       },
       {
         "id": "element_avatar",
         "name": "元素化身",
         "description": "法力>90%时所有伤害+50%，每秒对周围造成30%法强元素伤害",
-        "slots": [
-          "body"
-        ],
+        "slots": ["belt"],
         "rarity": "mythic"
       }
     ],
@@ -169,28 +133,22 @@
       {
         "id": "assassinate",
         "name": "暗杀",
-        "description": "对满血敌人首次伤害+150%，必定暴击",
-        "slots": [
-          "weapon"
-        ],
+        "description": "攻击满血敌人挂上处决印；目标生命低于35%时下一次命中引爆，伤害+120%且必暴",
+        "slots": ["ring"],
         "rarity": "legendary"
       },
       {
         "id": "shadow_dance",
         "name": "影之舞",
         "description": "连续暴击3次后进入影舞状态4s：闪避+40%，暴伤+60%",
-        "slots": [
-          "hands"
-        ],
+        "slots": ["amulet"],
         "rarity": "legendary"
       },
       {
         "id": "death_arrival",
         "name": "死神降临",
-        "description": "击杀敌人时重置暗影步冷却，2s内下一个技能伤害+100%",
-        "slots": [
-          "weapon"
-        ],
+        "description": "击杀叠魂（最多3层）；满层后下一次职业技能伤害+55%、追加残影伤，并重置位移类冷却",
+        "slots": ["belt"],
         "rarity": "mythic"
       }
     ]

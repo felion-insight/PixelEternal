@@ -93,8 +93,10 @@
         const st = ensureBuildState(player);
 
         if (buildId === 'retribution' && cfg) {
+            const setHoly = typeof window.getSetModifier === 'function'
+                ? window.getSetModifier(player, 'holyEnergyOnHit', 0) : 0;
             st.holyEnergy = Math.min(cfg.holyEnergyMax || 100,
-                (st.holyEnergy || 0) + (cfg.holyEnergyOnSkillHit || 8));
+                (st.holyEnergy || 0) + (cfg.holyEnergyOnSkillHit || 8) + setHoly);
         }
         if (buildId === 'arcane' && cfg && skillDef) {
             const el = (skillDef.statusEffects && skillDef.statusEffects[0] && skillDef.statusEffects[0].type)
@@ -212,6 +214,7 @@
 
     window.tickBuildPassive = function tickBuildPassive(player, dtSec, gameInstance) {
         if (!player) return;
+        window.applyBuildEquipmentConditionals(player, dtSec);
         const buildId = window.getPlayerActiveBuild(player);
         if (!buildId) return;
         const cfg = passiveCfg(buildId);
@@ -226,7 +229,6 @@
             st.lastElement = null;
             st.arcaneResetAt = 0;
         }
-        window.applyBuildEquipmentConditionals(player, dtSec);
     };
 
     window.getSummonTauntTarget = function getSummonTauntTarget(monster, player, gameInstance) {
@@ -243,13 +245,46 @@
 
     function findBuildEquipmentDef(item) {
         const list = window.CLASS_BUILD_EQUIPMENT && window.CLASS_BUILD_EQUIPMENT.items;
-        if (!list || !item) return null;
-        return list.find(e =>
-            (item.buildEquipmentId && e.equipmentId === item.buildEquipmentId)
-            || (item.name && e.name === item.name)
-            || (item.id && String(item.id).includes(e.equipmentId))
-        ) || null;
+        if (!list || !item || !item.buildEquipmentId) return null;
+        return list.find(e => e.equipmentId === item.buildEquipmentId) || null;
     }
+
+    function escapeHtml(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function splitBuildEquipmentDescription(description) {
+        const parts = String(description || '').split(/[；;]/).map(s => s.trim()).filter(Boolean);
+        const costPattern = /(?:^|[^\d])-\d|损失|不再|降低|减少|代价/;
+        const costs = parts.filter(part => costPattern.test(part));
+        const changes = parts.filter(part => !costPattern.test(part));
+        return {
+            changes: changes.length ? changes : parts,
+            costs
+        };
+    }
+
+    window.getBuildEquipmentDef = findBuildEquipmentDef;
+
+    window.appendBuildEquipmentTooltip = function appendBuildEquipmentTooltip(html, item) {
+        const def = findBuildEquipmentDef(item);
+        if (!def) return html;
+        const detail = splitBuildEquipmentDescription(def.description);
+        const skillIds = (def.skillModifiers || []).map(mod => mod.skillId).filter(Boolean);
+        let extra = '<p>---</p>';
+        extra += `<p style="color:#ff66cc;"><strong>流派核心：${escapeHtml(def.name)}</strong></p>`;
+        if (skillIds.length) {
+            extra += `<p style="color:#cc99ff;font-size:11px;">影响技能：${skillIds.map(escapeHtml).join('、')}</p>`;
+        }
+        extra += `<p style="color:#88ffcc;font-size:11px;"><strong>技能改变：</strong>${escapeHtml(detail.changes.join('；'))}</p>`;
+        extra += `<p style="color:${detail.costs.length ? '#ff8888' : '#999'};font-size:11px;"><strong>代价：</strong>${escapeHtml(detail.costs.length ? detail.costs.join('；') : '无额外代价')}</p>`;
+        return String(html || '') + extra;
+    };
 
     function getEquippedBuildItems(player) {
         if (!player || !player.equipment) return [];
@@ -264,6 +299,33 @@
             out.entityConfig = Object.assign({}, patch.entityConfig);
         }
         if (patch.statusEffects) out.statusEffects = patch.statusEffects.slice();
+        const ec = Object.assign({}, out.entityConfig || {});
+        if (patch.damageMultiplier != null) ec.damageMultiplier = patch.damageMultiplier;
+        if (patch.aoeRadius != null) {
+            ec.explodeRadius = patch.aoeRadius;
+            ec.range = patch.aoeRadius;
+        }
+        if (patch.statusEffects) {
+            ec.statusOnHit = patch.statusEffects.map(status => Object.assign({}, status));
+            ec.explodeStatusOnHit = patch.statusEffects.map(status => Object.assign({}, status));
+            if (patch.statusEffects.some(status => (status.type || status.id) === 'frostbite')) {
+                ec.elementTag = 'ice';
+                ec.color = '#88ddff';
+            }
+        }
+        if (patch.bonusVsStatus) out._buildBonusVsStatus = Object.assign({}, patch.bonusVsStatus);
+        if ((patch.effectTags || []).includes('fan_aoe')) {
+            out.entityType = 'instant';
+            out.entityConfig = {
+                shape: 'cone',
+                range: patch.aoeRadius || 90,
+                halfAngleDeg: 45,
+                damageMultiplier: patch.damageMultiplier || 3,
+                breakDamageMultiplier: patch.breakDamageMultiplier || 1
+            };
+        } else if (Object.keys(ec).length) {
+            out.entityConfig = ec;
+        }
         return out;
     }
 
@@ -275,21 +337,104 @@
             ec.damageMultiplier = mods.damageMultiplier;
             out.damageMultiplier = mods.damageMultiplier;
         }
-        if (mods.aoeRadiusAdd != null) ec.explodeRadius = (ec.explodeRadius || out.aoeRadius || 0) + mods.aoeRadiusAdd;
+        if (mods.aoeRadiusAdd != null) {
+            if (out.entityType === 'charge') {
+                ec.endConeRange = (ec.endConeRange || out.aoeRadius || 0) + mods.aoeRadiusAdd;
+            } else {
+                ec.explodeRadius = (ec.explodeRadius || out.aoeRadius || 0) + mods.aoeRadiusAdd;
+            }
+        }
         if (mods.aoeRadius != null) {
             ec.explodeRadius = mods.aoeRadius;
             out.aoeRadius = mods.aoeRadius;
         }
-        if (mods.burnEfficiencyMult != null) out._burnEfficiencyMult = mods.burnEfficiencyMult;
-        if (mods.onHitHealMaxHpPercent != null) ec.healOnHitPercent = mods.onHitHealMaxHpPercent * 100;
+        if (mods.burnEfficiencyMult != null) {
+            out._burnEfficiencyMult = mods.burnEfficiencyMult;
+            ['statusOnHit', 'explodeStatusOnHit'].forEach(key => {
+                if (!Array.isArray(ec[key])) return;
+                ec[key] = ec[key].map(status => {
+                    if ((status.type || status.id) !== 'burn') return Object.assign({}, status);
+                    return Object.assign({}, status, {
+                        stacks: Math.max(1, Math.round((status.stacks || 1) * mods.burnEfficiencyMult))
+                    });
+                });
+            });
+        }
+        if (mods.onHitHealMaxHpPercent != null) {
+            if (out.entityType === 'charge') ec.healOnHitMaxHpPercent = mods.onHitHealMaxHpPercent * 100;
+            else ec.healOnHitPercent = mods.onHitHealMaxHpPercent * 100;
+        }
         if (mods.noDisplacement != null) ec.noDisplacement = mods.noDisplacement;
-        if (mods.afterimageDurationMs != null) ec.afterimageDurationMs = mods.afterimageDurationMs;
-        if (mods.afterimageDamageRatio != null) ec.afterimageDamageRatio = mods.afterimageDamageRatio;
+        if (mods.afterimageDurationMs != null) {
+            ec.afterimageDurationMs = mods.afterimageDurationMs;
+            ec.leaveEchoOnCast = true;
+            ec.echoDurationMs = mods.afterimageDurationMs;
+        }
+        if (mods.afterimageDamageRatio != null) {
+            ec.afterimageDamageRatio = mods.afterimageDamageRatio;
+            ec.echoDamagePercent = mods.afterimageDamageRatio * 100;
+        }
         if (mods.breakDamageMultiplier != null) out.breakDamageMultiplier = mods.breakDamageMultiplier;
         if (mods.attackSpeedPerTenPercentHpLost != null) out._berserkAspdPerTenHp = mods.attackSpeedPerTenPercentHpLost;
         if (mods.endHpLossPercent != null) out._berserkEndHpLoss = mods.endHpLossPercent;
+        if (mods.durationMsAdd != null) {
+            ec.durationMs = (ec.durationMs || out.durationMs || 0) + mods.durationMsAdd;
+            if (out.durationMs != null) out.durationMs = (out.durationMs || 0) + mods.durationMsAdd;
+        }
+        if (mods.healOnTickMaxHpPercent != null) ec.healOnTickMaxHpPercent = mods.healOnTickMaxHpPercent;
+        if (mods.summonCountAdd != null) {
+            ec.summonCount = (ec.summonCount || out.summonCount || 1) + mods.summonCountAdd;
+            out.summonCount = (out.summonCount || 1) + mods.summonCountAdd;
+        }
+        if (mods.cooldownReductionPercent != null) {
+            out.cooldownMs = Math.max(500, Math.floor((out.cooldownMs || 5000) * (1 - mods.cooldownReductionPercent / 100)));
+        }
+        if (mods.castTimeReductionPercent != null) {
+            const windup = ec.windupMs != null ? ec.windupMs : (out.castTimeMs || 0);
+            ec.windupMs = Math.max(0, Math.floor(windup * (1 - mods.castTimeReductionPercent / 100)));
+        }
+        if (mods.critDamageAdd != null) out._buildCritDamageAdd = mods.critDamageAdd;
+        if (mods.cloneDamageRatio != null) ec.cloneDamageRatio = mods.cloneDamageRatio;
+        if (mods.poisonDurationBonusPercent != null) out._poisonDurationBonusPercent = mods.poisonDurationBonusPercent;
         if (Object.keys(ec).length) out.entityConfig = ec;
         return out;
+    }
+
+    function resolveConfiguredSkill(skillId) {
+        if (typeof window.getSkillDefinition === 'function') {
+            const resolved = window.getSkillDefinition(skillId);
+            if (resolved) return resolved;
+        }
+        return window.SKILL_CONFIG && window.SKILL_CONFIG.skills
+            ? window.SKILL_CONFIG.skills[skillId]
+            : null;
+    }
+
+    function isEvolutionOf(skillDef, baseSkillId) {
+        if (!skillDef || !baseSkillId) return false;
+        if (skillDef.id === baseSkillId) return true;
+        if (skillDef.evolutionPath && skillDef.evolutionPath.baseSkillId === baseSkillId) return true;
+        const base = resolveConfiguredSkill(baseSkillId);
+        const path = base && base.evolutionPath;
+        if (!path) return false;
+        return ['firstAdvancement', 'secondAdvancement'].some(stage =>
+            Object.values(path[stage] || {}).some(entry => entry && entry.newSkillId === skillDef.id)
+        );
+    }
+
+    function rebaseEvolvedSkillForEquipment(skillDef, baseSkillId) {
+        if (skillDef.id === baseSkillId) return skillDef;
+        const base = resolveConfiguredSkill(baseSkillId);
+        if (!base) return skillDef;
+        return Object.assign({}, base, {
+            id: skillDef.id,
+            classId: skillDef.classId,
+            unlockLevel: skillDef.unlockLevel,
+            cooldownMs: skillDef.cooldownMs,
+            resourceType: skillDef.resourceType,
+            resourceCost: skillDef.resourceCost,
+            evolutionPath: { baseSkillId }
+        });
     }
 
     window.applyBuildEquipmentSkillModifiers = function applyBuildEquipmentSkillModifiers(player, skillDef) {
@@ -303,7 +448,13 @@
             if (!def) return;
             if (def.classRestriction && classId && !def.classRestriction.includes(classId)) return;
             (def.skillModifiers || []).forEach(mod => {
-                if (mod.skillId !== baseId && mod.skillId !== skillDef.id) return;
+                const explicitEvolution = Array.isArray(mod.evolvedSkillIds)
+                    && mod.evolvedSkillIds.includes(skillDef.id);
+                if (mod.skillId !== baseId && mod.skillId !== skillDef.id
+                    && !explicitEvolution && !isEvolutionOf(skillDef, mod.skillId)) return;
+                if (explicitEvolution || isEvolutionOf(skillDef, mod.skillId)) {
+                    merged = rebaseEvolvedSkillForEquipment(merged, mod.skillId);
+                }
                 if (mod.skillReplace) merged = mergeSkillDef(merged, mod.skillReplace);
                 if (mod.modifications) merged = applyModifications(merged, mod.modifications);
             });
@@ -313,13 +464,19 @@
 
     window.applyBuildEquipmentConditionals = function applyBuildEquipmentConditionals(player) {
         if (!player || !player.equipment) return;
+        player._buildMoveSpeedPenalty = 0;
+        player._buildAttackSpeedBonus = 0;
         const classId = window.getActiveClassId && window.getActiveClassId(player.classData);
         const now = Date.now();
+        if (player._berserkerHeartEndAt && now >= player._berserkerHeartEndAt) {
+            player._berserkerHeartEndAt = 0;
+            player.hp = Math.max(1, Math.floor(player.hp * 0.5));
+        }
         getEquippedBuildItems(player).forEach(item => {
             const def = findBuildEquipmentDef(item);
-            if (!def || !def.conditionalModifiers) return;
+            if (!def) return;
             if (def.classRestriction && classId && !def.classRestriction.includes(classId)) return;
-            def.conditionalModifiers.forEach(cm => {
+            (def.conditionalModifiers || []).forEach(cm => {
                 if (!cm.condition || !cm.condition.startsWith('buff_active:')) return;
                 const buffId = cm.condition.split(':')[1];
                 const hasBuff = (player.buffs || []).some(b =>
@@ -328,7 +485,34 @@
                     player._buildMoveSpeedPenalty = cm.moveSpeedPercent;
                 }
             });
+            if (def.equipmentId === 'berserker_heart' && player._berserkerHeartEndAt > now) {
+                const lostTens = Math.floor(Math.max(0, 1 - player.hp / Math.max(1, player.maxHp)) * 10);
+                player._buildAttackSpeedBonus = lostTens * 15;
+            }
         });
+    };
+
+    window.onBuildEquipmentSkillCast = function onBuildEquipmentSkillCast(player, skillDef) {
+        if (!player || !skillDef) return;
+        const baseId = (skillDef.evolutionPath && skillDef.evolutionPath.baseSkillId) || skillDef.id;
+        const isBerserkForm = baseId === 'fury_form' || skillDef.id === 'fury_form'
+            || skillDef.id === 'blood_demon_form' || baseId === 'blood_demon_form';
+        if (!isBerserkForm) return;
+        const equipped = getEquippedBuildItems(player).some(item => {
+            const def = findBuildEquipmentDef(item);
+            return def && def.equipmentId === 'berserker_heart';
+        });
+        if (!equipped) return;
+        const endAt = Date.now() + 10000;
+        player._berserkerHeartEndAt = endAt;
+        player.buffs = (player.buffs || []).filter(buff => buff.id !== 'berserk');
+        player.buffs.push({
+            id: 'berserk',
+            name: '狂暴化',
+            expireTime: endAt,
+            effects: { attackPercent: 50, attackSpeedPercent: 50 }
+        });
+        if (typeof player.updateStats === 'function') player.updateStats();
     };
 
     window.getBuildSkillResourceCost = function getBuildSkillResourceCost(player, skillDef) {

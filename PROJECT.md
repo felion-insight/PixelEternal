@@ -51,6 +51,7 @@ Pixel Eternal/
 │   └── …                  # 职业/技能/装备/副本等全局设计
 │
 ├── docs/                  # 数据参考与变更记录
+├── artifacts/             # 工具生成的测试/报告（见 artifacts/README.md，默认 git 忽略）
 ├── scripts/               # Node 构建脚本
 ├── tools/                 # Python/JS 开发工具
 └── deployment/            # 部署产物（由 tools/sync_deployment.py 同步）

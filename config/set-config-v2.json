@@ -31,7 +31,7 @@
       "belt"
     ]
   },
-  "description": "通用过渡 + 12一转/12二转六件毕业（武器+五甲）；副手=核心，护符/指环/腰带=威能；文案与运行时效果对齐",
+  "description": "常规套装配置。",
   "sets": {
     "fireheart": {
       "name": "烈焰之心",
@@ -52,7 +52,7 @@
           }
         },
         "4": {
-          "description": "暴击时释放火焰新星（150%攻击力范围伤害，冷却6秒）",
+          "description": "暴击时释放火焰新星：150%攻击范围伤害，冷却6秒",
           "special": "fire_nova"
         }
       }
@@ -77,7 +77,7 @@
           }
         },
         "4": {
-          "description": "受到伤害时，25%概率冰冻攻击者2秒",
+          "description": "受击时25%概率冰冻攻击者2秒",
           "special": "frost_touch"
         }
       }
@@ -102,7 +102,7 @@
           }
         },
         "4": {
-          "description": "每第5次普攻释放闪电（200%攻击力，连锁最多3个敌人）",
+          "description": "每第5次普攻释放闪电：200%攻击，连锁最多3个",
           "special": "chain_strike"
         }
       }
@@ -126,7 +126,7 @@
           }
         },
         "4": {
-          "description": "击杀敌人后全属性额外+5%（最多叠3层，持续10秒）",
+          "description": "击杀后全属性+5%，最多3层，持续10秒",
           "special": "star_stack"
         }
       }
@@ -151,7 +151,7 @@
           }
         },
         "4": {
-          "description": "闪避成功后，下一次攻击必定暴击且暴击伤害+80%（冷却5秒）",
+          "description": "闪避后下次攻击必暴，暴伤+80%，冷却5秒",
           "special": "shadow_counter"
         }
       }
@@ -176,7 +176,7 @@
           }
         },
         "4": {
-          "description": "生命低于50%时，伤害+30%，受到伤害降低15%",
+          "description": "生命低于50%时伤害+30%，减伤15%",
           "special": "dragon_rage"
         }
       }
@@ -197,7 +197,7 @@
       "minLevelHint": 20,
       "effects": {
         "2": {
-          "description": "减伤+3%，生命+100；圣盾承伤减免与上限提高",
+          "description": "减伤+3%，生命+100；圣盾更耐打",
           "stats": {
             "damageReduction": 3,
             "health": 100
@@ -208,11 +208,11 @@
           }
         },
         "4": {
-          "description": "盾击/奉献等圣光技能命中时释放圣光余波（80%攻击力，冷却4秒）；受击时也有概率获得短护盾",
+          "description": "圣光技能命中释放余波：80%攻击，冷却4秒；受击概率得短护盾",
           "special": "oath_shield"
         },
         "6": {
-          "description": "受击后短时减伤+10%（持续3秒，冷却8秒）",
+          "description": "受击后减伤+10%，持续3秒，冷却8秒",
           "special": "oath_shield_apex"
         }
       }
@@ -233,7 +233,7 @@
       "minLevelHint": 20,
       "effects": {
         "2": {
-          "description": "攻击+18，暴击伤害+18%；生命低于60%时伤害+12%",
+          "description": "攻击+18，暴伤+18%；生命低于60%时伤害+12%",
           "stats": {
             "attack": 18,
             "critDamage": 18
@@ -244,11 +244,11 @@
           }
         },
         "4": {
-          "description": "生命低于阈值时普攻与技能伤害提高；命中时回复1%最大生命（冷却0.8秒）",
+          "description": "残血时普攻与技能伤害提高；命中回1%最大生命，冷却0.8秒",
           "special": "crimson_scar"
         },
         "6": {
-          "description": "生命越低伤害越高（额外最多+35%）；命中回复提升至2%最大生命",
+          "description": "生命越低伤害越高，最多+35%；命中回2%最大生命",
           "special": "crimson_scar_apex"
         }
       }
@@ -269,7 +269,7 @@
       "minLevelHint": 20,
       "effects": {
         "2": {
-          "description": "减伤+4%，生命+120；格挡减伤与格挡回复提高",
+          "description": "减伤+4%，生命+120；格挡更强",
           "stats": {
             "damageReduction": 4,
             "health": 120
@@ -280,11 +280,11 @@
           }
         },
         "4": {
-          "description": "格挡成功时获得相当于10%最大生命的护盾（持续4秒，冷却5秒）",
+          "description": "格挡成功得10%最大生命护盾，持续4秒，冷却5秒",
           "special": "bulwark_oath"
         },
         "6": {
-          "description": "格挡成功时额外获得减伤+8%（持续2.5秒）",
+          "description": "格挡成功额外减伤+8%，持续2.5秒",
           "special": "bulwark_oath_apex"
         }
       }
@@ -305,7 +305,7 @@
       "minLevelHint": 20,
       "effects": {
         "2": {
-          "description": "攻击速度+12%，生命+80；召唤物伤害与能量回复提高",
+          "description": "攻速+12%，生命+80；召唤物更强",
           "stats": {
             "attackSpeed": 12,
             "health": 80
@@ -316,11 +316,11 @@
           }
         },
         "4": {
-          "description": "每只有活召唤物使自身伤害+4%（最多3只）",
+          "description": "每只有活召唤物伤害+4%，最多3只",
           "special": "trail_sigil"
         },
         "6": {
-          "description": "普攻标记目标3秒；对标记目标伤害+15%",
+          "description": "普攻标记3秒，对标记目标伤害+15%",
           "special": "trail_sigil_apex"
         }
       }
@@ -341,7 +341,7 @@
       "minLevelHint": 20,
       "effects": {
         "2": {
-          "description": "暴击率+8%，攻击+16；精准层获取加快25%",
+          "description": "暴击+8%，攻击+16；精准层获取+25%",
           "stats": {
             "critRate": 8,
             "attack": 16
@@ -351,11 +351,11 @@
           }
         },
         "4": {
-          "description": "攻击90距离外目标时伤害+10%，暴击伤害+10%",
+          "description": "攻击90距离外目标时伤害+10%，暴伤+10%",
           "special": "hundred_pace"
         },
         "6": {
-          "description": "连续普攻5次后下一击触发「凝视」：必定暴击且伤害×1.35",
+          "description": "连续普攻5次后下一击必暴，伤害×1.35",
           "special": "hundred_pace_apex"
         }
       }
@@ -376,7 +376,7 @@
       "minLevelHint": 20,
       "effects": {
         "2": {
-          "description": "攻击速度+14%，移动速度+12%；风之步效果提高",
+          "description": "攻速+14%，移速+12%；风之步增强",
           "stats": {
             "attackSpeed": 14,
             "moveSpeed": 12
@@ -386,11 +386,11 @@
           }
         },
         "4": {
-          "description": "闪避成功后获得移速+35%（持续2秒，冷却4秒）",
+          "description": "闪避后移速+35%，持续2秒，冷却4秒",
           "special": "swift_plume"
         },
         "6": {
-          "description": "闪避成功后疾羽强化：移速+45%、攻速+12%（持续2.8秒）",
+          "description": "闪避后移速+45%、攻速+12%，持续2.8秒",
           "special": "swift_plume_apex"
         }
       }
@@ -411,7 +411,7 @@
       "minLevelHint": 20,
       "effects": {
         "2": {
-          "description": "法强+16，技能急速+10；共鸣获取与相位技能伤害提高",
+          "description": "法强+16，技能急速+10；共鸣与相位技能增强",
           "stats": {
             "magicAttack": 16,
             "skillHaste": 10
@@ -422,11 +422,11 @@
           }
         },
         "4": {
-          "description": "释放职业技能时留下元素余波（55%法强范围伤害，冷却3.5秒）；下一技能伤害+28%",
+          "description": "释放技能留下元素余波：55%法强范围伤害，冷却3.5秒；下一技能伤害+28%",
           "special": "ember_residue"
         },
         "6": {
-          "description": "技能可额外触发一次元素连锁余波（40%法强，冷却5秒）",
+          "description": "额外触发一次元素连锁余波：40%法强，冷却5秒",
           "special": "ember_residue_apex"
         }
       }
@@ -447,7 +447,7 @@
       "minLevelHint": 20,
       "effects": {
         "2": {
-          "description": "技能急速+12，生命+90；预知之盾吸收与时砂回复提高",
+          "description": "技能急速+12，生命+90；预知之盾与时砂增强",
           "stats": {
             "skillHaste": 12,
             "health": 90
@@ -458,11 +458,11 @@
           }
         },
         "4": {
-          "description": "释放职业技能时获得8%最大生命短护盾（冷却6秒）；下一技能伤害提高",
+          "description": "释放技能得8%最大生命短护盾，冷却6秒；下一技能伤害提高",
           "special": "star_oracle"
         },
         "6": {
-          "description": "释放技能后短时技能急速+12、攻速+10%（持续4秒，冷却8秒）",
+          "description": "释放技能后急速+12、攻速+10%，持续4秒，冷却8秒",
           "special": "star_oracle_apex"
         }
       }
@@ -483,7 +483,7 @@
       "minLevelHint": 20,
       "effects": {
         "2": {
-          "description": "法强+14，生命偷取+2%；诅咒叠层与诅咒持续伤害提高",
+          "description": "法强+14，吸血+2%；诅咒更强",
           "stats": {
             "magicAttack": 14,
             "lifeSteal": 2
@@ -494,11 +494,11 @@
           }
         },
         "4": {
-          "description": "诅咒/收割类技能命中时对附近敌人造成残响连锁（60%法强，冷却4秒）",
+          "description": "诅咒/收割命中残响连锁：60%法强，冷却4秒",
           "special": "curse_echo"
         },
         "6": {
-          "description": "额外触发灵魂爆发（90%法强范围伤害，冷却7秒）",
+          "description": "额外灵魂爆发：90%法强范围伤害，冷却7秒",
           "special": "curse_echo_apex"
         }
       }
@@ -519,7 +519,7 @@
       "minLevelHint": 20,
       "effects": {
         "2": {
-          "description": "暴击率+8%，闪避+8%；连击点获取加快，背刺角度更宽",
+          "description": "暴击+8%，闪避+8%；连击更快，背刺角度更宽",
           "stats": {
             "critRate": 8,
             "dodge": 8
@@ -530,11 +530,11 @@
           }
         },
         "4": {
-          "description": "暴击后追加一次残影斩（45%攻击力，冷却1.5秒），并获得移速+30%（2秒）",
+          "description": "暴击追加残影斩：45%攻击，冷却1.5秒；移速+30%（2秒）",
           "special": "night_veil"
         },
         "6": {
-          "description": "背刺伤害额外提高；暴击残影斩效果保留",
+          "description": "背刺伤害提高；暴击残影斩保留",
           "special": "night_veil_apex"
         }
       }
@@ -555,7 +555,7 @@
       "minLevelHint": 20,
       "effects": {
         "2": {
-          "description": "闪避+10%，移动速度+10%；诱饵耐久与幻术资源回复提高",
+          "description": "闪避+10%，移速+10%；幻术资源更强",
           "stats": {
             "dodge": 10,
             "moveSpeed": 10
@@ -566,11 +566,11 @@
           }
         },
         "4": {
-          "description": "闪避成功后下一击伤害+20%且更容易暴击（冷却5秒），并获得短时移速",
+          "description": "闪避后下一击伤害+20%且更易暴击，冷却5秒，并短时加速",
           "special": "mirror_mask"
         },
         "6": {
-          "description": "闪避成功时对周围造成镜碎伤害（80%攻击力，冷却8秒）",
+          "description": "闪避时镜碎：80%攻击范围伤害，冷却8秒",
           "special": "mirror_mask_apex"
         }
       }
@@ -591,7 +591,7 @@
       "minLevelHint": 20,
       "effects": {
         "2": {
-          "description": "攻击+14，技能急速+8；额外叠毒层数与催化获取提高",
+          "description": "攻击+14，技能急速+8；叠毒更快",
           "stats": {
             "attack": 14,
             "skillHaste": 8
@@ -602,11 +602,11 @@
           }
         },
         "4": {
-          "description": "对中毒目标伤害+12%；每第5次普攻释放毒链（160%攻击力，连锁3个）",
+          "description": "对中毒目标伤害+12%；每第5次普攻毒链：160%攻击，连锁3个",
           "special": "venom_censer"
         },
         "6": {
-          "description": "对中毒目标伤害再+10%；毒链效果增强",
+          "description": "对中毒目标伤害再+10%；毒链增强",
           "special": "venom_censer_apex"
         }
       }
@@ -627,7 +627,7 @@
       "minLevelHint": 40,
       "effects": {
         "2": {
-          "description": "攻击+12，防御+20，生命+100；审判类技能伤害+15%，命中回复神圣能量",
+          "description": "攻击+12，防御+20，生命+100；审判技能伤害+15%，命中回神圣能量",
           "stats": {
             "attack": 12,
             "defense": 20,

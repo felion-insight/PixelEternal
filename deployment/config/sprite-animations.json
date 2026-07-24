@@ -1,0 +1,12 @@
+{
+  "entities": {
+    "demon": {
+      "sheet": "animations/demon_sheet.png",
+      "meta": "animations/demon.json"
+    },
+    "goblin": {
+      "sheet": "animations/goblin_sheet.png",
+      "meta": "animations/goblin.json"
+    }
+  }
+}

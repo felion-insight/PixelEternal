@@ -70,11 +70,17 @@ class AssetManager {
 
         // 飞射体 / 子弹精灵（asset/projectiles/*.png）
         this.projectileSpriteImages = new Map();
+
+        // 通用静态美术 URL 缓存（职业/Buff/药水/自走棋等）
+        this.genericImageCache = new Map();
         
         // 玩家 GIF 帧缓存
         this.playerGifFrames = []; // 存储每一帧的 ImageData 或 canvas
         this.playerGifFrameDelays = []; // 存储每一帧的延迟时间（毫秒）
         this.playerGifLoaded = false;
+
+        // Sprite Sheet 动画缓存：animId -> { sheet, meta, loaded, loadFailed }
+        this.spriteAnimationCache = new Map();
     }
 
     /**
@@ -102,6 +108,76 @@ class AssetManager {
     }
 
     /**
+     * 预加载任意图片 URL 并写入 genericImageCache
+     * @param {string} url
+     * @returns {Promise<string|null>}
+     */
+    async preloadImageUrl(url) {
+        if (!url) return null;
+        if (this.genericImageCache.has(url)) {
+            return this.genericImageCache.get(url);
+        }
+        const img = await peLoadImageWithRetry(url, 4);
+        if (!img) {
+            this.genericImageCache.set(url, null);
+            return null;
+        }
+        let displayUrl = url;
+        const procOpts = window.StaticArtProcessor && window.StaticArtProcessor.getProcessOptionsForUrl
+            ? window.StaticArtProcessor.getProcessOptionsForUrl(url)
+            : null;
+        if (window.StaticArtProcessor && window.StaticArtProcessor.processImage) {
+            const pr = window.StaticArtProcessor.processImage(img, procOpts);
+            if (pr && pr.dataUrl && !pr.skipped) displayUrl = pr.dataUrl;
+        }
+        this.genericImageCache.set(url, displayUrl);
+        return displayUrl;
+    }
+
+    /**
+     * 异步确保图标 URL 已抠图并缓存
+     * @param {string} url
+     * @returns {Promise<string|null>}
+     */
+    ensureIconDisplayUrl(url) {
+        if (!url) return Promise.resolve(null);
+        if (this.genericImageCache.has(url)) {
+            return Promise.resolve(this.getCachedDisplayUrl(url));
+        }
+        return this.preloadImageUrl(url);
+    }
+
+    /**
+     * 从完整 URL 提取 asset/ 下相对路径（如 equipment/base/foo.png）
+     * @param {string} url
+     * @returns {string|null}
+     */
+    _assetRelFromUrl(url) {
+        if (!url) return null;
+        const m = String(url).match(/(?:^|[/\\])asset[/\\]([^?#]+)/i);
+        return m ? m[1].replace(/\\/g, '/') : null;
+    }
+
+    /**
+     * 返回已预加载/抠图后的展示 URL（无缓存则返回原 URL）
+     * @param {string} url
+     * @returns {string}
+     */
+    getCachedDisplayUrl(url) {
+        if (!url) return url;
+        if (this.genericImageCache.has(url)) {
+            const cached = this.genericImageCache.get(url);
+            return cached || url;
+        }
+        const rel = this._assetRelFromUrl(url);
+        if (rel && this.equipmentImageCache.has(rel)) {
+            const cached = this.equipmentImageCache.get(rel);
+            return cached || url;
+        }
+        return url;
+    }
+
+    /**
      * 加载并处理装备图片
      * @param {string} imageName - 图片文件名
      * @returns {Promise<string>} 用于 background-image 的 URL（同源 asset 路径）
@@ -121,14 +197,22 @@ class AssetManager {
             imagePath = baseUrl + 'asset/' + imageName;
         }
 
-        return peLoadImageWithRetry(imagePath, 4).then((img) => {
+        return peLoadImageWithRetry(imagePath, 4).then(async (img) => {
             if (!img) {
                 console.error(`无法加载装备图片: ${imageName}`);
                 console.error(`尝试的路径: ${imagePath}`);
                 return Promise.reject(new Error(`无法加载图片: ${imageName}`));
             }
-            this.equipmentImageCache.set(imageName, imagePath);
-            return imagePath;
+            let displayUrl = imagePath;
+            const procOpts = window.StaticArtProcessor && window.StaticArtProcessor.getProcessOptionsForUrl
+                ? window.StaticArtProcessor.getProcessOptionsForUrl(imagePath)
+                : { force: true };
+            if (window.StaticArtProcessor && window.StaticArtProcessor.processImage) {
+                const pr = window.StaticArtProcessor.processImage(img, procOpts);
+                if (pr && pr.dataUrl && !pr.skipped) displayUrl = pr.dataUrl;
+            }
+            this.equipmentImageCache.set(imageName, displayUrl);
+            return displayUrl;
         });
     }
 
@@ -221,14 +305,7 @@ class AssetManager {
         element.style.backgroundImage = `url(${imageUrl})`;
         element.style.backgroundPosition = 'center';
         element.style.backgroundRepeat = 'no-repeat';
-        
-        // 如果使用的是data URL（已处理的图片），使用contain保持比例，不放大
-        // 如果使用的是原始URL（未处理的图片），使用90%缩小
-        if (imageUrl.startsWith('data:')) {
-            element.style.backgroundSize = 'contain';
-        } else {
-            element.style.backgroundSize = '90%';
-        }
+        element.style.backgroundSize = 'contain';
         this._applyEquipmentQualityBackgroundTint(element, eqInstance, qualityOverride);
     }
 
@@ -668,6 +745,134 @@ class AssetManager {
         ctx.rotate(angleRad);
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(img, -w / 2, -h / 2, w, h);
+        ctx.restore();
+        return true;
+    }
+
+    /**
+     * 获取实体对应的 sprite 动画配置项
+     * @param {string} entityKey
+     * @returns {object|null}
+     */
+    getSpriteAnimationEntry(entityKey) {
+        if (typeof resolveSpriteAnimationEntry === 'function') {
+            return resolveSpriteAnimationEntry(entityKey);
+        }
+        return null;
+    }
+
+    /**
+     * 异步加载 sprite sheet + meta JSON
+     * @param {string} animId - 配置中的动画 ID（通常与怪物 type 相同）
+     * @returns {Promise<object|null>}
+     */
+    async loadSpriteAnimation(entityKey) {
+        const animId = typeof resolveSpriteAnimationId === 'function'
+            ? resolveSpriteAnimationId(entityKey)
+            : entityKey;
+        if (!animId) return null;
+        const cached = this.spriteAnimationCache.get(animId);
+        if (cached && cached.loaded) return cached;
+        if (cached && cached.loadFailed) return null;
+
+        const entry = typeof resolveSpriteAnimationEntry === 'function'
+            ? resolveSpriteAnimationEntry(entityKey)
+            : null;
+        if (!entry || !entry.sheet || !entry.meta) {
+            this.spriteAnimationCache.set(animId, { loaded: false, loadFailed: true });
+            return null;
+        }
+
+        const pending = { loaded: false, loadFailed: false, sheet: null, meta: null };
+        this.spriteAnimationCache.set(animId, pending);
+
+        try {
+            const metaUrl = this._resolveUnderAssetUrl(entry.meta);
+            const metaResp = await fetch(metaUrl);
+            if (!metaResp.ok) throw new Error('meta HTTP ' + metaResp.status);
+            const meta = await metaResp.json();
+
+            const sheetRel = meta.sheet || entry.sheet;
+            const sheetUrl = this._resolveUnderAssetUrl(sheetRel);
+            const sheetImg = await peLoadImageWithRetry(sheetUrl, 4);
+            if (!sheetImg) throw new Error('sheet load failed: ' + sheetRel);
+
+            const result = { loaded: true, loadFailed: false, sheet: sheetImg, meta, animId };
+            this.spriteAnimationCache.set(animId, result);
+            return result;
+        } catch (err) {
+            console.warn('[AssetManager] sprite 动画加载失败:', animId, err);
+            this.spriteAnimationCache.set(animId, { loaded: false, loadFailed: true, sheet: null, meta: null });
+            return null;
+        }
+    }
+
+    /**
+     * @param {string} entityKey
+     * @returns {object|null}
+     */
+    getSpriteAnimationSync(entityKey) {
+        const animId = typeof resolveSpriteAnimationId === 'function'
+            ? resolveSpriteAnimationId(entityKey)
+            : entityKey;
+        if (!animId) return null;
+        const cached = this.spriteAnimationCache.get(animId);
+        if (cached && cached.loaded && cached.sheet && cached.meta) return cached;
+        return null;
+    }
+
+    /**
+     * 绘制 sprite sheet 当前帧（按 anchor 对齐世界坐标）
+     * @param {CanvasRenderingContext2D} ctx
+     * @param {object} animData - loadSpriteAnimation 返回值
+     * @param {SpriteAnimationRuntime} runtime
+     * @param {number} x
+     * @param {number} y
+     * @param {number} drawWidth
+     * @param {number} drawHeight
+     * @param {{ moveSpeed?: number, maxSpeed?: number }} [motionOpts]
+     * @returns {boolean}
+     */
+    drawSpriteAnimationFrame(ctx, animData, runtime, x, y, drawWidth, drawHeight, motionOpts) {
+        if (!animData || !animData.sheet || !animData.meta || !runtime) return false;
+        const meta = animData.meta;
+        const sheetIdx = runtime.getSheetFrameIndex(meta);
+        const frameDef = meta.frames && meta.frames[sheetIdx];
+        const fw = meta.frameWidth || 64;
+        const fh = meta.frameHeight || 64;
+        let sx = frameDef ? frameDef.x : sheetIdx * fw;
+        let sy = frameDef ? frameDef.y : 0;
+        const sw = frameDef ? frameDef.w : fw;
+        const sh = frameDef ? frameDef.h : fh;
+        const anchor = meta.anchor || { x: fw / 2, y: fh / 2 };
+        const scaleX = drawWidth / fw;
+        const scaleY = drawHeight / fh;
+
+        motionOpts = motionOpts || {};
+        const moveSpeed = motionOpts.moveSpeed || 0;
+        const maxSpeed = motionOpts.maxSpeed || moveSpeed || 1;
+        let walkOff = { offsetX: 0, offsetY: 0, scaleY: 1 };
+        if (typeof runtime.getWalkVisualOffset === 'function') {
+            walkOff = runtime.getWalkVisualOffset(meta, moveSpeed, maxSpeed);
+        }
+        let ox = walkOff.offsetX;
+        const oy = walkOff.offsetY;
+        const sySquash = walkOff.scaleY;
+        if (runtime.facingLeft) ox = -ox;
+
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        ctx.translate(x + ox, y + oy);
+        if (runtime.facingLeft) ctx.scale(-1, 1);
+        ctx.scale(1, sySquash);
+        ctx.drawImage(
+            animData.sheet,
+            sx, sy, sw, sh,
+            -anchor.x * scaleX,
+            -anchor.y * scaleY,
+            sw * scaleX,
+            sh * scaleY
+        );
         ctx.restore();
         return true;
     }

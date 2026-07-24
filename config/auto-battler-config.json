@@ -1,0 +1,4749 @@
+{
+  "version": "1.0",
+  "enabled": true,
+  "board": {
+    "cols": 4,
+    "rows": 3,
+    "cellSize": 70,
+    "gap": 8,
+    "midGap": 56,
+    "orientation": "horizontal",
+    "layoutScale": 1.14,
+    "spriteCellRatio": 0.34,
+    "perspective": {
+      "topScale": 0.76,
+      "bottomScale": 1.08,
+      "vanishLift": 0.34,
+      "topYScale": 0.9
+    }
+  },
+  "combat": {
+    "tickMs": 50,
+    "maxDurationMs": 90000,
+    "moveSpeed": 90,
+    "meleeRange": 42,
+    "rangedRange": 160,
+    "basicAttackIntervalMs": 900,
+    "skillCooldownMult": 0.75,
+    "skillCastLockMs": 420
+  },
+  "allyAttackVfx": {
+    "warrior": {
+      "style": "melee_heavy",
+      "color": "#cc6633",
+      "glow": "#ffe0b0"
+    },
+    "archer": {
+      "style": "arrow",
+      "color": "#55aa55",
+      "glow": "#c8f0a8"
+    },
+    "mage": {
+      "style": "arcane_bolt",
+      "color": "#5588cc",
+      "glow": "#c0d8ff"
+    },
+    "assassin": {
+      "style": "dagger_thrust",
+      "color": "#aa55aa",
+      "glow": "#eebbff"
+    }
+  },
+  "enemyScaling": {
+    "layerPerStep": 0.085,
+    "eliteMult": 1.3,
+    "bossMult": 1.42,
+    "bossFinalMult": 1.68
+  },
+  "run": {
+    "layers": 27,
+    "nodesPerLayer": [
+      1,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      1,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      1,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      1,
+      3,
+      1
+    ],
+    "bossLayers": [
+      8,
+      16,
+      24
+    ],
+    "finalBossLayer": 26,
+    "shopEveryLayers": [
+      4,
+      12,
+      20
+    ],
+    "restLayers": [
+      7,
+      15,
+      23
+    ],
+    "restChance": 0.16,
+    "eventChance": 0.28,
+    "eliteChance": 0.22,
+    "acts": [
+      {
+        "name": "入门层",
+        "layerStart": 0,
+        "layerEnd": 8
+      },
+      {
+        "name": "炼狱层",
+        "layerStart": 9,
+        "layerEnd": 16
+      },
+      {
+        "name": "深渊层",
+        "layerStart": 17,
+        "layerEnd": 24
+      },
+      {
+        "name": "终末层",
+        "layerStart": 25,
+        "layerEnd": 26
+      }
+    ]
+  },
+  "rewards": {
+    "skillPerRunBudget": [
+      14,
+      20
+    ],
+    "gearPerRunBudget": [
+      14,
+      20
+    ],
+    "weaponShare": 0.35,
+    "relicSoftCap": 16,
+    "battleGold": [
+      12,
+      28
+    ],
+    "expPerBattle": [
+      220,
+      440
+    ],
+    "expPerElite": [
+      500,
+      780
+    ],
+    "expPerBoss": [
+      900,
+      1300
+    ],
+    "shopGearPriceByRarity": {
+      "common": [
+        28,
+        38
+      ],
+      "uncommon": [
+        36,
+        48
+      ],
+      "rare": [
+        50,
+        68
+      ],
+      "legendary": [
+        72,
+        95
+      ]
+    },
+    "shopRelicPriceByRarity": {
+      "common": [
+        45,
+        58
+      ],
+      "uncommon": [
+        55,
+        72
+      ],
+      "rare": [
+        70,
+        90
+      ],
+      "legendary": [
+        95,
+        125
+      ]
+    },
+    "battleDraftGold": [
+      18,
+      32
+    ],
+    "restHealPct": 0.4,
+    "inRunExpPerLevel": 280,
+    "inRunLevelCap": 8
+  },
+  "gearLoot": {
+    "rarityStatMult": {
+      "common": 1,
+      "uncommon": 1.15,
+      "rare": 1.35,
+      "legendary": 1.6
+    },
+    "affixCountByRarity": {
+      "common": [
+        0,
+        0
+      ],
+      "uncommon": [
+        0,
+        1
+      ],
+      "rare": [
+        1,
+        2
+      ],
+      "legendary": [
+        1,
+        2
+      ]
+    },
+    "affixes": [
+      {
+        "id": "keen",
+        "name": "锐利",
+        "stat": "critChance",
+        "min": 0.03,
+        "max": 0.08
+      },
+      {
+        "id": "swift",
+        "name": "迅捷",
+        "stat": "cooldownMult",
+        "min": 0.92,
+        "max": 0.97
+      },
+      {
+        "id": "siphon",
+        "name": "汲取",
+        "stat": "onHitHeal",
+        "min": 1,
+        "max": 4
+      },
+      {
+        "id": "arcane",
+        "name": "奥术",
+        "stat": "skillDamageMult",
+        "min": 1.05,
+        "max": 1.14
+      }
+    ]
+  },
+  "equipmentSlots": [
+    "weapon",
+    "head",
+    "chest",
+    "hands",
+    "feet"
+  ],
+  "partyOrder": [
+    "warrior",
+    "archer",
+    "mage",
+    "assassin"
+  ],
+  "startingActiveByClass": {
+    "warrior": "shield_slam",
+    "archer": "backstep_shot",
+    "mage": "fireball",
+    "assassin": "shadow_pierce",
+    "knight": "shield_slam",
+    "berserker": "charge",
+    "guardian": "war_cry",
+    "ranger": "poison_arrow",
+    "marksman": "hunters_mark",
+    "windrunner": "backstep_shot",
+    "wizard": "fireball",
+    "archmage": "fireball",
+    "warlock": "shadow_bolt",
+    "phantom": "shadow_pierce",
+    "deadeye": "backstep_shot",
+    "beastmaster": "poison_arrow"
+  },
+  "basicAttackByClass": {
+    "warrior": "warrior_basic",
+    "archer": "archer_basic",
+    "mage": "mage_basic",
+    "assassin": "assassin_basic"
+  },
+  "classDisplayNames": {
+    "warrior": "战士",
+    "archer": "弓箭手",
+    "mage": "法师",
+    "assassin": "刺客"
+  },
+  "skillProgression": {
+    "maxStars": 5,
+    "starDamageMultPerStar": 0.12,
+    "starCooldownMultPerStar": 0.04,
+    "chainJumpBonusAtStar": 3,
+    "lifestealBonusAtStar": 5,
+    "lifestealBonusPct": 0.08
+  },
+  "baseSkillPoolUnlockByClass": {
+    "warrior": [
+      {
+        "level": 1,
+        "skillIds": [
+          "shield_slam",
+          "cleave",
+          "shield_bash"
+        ]
+      },
+      {
+        "level": 5,
+        "skillIds": [
+          "charge",
+          "whirlwind",
+          "battle_shout"
+        ]
+      },
+      {
+        "level": 10,
+        "skillIds": [
+          "war_cry",
+          "iron_will",
+          "retaliation"
+        ]
+      },
+      {
+        "level": 15,
+        "skillIds": [
+          "hammerfall",
+          "bloodthirst",
+          "shield_wall",
+          "last_stand",
+          "rally"
+        ]
+      }
+    ],
+    "archer": [
+      {
+        "level": 1,
+        "skillIds": [
+          "backstep_shot",
+          "poison_arrow",
+          "volley"
+        ]
+      },
+      {
+        "level": 5,
+        "skillIds": [
+          "hunters_mark",
+          "barbed_arrow",
+          "mend_shot"
+        ]
+      },
+      {
+        "level": 10,
+        "skillIds": [
+          "frost_bind",
+          "explosive_arrow",
+          "piercing_shot"
+        ]
+      },
+      {
+        "level": 15,
+        "skillIds": [
+          "arrow_storm",
+          "snipe",
+          "power_shot"
+        ]
+      }
+    ],
+    "mage": [
+      {
+        "level": 1,
+        "skillIds": [
+          "fireball",
+          "frost_nova",
+          "arcane_shield"
+        ]
+      },
+      {
+        "level": 5,
+        "skillIds": [
+          "arcane_burst",
+          "flame_wave",
+          "shadow_bolt"
+        ]
+      },
+      {
+        "level": 10,
+        "skillIds": [
+          "chain_lightning",
+          "arcane_missiles",
+          "life_drain"
+        ]
+      },
+      {
+        "level": 15,
+        "skillIds": [
+          "meteor",
+          "blizzard",
+          "holy_nova",
+          "static_surge"
+        ]
+      }
+    ],
+    "assassin": [
+      {
+        "level": 1,
+        "skillIds": [
+          "shadow_pierce",
+          "fan_of_knives",
+          "poison_blade"
+        ]
+      },
+      {
+        "level": 5,
+        "skillIds": [
+          "backstab",
+          "smoke_bomb",
+          "crippling_strike"
+        ]
+      },
+      {
+        "level": 10,
+        "skillIds": [
+          "shadow_step",
+          "hemorrhage",
+          "garrote"
+        ]
+      },
+      {
+        "level": 15,
+        "skillIds": [
+          "execution",
+          "death_mark",
+          "blade_flurry"
+        ]
+      }
+    ]
+  },
+  "advancementSkillPools": {
+    "knight": [
+      "shield_wall",
+      "iron_will",
+      "shield_bash",
+      "retaliation",
+      "shield_slam",
+      "battle_shout",
+      "hammerfall",
+      "cleave"
+    ],
+    "berserker": [
+      "bloodthirst",
+      "hammerfall",
+      "whirlwind",
+      "cleave",
+      "charge",
+      "battle_shout",
+      "last_stand",
+      "shield_slam"
+    ],
+    "guardian": [
+      "war_cry",
+      "battle_shout",
+      "shield_wall",
+      "iron_will",
+      "retaliation",
+      "last_stand",
+      "shield_bash",
+      "cleave"
+    ],
+    "ranger": [
+      "poison_arrow",
+      "barbed_arrow",
+      "mend_shot",
+      "frost_bind",
+      "arrow_storm",
+      "volley",
+      "hunters_mark",
+      "explosive_arrow"
+    ],
+    "marksman": [
+      "power_shot",
+      "snipe",
+      "hunters_mark",
+      "piercing_shot",
+      "volley",
+      "explosive_arrow",
+      "backstep_shot",
+      "barbed_arrow"
+    ],
+    "windrunner": [
+      "backstep_shot",
+      "volley",
+      "explosive_arrow",
+      "frost_bind",
+      "arrow_storm",
+      "piercing_shot",
+      "hunters_mark",
+      "mend_shot"
+    ],
+    "wizard": [
+      "fireball",
+      "flame_wave",
+      "arcane_burst",
+      "meteor",
+      "chain_lightning",
+      "arcane_missiles",
+      "static_surge",
+      "life_drain"
+    ],
+    "archmage": [
+      "arcane_missiles",
+      "arcane_burst",
+      "static_surge",
+      "meteor",
+      "blizzard",
+      "chain_lightning",
+      "flame_wave",
+      "holy_nova"
+    ],
+    "warlock": [
+      "shadow_bolt",
+      "life_drain",
+      "blizzard",
+      "chain_lightning",
+      "static_surge",
+      "frost_nova",
+      "arcane_missiles",
+      "meteor"
+    ],
+    "phantom": [
+      "shadow_pierce",
+      "shadow_step",
+      "backstab",
+      "execution",
+      "death_mark",
+      "garrote",
+      "blade_flurry",
+      "crippling_strike"
+    ],
+    "deadeye": [
+      "backstab",
+      "execution",
+      "death_mark",
+      "crippling_strike",
+      "garrote",
+      "hemorrhage",
+      "poison_blade",
+      "shadow_pierce"
+    ],
+    "beastmaster": [
+      "poison_blade",
+      "poison_arrow",
+      "barbed_arrow",
+      "hemorrhage",
+      "garrote",
+      "smoke_bomb",
+      "blade_flurry",
+      "fan_of_knives"
+    ]
+  },
+  "enemyTemplates": [
+    {
+      "id": "ab_grunt",
+      "name": "魔卒",
+      "hp": 110,
+      "attack": 10,
+      "defense": 3,
+      "speed": 70,
+      "range": 42,
+      "color": "#884444"
+    },
+    {
+      "id": "ab_archer",
+      "name": "魔弓",
+      "hp": 75,
+      "attack": 13,
+      "defense": 2,
+      "speed": 75,
+      "range": 150,
+      "color": "#668844"
+    },
+    {
+      "id": "ab_imp",
+      "name": "小恶魔",
+      "hp": 55,
+      "attack": 9,
+      "defense": 1,
+      "speed": 92,
+      "range": 40,
+      "color": "#aa4444"
+    },
+    {
+      "id": "ab_skirmisher",
+      "name": "魔突兵",
+      "hp": 88,
+      "attack": 12,
+      "defense": 2,
+      "speed": 80,
+      "range": 44,
+      "color": "#995533"
+    },
+    {
+      "id": "ab_brute",
+      "name": "魔蛮",
+      "hp": 190,
+      "attack": 16,
+      "defense": 6,
+      "speed": 55,
+      "range": 42,
+      "color": "#663333"
+    },
+    {
+      "id": "ab_hound",
+      "name": "魔猎犬",
+      "hp": 95,
+      "attack": 14,
+      "defense": 2,
+      "speed": 85,
+      "range": 42,
+      "color": "#994422"
+    },
+    {
+      "id": "ab_bomber",
+      "name": "自爆魔",
+      "hp": 62,
+      "attack": 18,
+      "defense": 1,
+      "speed": 74,
+      "range": 44,
+      "color": "#cc6622"
+    },
+    {
+      "id": "ab_guard",
+      "name": "魔盾卫",
+      "hp": 175,
+      "attack": 9,
+      "defense": 9,
+      "speed": 45,
+      "range": 42,
+      "color": "#777755"
+    },
+    {
+      "id": "ab_shade",
+      "name": "影魔",
+      "hp": 70,
+      "attack": 15,
+      "defense": 1,
+      "speed": 82,
+      "range": 48,
+      "color": "#553366"
+    },
+    {
+      "id": "ab_cultist",
+      "name": "邪教师",
+      "hp": 65,
+      "attack": 11,
+      "defense": 2,
+      "speed": 60,
+      "range": 130,
+      "color": "#7766aa"
+    },
+    {
+      "id": "ab_sniper",
+      "name": "魔狙",
+      "hp": 68,
+      "attack": 16,
+      "defense": 1,
+      "speed": 62,
+      "range": 175,
+      "color": "#557744"
+    },
+    {
+      "id": "ab_wraith",
+      "name": "幽魂",
+      "hp": 78,
+      "attack": 14,
+      "defense": 2,
+      "speed": 78,
+      "range": 118,
+      "color": "#6699cc"
+    },
+    {
+      "id": "ab_flame_imp",
+      "name": "焰魔",
+      "hp": 58,
+      "attack": 13,
+      "defense": 1,
+      "speed": 81,
+      "range": 105,
+      "color": "#dd5522"
+    },
+    {
+      "id": "ab_warlock",
+      "name": "魔术士",
+      "hp": 85,
+      "attack": 16,
+      "defense": 3,
+      "speed": 55,
+      "range": 155,
+      "color": "#6644aa"
+    },
+    {
+      "id": "ab_necromancer",
+      "name": "死灵师",
+      "hp": 72,
+      "attack": 15,
+      "defense": 2,
+      "speed": 56,
+      "range": 145,
+      "color": "#443366"
+    },
+    {
+      "id": "ab_berserker",
+      "name": "狂战士",
+      "hp": 128,
+      "attack": 19,
+      "defense": 3,
+      "speed": 73,
+      "range": 44,
+      "color": "#aa3333"
+    },
+    {
+      "id": "ab_corrupt_knight",
+      "name": "堕骑士",
+      "hp": 168,
+      "attack": 14,
+      "defense": 8,
+      "speed": 52,
+      "range": 48,
+      "color": "#666688"
+    },
+    {
+      "id": "ab_gargoyle",
+      "name": "石像鬼",
+      "hp": 215,
+      "attack": 13,
+      "defense": 7,
+      "speed": 48,
+      "range": 50,
+      "color": "#888899"
+    },
+    {
+      "id": "ab_harpy",
+      "name": "魔鹰",
+      "hp": 82,
+      "attack": 12,
+      "defense": 2,
+      "speed": 88,
+      "range": 148,
+      "color": "#889944"
+    },
+    {
+      "id": "ab_chain_fighter",
+      "name": "链刃魔",
+      "hp": 112,
+      "attack": 11,
+      "defense": 5,
+      "speed": 64,
+      "range": 50,
+      "color": "#886655"
+    },
+    {
+      "id": "ab_maggot",
+      "name": "腐化蛆",
+      "hp": 105,
+      "attack": 11,
+      "defense": 4,
+      "speed": 52,
+      "range": 42,
+      "color": "#778844"
+    },
+    {
+      "id": "ab_siege",
+      "name": "攻城魔",
+      "hp": 260,
+      "attack": 14,
+      "defense": 8,
+      "speed": 40,
+      "range": 55,
+      "color": "#555544"
+    },
+    {
+      "id": "ab_abyss_eye",
+      "name": "深渊魔眼",
+      "hp": 92,
+      "attack": 17,
+      "defense": 3,
+      "speed": 50,
+      "range": 165,
+      "color": "#aa44cc"
+    },
+    {
+      "id": "ab_blood_priest",
+      "name": "血祭司",
+      "hp": 88,
+      "attack": 11,
+      "defense": 3,
+      "speed": 58,
+      "range": 125,
+      "color": "#aa2244"
+    },
+    {
+      "id": "ab_void_weaver",
+      "name": "虚空织法",
+      "hp": 78,
+      "attack": 18,
+      "defense": 2,
+      "speed": 52,
+      "range": 160,
+      "color": "#6633aa"
+    },
+    {
+      "id": "ab_trap_spider",
+      "name": "陷阱蛛",
+      "hp": 92,
+      "attack": 12,
+      "defense": 4,
+      "speed": 68,
+      "range": 48,
+      "color": "#556633"
+    },
+    {
+      "id": "ab_war_drums",
+      "name": "战鼓魔",
+      "hp": 120,
+      "attack": 8,
+      "defense": 5,
+      "speed": 48,
+      "range": 80,
+      "color": "#886622"
+    },
+    {
+      "id": "ab_templar",
+      "name": "魔殿骑士",
+      "hp": 200,
+      "attack": 12,
+      "defense": 10,
+      "speed": 50,
+      "range": 48,
+      "color": "#888866"
+    },
+    {
+      "id": "ab_elite",
+      "name": "精英魔将",
+      "hp": 245,
+      "attack": 17,
+      "defense": 6,
+      "speed": 65,
+      "range": 50,
+      "color": "#aa55ff"
+    },
+    {
+      "id": "ab_elite_champion",
+      "name": "冠军魔将",
+      "hp": 280,
+      "attack": 18,
+      "defense": 8,
+      "speed": 60,
+      "range": 52,
+      "color": "#bb66ff"
+    },
+    {
+      "id": "ab_elite_archon",
+      "name": "执政魔",
+      "hp": 210,
+      "attack": 19,
+      "defense": 5,
+      "speed": 58,
+      "range": 140,
+      "color": "#9944dd"
+    },
+    {
+      "id": "ab_boss_warden",
+      "name": "狱门守将",
+      "hp": 380,
+      "attack": 17,
+      "defense": 10,
+      "speed": 58,
+      "range": 52,
+      "color": "#cc4444"
+    },
+    {
+      "id": "ab_boss_tyrant",
+      "name": "炼狱暴君",
+      "hp": 450,
+      "attack": 20,
+      "defense": 11,
+      "speed": 56,
+      "range": 54,
+      "color": "#dd3355"
+    },
+    {
+      "id": "ab_boss_harbinger",
+      "name": "深渊先驱",
+      "hp": 520,
+      "attack": 22,
+      "defense": 12,
+      "speed": 54,
+      "range": 56,
+      "color": "#ee2277"
+    },
+    {
+      "id": "ab_boss",
+      "name": "层主",
+      "hp": 410,
+      "attack": 18,
+      "defense": 9,
+      "speed": 58,
+      "range": 52,
+      "color": "#ff3344"
+    },
+    {
+      "id": "ab_final",
+      "name": "终末魔王",
+      "hp": 700,
+      "attack": 23,
+      "defense": 13,
+      "speed": 56,
+      "range": 58,
+      "color": "#ff00aa"
+    }
+  ],
+  "enemyEncounters": {
+    "battle": [
+      {
+        "layerMax": 5,
+        "countMin": 2,
+        "countMax": 3,
+        "pool": [
+          {
+            "id": "ab_grunt",
+            "weight": 3
+          },
+          {
+            "id": "ab_archer",
+            "weight": 2
+          },
+          {
+            "id": "ab_imp",
+            "weight": 2
+          },
+          {
+            "id": "ab_skirmisher",
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "layerMax": 11,
+        "countMin": 2,
+        "countMax": 4,
+        "pool": [
+          {
+            "id": "ab_grunt",
+            "weight": 2
+          },
+          {
+            "id": "ab_archer",
+            "weight": 2
+          },
+          {
+            "id": "ab_imp",
+            "weight": 1
+          },
+          {
+            "id": "ab_skirmisher",
+            "weight": 2
+          },
+          {
+            "id": "ab_hound",
+            "weight": 2
+          },
+          {
+            "id": "ab_bomber",
+            "weight": 1
+          },
+          {
+            "id": "ab_guard",
+            "weight": 1
+          },
+          {
+            "id": "ab_flame_imp",
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "layerMax": 18,
+        "countMin": 3,
+        "countMax": 4,
+        "pool": [
+          {
+            "id": "ab_brute",
+            "weight": 2
+          },
+          {
+            "id": "ab_hound",
+            "weight": 2
+          },
+          {
+            "id": "ab_shade",
+            "weight": 2
+          },
+          {
+            "id": "ab_cultist",
+            "weight": 2
+          },
+          {
+            "id": "ab_sniper",
+            "weight": 1
+          },
+          {
+            "id": "ab_wraith",
+            "weight": 2
+          },
+          {
+            "id": "ab_corrupt_knight",
+            "weight": 2
+          },
+          {
+            "id": "ab_berserker",
+            "weight": 1
+          },
+          {
+            "id": "ab_maggot",
+            "weight": 1
+          },
+          {
+            "id": "ab_chain_fighter",
+            "weight": 2
+          }
+        ]
+      },
+      {
+        "layerMax": 99,
+        "countMin": 3,
+        "countMax": 5,
+        "pool": [
+          {
+            "id": "ab_brute",
+            "weight": 2
+          },
+          {
+            "id": "ab_shade",
+            "weight": 2
+          },
+          {
+            "id": "ab_warlock",
+            "weight": 2
+          },
+          {
+            "id": "ab_necromancer",
+            "weight": 2
+          },
+          {
+            "id": "ab_siege",
+            "weight": 1
+          },
+          {
+            "id": "ab_gargoyle",
+            "weight": 2
+          },
+          {
+            "id": "ab_harpy",
+            "weight": 2
+          },
+          {
+            "id": "ab_berserker",
+            "weight": 2
+          },
+          {
+            "id": "ab_abyss_eye",
+            "weight": 2
+          },
+          {
+            "id": "ab_corrupt_knight",
+            "weight": 1
+          },
+          {
+            "id": "ab_sniper",
+            "weight": 1
+          },
+          {
+            "id": "ab_wraith",
+            "weight": 1
+          },
+          {
+            "id": "ab_chain_fighter",
+            "weight": 1
+          },
+          {
+            "id": "ab_guard",
+            "weight": 1
+          }
+        ]
+      }
+    ],
+    "elite": [
+      {
+        "layerMax": 8,
+        "squad": [
+          {
+            "id": "ab_elite",
+            "col": 1,
+            "row": 1
+          },
+          {
+            "id": "ab_brute",
+            "col": 2,
+            "row": 0,
+            "scaleMult": 0.85
+          },
+          {
+            "id": "ab_imp",
+            "col": 0,
+            "row": 2,
+            "scaleMult": 0.75
+          }
+        ]
+      },
+      {
+        "layerMax": 16,
+        "squad": [
+          {
+            "id": "ab_elite_champion",
+            "col": 1,
+            "row": 1
+          },
+          {
+            "id": "ab_guard",
+            "col": 0,
+            "row": 0,
+            "scaleMult": 0.9
+          },
+          {
+            "id": "ab_berserker",
+            "col": 3,
+            "row": 2,
+            "scaleMult": 0.85
+          }
+        ]
+      },
+      {
+        "layerMax": 99,
+        "squad": [
+          {
+            "id": "ab_elite_archon",
+            "col": 1,
+            "row": 1
+          },
+          {
+            "id": "ab_templar",
+            "col": 0,
+            "row": 0,
+            "scaleMult": 0.9
+          },
+          {
+            "id": "ab_gargoyle",
+            "col": 2,
+            "row": 0,
+            "scaleMult": 0.88
+          },
+          {
+            "id": "ab_abyss_eye",
+            "col": 3,
+            "row": 2,
+            "scaleMult": 0.82
+          }
+        ]
+      }
+    ],
+    "boss": [
+      {
+        "layerMax": 10,
+        "squad": [
+          {
+            "id": "ab_boss_warden",
+            "col": 1,
+            "row": 1
+          },
+          {
+            "id": "ab_guard",
+            "col": 0,
+            "row": 0,
+            "scaleMult": 0.82
+          },
+          {
+            "id": "ab_archer",
+            "col": 3,
+            "row": 2,
+            "scaleMult": 0.8
+          },
+          {
+            "id": "ab_skirmisher",
+            "col": 2,
+            "row": 2,
+            "scaleMult": 0.78
+          }
+        ]
+      },
+      {
+        "layerMax": 18,
+        "squad": [
+          {
+            "id": "ab_boss_tyrant",
+            "col": 1,
+            "row": 1
+          },
+          {
+            "id": "ab_berserker",
+            "col": 0,
+            "row": 0,
+            "scaleMult": 0.85
+          },
+          {
+            "id": "ab_cultist",
+            "col": 3,
+            "row": 2,
+            "scaleMult": 0.8
+          },
+          {
+            "id": "ab_corrupt_knight",
+            "col": 2,
+            "row": 1,
+            "scaleMult": 0.82
+          }
+        ]
+      },
+      {
+        "layerMax": 99,
+        "squad": [
+          {
+            "id": "ab_boss_harbinger",
+            "col": 1,
+            "row": 1
+          },
+          {
+            "id": "ab_siege",
+            "col": 0,
+            "row": 1,
+            "scaleMult": 0.88
+          },
+          {
+            "id": "ab_shade",
+            "col": 3,
+            "row": 0,
+            "scaleMult": 0.85
+          },
+          {
+            "id": "ab_necromancer",
+            "col": 2,
+            "row": 2,
+            "scaleMult": 0.8
+          },
+          {
+            "id": "ab_harpy",
+            "col": 1,
+            "row": 0,
+            "scaleMult": 0.75
+          }
+        ]
+      }
+    ],
+    "boss_final": {
+      "squad": [
+        {
+          "id": "ab_final",
+          "col": 1,
+          "row": 1
+        },
+        {
+          "id": "ab_elite_champion",
+          "col": 0,
+          "row": 0,
+          "scaleMult": 0.75
+        },
+        {
+          "id": "ab_elite_archon",
+          "col": 3,
+          "row": 0,
+          "scaleMult": 0.75
+        },
+        {
+          "id": "ab_gargoyle",
+          "col": 0,
+          "row": 2,
+          "scaleMult": 0.7
+        },
+        {
+          "id": "ab_abyss_eye",
+          "col": 3,
+          "row": 2,
+          "scaleMult": 0.72
+        },
+        {
+          "id": "ab_templar",
+          "col": 2,
+          "row": 1,
+          "scaleMult": 0.72
+        }
+      ]
+    }
+  },
+  "skillPool": [
+    {
+      "id": "shield_slam",
+      "name": "盾击",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 1.8,
+      "cooldownMs": 4000,
+      "range": 48,
+      "description": "对一名敌人造成180%攻击力的伤害，并使其眩晕1秒。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.8
+        },
+        {
+          "type": "stun",
+          "durationMs": 1000
+        }
+      ]
+    },
+    {
+      "id": "charge",
+      "name": "冲锋",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 1.5,
+      "cooldownMs": 5000,
+      "range": 90,
+      "description": "冲向一名敌人造成150%攻击力的伤害；若目标位于前排，伤害提升至200%。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.5,
+          "frontRowBonusMult": 2
+        }
+      ]
+    },
+    {
+      "id": "war_cry",
+      "name": "战吼",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 0.7,
+      "cooldownMs": 8000,
+      "range": 80,
+      "aoe": true,
+      "description": "对周围敌人造成70%攻击力的伤害，并为前排队友提供12%最大生命的护盾，持续5秒。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 0.7,
+          "aoe": true,
+          "splashMult": 0.85
+        },
+        {
+          "type": "shield",
+          "target": "front_allies",
+          "pct": 0.12,
+          "durationMs": 5000
+        }
+      ]
+    },
+    {
+      "id": "iron_will",
+      "name": "铁壁意志",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 0,
+      "cooldownMs": 9000,
+      "range": 48,
+      "description": "获得15%最大生命的护盾，并在6秒内提升30%防御。",
+      "effects": [
+        {
+          "type": "shield",
+          "target": "self",
+          "pct": 0.15,
+          "durationMs": 6000
+        },
+        {
+          "type": "buff",
+          "stat": "defense",
+          "pct": 0.3,
+          "durationMs": 6000,
+          "target": "self"
+        }
+      ]
+    },
+    {
+      "id": "cleave",
+      "name": "顺劈斩",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 1.3,
+      "cooldownMs": 5500,
+      "range": 55,
+      "aoe": true,
+      "description": "横扫前方敌人，对范围内每个目标造成130%攻击力的伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.3,
+          "aoe": true
+        }
+      ]
+    },
+    {
+      "id": "last_stand",
+      "name": "背水一战",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 0,
+      "cooldownMs": 10000,
+      "range": 48,
+      "description": "回复已损失生命40%的数值；生命越低，回复比例越高。",
+      "effects": [
+        {
+          "type": "heal_missing",
+          "pct": 0.4
+        }
+      ]
+    },
+    {
+      "id": "hammerfall",
+      "name": "碎骨锤",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 2.2,
+      "cooldownMs": 7000,
+      "range": 50,
+      "description": "重击一名敌人；若其生命低于30%，伤害提升至350%。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 2.2,
+          "executeThreshold": 0.3,
+          "executeBonusMult": 3.5
+        }
+      ]
+    },
+    {
+      "id": "bloodthirst",
+      "name": "嗜血斩",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 1.6,
+      "cooldownMs": 6000,
+      "range": 48,
+      "description": "对一名敌人造成160%攻击力的伤害，并汲取35%伤害量作为生命。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.6,
+          "lifestealPct": 0.35
+        }
+      ]
+    },
+    {
+      "id": "shield_wall",
+      "name": "盾墙",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 0,
+      "cooldownMs": 12000,
+      "range": 48,
+      "description": "为全队生成10%最大生命的护盾，持续6秒。",
+      "effects": [
+        {
+          "type": "shield",
+          "target": "all_allies",
+          "pct": 0.1,
+          "durationMs": 6000
+        }
+      ]
+    },
+    {
+      "id": "whirlwind",
+      "name": "旋风斩",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 1.15,
+      "cooldownMs": 4800,
+      "range": 58,
+      "aoe": true,
+      "description": "旋转挥砍，对周围每个敌人造成115%攻击力的伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.15,
+          "aoe": true
+        }
+      ]
+    },
+    {
+      "id": "shield_bash",
+      "name": "盾猛",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 1.55,
+      "cooldownMs": 4500,
+      "range": 48,
+      "description": "用盾猛击一名敌人，造成155%攻击力的伤害并眩晕0.8秒。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.55
+        },
+        {
+          "type": "stun",
+          "durationMs": 800
+        }
+      ]
+    },
+    {
+      "id": "battle_shout",
+      "name": "战阵咆哮",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 0.5,
+      "cooldownMs": 9000,
+      "range": 85,
+      "aoe": true,
+      "description": "对周围敌人造成50%攻击力的伤害，并在6秒内提升全队18%攻击力。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 0.5,
+          "aoe": true,
+          "splashMult": 0.85
+        },
+        {
+          "type": "buff",
+          "stat": "attack",
+          "pct": 0.18,
+          "durationMs": 6000,
+          "target": "all_allies"
+        }
+      ]
+    },
+    {
+      "id": "retaliation",
+      "name": "反击姿态",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 0,
+      "cooldownMs": 8500,
+      "range": 48,
+      "description": "进入反击姿态：获得12%最大生命护盾，并在5秒内提升35%防御。",
+      "effects": [
+        {
+          "type": "shield",
+          "target": "self",
+          "pct": 0.12,
+          "durationMs": 5000
+        },
+        {
+          "type": "buff",
+          "stat": "defense",
+          "pct": 0.35,
+          "durationMs": 5000,
+          "target": "self"
+        }
+      ]
+    },
+    {
+      "id": "backstep_shot",
+      "name": "后撤射击",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 1.6,
+      "cooldownMs": 3500,
+      "range": 170,
+      "description": "快速射出一箭，对一名敌人造成160%攻击力的伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.6
+        }
+      ]
+    },
+    {
+      "id": "poison_arrow",
+      "name": "毒箭",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 1,
+      "cooldownMs": 4500,
+      "range": 165,
+      "description": "造成100%攻击力的伤害，并使目标中毒：4秒内每秒受到20%攻击力的伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1
+        },
+        {
+          "type": "dot",
+          "pctOfAttack": 0.2,
+          "durationMs": 4000,
+          "tickMs": 1000
+        }
+      ]
+    },
+    {
+      "id": "hunters_mark",
+      "name": "猎人印记",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 0.8,
+      "cooldownMs": 6000,
+      "range": 180,
+      "description": "标记一名敌人8秒，使其受到的所有伤害提高25%。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 0.8
+        },
+        {
+          "type": "mark",
+          "bonusPct": 0.25,
+          "durationMs": 8000
+        }
+      ]
+    },
+    {
+      "id": "arrow_storm",
+      "name": "箭雨",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 1.4,
+      "cooldownMs": 9000,
+      "range": 160,
+      "aoe": true,
+      "description": "对范围内所有敌人造成140%攻击力的群体伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.4,
+          "aoe": true,
+          "splashMult": 1
+        }
+      ]
+    },
+    {
+      "id": "power_shot",
+      "name": "强力射击",
+      "classTags": [
+        "archer",
+        "generic"
+      ],
+      "damageMult": 2.4,
+      "cooldownMs": 5500,
+      "range": 175,
+      "description": "蓄力一箭，对一名敌人造成240%攻击力的巨额伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 2.4
+        }
+      ]
+    },
+    {
+      "id": "volley",
+      "name": "齐射",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 1.1,
+      "cooldownMs": 6500,
+      "range": 165,
+      "aoe": true,
+      "description": "向目标及周围敌人射出箭矢，对每个目标造成110%攻击力的伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.1,
+          "aoe": true,
+          "splashMult": 0.9
+        }
+      ]
+    },
+    {
+      "id": "frost_bind",
+      "name": "寒霜束缚",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 1.2,
+      "cooldownMs": 7000,
+      "range": 170,
+      "description": "造成120%攻击力的冰伤，并冻结目标1.2秒。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.2
+        },
+        {
+          "type": "stun",
+          "durationMs": 1200
+        }
+      ]
+    },
+    {
+      "id": "mend_shot",
+      "name": "疗愈箭",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 0,
+      "cooldownMs": 8000,
+      "range": 170,
+      "description": "治疗生命比例最低的一名队友，回复其18%最大生命。",
+      "effects": [
+        {
+          "type": "heal",
+          "target": "lowest_ally",
+          "pct": 0.18
+        }
+      ]
+    },
+    {
+      "id": "explosive_arrow",
+      "name": "爆裂箭",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 1.85,
+      "cooldownMs": 5200,
+      "range": 175,
+      "description": "射出爆裂箭，对一名敌人造成185%攻击力的伤害，并在命中点产生小范围冲击。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.85
+        }
+      ]
+    },
+    {
+      "id": "piercing_shot",
+      "name": "贯穿箭",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 1.25,
+      "cooldownMs": 5800,
+      "range": 175,
+      "description": "射出贯穿箭，对最多3名敌人各造成125%攻击力的伤害，后续命中衰减12%。",
+      "effects": [
+        {
+          "type": "chain",
+          "mult": 1.25,
+          "jumps": 3,
+          "falloff": 0.88
+        }
+      ]
+    },
+    {
+      "id": "snipe",
+      "name": "狙击",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 2.8,
+      "cooldownMs": 7500,
+      "range": 190,
+      "description": "瞄准要害，对一名敌人造成280%攻击力的超远程狙击伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 2.8
+        }
+      ]
+    },
+    {
+      "id": "barbed_arrow",
+      "name": "倒刺箭",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 0.95,
+      "cooldownMs": 4200,
+      "range": 165,
+      "description": "造成95%攻击力的伤害，并施加可叠加流血，每层每秒造成12%攻击力的伤害，最多3层，持续5秒。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 0.95
+        },
+        {
+          "type": "stack_dot",
+          "pctOfAttack": 0.12,
+          "durationMs": 5000,
+          "tickMs": 1000,
+          "maxStacks": 3
+        }
+      ]
+    },
+    {
+      "id": "fireball",
+      "name": "火球术",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 2,
+      "cooldownMs": 4000,
+      "range": 155,
+      "description": "发射火球，对一名敌人造成200%攻击力的法术伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 2
+        }
+      ]
+    },
+    {
+      "id": "frost_nova",
+      "name": "冰霜新星",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 1.4,
+      "cooldownMs": 7000,
+      "range": 70,
+      "aoe": true,
+      "description": "爆发冰霜能量，对周围敌人造成140%攻击力的伤害并冻结0.8秒。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.4,
+          "aoe": true
+        },
+        {
+          "type": "stun",
+          "durationMs": 800,
+          "aoe": true
+        }
+      ]
+    },
+    {
+      "id": "shadow_bolt",
+      "name": "暗影箭",
+      "classTags": [
+        "mage",
+        "assassin"
+      ],
+      "damageMult": 1.7,
+      "cooldownMs": 3800,
+      "range": 150,
+      "description": "射出暗影箭，对一名敌人造成170%攻击力的法术伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.7
+        }
+      ]
+    },
+    {
+      "id": "arcane_burst",
+      "name": "奥术爆发",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 1.8,
+      "cooldownMs": 8500,
+      "range": 90,
+      "aoe": true,
+      "description": "释放奥术冲击，对范围内敌人造成180%攻击力的群体伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.8,
+          "aoe": true
+        }
+      ]
+    },
+    {
+      "id": "chain_lightning",
+      "name": "连锁闪电",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 1.3,
+      "cooldownMs": 6000,
+      "range": 155,
+      "description": "闪电在最多3名敌人间跳跃，每次造成130%攻击力的伤害，后续跳跃衰减15%。",
+      "effects": [
+        {
+          "type": "chain",
+          "mult": 1.3,
+          "jumps": 3,
+          "falloff": 0.85
+        }
+      ]
+    },
+    {
+      "id": "meteor",
+      "name": "陨石术",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 2.6,
+      "cooldownMs": 10000,
+      "range": 140,
+      "aoe": true,
+      "description": "召唤陨石轰击区域，对范围内敌人造成260%攻击力的毁灭性伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 2.6,
+          "aoe": true,
+          "splashMult": 1
+        }
+      ]
+    },
+    {
+      "id": "arcane_shield",
+      "name": "奥术护盾",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 0,
+      "cooldownMs": 9000,
+      "range": 48,
+      "description": "为自身生成20%最大生命的护盾，持续7秒。",
+      "effects": [
+        {
+          "type": "shield",
+          "target": "self",
+          "pct": 0.2,
+          "durationMs": 7000
+        }
+      ]
+    },
+    {
+      "id": "blizzard",
+      "name": "暴风雪",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 0.6,
+      "cooldownMs": 8000,
+      "range": 120,
+      "aoe": true,
+      "description": "召唤暴风雪覆盖区域，立即造成60%攻击力的伤害，并在5秒内每秒造成15%攻击力的冰霜伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 0.6,
+          "aoe": true
+        },
+        {
+          "type": "dot_aoe",
+          "pctOfAttack": 0.15,
+          "durationMs": 5000,
+          "tickMs": 1000
+        }
+      ]
+    },
+    {
+      "id": "life_drain",
+      "name": "生命汲取",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 1.5,
+      "cooldownMs": 6500,
+      "range": 150,
+      "description": "吸取一名敌人的生命，造成150%攻击力的伤害并治疗自身50%伤害量。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.5,
+          "lifestealPct": 0.5
+        }
+      ]
+    },
+    {
+      "id": "flame_wave",
+      "name": "烈焰波",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 1.55,
+      "cooldownMs": 6200,
+      "range": 95,
+      "aoe": true,
+      "description": "释放扇形烈焰，对范围内敌人造成155%攻击力的火焰伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.55,
+          "aoe": true,
+          "splashMult": 0.92
+        }
+      ]
+    },
+    {
+      "id": "arcane_missiles",
+      "name": "奥术飞弹",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 0.68,
+      "cooldownMs": 4500,
+      "range": 160,
+      "description": "连续发射4枚奥术飞弹，每枚造成68%攻击力的伤害，可集中轰击同一目标。",
+      "effects": [
+        {
+          "type": "chain",
+          "mult": 0.68,
+          "jumps": 4,
+          "falloff": 1
+        }
+      ]
+    },
+    {
+      "id": "holy_nova",
+      "name": "圣光新星",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 0.85,
+      "cooldownMs": 9000,
+      "range": 75,
+      "aoe": true,
+      "description": "爆发圣光，对周围敌人造成85%攻击力的伤害，并治疗所有队友12%最大生命。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 0.85,
+          "aoe": true
+        },
+        {
+          "type": "heal",
+          "target": "all_allies",
+          "pct": 0.12
+        }
+      ]
+    },
+    {
+      "id": "static_surge",
+      "name": "静电涌流",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 1.15,
+      "cooldownMs": 5500,
+      "range": 160,
+      "description": "释放静电，在最多4名敌人间跳跃，每次造成115%攻击力的伤害，后续跳跃衰减18%。",
+      "effects": [
+        {
+          "type": "chain",
+          "mult": 1.15,
+          "jumps": 4,
+          "falloff": 0.82
+        }
+      ]
+    },
+    {
+      "id": "shadow_pierce",
+      "name": "暗影贯穿",
+      "classTags": [
+        "assassin"
+      ],
+      "damageMult": 2.1,
+      "cooldownMs": 4200,
+      "range": 55,
+      "description": "突刺一名敌人，造成210%攻击力的伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 2.1
+        }
+      ]
+    },
+    {
+      "id": "fan_of_knives",
+      "name": "刀扇",
+      "classTags": [
+        "assassin"
+      ],
+      "damageMult": 1.5,
+      "cooldownMs": 5500,
+      "range": 60,
+      "aoe": true,
+      "description": "向周围掷出刀刃，对每个敌人造成150%攻击力的伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.5,
+          "aoe": true
+        }
+      ]
+    },
+    {
+      "id": "smoke_bomb",
+      "name": "烟雾弹",
+      "classTags": [
+        "assassin"
+      ],
+      "damageMult": 0.5,
+      "cooldownMs": 7000,
+      "range": 70,
+      "aoe": true,
+      "description": "释放烟雾，对周围敌人造成50%攻击力的伤害，并使其攻击降低20%，持续4秒。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 0.5,
+          "aoe": true
+        },
+        {
+          "type": "debuff",
+          "stat": "attack",
+          "pct": 0.2,
+          "durationMs": 4000,
+          "aoe": true
+        }
+      ]
+    },
+    {
+      "id": "backstab",
+      "name": "背刺",
+      "classTags": [
+        "assassin"
+      ],
+      "damageMult": 1.8,
+      "cooldownMs": 5000,
+      "range": 50,
+      "description": "从死角刺击，造成180%攻击力的伤害；对满血目标额外造成80%伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.8,
+          "fullHpBonusMult": 2.6
+        }
+      ]
+    },
+    {
+      "id": "poison_blade",
+      "name": "毒刃",
+      "classTags": [
+        "assassin"
+      ],
+      "damageMult": 1.2,
+      "cooldownMs": 4500,
+      "range": 50,
+      "description": "造成120%攻击力的伤害，并施加剧毒：5秒内每秒受到25%攻击力的伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.2
+        },
+        {
+          "type": "dot",
+          "pctOfAttack": 0.25,
+          "durationMs": 5000,
+          "tickMs": 1000
+        }
+      ]
+    },
+    {
+      "id": "hemorrhage",
+      "name": "放血",
+      "classTags": [
+        "assassin"
+      ],
+      "damageMult": 1,
+      "cooldownMs": 5500,
+      "range": 50,
+      "description": "造成100%攻击力的伤害，并施加可叠加的流血，每层每秒造成10%攻击力的伤害，最多3层，持续6秒。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1
+        },
+        {
+          "type": "stack_dot",
+          "pctOfAttack": 0.1,
+          "durationMs": 6000,
+          "tickMs": 1000,
+          "maxStacks": 3
+        }
+      ]
+    },
+    {
+      "id": "execution",
+      "name": "处决",
+      "classTags": [
+        "assassin"
+      ],
+      "damageMult": 1.6,
+      "cooldownMs": 7500,
+      "range": 50,
+      "description": "对一名敌人造成160%攻击力的伤害；若其生命低于25%，伤害提升至400%。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.6,
+          "executeThreshold": 0.25,
+          "executeBonusMult": 4
+        }
+      ]
+    },
+    {
+      "id": "shadow_step",
+      "name": "影步",
+      "classTags": [
+        "assassin"
+      ],
+      "damageMult": 1.4,
+      "cooldownMs": 6000,
+      "range": 90,
+      "description": "闪至目标身侧造成140%攻击力的伤害，并在4秒内提升25%攻击力。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.4
+        },
+        {
+          "type": "buff",
+          "stat": "attack",
+          "pct": 0.25,
+          "durationMs": 4000,
+          "target": "self"
+        }
+      ]
+    },
+    {
+      "id": "crippling_strike",
+      "name": "致残打击",
+      "classTags": [
+        "assassin"
+      ],
+      "damageMult": 1.35,
+      "cooldownMs": 4800,
+      "range": 52,
+      "description": "攻击敌人要害，造成135%攻击力的伤害，并使其攻击降低25%，持续4秒。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.35
+        },
+        {
+          "type": "debuff",
+          "stat": "attack",
+          "pct": 0.25,
+          "durationMs": 4000
+        }
+      ]
+    },
+    {
+      "id": "death_mark",
+      "name": "死亡标记",
+      "classTags": [
+        "assassin"
+      ],
+      "damageMult": 0.65,
+      "cooldownMs": 7000,
+      "range": 55,
+      "description": "标记一名敌人6秒，使其受到的所有伤害提高40%，并造成65%攻击力的伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 0.65
+        },
+        {
+          "type": "mark",
+          "bonusPct": 0.4,
+          "durationMs": 6000
+        }
+      ]
+    },
+    {
+      "id": "garrote",
+      "name": "绞喉",
+      "classTags": [
+        "assassin"
+      ],
+      "damageMult": 1.05,
+      "cooldownMs": 5000,
+      "range": 50,
+      "description": "勒击目标造成105%攻击力的伤害，并在3秒内每秒受到28%攻击力的持续伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.05
+        },
+        {
+          "type": "dot",
+          "pctOfAttack": 0.28,
+          "durationMs": 3000,
+          "tickMs": 1000
+        }
+      ]
+    },
+    {
+      "id": "blade_flurry",
+      "name": "刀刃旋风",
+      "classTags": [
+        "assassin"
+      ],
+      "damageMult": 1.25,
+      "cooldownMs": 5200,
+      "range": 58,
+      "aoe": true,
+      "description": "高速旋转掷出刀刃，对周围每个敌人造成125%攻击力的伤害。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.25,
+          "aoe": true
+        }
+      ]
+    },
+    {
+      "id": "rally",
+      "name": "鼓舞",
+      "classTags": [
+        "warrior",
+        "generic"
+      ],
+      "damageMult": 0.4,
+      "cooldownMs": 10000,
+      "range": 100,
+      "aoe": true,
+      "description": "激励全队：对周围敌人造成40%攻击力的伤害，治疗所有队友8%最大生命，并在5秒内提升15%攻击。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 0.4,
+          "aoe": true
+        },
+        {
+          "type": "heal",
+          "target": "all_allies",
+          "pct": 0.08
+        },
+        {
+          "type": "buff",
+          "stat": "attack",
+          "pct": 0.15,
+          "durationMs": 5000,
+          "target": "all_allies"
+        }
+      ]
+    }
+  ],
+  "relics": [
+    {
+      "id": "greedy_purse",
+      "name": "贪婪钱袋",
+      "description": "战斗金币 +25%。",
+      "rarity": "common",
+      "buildTags": [
+        "economy"
+      ],
+      "effects": {
+        "goldMult": 1.25
+      }
+    },
+    {
+      "id": "scholar_scroll",
+      "name": "学者卷轴",
+      "description": "战斗经验 +18%。",
+      "rarity": "common",
+      "buildTags": [
+        "economy"
+      ],
+      "effects": {
+        "expMult": 1.18
+      }
+    },
+    {
+      "id": "stone_skin",
+      "name": "岩肤加护",
+      "description": "全队防御 +6。",
+      "rarity": "common",
+      "buildTags": [
+        "wall"
+      ],
+      "effects": {
+        "flatDefense": 6
+      }
+    },
+    {
+      "id": "soul_drink",
+      "name": "噬魂触痕",
+      "description": "普攻命中回复 3 生命。",
+      "rarity": "uncommon",
+      "buildTags": [
+        "sustain"
+      ],
+      "effects": {
+        "onHitHeal": 3
+      }
+    },
+    {
+      "id": "war_rhythm",
+      "name": "战律加护",
+      "description": "技能冷却 -12%。",
+      "rarity": "uncommon",
+      "buildTags": [
+        "tempo"
+      ],
+      "effects": {
+        "cooldownMult": 0.88
+      }
+    },
+    {
+      "id": "fortune_coin",
+      "name": "命运硬币",
+      "description": "金币 +20%，经验 +8%。",
+      "rarity": "uncommon",
+      "buildTags": [
+        "economy"
+      ],
+      "effects": {
+        "goldMult": 1.2,
+        "expMult": 1.08
+      }
+    },
+    {
+      "id": "backline_focus",
+      "name": "后排专注",
+      "description": "后两排角色伤害 +15%。",
+      "rarity": "rare",
+      "buildTags": [
+        "backline"
+      ],
+      "effects": {
+        "backRowDamageMult": 1.15
+      }
+    },
+    {
+      "id": "frontline_wall",
+      "name": "前排铁壁",
+      "description": "前排角色受到伤害 -12%。",
+      "rarity": "rare",
+      "buildTags": [
+        "wall"
+      ],
+      "effects": {
+        "frontRowDamageTakenMult": 0.88
+      }
+    },
+    {
+      "id": "warrior_cleave_crest",
+      "name": "裂阵纹章",
+      "description": "战士群体技能伤害 ×1.18。",
+      "rarity": "uncommon",
+      "buildTags": [
+        "cleave",
+        "warrior"
+      ],
+      "iconId": "bulwark_plate",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "classTag": "warrior",
+              "shape": "aoe"
+            },
+            "mutate": {
+              "damageMult": 1.18
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "warrior_guard_oath",
+      "name": "守誓纹章",
+      "description": "战士辅助技（护盾/治疗）冷却 ×0.88。",
+      "rarity": "uncommon",
+      "buildTags": [
+        "wall",
+        "warrior"
+      ],
+      "iconId": "iron_guard",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "classTag": "warrior",
+              "shape": "support"
+            },
+            "mutate": {
+              "cooldownMult": 0.88
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "warrior_stun_brand",
+      "name": "震慑烙印",
+      "description": "战士单体技能追加短暂眩晕。",
+      "rarity": "rare",
+      "buildTags": [
+        "control",
+        "warrior"
+      ],
+      "iconId": "stone_skin",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "classTag": "warrior",
+              "shape": "single"
+            },
+            "mutate": {
+              "appendEffects": [
+                {
+                  "type": "stun",
+                  "durationMs": 350
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "warrior_blood_seal",
+      "name": "血誓印",
+      "description": "战士非辅助技能吸血 +12%。",
+      "rarity": "rare",
+      "buildTags": [
+        "lifesteal",
+        "warrior"
+      ],
+      "iconId": "blood_edge",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "classTag": "warrior",
+              "notShape": "support"
+            },
+            "mutate": {
+              "addLifestealPct": 0.12
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "quake_hymn",
+      "name": "裂地锤谱",
+      "description": "强化：顺劈斩、旋风斩——命中追加短暂群体眩晕。",
+      "rarity": "rare",
+      "buildTags": [
+        "cleave",
+        "warrior"
+      ],
+      "iconId": "bulwark_plate",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "cleave",
+                "whirlwind"
+              ]
+            },
+            "mutate": {
+              "appendEffects": [
+                {
+                  "type": "stun",
+                  "durationMs": 450,
+                  "aoe": true
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "mountain_seal",
+      "name": "开山符",
+      "description": "强化：顺劈斩——伤害 ×1.35，冷却 ×1.15。",
+      "rarity": "uncommon",
+      "buildTags": [
+        "cleave",
+        "warrior"
+      ],
+      "iconId": "executioner_blade",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "cleave"
+              ]
+            },
+            "mutate": {
+              "damageMult": 1.35,
+              "cooldownMult": 1.15
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "vortex_heart",
+      "name": "旋涡心",
+      "description": "强化：旋风斩——溅射伤害更高；前排受伤 +8%。",
+      "rarity": "rare",
+      "buildTags": [
+        "cleave",
+        "warrior"
+      ],
+      "iconId": "glass_cannon",
+      "effects": {
+        "frontRowDamageTakenMult": 1.08,
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "whirlwind"
+              ]
+            },
+            "mutate": {
+              "damageMult": 1.2,
+              "splashMult": 1.15
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "hammer_edict",
+      "name": "碎骨法令",
+      "description": "强化：碎骨锤——斩杀线提高，低血倍率更狠。",
+      "rarity": "rare",
+      "buildTags": [
+        "execute",
+        "warrior"
+      ],
+      "iconId": "soul_harvester",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "hammerfall"
+              ]
+            },
+            "mutate": {
+              "executeBonus": {
+                "threshold": 0.4,
+                "bonusMult": 3.8
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "archer_longshot",
+      "name": "延展瞄具",
+      "description": "弓手非辅助技能射程 +40。",
+      "rarity": "uncommon",
+      "buildTags": [
+        "range",
+        "archer"
+      ],
+      "iconId": "sniper_lens",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "classTag": "archer",
+              "notShape": "support"
+            },
+            "mutate": {
+              "rangeBonus": 40
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "archer_toxin_band",
+      "name": "淬毒腕带",
+      "description": "弓手技能追加短毒。",
+      "rarity": "uncommon",
+      "buildTags": [
+        "poison",
+        "archer"
+      ],
+      "iconId": "soul_drink",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "classTag": "archer",
+              "notShape": "support"
+            },
+            "mutate": {
+              "appendEffects": [
+                {
+                  "type": "dot",
+                  "pctOfAttack": 0.1,
+                  "durationMs": 2500,
+                  "tickMs": 1000
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "archer_mark_crest",
+      "name": "猎印纹章",
+      "description": "弓手技能易伤标记效果增强（追加弱标记）。",
+      "rarity": "rare",
+      "buildTags": [
+        "mark",
+        "archer"
+      ],
+      "iconId": "keen_sight",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "classTag": "archer",
+              "shape": "single"
+            },
+            "mutate": {
+              "appendEffects": [
+                {
+                  "type": "mark",
+                  "bonusPct": 0.12,
+                  "durationMs": 4000
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "archer_sky_crest",
+      "name": "天穹纹章",
+      "description": "弓手群体技能伤害 ×1.16。",
+      "rarity": "rare",
+      "buildTags": [
+        "aoe",
+        "archer"
+      ],
+      "iconId": "eternal_flame",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "classTag": "archer",
+              "shape": "aoe"
+            },
+            "mutate": {
+              "damageMult": 1.16
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "venom_sac",
+      "name": "毒囊",
+      "description": "强化：毒箭、倒刺箭——持续伤害显著提高。",
+      "rarity": "uncommon",
+      "buildTags": [
+        "poison",
+        "archer"
+      ],
+      "iconId": "soul_drink",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "poison_arrow",
+                "barbed_arrow"
+              ]
+            },
+            "mutate": {
+              "damageMult": 1.1,
+              "appendEffects": [
+                {
+                  "type": "dot",
+                  "pctOfAttack": 0.16,
+                  "durationMs": 4000,
+                  "tickMs": 1000
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "hunter_pact",
+      "name": "猎手契约",
+      "description": "强化：猎人印记——易伤更强、持续时间更长。",
+      "rarity": "rare",
+      "buildTags": [
+        "mark",
+        "archer"
+      ],
+      "iconId": "sniper_lens",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "hunters_mark"
+              ]
+            },
+            "mutate": {
+              "replaceEffects": [
+                {
+                  "type": "damage",
+                  "mult": 0.9
+                },
+                {
+                  "type": "mark",
+                  "bonusPct": 0.35,
+                  "durationMs": 11000
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "rain_curtain",
+      "name": "雨幕",
+      "description": "强化：箭雨、齐射——群体伤害与溅射提升。",
+      "rarity": "rare",
+      "buildTags": [
+        "aoe",
+        "archer"
+      ],
+      "iconId": "arcane_tome",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "arrow_storm",
+                "volley"
+              ]
+            },
+            "mutate": {
+              "damageMult": 1.22,
+              "splashMult": 1.1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "pierce_wire",
+      "name": "贯穿丝",
+      "description": "强化：贯穿箭——多跳 1 次，伤害 ×1.12。",
+      "rarity": "rare",
+      "buildTags": [
+        "chain",
+        "archer"
+      ],
+      "iconId": "keen_sight",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "piercing_shot"
+              ]
+            },
+            "mutate": {
+              "addChainJumps": 1,
+              "damageMult": 1.12
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "mage_chain_crest",
+      "name": "传导纹章",
+      "description": "法师连锁技能多跳 1 次。",
+      "rarity": "uncommon",
+      "buildTags": [
+        "chain",
+        "mage"
+      ],
+      "iconId": "eternal_flame",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "classTag": "mage",
+              "shape": "chain"
+            },
+            "mutate": {
+              "addChainJumps": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "mage_nova_crest",
+      "name": "新星纹章",
+      "description": "法师群体技能伤害 ×1.15。",
+      "rarity": "uncommon",
+      "buildTags": [
+        "aoe",
+        "mage"
+      ],
+      "iconId": "arcane_tome",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "classTag": "mage",
+              "shape": "aoe"
+            },
+            "mutate": {
+              "damageMult": 1.15
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "mage_ember_band",
+      "name": "余烬腕轮",
+      "description": "法师单体技能追加点燃。",
+      "rarity": "rare",
+      "buildTags": [
+        "burn",
+        "mage"
+      ],
+      "iconId": "executioner_blade",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "classTag": "mage",
+              "shape": "single"
+            },
+            "mutate": {
+              "appendEffects": [
+                {
+                  "type": "dot",
+                  "pctOfAttack": 0.15,
+                  "durationMs": 2800,
+                  "tickMs": 900
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "mage_aegis",
+      "name": "奥术庇佑",
+      "description": "法师辅助技能冷却 ×0.85。",
+      "rarity": "rare",
+      "buildTags": [
+        "wall",
+        "mage"
+      ],
+      "iconId": "tower_blessing",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "classTag": "mage",
+              "shape": "support"
+            },
+            "mutate": {
+              "cooldownMult": 0.85
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "conduit_coil",
+      "name": "传导线圈",
+      "description": "强化：连锁闪电、静电涌流——再多跳 1 次。",
+      "rarity": "rare",
+      "buildTags": [
+        "chain",
+        "mage"
+      ],
+      "iconId": "eternal_flame",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "chain_lightning",
+                "static_surge"
+              ]
+            },
+            "mutate": {
+              "addChainJumps": 1,
+              "damageMult": 1.08
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "rift_needle",
+      "name": "裂隙针",
+      "description": "强化：奥术飞弹——跳跃不衰减，伤害 ×1.15。",
+      "rarity": "rare",
+      "buildTags": [
+        "chain",
+        "mage"
+      ],
+      "iconId": "momentum_ring",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "arcane_missiles"
+              ]
+            },
+            "mutate": {
+              "damageMult": 1.15,
+              "replaceEffects": [
+                {
+                  "type": "chain",
+                  "mult": 0.78,
+                  "jumps": 5,
+                  "falloff": 1
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "meteor_core",
+      "name": "陨星核",
+      "description": "强化：陨石术——伤害 ×1.25，冷却 ×1.12。",
+      "rarity": "rare",
+      "buildTags": [
+        "aoe",
+        "mage"
+      ],
+      "iconId": "demon_contract",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "meteor"
+              ]
+            },
+            "mutate": {
+              "damageMult": 1.25,
+              "cooldownMult": 1.12
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "spark_fuse",
+      "name": "引火芯",
+      "description": "强化：火球术——追加点燃，并小幅提高直伤。",
+      "rarity": "uncommon",
+      "buildTags": [
+        "burn",
+        "mage"
+      ],
+      "iconId": "executioner_blade",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "fireball"
+              ]
+            },
+            "mutate": {
+              "damageMult": 1.12,
+              "appendEffects": [
+                {
+                  "type": "dot",
+                  "pctOfAttack": 0.2,
+                  "durationMs": 3000,
+                  "tickMs": 800
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "assassin_edge",
+      "name": "绝杀纹章",
+      "description": "刺客单体技能斩杀增强。",
+      "rarity": "uncommon",
+      "buildTags": [
+        "execute",
+        "assassin"
+      ],
+      "iconId": "soul_harvester",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "classTag": "assassin",
+              "shape": "single"
+            },
+            "mutate": {
+              "executeBonus": {
+                "threshold": 0.3,
+                "bonusMult": 2.2
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "assassin_venom",
+      "name": "毒牙纹章",
+      "description": "刺客技能追加短毒。",
+      "rarity": "uncommon",
+      "buildTags": [
+        "poison",
+        "assassin"
+      ],
+      "iconId": "soul_drink",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "classTag": "assassin",
+              "notShape": "support"
+            },
+            "mutate": {
+              "appendEffects": [
+                {
+                  "type": "dot",
+                  "pctOfAttack": 0.12,
+                  "durationMs": 2800,
+                  "tickMs": 1000
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "assassin_mark_crest",
+      "name": "死印纹章",
+      "description": "刺客单体技能追加弱易伤。",
+      "rarity": "rare",
+      "buildTags": [
+        "mark",
+        "assassin"
+      ],
+      "iconId": "keen_sight",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "classTag": "assassin",
+              "shape": "single"
+            },
+            "mutate": {
+              "appendEffects": [
+                {
+                  "type": "mark",
+                  "bonusPct": 0.1,
+                  "durationMs": 3500
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "assassin_flurry_crest",
+      "name": "刃舞纹章",
+      "description": "刺客群体技能伤害 ×1.18。",
+      "rarity": "rare",
+      "buildTags": [
+        "aoe",
+        "assassin"
+      ],
+      "iconId": "blood_edge",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "classTag": "assassin",
+              "shape": "aoe"
+            },
+            "mutate": {
+              "damageMult": 1.18
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "blood_rite_blade",
+      "name": "血祭刃",
+      "description": "强化：放血、绞喉、生命汲取——技能吸血 +22%；最大生命 ×0.92。",
+      "rarity": "rare",
+      "buildTags": [
+        "lifesteal",
+        "assassin"
+      ],
+      "iconId": "blood_edge",
+      "effects": {
+        "maxHpMult": 0.92,
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "hemorrhage",
+                "garrote",
+                "life_drain"
+              ]
+            },
+            "mutate": {
+              "addLifestealPct": 0.22
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "death_ink",
+      "name": "死墨",
+      "description": "强化：死亡标记——易伤大幅提高。",
+      "rarity": "rare",
+      "buildTags": [
+        "mark",
+        "assassin"
+      ],
+      "iconId": "demon_contract",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "death_mark"
+              ]
+            },
+            "mutate": {
+              "replaceEffects": [
+                {
+                  "type": "damage",
+                  "mult": 0.7
+                },
+                {
+                  "type": "mark",
+                  "bonusPct": 0.55,
+                  "durationMs": 8000
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "blade_storm_sigil",
+      "name": "刃风暴印",
+      "description": "强化：刀扇、刀刃旋风——伤害 ×1.2。",
+      "rarity": "uncommon",
+      "buildTags": [
+        "aoe",
+        "assassin"
+      ],
+      "iconId": "glass_cannon",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "fan_of_knives",
+                "blade_flurry"
+              ]
+            },
+            "mutate": {
+              "damageMult": 1.2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "shadow_thread",
+      "name": "影线",
+      "description": "强化：暗影贯穿、影步——射程 +25，伤害 ×1.15。",
+      "rarity": "uncommon",
+      "buildTags": [
+        "tempo",
+        "assassin"
+      ],
+      "iconId": "sniper_lens",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "shadow_pierce",
+                "shadow_step"
+              ]
+            },
+            "mutate": {
+              "rangeBonus": 25,
+              "damageMult": 1.15
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "echo_scroll",
+      "name": "回响卷轴",
+      "description": "强化：火球术、暗影箭——改为 2 跳连锁，伤害 ×0.75，冷却 ×1.1。",
+      "rarity": "legendary",
+      "buildTags": [
+        "chain",
+        "mage"
+      ],
+      "iconId": "scholar_scroll",
+      "effects": {
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "fireball",
+                "shadow_bolt"
+              ]
+            },
+            "mutate": {
+              "addChainJumps": 1,
+              "damageMult": 0.75,
+              "cooldownMult": 1.1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "edict_of_end",
+      "name": "处刑法令",
+      "description": "强化：处决、背刺——斩杀线与倍率大幅增强；最大生命 ×0.92。",
+      "rarity": "legendary",
+      "buildTags": [
+        "execute",
+        "assassin"
+      ],
+      "iconId": "soul_harvester",
+      "effects": {
+        "maxHpMult": 0.92,
+        "skillMutators": [
+          {
+            "match": {
+              "ids": [
+                "execution",
+                "backstab"
+              ]
+            },
+            "mutate": {
+              "executeBonus": {
+                "threshold": 0.35,
+                "bonusMult": 3.2
+              },
+              "damageMult": 1.1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "collapse_core",
+      "name": "崩坏星核",
+      "description": "全队非辅助技能强制群体，伤害 ×0.7；最大生命 ×0.88。",
+      "rarity": "legendary",
+      "buildTags": [
+        "aoe"
+      ],
+      "iconId": "demon_contract",
+      "effects": {
+        "maxHpMult": 0.88,
+        "skillMutators": [
+          {
+            "match": {
+              "notShape": "support"
+            },
+            "mutate": {
+              "forceAoe": true,
+              "damageMult": 0.7
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "stasis_watch",
+      "name": "静滞怀表",
+      "description": "技能冷却 ×0.75；普攻变慢，且取消开场技能就绪。",
+      "rarity": "legendary",
+      "buildTags": [
+        "tempo"
+      ],
+      "iconId": "war_rhythm",
+      "effects": {
+        "cooldownMult": 0.75,
+        "basicIntervalMult": 1.22,
+        "suppressStartSkillReady": true
+      }
+    },
+    {
+      "id": "overclock_seal",
+      "name": "超频封印",
+      "description": "开战时全员技能就绪；最大生命 ×0.9。",
+      "rarity": "legendary",
+      "buildTags": [
+        "tempo"
+      ],
+      "iconId": "skill_catalog",
+      "effects": {
+        "startAllSkillsReady": true,
+        "maxHpMult": 0.9
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "coin_cache",
+      "title": "遗落钱袋",
+      "desc": "墙角有几只破钱袋，还能搜出点金币。",
+      "weight": 1.2,
+      "choices": [
+        {
+          "id": "take",
+          "label": "搜刮",
+          "desc": "获得 35–55 金币",
+          "effects": [
+            {
+              "type": "gold_add",
+              "min": 35,
+              "max": 55
+            }
+          ]
+        },
+        {
+          "id": "smash",
+          "label": "砸开暗格",
+          "desc": "可能更多金币，也可能受伤",
+          "risk": true,
+          "effects": [
+            {
+              "type": "random",
+              "outcomes": [
+                {
+                  "weight": 55,
+                  "message": "多捞到一笔金币",
+                  "effects": [
+                    {
+                      "type": "gold_add",
+                      "min": 60,
+                      "max": 90
+                    }
+                  ]
+                },
+                {
+                  "weight": 45,
+                  "message": "踩到陷阱，全队受伤",
+                  "effects": [
+                    {
+                      "type": "damage_percent",
+                      "value": -0.12
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ember_camp",
+      "title": "余烬营火",
+      "desc": "还有余温的营火，可以歇一会儿。",
+      "weight": 1.1,
+      "choices": [
+        {
+          "id": "rest",
+          "label": "休整",
+          "desc": "全队回复 35% 生命",
+          "effects": [
+            {
+              "type": "heal_percent",
+              "value": 0.35
+            }
+          ]
+        },
+        {
+          "id": "cook",
+          "label": "煮食",
+          "desc": "回复 20% 生命，+150 经验",
+          "effects": [
+            {
+              "type": "heal_percent",
+              "value": 0.2
+            },
+            {
+              "type": "exp_add",
+              "min": 150,
+              "max": 150
+            }
+          ]
+        },
+        {
+          "id": "leave",
+          "label": "继续赶路",
+          "desc": "什么都不做",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "wandering_merchant",
+      "title": "流浪商人",
+      "desc": "有人在卖卷轴和护具。",
+      "weight": 1,
+      "choices": [
+        {
+          "id": "buy_skill",
+          "label": "买技能",
+          "desc": "花 25 金币，随机职业技能",
+          "costGold": 25,
+          "effects": [
+            {
+              "type": "skill_loot"
+            }
+          ]
+        },
+        {
+          "id": "buy_gear",
+          "label": "买装备",
+          "desc": "花 30 金币，随机装备",
+          "costGold": 30,
+          "effects": [
+            {
+              "type": "gear_loot"
+            }
+          ]
+        },
+        {
+          "id": "haggle",
+          "label": "砍价",
+          "desc": "花 15 金币碰运气",
+          "costGold": 15,
+          "risk": true,
+          "effects": [
+            {
+              "type": "random",
+              "outcomes": [
+                {
+                  "weight": 50,
+                  "message": "买到一件装备",
+                  "effects": [
+                    {
+                      "type": "gear_loot"
+                    }
+                  ]
+                },
+                {
+                  "weight": 30,
+                  "message": "买到技能卷轴",
+                  "effects": [
+                    {
+                      "type": "skill_loot"
+                    }
+                  ]
+                },
+                {
+                  "weight": 20,
+                  "message": "被坑了，只剩点零钱",
+                  "effects": [
+                    {
+                      "type": "gold_add",
+                      "min": 8,
+                      "max": 15
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "leave",
+          "label": "离开",
+          "desc": "不买",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "old_altar",
+      "title": "古老祭坛",
+      "desc": "石坛上刻着看不懂的符文。",
+      "weight": 0.9,
+      "choices": [
+        {
+          "id": "offer",
+          "label": "献金币",
+          "desc": "花 20 金币，可能得遗物",
+          "costGold": 20,
+          "effects": [
+            {
+              "type": "random",
+              "outcomes": [
+                {
+                  "weight": 55,
+                  "message": "获得遗物",
+                  "effects": [
+                    {
+                      "type": "relic_add"
+                    }
+                  ]
+                },
+                {
+                  "weight": 45,
+                  "message": "只回了血",
+                  "effects": [
+                    {
+                      "type": "heal_percent",
+                      "value": 0.3
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "pray",
+          "label": "祈祷",
+          "desc": "回复 25% 生命",
+          "effects": [
+            {
+              "type": "heal_percent",
+              "value": 0.25
+            }
+          ]
+        },
+        {
+          "id": "steal",
+          "label": "偷供品",
+          "desc": "得 40–65 金币，可能被诅咒",
+          "risk": true,
+          "effects": [
+            {
+              "type": "gold_add",
+              "min": 40,
+              "max": 65
+            },
+            {
+              "type": "random",
+              "outcomes": [
+                {
+                  "weight": 40,
+                  "message": "被诅咒，全队受伤",
+                  "effects": [
+                    {
+                      "type": "damage_percent",
+                      "value": -0.18
+                    }
+                  ]
+                },
+                {
+                  "weight": 60,
+                  "message": "平安离开",
+                  "effects": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill_archive",
+      "title": "技能铭刻室",
+      "desc": "墙上刻着各职业战技。",
+      "weight": 0.85,
+      "choices": [
+        {
+          "id": "copy",
+          "label": "拓印",
+          "desc": "免费随机技能",
+          "effects": [
+            {
+              "type": "skill_loot"
+            }
+          ]
+        },
+        {
+          "id": "study",
+          "label": "研读",
+          "desc": "+225 经验",
+          "effects": [
+            {
+              "type": "exp_add",
+              "min": 225,
+              "max": 225
+            }
+          ]
+        },
+        {
+          "id": "dual",
+          "label": "强行双拓",
+          "desc": "得技能，全队失去 10% 生命",
+          "risk": true,
+          "effects": [
+            {
+              "type": "skill_loot"
+            },
+            {
+              "type": "damage_percent",
+              "value": -0.1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "armory_ruin",
+      "title": "魔匠工坊",
+      "desc": "废弃工坊里还能找到装备。",
+      "weight": 0.9,
+      "choices": [
+        {
+          "id": "scavenge",
+          "label": "搜刮",
+          "desc": "随机装备",
+          "effects": [
+            {
+              "type": "gear_loot"
+            }
+          ]
+        },
+        {
+          "id": "forge",
+          "label": "付费锻造",
+          "desc": "花 22 金币，必得武器",
+          "costGold": 22,
+          "effects": [
+            {
+              "type": "gear_loot",
+              "slot": "weapon"
+            }
+          ]
+        },
+        {
+          "id": "salvage",
+          "label": "拆废料",
+          "desc": "获得 28–42 金币",
+          "effects": [
+            {
+              "type": "gold_add",
+              "min": 28,
+              "max": 42
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "blood_pact",
+      "title": "血之契约",
+      "desc": "用法阵拿伤换资源。",
+      "weight": 0.75,
+      "choices": [
+        {
+          "id": "gold",
+          "label": "换金币",
+          "desc": "失去 20% 生命，得 50–75 金币",
+          "risk": true,
+          "effects": [
+            {
+              "type": "damage_percent",
+              "value": -0.2
+            },
+            {
+              "type": "gold_add",
+              "min": 50,
+              "max": 75
+            }
+          ]
+        },
+        {
+          "id": "skill",
+          "label": "换技能",
+          "desc": "失去 15% 生命，随机技能",
+          "risk": true,
+          "effects": [
+            {
+              "type": "damage_percent",
+              "value": -0.15
+            },
+            {
+              "type": "skill_loot"
+            }
+          ]
+        },
+        {
+          "id": "refuse",
+          "label": "拒绝",
+          "desc": "离开",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "mystery_chest",
+      "title": "神秘宝箱",
+      "desc": "锁着的箱子，里面不一定是好东西。",
+      "weight": 1,
+      "choices": [
+        {
+          "id": "open",
+          "label": "打开",
+          "desc": "完全随机",
+          "risk": true,
+          "effects": [
+            {
+              "type": "random",
+              "outcomes": [
+                {
+                  "weight": 25,
+                  "message": "获得金币",
+                  "effects": [
+                    {
+                      "type": "gold_add",
+                      "min": 55,
+                      "max": 80
+                    }
+                  ]
+                },
+                {
+                  "weight": 25,
+                  "message": "获得技能",
+                  "effects": [
+                    {
+                      "type": "skill_loot"
+                    }
+                  ]
+                },
+                {
+                  "weight": 20,
+                  "message": "获得装备",
+                  "effects": [
+                    {
+                      "type": "gear_loot"
+                    }
+                  ]
+                },
+                {
+                  "weight": 12,
+                  "message": "获得遗物",
+                  "effects": [
+                    {
+                      "type": "relic_add"
+                    }
+                  ]
+                },
+                {
+                  "weight": 18,
+                  "message": "是陷阱，全队受伤",
+                  "effects": [
+                    {
+                      "type": "damage_percent",
+                      "value": -0.22
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "safe",
+          "label": "只取外层",
+          "desc": "稳妥得 18–30 金币",
+          "effects": [
+            {
+              "type": "gold_add",
+              "min": 18,
+              "max": 30
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tower_spirit",
+      "title": "塔灵庇佑",
+      "desc": "一缕塔灵残影飘过。",
+      "weight": 0.8,
+      "choices": [
+        {
+          "id": "bless",
+          "label": "接受祝福",
+          "desc": "全队回复 28% 生命",
+          "effects": [
+            {
+              "type": "heal_percent",
+              "value": 0.28
+            }
+          ]
+        },
+        {
+          "id": "boon",
+          "label": "要馈赠",
+          "desc": "随机 30–45 金币或 200 经验",
+          "effects": [
+            {
+              "type": "random",
+              "outcomes": [
+                {
+                  "weight": 50,
+                  "message": "获得金币",
+                  "effects": [
+                    {
+                      "type": "gold_add",
+                      "min": 30,
+                      "max": 45
+                    }
+                  ]
+                },
+                {
+                  "weight": 50,
+                  "message": "获得经验",
+                  "effects": [
+                    {
+                      "type": "exp_add",
+                      "min": 200,
+                      "max": 200
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "name",
+          "label": "报上名号",
+          "desc": "随机一人满血，其余失去 12% 生命",
+          "risk": true,
+          "effects": [
+            {
+              "type": "heal_one_full"
+            },
+            {
+              "type": "damage_percent",
+              "value": -0.12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mirror_trial",
+      "title": "镜像试炼",
+      "desc": "镜里映出你们的虚影。",
+      "weight": 0.85,
+      "choices": [
+        {
+          "id": "fight",
+          "label": "击碎镜像",
+          "desc": "失去 12% 生命，得 38–58 金币与 125 经验",
+          "risk": true,
+          "effects": [
+            {
+              "type": "damage_percent",
+              "value": -0.12
+            },
+            {
+              "type": "gold_add",
+              "min": 38,
+              "max": 58
+            },
+            {
+              "type": "exp_add",
+              "min": 125,
+              "max": 125
+            }
+          ]
+        },
+        {
+          "id": "yield",
+          "label": "认输",
+          "desc": "失去 8% 生命，+200 经验",
+          "effects": [
+            {
+              "type": "damage_percent",
+              "value": -0.08
+            },
+            {
+              "type": "exp_add",
+              "min": 200,
+              "max": 200
+            }
+          ]
+        },
+        {
+          "id": "walk",
+          "label": "绕开",
+          "desc": "什么都不发生",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "demon_whisper",
+      "title": "恶魔低语",
+      "desc": "墙缝里有人低语，说能立刻治伤。",
+      "weight": 0.7,
+      "oncePerRun": true,
+      "choices": [
+        {
+          "id": "accept",
+          "label": "接受",
+          "desc": "随机一人满血，其余失去 15% 生命",
+          "risk": true,
+          "effects": [
+            {
+              "type": "heal_one_full"
+            },
+            {
+              "type": "damage_percent",
+              "value": -0.15
+            }
+          ]
+        },
+        {
+          "id": "reject",
+          "label": "封住裂缝",
+          "desc": "获得 30 金币与 100 经验",
+          "effects": [
+            {
+              "type": "gold_add",
+              "min": 30,
+              "max": 30
+            },
+            {
+              "type": "exp_add",
+              "min": 100,
+              "max": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gamblers_table",
+      "title": "赌徒牌桌",
+      "desc": "有人招呼你坐下赌一把。",
+      "weight": 0.95,
+      "choices": [
+        {
+          "id": "bet_small",
+          "label": "小赌",
+          "desc": "花 10 金币",
+          "costGold": 10,
+          "risk": true,
+          "effects": [
+            {
+              "type": "random",
+              "outcomes": [
+                {
+                  "weight": 45,
+                  "message": "赢了",
+                  "effects": [
+                    {
+                      "type": "gold_add",
+                      "min": 35,
+                      "max": 50
+                    }
+                  ]
+                },
+                {
+                  "weight": 35,
+                  "message": "打平，拿回本金",
+                  "effects": [
+                    {
+                      "type": "gold_add",
+                      "min": 10,
+                      "max": 10
+                    }
+                  ]
+                },
+                {
+                  "weight": 20,
+                  "message": "输了，全队受伤",
+                  "effects": [
+                    {
+                      "type": "damage_percent",
+                      "value": -0.1
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "bet_big",
+          "label": "豪赌",
+          "desc": "花 25 金币",
+          "costGold": 25,
+          "risk": true,
+          "effects": [
+            {
+              "type": "random",
+              "outcomes": [
+                {
+                  "weight": 35,
+                  "message": "大赢：技能+金币",
+                  "effects": [
+                    {
+                      "type": "skill_loot"
+                    },
+                    {
+                      "type": "gold_add",
+                      "min": 20,
+                      "max": 20
+                    }
+                  ]
+                },
+                {
+                  "weight": 30,
+                  "message": "小赚一笔",
+                  "effects": [
+                    {
+                      "type": "gold_add",
+                      "min": 40,
+                      "max": 55
+                    }
+                  ]
+                },
+                {
+                  "weight": 35,
+                  "message": "全输，全队受伤",
+                  "effects": [
+                    {
+                      "type": "damage_percent",
+                      "value": -0.2
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "leave",
+          "label": "不赌",
+          "desc": "离开",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "relic_shrine",
+      "title": "遗物神龛",
+      "desc": "神龛上放着前人遗物。",
+      "weight": 0.65,
+      "oncePerRun": true,
+      "choices": [
+        {
+          "id": "take",
+          "label": "直接拿走",
+          "desc": "随机遗物",
+          "effects": [
+            {
+              "type": "relic_add"
+            }
+          ]
+        },
+        {
+          "id": "pay",
+          "label": "供奉后取",
+          "desc": "花 35 金币，得遗物并回 20% 生命",
+          "costGold": 35,
+          "effects": [
+            {
+              "type": "relic_add"
+            },
+            {
+              "type": "heal_percent",
+              "value": 0.2
+            }
+          ]
+        },
+        {
+          "id": "leave",
+          "label": "不动",
+          "desc": "+125 经验",
+          "effects": [
+            {
+              "type": "exp_add",
+              "min": 125,
+              "max": 125
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "training_dummy",
+      "title": "训练假人",
+      "desc": "走廊边有个练功假人。",
+      "weight": 1,
+      "choices": [
+        {
+          "id": "drill",
+          "label": "全队热身",
+          "desc": "+175 经验，回 15% 生命",
+          "effects": [
+            {
+              "type": "exp_add",
+              "min": 175,
+              "max": 175
+            },
+            {
+              "type": "heal_percent",
+              "value": 0.15
+            }
+          ]
+        },
+        {
+          "id": "spar",
+          "label": "单人切磋",
+          "desc": "失去 8% 生命，随机技能",
+          "risk": true,
+          "effects": [
+            {
+              "type": "damage_percent",
+              "value": -0.08
+            },
+            {
+              "type": "skill_loot"
+            }
+          ]
+        },
+        {
+          "id": "skip",
+          "label": "跳过",
+          "desc": "继续前进",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "fallen_library",
+      "title": "坠落书库",
+      "desc": "倒塌书架间还有能读的抄本。",
+      "weight": 0.9,
+      "choices": [
+        {
+          "id": "read",
+          "label": "读抄本",
+          "desc": "随机技能",
+          "effects": [
+            {
+              "type": "skill_loot"
+            }
+          ]
+        },
+        {
+          "id": "meditate",
+          "label": "冥想",
+          "desc": "+280 经验",
+          "effects": [
+            {
+              "type": "exp_add",
+              "min": 280,
+              "max": 280
+            }
+          ]
+        },
+        {
+          "id": "burn",
+          "label": "烧书换钱",
+          "desc": "获得 45–70 金币",
+          "effects": [
+            {
+              "type": "gold_add",
+              "min": 45,
+              "max": 70
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wounded_adventurer",
+      "title": "负伤冒险者",
+      "desc": "伤者靠墙，想用装备换点东西。",
+      "weight": 0.85,
+      "choices": [
+        {
+          "id": "trade",
+          "label": "买他的装备",
+          "desc": "花 28 金币得装备",
+          "costGold": 28,
+          "effects": [
+            {
+              "type": "gear_loot"
+            }
+          ]
+        },
+        {
+          "id": "help",
+          "label": "帮忙包扎",
+          "desc": "回 30% 生命，得 35 金币",
+          "effects": [
+            {
+              "type": "heal_percent",
+              "value": 0.3
+            },
+            {
+              "type": "gold_add",
+              "min": 35,
+              "max": 35
+            }
+          ]
+        },
+        {
+          "id": "pass",
+          "label": "路过",
+          "desc": "不停留",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "cursed_fountain",
+      "title": "诅咒泉眼",
+      "desc": "泉水发紫，喝了不一定好。",
+      "weight": 0.75,
+      "choices": [
+        {
+          "id": "drink",
+          "label": "喝一口",
+          "desc": "随机结果",
+          "risk": true,
+          "effects": [
+            {
+              "type": "random",
+              "outcomes": [
+                {
+                  "weight": 35,
+                  "message": "大回血",
+                  "effects": [
+                    {
+                      "type": "heal_percent",
+                      "value": 0.45
+                    }
+                  ]
+                },
+                {
+                  "weight": 30,
+                  "message": "获得遗物",
+                  "effects": [
+                    {
+                      "type": "relic_add"
+                    }
+                  ]
+                },
+                {
+                  "weight": 35,
+                  "message": "中咒，全队受伤",
+                  "effects": [
+                    {
+                      "type": "damage_percent",
+                      "value": -0.2
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "bottle",
+          "label": "装瓶带走",
+          "desc": "+180 经验",
+          "effects": [
+            {
+              "type": "exp_add",
+              "min": 180,
+              "max": 180
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "weapon_rack",
+      "title": "弃置军械",
+      "desc": "成排兵器还能捡。",
+      "weight": 0.95,
+      "choices": [
+        {
+          "id": "take_weapon",
+          "label": "拿武器",
+          "desc": "随机武器",
+          "effects": [
+            {
+              "type": "gear_loot",
+              "slot": "weapon"
+            }
+          ]
+        },
+        {
+          "id": "take_any",
+          "label": "随便拿",
+          "desc": "随机装备",
+          "effects": [
+            {
+              "type": "gear_loot"
+            }
+          ]
+        },
+        {
+          "id": "sell",
+          "label": "拆了卖",
+          "desc": "获得 40–60 金币",
+          "effects": [
+            {
+              "type": "gold_add",
+              "min": 40,
+              "max": 60
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "echo_chamber",
+      "title": "回音密室",
+      "desc": "密室内回荡着旧时战吼。",
+      "weight": 0.8,
+      "oncePerRun": true,
+      "choices": [
+        {
+          "id": "echo",
+          "label": "跟着吼",
+          "desc": "全队回 22% 生命，+200 经验",
+          "effects": [
+            {
+              "type": "heal_percent",
+              "value": 0.22
+            },
+            {
+              "type": "exp_add",
+              "min": 200,
+              "max": 200
+            }
+          ]
+        },
+        {
+          "id": "relic_echo",
+          "label": "细听",
+          "desc": "可能得遗物",
+          "risk": true,
+          "effects": [
+            {
+              "type": "random",
+              "outcomes": [
+                {
+                  "weight": 55,
+                  "message": "获得遗物",
+                  "effects": [
+                    {
+                      "type": "relic_add"
+                    }
+                  ]
+                },
+                {
+                  "weight": 45,
+                  "message": "没听到什么，+80 经验",
+                  "effects": [
+                    {
+                      "type": "exp_add",
+                      "min": 80,
+                      "max": 80
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pit_of_trials",
+      "title": "试炼深坑",
+      "desc": "坑底有动静，跳下去可能有收获。",
+      "weight": 0.7,
+      "choices": [
+        {
+          "id": "jump",
+          "label": "跳下去",
+          "desc": "失去 18% 生命，随机技能或遗物",
+          "risk": true,
+          "effects": [
+            {
+              "type": "damage_percent",
+              "value": -0.18
+            },
+            {
+              "type": "random",
+              "outcomes": [
+                {
+                  "weight": 40,
+                  "message": "获得技能",
+                  "effects": [
+                    {
+                      "type": "skill_loot"
+                    }
+                  ]
+                },
+                {
+                  "weight": 25,
+                  "message": "获得遗物",
+                  "effects": [
+                    {
+                      "type": "relic_add"
+                    }
+                  ]
+                },
+                {
+                  "weight": 35,
+                  "message": "只摸到 25 金币",
+                  "effects": [
+                    {
+                      "type": "gold_add",
+                      "min": 25,
+                      "max": 25
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rope",
+          "label": "沿绳下去",
+          "desc": "稳妥得 50–75 金币",
+          "effects": [
+            {
+              "type": "gold_add",
+              "min": 50,
+              "max": 75
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "star_chart",
+      "title": "星象台",
+      "desc": "星图还在转，可以占一卦。",
+      "weight": 0.65,
+      "choices": [
+        {
+          "id": "fortune",
+          "label": "问财运",
+          "desc": "获得 55–85 金币",
+          "effects": [
+            {
+              "type": "gold_add",
+              "min": 55,
+              "max": 85
+            }
+          ]
+        },
+        {
+          "id": "wisdom",
+          "label": "问智慧",
+          "desc": "+320 经验",
+          "effects": [
+            {
+              "type": "exp_add",
+              "min": 320,
+              "max": 320
+            }
+          ]
+        },
+        {
+          "id": "fate",
+          "label": "赌一把",
+          "desc": "花 15 金币，可能遗物或受伤",
+          "costGold": 15,
+          "risk": true,
+          "effects": [
+            {
+              "type": "random",
+              "outcomes": [
+                {
+                  "weight": 30,
+                  "message": "获得遗物",
+                  "effects": [
+                    {
+                      "type": "relic_add"
+                    }
+                  ]
+                },
+                {
+                  "weight": 40,
+                  "message": "获得技能",
+                  "effects": [
+                    {
+                      "type": "skill_loot"
+                    }
+                  ]
+                },
+                {
+                  "weight": 30,
+                  "message": "反噬，全队受伤",
+                  "effects": [
+                    {
+                      "type": "damage_percent",
+                      "value": -0.15
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "healing_spring",
+      "title": "治愈之泉",
+      "desc": "清澈泉水，能回血。",
+      "weight": 1,
+      "choices": [
+        {
+          "id": "drink_all",
+          "label": "全员喝",
+          "desc": "回复 40% 生命",
+          "effects": [
+            {
+              "type": "heal_percent",
+              "value": 0.4
+            }
+          ]
+        },
+        {
+          "id": "save_one",
+          "label": "留给重伤",
+          "desc": "最低血者满血，其余 +15%",
+          "effects": [
+            {
+              "type": "heal_one_full"
+            },
+            {
+              "type": "heal_percent",
+              "value": 0.15
+            }
+          ]
+        },
+        {
+          "id": "collect",
+          "label": "装水卖掉",
+          "desc": "获得 35 金币",
+          "effects": [
+            {
+              "type": "gold_add",
+              "min": 35,
+              "max": 35
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

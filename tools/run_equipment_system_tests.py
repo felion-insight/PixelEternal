@@ -84,7 +84,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--classes", default="destroyer,archmage", help="浏览器测试职业，逗号分隔")
     parser.add_argument("--presets", default=",".join(PRESETS), help="浏览器装备预设，逗号分隔")
     parser.add_argument("--seed", type=int, default=7, help="确定性随机种子")
-    parser.add_argument("--report", default="equipment_system_test_report.json", help="测试报告输出路径")
+    parser.add_argument("--report", default="artifacts/equipment_system_test_report.json", help="测试报告输出路径")
     return parser.parse_args()
 
 

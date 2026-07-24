@@ -30,6 +30,7 @@ class ConfigLoader {
                 { key: 'BOSS_DEFINITIONS', file: 'config/boss-config.json' },
                 { key: 'BUFF_ICON_MAP', file: 'config/buff-icon-config.json' },
                 { key: 'SKILL_ICON_MAP', file: 'config/skill-icon-config.json' },
+                { key: 'POTION_ICON_MAP', file: 'config/potion-icon-config.json' },
                 { key: 'MAPPINGS', file: 'config/mappings.json' },
                 { key: 'CLASS_CONFIG', file: 'config/class-config.json' },
                 { key: 'WEAPON_AFFINITY_CONFIG', file: 'config/weapon-affinity-config.json' },
@@ -47,7 +48,9 @@ class ConfigLoader {
                 { key: 'TRIAL_CONFIG', file: 'config/trial-config.json' },
                 { key: 'TALENT_CONFIG', file: 'config/talent-config.json' },
                 { key: 'TUTORIAL_CONFIG', file: 'config/tutorial-config.json' },
-                { key: 'MATERIAL_DEFINITIONS', file: 'config/material-config.json' }
+                { key: 'MATERIAL_DEFINITIONS', file: 'config/material-config.json' },
+                { key: 'AUTO_BATTLER_CONFIG', file: 'config/auto-battler-config.json' },
+                { key: 'SPRITE_ANIMATIONS', file: 'config/sprite-animations.json' }
             ];
 
             for (const { key, file } of configFiles) {
@@ -183,6 +186,12 @@ class ConfigLoader {
         }
         if (this.configs.SCENE_TYPES) {
             window.SCENE_TYPES = this.configs.SCENE_TYPES;
+            if (!window.SCENE_TYPES.AUTO_BATTLER) {
+                window.SCENE_TYPES.AUTO_BATTLER = 'auto_battler';
+            }
+            if (!window.SCENE_TYPES.ANIM_PREVIEW) {
+                window.SCENE_TYPES.ANIM_PREVIEW = 'anim_preview';
+            }
         }
 
         // 其他配置
@@ -209,6 +218,9 @@ class ConfigLoader {
         if (this.configs.SKILL_ICON_MAP) {
             window.SKILL_ICON_MAP = this.configs.SKILL_ICON_MAP;
         }
+        if (this.configs.POTION_ICON_MAP) {
+            window.POTION_ICON_MAP = this.configs.POTION_ICON_MAP;
+        }
 
         // 图片映射配置
         if (this.configs.MAPPINGS) {
@@ -219,6 +231,15 @@ class ConfigLoader {
         }
         if (this.configs.CLASS_CONFIG) {
             window.CLASS_CONFIG = this.configs.CLASS_CONFIG;
+        }
+        if (this.configs.AUTO_BATTLER_CONFIG) {
+            window.AUTO_BATTLER_CONFIG = this.configs.AUTO_BATTLER_CONFIG;
+            if (window.CONFIG && typeof window.CONFIG === 'object') {
+                window.CONFIG.AUTO_BATTLER_CONFIG = this.configs.AUTO_BATTLER_CONFIG;
+            }
+        }
+        if (this.configs.SPRITE_ANIMATIONS) {
+            window.SPRITE_ANIMATIONS = this.configs.SPRITE_ANIMATIONS;
         }
         if (this.configs.WEAPON_AFFINITY_CONFIG) {
             window.WEAPON_AFFINITY_CONFIG = this.configs.WEAPON_AFFINITY_CONFIG;

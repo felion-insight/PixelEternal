@@ -9,7 +9,12 @@ tools/__pycache__/
 
 # 生图批处理日志（可再生成）
 tools/_deep_batch_log.txt
+tools/static-art-ai*.log
 asset/skill_icons/logs/*.log
+
+# 工具生成的测试/平衡/playtest 报告（可再运行 tools/ 脚本产出）
+artifacts/*
+!artifacts/README.md
 
 # macOS
 .DS_Store

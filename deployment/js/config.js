@@ -122,8 +122,15 @@ if (typeof window.SCENE_TYPES === 'undefined') {
         TRIAL: 'trial',
         DUNGEON: 'dungeon',
         SKILL_LAB: 'skill_lab',
-        EQUIPMENT_LAB: 'equipment_lab'
+        EQUIPMENT_LAB: 'equipment_lab',
+        ANIM_PREVIEW: 'anim_preview',
+        AUTO_BATTLER: 'auto_battler'
     };
+} else if (!window.SCENE_TYPES.AUTO_BATTLER) {
+    window.SCENE_TYPES.AUTO_BATTLER = 'auto_battler';
+}
+if (typeof window.SCENE_TYPES !== 'undefined' && !window.SCENE_TYPES.ANIM_PREVIEW) {
+    window.SCENE_TYPES.ANIM_PREVIEW = 'anim_preview';
 }
 
 // 为了向后兼容，创建局部常量引用

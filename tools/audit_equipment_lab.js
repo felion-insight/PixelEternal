@@ -223,6 +223,8 @@ const report = {
     all: rows
 };
 
-const outPath = path.join(root, 'equipment_lab_audit.json');
+const outDir = path.join(root, 'artifacts');
+const outPath = path.join(outDir, 'equipment_lab_audit.json');
+fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(outPath, JSON.stringify(report, null, 2), 'utf8');
 console.log(JSON.stringify({ summary, unwiredModifierKeys: unwiredMods, missingCount: report.missing.length }, null, 2));

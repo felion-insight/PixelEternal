@@ -530,11 +530,11 @@ class SoundManager {
         
         // 主城和训练场使用town背景音乐
         // SCENE_TYPES.TOWN = 'town', SCENE_TYPES.TRAINING = 'training'
-        if (sceneType === 'town' || sceneType === 'training' || sceneType === 'skill_lab') {
+        if (sceneType === 'town' || sceneType === 'training' || sceneType === 'skill_lab' || sceneType === 'anim_preview') {
             console.log('播放town背景音乐');
             this.playBgm('town');
         }
-        else if (sceneType === 'tower' || sceneType === 'trial' || sceneType === 'dungeon') {
+        else if (sceneType === 'tower' || sceneType === 'trial' || sceneType === 'dungeon' || sceneType === 'auto_battler') {
             console.log('播放battle背景音乐');
             this.playBgm('battle');
         }

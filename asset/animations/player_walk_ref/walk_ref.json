@@ -1,0 +1,56 @@
+{
+  "id": "player_walk_ref",
+  "source_gif": "asset/player.gif",
+  "frame_size": 128,
+  "frame_count": 11,
+  "idle_frame": 0,
+  "walk_frames": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "walk_frame_files": [
+    "walk_frames/walk_000.png",
+    "walk_frames/walk_001.png",
+    "walk_frames/walk_002.png",
+    "walk_frames/walk_003.png",
+    "walk_frames/walk_004.png",
+    "walk_frames/walk_005.png",
+    "walk_frames/walk_006.png",
+    "walk_frames/walk_007.png",
+    "walk_frames/walk_008.png",
+    "walk_frames/walk_009.png"
+  ],
+  "pose_ref": "animations/player_walk_ref/walk_pose_ref.png",
+  "leg_pose_ref": "animations/player_walk_ref/walk_leg_pose_ref.png",
+  "pose_sample_indices": [
+    1,
+    3,
+    5,
+    6,
+    8,
+    10
+  ],
+  "delays_ms": [
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100
+  ],
+  "view": "front",
+  "usage": "Attach walk_leg_pose_ref.png or walk_frames/ as --walk-ref when running generate --mode ai-ref"
+}

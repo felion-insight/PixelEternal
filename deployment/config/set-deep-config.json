@@ -27,7 +27,7 @@
           "stats": {},
           "special": "cooldownReduction",
           "cooldownReductionPercent": 3,
-          "description": "激活**渊隙裂响**，武器技能冷却缩短3%（入门档）"
+          "description": "渊隙裂响，武器技能冷却缩短3%"
         },
         "6": {
           "description": "防御力+4，生命值+13，暴击率+2%，闪避率+3%",
@@ -44,7 +44,7 @@
           },
           "special": "cooldownReduction",
           "cooldownReductionPercent": 7,
-          "description": "所有属性+4%，**渊隙裂响**获得强化，武器技能冷却缩短7%（满档强化）"
+          "description": "全属性+4%，渊隙裂响：武器技能冷却缩短7%"
         }
       }
     },
@@ -76,7 +76,7 @@
           "special": "flameExplosion",
           "flameExplosionChance": 0.136,
           "flameExplosionMult": 0.2772,
-          "description": "激活**渊隙迸痕**，攻击附带爆裂（入门档）：约14%触发、爆裂伤害约28%攻击力"
+          "description": "渊隙迸痕，攻击附带爆裂：14%触发、爆裂伤害28%攻击力"
         },
         "6": {
           "description": "防御力+5，生命值+20，暴击率+3%，闪避率+5%",
@@ -94,7 +94,7 @@
           "special": "flameExplosion",
           "flameExplosionChance": 0.22,
           "flameExplosionMult": 0.42,
-          "description": "所有属性+7%，**渊隙迸痕**获得强化，攻击附带爆裂（满档强化）：约22%触发、爆裂伤害约42%攻击力"
+          "description": "全属性+7%，渊隙迸痕：攻击附带爆裂：22%触发、爆裂伤害42%攻击力"
         }
       }
     },
@@ -127,7 +127,7 @@
           "voidEchoChance": 0.136,
           "voidEchoDamageFrac": 0.2508,
           "voidEchoDelayMs": 156,
-          "description": "激活**渊隙奔流**，虚回折返（入门档）：约14%触发、折返约25%伤害、延迟约156ms"
+          "description": "渊隙奔流，攻击有概率额外折返伤害：14%触发、折返25%伤害、延迟约156ms"
         },
         "6": {
           "description": "防御力+7，生命值+28，暴击率+4%，闪避率+7%",
@@ -146,7 +146,7 @@
           "voidEchoChance": 0.22,
           "voidEchoDamageFrac": 0.38,
           "voidEchoDelayMs": 200,
-          "description": "所有属性+9%，**渊隙奔流**获得强化，虚回折返（满档强化）：约22%触发、折返约38%伤害、延迟约200ms"
+          "description": "全属性+9%，渊隙奔流：攻击有概率额外折返伤害：22%触发、折返38%伤害、延迟约200ms"
         }
       }
     },
@@ -178,7 +178,7 @@
           "special": "damageToHeal",
           "damageToHealChance": 0.087,
           "damageToHealRatio": 0.072,
-          "description": "激活**渊隙噬能**，受击转伤为疗（入门档）：约9%触发、转化与减免约7%量级"
+          "description": "渊隙噬能，受击有概率把伤害转为治疗：9%触发、转化7%"
         },
         "6": {
           "description": "防御力+8，生命值+35，暴击率+5%，闪避率+9%",
@@ -196,7 +196,7 @@
           "special": "damageToHeal",
           "damageToHealChance": 0.14,
           "damageToHealRatio": 0.16,
-          "description": "所有属性+12%，**渊隙噬能**获得强化，受击转伤为疗（满档强化）：约14%触发、转化与减免约16%量级"
+          "description": "全属性+12%，渊隙噬能：受击有概率把伤害转为治疗：14%触发、转化16%"
         }
       }
     },
@@ -232,7 +232,7 @@
           "chainLightningApplySlow": true,
           "chainLightningSlowMs": 720,
           "chainLightningSlowMult": 0.74,
-          "description": "激活**渊隙隙潮·隙闪**：攻击概率触发连锁闪电弹射附近敌人（入门档约20%），非火焰，与史诗噬能线区分"
+          "description": "渊隙隙潮·隙闪：攻击概率触发连锁闪电弹射附近敌人"
         },
         "6": {
           "description": "防御力+10，生命值+43，暴击率+6%，闪避率+11%",
@@ -254,7 +254,7 @@
           "chainLightningApplySlow": true,
           "chainLightningSlowMs": 800,
           "chainLightningSlowMult": 0.72,
-          "description": "所有属性+17%，**渊隙隙潮·隙闪**（满档）：约30%触发、弹射约85%攻击力、范围约124，爆发期望高于同系列史诗"
+          "description": "全属性+17%，渊隙隙潮·隙闪：30%触发、弹射85%攻击力、范围约124"
         }
       }
     },
@@ -286,7 +286,7 @@
           "special": "damageToHeal",
           "damageToHealChance": 0.074,
           "damageToHealRatio": 0.081,
-          "description": "激活**虚印回流**，受击转伤为疗（入门档）：约7%触发、转化与减免约8%量级"
+          "description": "虚印回流，受击有概率把伤害转为治疗：7%触发、转化8%"
         },
         "6": {
           "description": "攻击力+3，暴击率+2%，暴击伤害+9%，移动速度+3%",
@@ -304,7 +304,7 @@
           "special": "damageToHeal",
           "damageToHealChance": 0.12,
           "damageToHealRatio": 0.18,
-          "description": "所有属性+5%，**虚印回流**获得强化，受击转伤为疗（满档强化）：约12%触发、转化与减免约18%量级"
+          "description": "全属性+5%，虚印回流：受击有概率把伤害转为治疗：12%触发、转化18%"
         }
       }
     },
@@ -335,7 +335,7 @@
           "stats": {},
           "special": "damageImmunity",
           "damageImmunityChance": 0.047,
-          "description": "激活**虚印圣拒**，受击圣佑减伤（入门档）：约5%触发大幅减免"
+          "description": "虚印圣拒，受击有概率大幅减伤：5%触发大幅减免"
         },
         "6": {
           "description": "攻击力+4，暴击率+3%，暴击伤害+12%，移动速度+4%",
@@ -352,7 +352,7 @@
           },
           "special": "damageImmunity",
           "damageImmunityChance": 0.075,
-          "description": "所有属性+7%，**虚印圣拒**获得强化，受击圣佑减伤（满档强化）：约8%触发大幅减免"
+          "description": "全属性+7%，虚印圣拒：受击有概率大幅减伤：8%触发大幅减免"
         }
       }
     },
@@ -385,7 +385,7 @@
           "exposeMarkChance": 0.149,
           "exposeMarkDurationMs": 2652,
           "exposeMarkDamageMult": 1.0952,
-          "description": "激活**虚印凝识**，攻击印蚀（入门档）：约15%触发、持续约2.7秒、受伤系数约×1.1"
+          "description": "虚印凝识，攻击有概率使目标易伤：15%触发、持续约2.7秒、受伤系数约×1.1"
         },
         "6": {
           "description": "攻击力+5，暴击率+4%，暴击伤害+15%，移动速度+5%",
@@ -404,7 +404,7 @@
           "exposeMarkChance": 0.24,
           "exposeMarkDurationMs": 3400,
           "exposeMarkDamageMult": 1.14,
-          "description": "所有属性+10%，**虚印凝识**获得强化，攻击印蚀（满档强化）：约24%触发、持续约3.4秒、受伤系数约×1.14"
+          "description": "全属性+10%，虚印凝识：攻击有概率使目标易伤：24%触发、持续约3.4秒、受伤系数约×1.14"
         }
       }
     },
@@ -436,7 +436,7 @@
           "special": "flameExplosion",
           "flameExplosionChance": 0.124,
           "flameExplosionMult": 0.3168,
-          "description": "激活**虚印焚印**，攻击附带爆裂（入门档）：约12%触发、爆裂伤害约32%攻击力"
+          "description": "虚印焚印，攻击附带爆裂：12%触发、爆裂伤害32%攻击力"
         },
         "6": {
           "description": "攻击力+6，暴击率+5%，暴击伤害+18%，移动速度+6%",
@@ -454,7 +454,7 @@
           "special": "flameExplosion",
           "flameExplosionChance": 0.2,
           "flameExplosionMult": 0.48,
-          "description": "所有属性+12%，**虚印焚印**获得强化，攻击附带爆裂（满档强化）：约20%触发、爆裂伤害约48%攻击力"
+          "description": "全属性+12%，虚印焚印攻击附带爆裂：20%触发、爆裂伤害48%攻击力"
         }
       }
     },
@@ -487,7 +487,7 @@
           "exposeMarkChance": 0.19,
           "exposeMarkDurationMs": 3000,
           "exposeMarkDamageMult": 1.13,
-          "description": "激活**虚印归寂·真印**：印蚀易伤（与精良凝识同系），入门档约19%触发、受伤约×1.13，非爆裂"
+          "description": "虚印归寂·真印：印蚀易伤（与精良凝识同系），19%触发、受伤约×1.13，非爆裂"
         },
         "6": {
           "description": "攻击力+9，暴击率+7%，暴击伤害+25%，移动速度+8%",
@@ -506,7 +506,7 @@
           "exposeMarkChance": 0.3,
           "exposeMarkDurationMs": 3900,
           "exposeMarkDamageMult": 1.2,
-          "description": "所有属性+19%，**虚印归寂·真印**（满档）：约30%触发、受伤约×1.2、持续约3.9秒，全面强于精良凝识与史诗焚印"
+          "description": "全属性+19%，虚印归寂·真印：30%触发、受伤约×1.2、持续约3.9秒，全面强于精良凝识与史诗焚印"
         }
       }
     },
@@ -538,7 +538,7 @@
           "special": "flameExplosion",
           "flameExplosionChance": 0.136,
           "flameExplosionMult": 0.297,
-          "description": "激活**腐噬扩散**，攻击附带爆裂（入门档）：约14%触发、爆裂伤害约30%攻击力"
+          "description": "腐噬扩散，攻击附带爆裂：14%触发、爆裂伤害30%攻击力"
         },
         "6": {
           "description": "防御力+5，生命值+25，暴击伤害+5%，攻击速度+7%",
@@ -556,7 +556,7 @@
           "special": "flameExplosion",
           "flameExplosionChance": 0.22,
           "flameExplosionMult": 0.45,
-          "description": "所有属性+6%，**腐噬扩散**获得强化，攻击附带爆裂（满档强化）：约22%触发、爆裂伤害约45%攻击力"
+          "description": "全属性+6%，腐噬扩散攻击附带爆裂：22%触发、爆裂伤害45%攻击力"
         }
       }
     },
@@ -589,7 +589,7 @@
           "plagueDoTChance": 0.149,
           "plagueDpsMult": 0.0858,
           "plagueDurationMs": 2184,
-          "description": "激活**腐噬溃解**，溃烂持续伤（入门档）：约15%触发、每秒约858%攻、持续约2.2秒"
+          "description": "腐噬溃解，溃烂持续伤：15%触发、每秒858%攻、持续约2.2秒"
         },
         "6": {
           "description": "防御力+7，生命值+32，暴击伤害+6%，攻击速度+9%",
@@ -608,7 +608,7 @@
           "plagueDoTChance": 0.24,
           "plagueDpsMult": 0.13,
           "plagueDurationMs": 2800,
-          "description": "所有属性+8%，**腐噬溃解**获得强化，溃烂持续伤（满档强化）：约24%触发、每秒约1300%攻、持续约2.8秒"
+          "description": "全属性+8%，腐噬溃解溃烂持续伤：24%触发、每秒1300%攻、持续约2.8秒"
         }
       }
     },
@@ -643,7 +643,7 @@
           "deepDoTDurationMs": 2496,
           "deepDoTLabel": "腐穿",
           "deepDoTColor": "#99dd77",
-          "description": "激活**腐噬穿络**，腐穿灼流（入门档）：约16%触发、每秒约924%攻、持续约2.5秒"
+          "description": "腐噬穿络，腐穿灼流：16%触发、每秒924%攻、持续约2.5秒"
         },
         "6": {
           "description": "防御力+8，生命值+40，暴击伤害+8%，攻击速度+11%",
@@ -664,7 +664,7 @@
           "deepDoTDurationMs": 3200,
           "deepDoTLabel": "腐穿",
           "deepDoTColor": "#99dd77",
-          "description": "所有属性+11%，**腐噬穿络**获得强化，腐穿灼流（满档强化）：约26%触发、每秒约1400%攻、持续约3.2秒"
+          "description": "全属性+11%，腐噬穿络腐穿灼流：26%触发、每秒1400%攻、持续约3.2秒"
         }
       }
     },
@@ -696,7 +696,7 @@
           "special": "freezeChance",
           "freezeProcChance": 0.155,
           "freezeDurationMs": 1560,
-          "description": "激活**腐噬霜僵**，攻击冰封（入门档）：约16%触发、冰封约1.6秒"
+          "description": "腐噬霜僵，攻击冰封：16%触发、冰封约1.6秒"
         },
         "6": {
           "description": "防御力+10，生命值+47，暴击伤害+9%，攻击速度+13%",
@@ -714,7 +714,7 @@
           "special": "freezeChance",
           "freezeProcChance": 0.25,
           "freezeDurationMs": 2000,
-          "description": "所有属性+13%，**腐噬霜僵**获得强化，攻击冰封（满档强化）：约25%触发、冰封约2秒"
+          "description": "全属性+13%，腐噬霜僵攻击冰封：25%触发、冰封约2秒"
         }
       }
     },
@@ -749,7 +749,7 @@
           "deepDoTDurationMs": 2800,
           "deepDoTLabel": "溃渊",
           "deepDoTColor": "#99dd77",
-          "description": "激活**腐噬饱食·溃渊**：深阶持续灼流（非火球爆裂），入门档约20%触发、秒伤与持续见配置"
+          "description": "腐噬饱食·溃渊：深阶持续灼流（非火球爆裂），20%触发、秒伤与持续见配置"
         },
         "6": {
           "description": "防御力+11，生命值+55，暴击伤害+11%，攻击速度+15%",
@@ -770,7 +770,7 @@
           "deepDoTDurationMs": 3500,
           "deepDoTLabel": "溃渊",
           "deepDoTColor": "#99dd77",
-          "description": "所有属性+19%，**腐噬饱食·溃渊**（满档）：约30%触发、持续伤与覆盖率高于同系列精良穿络"
+          "description": "全属性+19%，腐噬饱食·溃渊：30%触发、持续伤与覆盖率高于同系列精良穿络"
         }
       }
     },
@@ -801,7 +801,7 @@
           "special": "deepRetaliate",
           "deepRetaliateChance": 0.099,
           "deepRetaliateMult": 0.2772,
-          "description": "激活**黑曜棘壳**，受击反噬（入门档）：约10%触发、反伤约28%攻击力"
+          "description": "黑曜棘壳，受击反噬：10%触发、反伤28%攻击力"
         },
         "6": {
           "description": "攻击力+7，防御力+3，暴击伤害+10%，闪避率+2%",
@@ -819,7 +819,7 @@
           "special": "deepRetaliate",
           "deepRetaliateChance": 0.16,
           "deepRetaliateMult": 0.42,
-          "description": "所有属性+6%，**黑曜棘壳**获得强化，受击反噬（满档强化）：约16%触发、反伤约42%攻击力"
+          "description": "全属性+6%，黑曜棘壳受击反噬：16%触发、反伤42%攻击力"
         }
       }
     },
@@ -849,7 +849,7 @@
           "stats": {},
           "special": "cooldownReduction",
           "cooldownReductionPercent": 4,
-          "description": "激活**黑曜心经**，武器技能冷却缩短4%（入门档）"
+          "description": "黑曜心经，武器技能冷却缩短4%"
         },
         "6": {
           "description": "攻击力+9，防御力+4，暴击伤害+13%，闪避率+3%",
@@ -866,7 +866,7 @@
           },
           "special": "cooldownReduction",
           "cooldownReductionPercent": 8,
-          "description": "所有属性+9%，**黑曜心经**获得强化，武器技能冷却缩短8%（满档强化）"
+          "description": "全属性+9%，黑曜心经武器技能冷却缩短8%"
         }
       }
     },
@@ -897,7 +897,7 @@
           "special": "damageToHeal",
           "damageToHealChance": 0.081,
           "damageToHealRatio": 0.0765,
-          "description": "激活**黑曜反响**，受击转伤为疗（入门档）：约8%触发、转化与减免约8%量级"
+          "description": "黑曜反响，受击有概率把伤害转为治疗：8%触发、转化8%"
         },
         "6": {
           "description": "攻击力+11，防御力+5，暴击伤害+16%，闪避率+4%",
@@ -915,7 +915,7 @@
           "special": "damageToHeal",
           "damageToHealChance": 0.13,
           "damageToHealRatio": 0.17,
-          "description": "所有属性+11%，**黑曜反响**获得强化，受击转伤为疗（满档强化）：约13%触发、转化与减免约17%量级"
+          "description": "全属性+11%，黑曜反响受击有概率把伤害转为治疗：13%触发、转化17%"
         }
       }
     },
@@ -946,7 +946,7 @@
           "special": "flameExplosion",
           "flameExplosionChance": 0.112,
           "flameExplosionMult": 0.363,
-          "description": "激活**黑曜碎域**，攻击附带爆裂（入门档）：约11%触发、爆裂伤害约36%攻击力"
+          "description": "黑曜碎域，攻击附带爆裂：11%触发、爆裂伤害36%攻击力"
         },
         "6": {
           "description": "攻击力+13，防御力+6，暴击伤害+19%，闪避率+5%",
@@ -964,7 +964,7 @@
           "special": "flameExplosion",
           "flameExplosionChance": 0.18,
           "flameExplosionMult": 0.55,
-          "description": "所有属性+14%，**黑曜碎域**获得强化，攻击附带爆裂（满档强化）：约18%触发、爆裂伤害约55%攻击力"
+          "description": "全属性+14%，黑曜碎域攻击附带爆裂：18%触发、爆裂伤害55%攻击力"
         }
       }
     },
@@ -995,7 +995,7 @@
           "special": "killShockwave",
           "killShockwaveRadius": 64,
           "killShockwaveDamageFrac": 0.264,
-          "description": "激活**黑曜霜封**击杀殒震（入门档）：半径约64、溅射约26%攻击力"
+          "description": "黑曜霜封击杀殒震：半径约64、溅射26%攻击力"
         },
         "6": {
           "description": "攻击力+15，防御力+6，暴击伤害+22%，闪避率+6%",
@@ -1013,7 +1013,7 @@
           "special": "killShockwave",
           "killShockwaveRadius": 80,
           "killShockwaveDamageFrac": 0.4,
-          "description": "所有属性+16%，**黑曜霜封**获得强化，击杀殒震（满档强化）：半径约80、溅射约40%攻击力"
+          "description": "全属性+16%，黑曜霜封击杀殒震：半径约80、溅射40%攻击力"
         }
       }
     },
@@ -1047,7 +1047,7 @@
           "killBuffStatFrac": 0.042,
           "killBuffDurationMs": 9000,
           "killBuffMoveSpeedBonus": 4,
-          "description": "激活**终幕变奏**（普通·入门）：击杀约3.5%最大生命；短时全属性约+4.2%"
+          "description": "终幕变奏：击杀3.5%最大生命；短时全属性约+4.2%"
         },
         "6": {
           "description": "生命值+37，暴击率+4%，攻击速度+8%",
@@ -1066,7 +1066,7 @@
           "killBuffStatFrac": 0.055,
           "killBuffDurationMs": 11000,
           "killBuffMoveSpeedBonus": 5,
-          "description": "所有属性+7%，**终幕变奏**（普通·满档）：击杀约5.2%最大生命；短时全属性约+5.5%"
+          "description": "全属性+7%，终幕变奏（）：击杀5.2%最大生命；短时全属性约+5.5%"
         }
       }
     },
@@ -1097,7 +1097,7 @@
           "stats": {},
           "special": "killHeal",
           "killHealPercent": 0.0319,
-          "description": "激活**终幕谢幕**击杀回复生命（入门档）：3.2%最大生命"
+          "description": "终幕谢幕击杀回复生命：3.2%最大生命"
         },
         "6": {
           "description": "生命值+44，暴击率+6%，攻击速度+10%",
@@ -1113,7 +1113,7 @@
           },
           "special": "killHeal",
           "killHealPercent": 0.058,
-          "description": "所有属性+10%，**终幕谢幕**获得强化，击杀回复生命（满档强化）：5.8%最大生命"
+          "description": "全属性+10%，终幕谢幕击杀回复生命：5.8%最大生命"
         }
       }
     },
@@ -1146,7 +1146,7 @@
           "voidEchoChance": 0.124,
           "voidEchoDamageFrac": 0.264,
           "voidEchoDelayMs": 187,
-          "description": "激活**终幕弧光**，虚回折返（入门档）：约12%触发、折返约26%伤害、延迟约187ms"
+          "description": "终幕弧光，攻击有概率额外折返伤害：12%触发、折返26%伤害、延迟约187ms"
         },
         "6": {
           "description": "生命值+52，暴击率+8%，攻击速度+12%",
@@ -1164,7 +1164,7 @@
           "voidEchoChance": 0.2,
           "voidEchoDamageFrac": 0.4,
           "voidEchoDelayMs": 240,
-          "description": "所有属性+12%，**终幕弧光**获得强化，虚回折返（满档强化）：约20%触发、折返约40%伤害、延迟约240ms"
+          "description": "全属性+12%，终幕弧光攻击有概率额外折返伤害：20%触发、折返40%伤害、延迟约240ms"
         }
       }
     },
@@ -1196,7 +1196,7 @@
           "special": "flameExplosion",
           "flameExplosionChance": 0.13,
           "flameExplosionMult": 0.3432,
-          "description": "激活**终幕余焰**，攻击附带爆裂（入门档）：约13%触发、爆裂伤害约34%攻击力"
+          "description": "终幕余焰，攻击附带爆裂：13%触发、爆裂伤害34%攻击力"
         },
         "6": {
           "description": "生命值+59，暴击率+10%，攻击速度+14%",
@@ -1213,7 +1213,7 @@
           "special": "flameExplosion",
           "flameExplosionChance": 0.21,
           "flameExplosionMult": 0.52,
-          "description": "所有属性+15%，**终幕余焰**获得强化，攻击附带爆裂（满档强化）：约21%触发、爆裂伤害约52%攻击力"
+          "description": "全属性+15%，终幕余焰攻击附带爆裂：21%触发、爆裂伤害52%攻击力"
         }
       }
     },
@@ -1246,7 +1246,7 @@
           "voidEchoChance": 0.19,
           "voidEchoDamageFrac": 0.42,
           "voidEchoDelayMs": 175,
-          "description": "激活**终幕余晖·弧回**：虚回折返（与精良弧光同系），非爆裂；入门档约19%触发、折返约42%伤害"
+          "description": "终幕余晖·弧回：攻击折返（与精良弧光同系），非爆裂；19%触发、折返42%伤害"
         },
         "6": {
           "description": "生命值+67，暴击率+12%，攻击速度+16%",
@@ -1264,7 +1264,7 @@
           "voidEchoChance": 0.31,
           "voidEchoDamageFrac": 0.6,
           "voidEchoDelayMs": 235,
-          "description": "所有属性+20%，**终幕余晖·弧回**（满档）：约31%触发、折返约60%伤害，爆发路径与史诗余焰（爆裂）不同，数值更优"
+          "description": "全属性+20%，终幕余晖·弧回：31%触发、折返60%伤害，爆发路径与史诗余焰（爆裂）不同，数值更优"
         }
       }
     },
@@ -1295,7 +1295,7 @@
           "stats": {},
           "special": "starRegen",
           "starRegenPercent": 0.0045,
-          "description": "激活**星骸涓流**，战斗中缓回（入门档）：每秒约45%最大生命"
+          "description": "星骸涓流，战斗中缓回：每秒45%最大生命"
         },
         "6": {
           "description": "生命值+43，暴击伤害+6%，攻击速度+8%，移动速度+4%",
@@ -1312,7 +1312,7 @@
           },
           "special": "starRegen",
           "starRegenPercent": 0.01,
-          "description": "所有属性+8%，**星骸涓流**获得强化，战斗中缓回（满档强化）：每秒约100%最大生命"
+          "description": "全属性+8%，星骸涓流战斗中缓回：每秒100%最大生命"
         }
       }
     },
@@ -1345,7 +1345,7 @@
           "exposeMarkChance": 0.143,
           "exposeMarkDurationMs": 2340,
           "exposeMarkDamageMult": 1.0884,
-          "description": "激活**星骸弧光**，攻击印蚀（入门档）：约14%触发、持续约2.3秒、受伤系数约×1.09"
+          "description": "星骸弧光，攻击有概率使目标易伤：14%触发、持续约2.3秒、受伤系数约×1.09"
         },
         "6": {
           "description": "生命值+50，暴击伤害+7%，攻击速度+10%，移动速度+5%",
@@ -1364,7 +1364,7 @@
           "exposeMarkChance": 0.23,
           "exposeMarkDurationMs": 3000,
           "exposeMarkDamageMult": 1.13,
-          "description": "所有属性+11%，**星骸弧光**获得强化，攻击印蚀（满档强化）：约23%触发、持续约3秒、受伤系数约×1.13"
+          "description": "全属性+11%，星骸弧光攻击有概率使目标易伤：23%触发、持续约3秒、受伤系数约×1.13"
         }
       }
     },
@@ -1399,7 +1399,7 @@
           "deepDoTDurationMs": 2184,
           "deepDoTLabel": "星烬",
           "deepDoTColor": "#ffcc66",
-          "description": "激活**星骸凝辉**，星烬灼流（入门档）：约15%触发、每秒约858%攻、持续约2.2秒"
+          "description": "星骸凝辉，星烬灼流：15%触发、每秒858%攻、持续约2.2秒"
         },
         "6": {
           "description": "生命值+58，暴击伤害+9%，攻击速度+12%，移动速度+6%",
@@ -1420,7 +1420,7 @@
           "deepDoTDurationMs": 2800,
           "deepDoTLabel": "星烬",
           "deepDoTColor": "#ffcc66",
-          "description": "所有属性+13%，**星骸凝辉**获得强化，星烬灼流（满档强化）：约24%触发、每秒约1300%攻、持续约2.8秒"
+          "description": "全属性+13%，星骸凝辉星烬灼流：24%触发、每秒1300%攻、持续约2.8秒"
         }
       }
     },
@@ -1452,7 +1452,7 @@
           "special": "damageToHeal",
           "damageToHealChance": 0.068,
           "damageToHealRatio": 0.0855,
-          "description": "激活**星潮归槽**，受击转伤为疗（入门档）：约7%触发、转化与减免约9%量级"
+          "description": "星潮归槽，受击有概率把伤害转为治疗：7%触发、转化9%"
         },
         "6": {
           "description": "生命值+65，暴击伤害+10%，攻击速度+14%，移动速度+7%",
@@ -1470,7 +1470,7 @@
           "special": "damageToHeal",
           "damageToHealChance": 0.11,
           "damageToHealRatio": 0.19,
-          "description": "所有属性+16%，**星潮归槽**获得强化，受击转伤为疗（满档强化）：约11%触发、转化与减免约19%量级"
+          "description": "全属性+16%，星潮归槽受击有概率把伤害转为治疗：11%触发、转化19%"
         }
       }
     },
@@ -1504,7 +1504,7 @@
           "voltStrikeDamageMult": 0.72,
           "voltStrikeSlowMs": 920,
           "voltStrikeSlowMult": 0.66,
-          "description": "激活**星骸归尘·殛星**：单体强电殛击+感电（非爆裂、非折返），入门档约21%触发、约72%攻击力"
+          "description": "星骸归尘·殛星：单体强电殛击+感电（非爆裂、非折返），21%触发、72%攻击力"
         },
         "6": {
           "description": "生命值+73，暴击伤害+12%，攻击速度+16%，移动速度+8%",
@@ -1524,7 +1524,7 @@
           "voltStrikeDamageMult": 1.05,
           "voltStrikeSlowMs": 950,
           "voltStrikeSlowMult": 0.66,
-          "description": "所有属性+20%，**星骸归尘·殛星**（满档）：约33%触发、约105%攻击力殛击，对单爆发期望高于同系列史诗"
+          "description": "全属性+20%，星骸归尘·殛星：33%触发、105%攻击力殛击，对单"
         }
       }
     },
@@ -1559,7 +1559,7 @@
           "deepDoTDurationMs": 2340,
           "deepDoTLabel": "裂伤",
           "deepDoTColor": "#aa99ff",
-          "description": "激活**裂点弧爆**，裂伤灼流（入门档）：约14%触发、每秒约792%攻、持续约2.3秒"
+          "description": "裂点弧爆，裂伤灼流：14%触发、每秒792%攻、持续约2.3秒"
         },
         "6": {
           "description": "防御力+9，生命值+131，闪避率+2%",
@@ -1579,7 +1579,7 @@
           "deepDoTDurationMs": 3000,
           "deepDoTLabel": "裂伤",
           "deepDoTColor": "#aa99ff",
-          "description": "所有属性+9%，**裂点弧爆**获得强化，裂伤灼流（满档强化）：约22%触发、每秒约1200%攻、持续约3秒"
+          "description": "全属性+9%，裂点弧爆裂伤灼流：22%触发、每秒1200%攻、持续约3秒"
         }
       }
     },
@@ -1614,7 +1614,7 @@
           "voltFieldDamageFrac": 0.0924,
           "voltSlowMult": 0.72,
           "voltSlowDurationMs": 561,
-          "description": "激活**裂点滞域**，裂隙电场（入门档）：约每0.5秒、半径约94、伤害约9%攻"
+          "description": "裂点滞域，裂隙电场：约每0.5秒、半径约94、伤害9%攻"
         },
         "6": {
           "description": "防御力+10，生命值+151，闪避率+3%",
@@ -1634,7 +1634,7 @@
           "voltFieldDamageFrac": 0.14,
           "voltSlowMult": 0.72,
           "voltSlowDurationMs": 720,
-          "description": "所有属性+11%，**裂点滞域**获得强化，裂隙电场（满档强化）：约每0.5秒、半径约118、伤害约14%攻"
+          "description": "全属性+11%，裂点滞域裂隙电场：约每0.5秒、半径约118、伤害14%攻"
         }
       }
     },
@@ -1667,7 +1667,7 @@
           "skyBoltIntervalMs": 1848,
           "skyBoltRange": 344,
           "skyBoltDamageMult": 0.7875,
-          "description": "激活**裂点天殛**，天雷殛击（入门档）：约每1.8秒、射程约344、伤害约7875%攻"
+          "description": "裂点天殛，天雷殛击：约每1.8秒、射程约344、伤害7875%攻"
         },
         "6": {
           "description": "防御力+12，生命值+171，闪避率+4%",
@@ -1685,7 +1685,7 @@
           "skyBoltIntervalMs": 1650,
           "skyBoltRange": 430,
           "skyBoltDamageMult": 1.05,
-          "description": "所有属性+14%，**裂点天殛**获得强化，天雷殛击（满档强化）：约每1.7秒、射程约430、伤害约10500%攻"
+          "description": "全属性+14%，裂点天殛天雷殛击：约每1.7秒、射程约430、伤害10500%攻"
         }
       }
     },
@@ -1719,7 +1719,7 @@
           "voltStrikeDamageMult": 0.627,
           "voltStrikeSlowMs": 950,
           "voltStrikeSlowMult": 0.66,
-          "description": "激活**裂点殛刃**，殛刃强电（入门档）：约19%触发、伤害约6270%攻、感电约1秒"
+          "description": "裂点殛刃，殛刃强电：19%触发、伤害6270%攻、感电约1秒"
         },
         "6": {
           "description": "防御力+13，生命值+191，闪避率+5%",
@@ -1738,7 +1738,7 @@
           "voltStrikeDamageMult": 0.95,
           "voltStrikeSlowMs": 950,
           "voltStrikeSlowMult": 0.66,
-          "description": "所有属性+16%，**裂点殛刃**获得强化，殛刃强电（满档强化）：约30%触发、伤害约9500%攻、感电约1秒"
+          "description": "全属性+16%，裂点殛刃殛刃强电：30%触发、伤害9500%攻、感电约1秒"
         }
       }
     },
@@ -1774,7 +1774,7 @@
           "chainLightningApplySlow": true,
           "chainLightningSlowMs": 800,
           "chainLightningSlowMult": 0.72,
-          "description": "激活**裂点超载**，连锁闪电（入门档）：约20%触发、弹射约6600%攻、范围约104"
+          "description": "裂点超载，连锁闪电：20%触发、弹射6600%攻、范围约104"
         },
         "6": {
           "description": "防御力+15，生命值+212，闪避率+6%",
@@ -1795,7 +1795,7 @@
           "chainLightningApplySlow": true,
           "chainLightningSlowMs": 800,
           "chainLightningSlowMult": 0.72,
-          "description": "所有属性+19%，**裂点超载**获得强化，连锁闪电（满档强化）：约32%触发、弹射约10000%攻、范围约130"
+          "description": "全属性+19%，裂点超载连锁闪电：32%触发、弹射10000%攻、范围约130"
         }
       }
     },
@@ -1826,7 +1826,7 @@
           "stats": {},
           "special": "killHeal",
           "killHealPercent": 0.033,
-          "description": "激活**归墟吞噬**击杀回复生命（入门档）：3.3%最大生命"
+          "description": "归墟吞噬击杀回复生命：3.3%最大生命"
         },
         "6": {
           "description": "暴击率+3%，暴击伤害+6%，攻击速度+9%，移动速度+5%",
@@ -1843,7 +1843,7 @@
           },
           "special": "killHeal",
           "killHealPercent": 0.06,
-          "description": "所有属性+10%，**归墟吞噬**获得强化，击杀回复生命（满档强化）：6%最大生命"
+          "description": "全属性+10%，归墟吞噬击杀回复生命：6%最大生命"
         }
       }
     },
@@ -1877,7 +1877,7 @@
           "killBuffStatFrac": 0.052,
           "killBuffDurationMs": 10000,
           "killBuffMoveSpeedBonus": 5,
-          "description": "激活**终焉变律**（稀有·入门）：击杀约4.8%最大生命；短时全属性约+5.2%"
+          "description": "终焉变律：击杀4.8%最大生命；短时全属性约+5.2%"
         },
         "6": {
           "description": "暴击率+4%，暴击伤害+8%，攻击速度+11%，移动速度+6%",
@@ -1897,7 +1897,7 @@
           "killBuffStatFrac": 0.075,
           "killBuffDurationMs": 12000,
           "killBuffMoveSpeedBonus": 7,
-          "description": "所有属性+12%，**终焉变律**（稀有·满档）：击杀约7.2%最大生命；短时全属性约+7.5%、持续12秒"
+          "description": "全属性+12%，终焉变律（）：击杀7.2%最大生命；短时全属性约+7.5%、持续12秒"
         }
       }
     },
@@ -1929,7 +1929,7 @@
           "special": "killShockwave",
           "killShockwaveRadius": 70,
           "killShockwaveDamageFrac": 0.2904,
-          "description": "激活**终焉电弧**击杀殒震（入门档）：半径约70、溅射约29%攻击力"
+          "description": "终焉电弧击杀殒震：半径约70、溅射29%攻击力"
         },
         "6": {
           "description": "暴击率+5%，暴击伤害+9%，攻击速度+13%，移动速度+7%",
@@ -1947,7 +1947,7 @@
           "special": "killShockwave",
           "killShockwaveRadius": 88,
           "killShockwaveDamageFrac": 0.44,
-          "description": "所有属性+15%，**终焉电弧**获得强化，击杀殒震（满档强化）：半径约88、溅射约44%攻击力"
+          "description": "全属性+15%，终焉电弧击杀殒震：半径约88、溅射44%攻击力"
         }
       }
     },
@@ -1979,7 +1979,7 @@
           "special": "flameExplosion",
           "flameExplosionChance": 0.124,
           "flameExplosionMult": 0.3828,
-          "description": "激活**终焉燎**，攻击附带爆裂（入门档）：约12%触发、爆裂伤害约38%攻击力"
+          "description": "终焉燎，攻击附带爆裂：12%触发、爆裂伤害38%攻击力"
         },
         "6": {
           "description": "暴击率+6%，暴击伤害+11%，攻击速度+15%，移动速度+8%",
@@ -1997,7 +1997,7 @@
           "special": "flameExplosion",
           "flameExplosionChance": 0.2,
           "flameExplosionMult": 0.58,
-          "description": "所有属性+17%，**终焉燎**获得强化，攻击附带爆裂（满档强化）：约20%触发、爆裂伤害约58%攻击力"
+          "description": "全属性+17%，终焉燎攻击附带爆裂：20%触发、爆裂伤害58%攻击力"
         }
       }
     },
@@ -2026,7 +2026,7 @@
         },
         "4": {
           "stats": {},
-          "description": "激活**终焉双噬**击杀回复生命（入门档）：4%最大生命",
+          "description": "终焉双噬击杀回复生命：4%最大生命",
           "special": "killHeal",
           "killHealPercent": 0.04
         },
@@ -2047,7 +2047,7 @@
           "killHealPercent": 0.084,
           "executeHpThreshold": 0.15,
           "executeIntervalMs": 1000,
-          "description": "所有属性+20%，**终焉双噬**获得强化：击杀仍回复8.4%最大生命；战中每约1秒处决所有生命比例**低于15%**的敌人（终焉斩杀，高亮特效）"
+          "description": "全属性+20%，终焉双噬：击杀仍回复8.4%最大生命；战中每约1秒处决所有生命比例低于15%的敌人（终焉斩杀，高亮特效）"
         }
       }
     }

@@ -49,8 +49,8 @@ def parse_args() -> argparse.Namespace:
                         help="测试房间类型，默认 battle")
     parser.add_argument("--headless", action="store_true", help="无头运行 Chrome")
     parser.add_argument("--server-port", type=int, default=8000, help="本地游戏服务器端口")
-    parser.add_argument("--json-output", default="tower_playtest_report.json")
-    parser.add_argument("--markdown-output", default="tower_playtest_report.md")
+    parser.add_argument("--json-output", default="artifacts/tower_playtest_report.json")
+    parser.add_argument("--markdown-output", default="artifacts/tower_playtest_report.md")
     parser.add_argument("--screenshots", default="", help="问题截图目录，留空则不保存")
     return parser.parse_args()
 
@@ -717,6 +717,8 @@ def main() -> int:
         md_path = Path(args.markdown_output)
         if not md_path.is_absolute():
             md_path = ROOT / md_path
+        json_path.parent.mkdir(parents=True, exist_ok=True)
+        md_path.parent.mkdir(parents=True, exist_ok=True)
         json_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         md_path.write_text(make_markdown(report), encoding="utf-8")
         print(f"[完成] JSON: {json_path}", flush=True)

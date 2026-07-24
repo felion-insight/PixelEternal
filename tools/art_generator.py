@@ -111,10 +111,13 @@ CHROMA_KEY_THRESHOLD = int(os.environ.get("PE_CHROMA_KEY_THRESHOLD", "10"))
 
 # 技能图标核心画风模板（生图仍用匀质黑底便于抠透明；保存为 68×68 透明 PNG）
 SKILL_ICON_CORE_TEMPLATE = (
-    "Pixel art skill icon, retro 16-bit style, ultra-detailed pixel clusters, clean central composition, "
-    "solid pure black background (#000000) only behind the subject, flat uniform backdrop, no gradient sky, "
-    "no decorative borders, no text, no stars, no level numbers, no element symbols, "
-    "minimalistic design, razor-sharp edges, no anti-aliasing, fully opaque subject pixels"
+    "Pixel art skill icon, dark fantasy RPG, retro 16-bit style, limited color palette, "
+    "square 1:1 canvas, single subject centered filling about 70 percent of frame, "
+    "solid pure black background (#000000) flat uniform behind subject only, no gradient, "
+    "no decorative border, no circular badge plate, no inventory UI frame, "
+    "no text, no numbers, no stars, no element symbols, "
+    "crisp pixel clusters, razor-sharp edges, no anti-aliasing, no photorealism, "
+    "readable silhouette when scaled down to 44 pixels"
 )
 # 三变量拼成 "... {shape} with {texture} in {color} palette"
 SKILL_ICON_NEGATIVE_PROMPT = "text, numbers, stars, borders, UI elements, decorations"
@@ -147,11 +150,12 @@ PROJECTILE_NEGATIVE_PROMPT = (
 
 # 武器装备栏贴图：与 tools/equipment-art-requirements.md 一致；远程与近战共用（仅主体由 GPT 描述，避免画风漂移）
 EQUIPMENT_WEAPON_TEXTURE_STYLE_TEMPLATE = (
-    "Pixel art equipment icon, retro 16-bit style, ultra-detailed pixel clusters, "
-    "single weapon centered in frame, inventory item still-life, static pose, no action scene, "
-    "solid pure black background (#000000) flat uniform behind the weapon only, no text, no watermark, no decorative border, no UI frame, "
-    "minimalistic, razor-sharp pixel edges, no anti-aliasing, no photorealism, no 3D render look, "
-    "same art style and pixel density as other melee weapon inventory icons in this game"
+    "Pixel art equipment icon, dark fantasy RPG, retro 16-bit style, limited color palette, "
+    "square 1:1 canvas, single weapon centered filling about 70 percent of frame, "
+    "inventory item still-life, static pose, no action scene, no character hands, "
+    "solid pure black background (#000000) flat uniform behind the weapon only, "
+    "no text, no watermark, no decorative border, no UI frame, no circular plate, "
+    "crisp pixel clusters, razor-sharp edges, no anti-aliasing, no photorealism"
 )
 EQUIPMENT_WEAPON_NEGATIVE_PROMPT = (
     "photorealistic, realistic photo, photograph, 3d render, octane render, unreal engine, cinematic lighting, "
@@ -161,11 +165,12 @@ EQUIPMENT_WEAPON_NEGATIVE_PROMPT = (
 )
 # 非武器部位（头盔/胸甲/护腿/鞋/项链/指环/腰带）：与 art-requirements-2026-03-19.md 「固定风格段」对应的英文模板（仍用黑底抠透明）
 EQUIPMENT_NON_WEAPON_TEXTURE_STYLE_TEMPLATE = (
-    "Pixel art equipment icon, dark fantasy RPG, retro 16-bit style, ultra-detailed pixel clusters, "
-    "45-degree top-down view, inventory prop still-life, single piece centered in frame, static pose, no action scene, "
-    "solid pure black background (#000000) flat uniform behind the item only, no text, no watermark, no decorative border, no UI frame, "
-    "minimalistic, razor-sharp pixel edges, no anti-aliasing, no photorealism, no 3D render look, "
-    "consistent pixel density with other equipment inventory icons in this game"
+    "Pixel art equipment icon, dark fantasy RPG, retro 16-bit style, limited color palette, "
+    "square 1:1 canvas, 45-degree top-down view, single armor piece centered filling about 70 percent of frame, "
+    "inventory prop still-life, static pose, no action scene, no character wearing item, "
+    "solid pure black background (#000000) flat uniform behind the item only, "
+    "no text, no watermark, no decorative border, no UI frame, no circular plate, "
+    "crisp pixel clusters, razor-sharp edges, no anti-aliasing, no photorealism"
 )
 EQUIPMENT_NON_WEAPON_NEGATIVE_PROMPT = (
     "photorealistic, realistic photo, photograph, 3d render, octane render, unreal engine, cinematic lighting, "
@@ -2976,8 +2981,11 @@ def generate_image(
         "prompt": full_prompt,
         "n": 1,
         "size": "1024x1024",
-        "response_format": "b64_json",
     }
+    # gpt-image-1 等网关不支持 response_format / negative_prompt / quality 等扩展字段
+    minimal_openai_image = IMAGE_MODEL.startswith("gpt-image")
+    if not minimal_openai_image:
+        body["response_format"] = "b64_json"
     base_neg = ""
     if for_skill_icon and SKILL_ICON_NEGATIVE_PROMPT:
         base_neg = SKILL_ICON_NEGATIVE_PROMPT
@@ -2997,14 +3005,16 @@ def generate_image(
         else ""
     )
     neg_parts = [p for p in (base_neg, staff_extra, (extra_negative or "").strip()) if p]
-    if neg_parts:
+    if neg_parts and not minimal_openai_image:
         body["negative_prompt"] = ", ".join(neg_parts)
-    if for_skill_icon or for_projectile or for_genshin_character_splash:
+    if (for_skill_icon or for_projectile or for_genshin_character_splash) and not minimal_openai_image:
         body["quality"] = "ultra-detail"
         body["style_strength"] = 0.95
         body["steps"] = 60
 
     neg_combined = ", ".join(neg_parts) if neg_parts else ""
+    if minimal_openai_image and neg_combined:
+        body["prompt"] = f"{body['prompt']}\n\nAvoid: {neg_combined}"
 
     last_err = None
     for attempt in range(3):

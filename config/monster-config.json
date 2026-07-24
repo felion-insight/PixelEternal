@@ -8,7 +8,7 @@
       "level": 1,
       "expReward": 13,
       "goldReward": 5,
-      "description": "弱小的绿色生物，是恶魔塔中最基础的敌人。虽然实力不强，但数量众多。",
+      "description": "近战小怪，血少，常成群出现。",
       "dropInfo": "掉落1级装备（普通品质）"
     },
     "goblinWarrior": {
@@ -20,7 +20,7 @@
       "expReward": 15,
       "goldReward": 6,
       "moveSpeedMult": 0.96,
-      "description": "经过训练的哥布林战士，比普通哥布林更强壮；步伐略沉但劈砍更有力。",
+      "description": "近战小怪，比普通哥布林更肉。",
       "dropInfo": "掉落1级装备（普通品质）"
     },
     "goblinShaman": {
@@ -31,7 +31,7 @@
       "level": 1,
       "expReward": 13,
       "goldReward": 7,
-      "description": "掌握基础魔法的哥布林，虽然生命值较低，但攻击力不容小觑。",
+      "description": "远程法术小怪，身板脆。",
       "dropInfo": "掉落1级装备（普通、稀有品质）"
     },
     "goblinScout": {
@@ -43,7 +43,7 @@
       "expReward": 11,
       "goldReward": 5,
       "moveSpeedMult": 1.14,
-      "description": "敏捷的哥布林斥候，脚步极快，擅长快速接近与偷袭。",
+      "description": "近战小怪，跑得快，爱偷袭。",
       "dropInfo": "掉落1级装备（普通品质）"
     },
     "goblinChief": {
@@ -59,7 +59,7 @@
         "multiplier": 0.92,
         "durationMs": 1000
       },
-      "description": "哥布林部落的首领，权杖挥击附带威慑，使你短暂步履沉重。",
+      "description": "哥布林头目，攻击附带减速。",
       "dropInfo": "掉落1级装备（普通、稀有品质）"
     },
     "skeleton": {
@@ -74,7 +74,7 @@
         "multiplier": 0.9,
         "durationMs": 1200
       },
-      "description": "被黑暗力量复活的骸骨战士；骨爪剐蹭会扰乱你的步伐。",
+      "description": "近战骷髅，爪击会减速。",
       "dropInfo": "掉落1级、5级装备（普通、稀有品质）"
     },
     "skeletonArcher": {
@@ -89,7 +89,7 @@
         "multiplier": 0.88,
         "durationMs": 1000
       },
-      "description": "擅长远程的骷髅，骨箭射中会使你短暂步履不稳。",
+      "description": "远程骷髅，命中会减速。",
       "dropInfo": "掉落1级、5级装备（普通、稀有品质）"
     },
     "skeletonKnight": {
@@ -105,7 +105,7 @@
         "multiplier": 0.78,
         "durationMs": 1800
       },
-      "description": "身披重甲的骷髅骑士，重击与铠甲冲撞会显著拖慢你的移动。",
+      "description": "重甲骷髅，撞击会大幅减速。",
       "dropInfo": "掉落1级、5级装备（普通、稀有品质）"
     },
     "skeletonMage": {
@@ -117,7 +117,7 @@
       "expReward": 33,
       "goldReward": 17,
       "onHitLifeStealRatio": 0.06,
-      "description": "掌握黑暗魔法的骷髅；邪能弹命中时会汲取你的生气回复自身。",
+      "description": "远程骷髅法师，命中吸血。",
       "dropInfo": "掉落1级、5级装备（普通、稀有品质）"
     },
     "skeletonLord": {
@@ -130,7 +130,7 @@
       "goldReward": 20,
       "berserkHpRatio": 0.38,
       "berserkCooldownMult": 0.82,
-      "description": "骷髅军团的统帅，濒死时会疯狂挥砍，攻击间隔明显缩短。",
+      "description": "骷髅头目，残血时攻速加快。",
       "dropInfo": "掉落1级、5级装备（普通、稀有、精良品质）"
     },
     "orc": {
@@ -142,7 +142,7 @@
       "expReward": 60,
       "goldReward": 30,
       "moveSpeedMult": 0.97,
-      "description": "强壮的兽人战士，体格沉重，追击时略慢但压迫感十足。",
+      "description": "近战兽人，体格沉，压迫感强。",
       "dropInfo": "掉落1级、5级、10级装备（普通、稀有、精良品质）"
     },
     "orcBerserker": {
@@ -159,7 +159,7 @@
         "multiplier": 0.88,
         "durationMs": 800
       },
-      "description": "陷入狂暴的兽人，伤越重挥斧越快；斧刃刮中会使你短暂失衡。",
+      "description": "近战兽人，残血越打越快，命中失衡。",
       "dropInfo": "掉落1级、5级、10级装备（普通、稀有、精良品质）"
     },
     "orcShaman": {
@@ -170,7 +170,7 @@
       "level": 10,
       "expReward": 63,
       "goldReward": 31,
-      "description": "掌握元素魔法的兽人萨满，能够使用强大的法术攻击。",
+      "description": "兽人萨满，远程法术。",
       "dropInfo": "掉落1级、5级、10级装备（普通、稀有、精良品质）"
     },
     "orcWarrior": {
@@ -185,7 +185,7 @@
         "multiplier": 0.84,
         "durationMs": 1500
       },
-      "description": "经验丰富的兽人勇士，盾击与战锤命中会压制你的机动。",
+      "description": "近战兽人精英，盾击压制机动。",
       "dropInfo": "掉落1级、5级、10级装备（普通、稀有、精良品质）"
     },
     "orcWarlord": {
@@ -201,7 +201,7 @@
         "multiplier": 0.8,
         "durationMs": 2000
       },
-      "description": "兽人军团的最高指挥官，步伐沉稳，战斧劈落附带长时间威慑减速。",
+      "description": "兽人头目，重击长时间减速。",
       "dropInfo": "掉落1级、5级、10级装备（普通、稀有、精良品质）"
     },
     "demon": {
@@ -216,7 +216,7 @@
         "multiplier": 0.86,
         "durationMs": 2000
       },
-      "description": "来自深渊的强大恶魔，邪焰爪击会灼痛双腿，使你移动迟缓。",
+      "description": "近战恶魔，爪击减速。",
       "dropInfo": "掉落5级、10级、15级装备（稀有、精良、史诗品质）"
     },
     "demonImp": {
@@ -230,7 +230,7 @@
       "moveSpeedMult": 1.08,
       "berserkHpRatio": 0.42,
       "berserkCooldownMult": 0.8,
-      "description": "体型较小却极快，濒死时爪击更加急促难防。",
+      "description": "小型恶魔，极快，残血攻得更急。",
       "dropInfo": "掉落5级、10级、15级装备（稀有、精良、史诗品质）"
     },
     "demonGuardian": {
@@ -246,7 +246,7 @@
         "multiplier": 0.75,
         "durationMs": 2200
       },
-      "description": "守护恶魔领地的重甲守卫，移动缓慢但盾击能长时间锁死你的脚步。",
+      "description": "重甲恶魔，慢但盾击锁脚。",
       "dropInfo": "掉落5级、10级、15级装备（稀有、精良、史诗品质）"
     },
     "demonSorcerer": {
@@ -258,7 +258,7 @@
       "expReward": 108,
       "goldReward": 54,
       "onHitLifeStealRatio": 0.055,
-      "description": "掌握强大黑暗魔法的恶魔术士，邪能弹命中会窃走生命滋养自身。",
+      "description": "远程恶魔法师，命中吸血，残血咏唱加快。",
       "dropInfo": "掉落5级、10级、15级装备（稀有、精良、史诗品质）"
     },
     "demonGeneral": {
@@ -273,7 +273,7 @@
         "multiplier": 0.72,
         "durationMs": 2500
       },
-      "description": "恶魔军团的高级将领，重击与威压使你长时间难以全速移动。",
+      "description": "恶魔精英，重击长时间减速。",
       "dropInfo": "掉落5级、10级、15级装备（稀有、精良、史诗品质）"
     },
     "demonBoss": {
@@ -286,7 +286,7 @@
       "goldReward": 100,
       "berserkHpRatio": 0.36,
       "berserkCooldownMult": 0.86,
-      "description": "恶魔塔的统治者，生命垂危时会加快攻势，压迫感陡增。",
+      "description": "强力恶魔头目，重创会减速并吸血。",
       "dropInfo": "掉落10级、15级、20级装备（精良、史诗、传说品质）"
     },
     "demonPrince": {
@@ -298,7 +298,7 @@
       "expReward": 210,
       "goldReward": 105,
       "moveSpeedMult": 1.06,
-      "description": "恶魔领主的继承者，身姿迅捷，擅长高速缠斗。",
+      "description": "迅捷恶魔，擅长高速缠斗。",
       "dropInfo": "掉落10级、15级、20级装备（精良、史诗、传说品质）"
     },
     "demonTitan": {
@@ -314,7 +314,7 @@
         "multiplier": 0.7,
         "durationMs": 2800
       },
-      "description": "体型巨大的恶魔泰坦，步履沉重；践踏与重拳会长时间压制你的移动。",
+      "description": "巨型恶魔，践踏长时间减速。",
       "dropInfo": "掉落10级、15级、20级装备（精良、史诗、传说品质）"
     },
     "demonArchmage": {
@@ -328,7 +328,7 @@
       "onHitLifeStealRatio": 0.05,
       "berserkHpRatio": 0.4,
       "berserkCooldownMult": 0.84,
-      "description": "掌握终极黑暗魔法的恶魔大法师；魔弹汲取生命，濒死时咏唱更快。",
+      "description": "恶魔法师，命中吸血，残血咏唱加快。",
       "dropInfo": "掉落10级、15级、20级装备（精良、史诗、传说品质）"
     },
     "demonOverlord": {
@@ -344,7 +344,7 @@
         "durationMs": 2400
       },
       "onHitLifeStealRatio": 0.045,
-      "description": "恶魔塔顶点的存在，每次重创都会削弱你的机动并汲取你的血肉。",
+      "description": "塔顶头目，重创减速并吸血。",
       "dropInfo": "掉落10级、15级、20级装备（精良、史诗、传说品质）"
     },
     "goblin_elite": {
@@ -356,7 +356,7 @@
       "expReward": 18,
       "goldReward": 9,
       "moveSpeedMult": 1.06,
-      "description": "精英哥布林，蓄力冲撞，脚步比普通同类更狡诈。",
+      "description": "近战小怪，血少，常成群出现。",
       "dropInfo": "掉落1级装备（普通→小概率稀有）",
       "isElite": true,
       "baseMonster": "goblin"
@@ -369,7 +369,7 @@
       "level": 5,
       "expReward": 23,
       "goldReward": 11,
-      "description": "精英哥布林战士，跳劈。",
+      "description": "近战小怪，比普通哥布林更肉。",
       "dropInfo": "掉落1级装备",
       "isElite": true,
       "baseMonster": "goblinWarrior"
@@ -382,7 +382,7 @@
       "level": 5,
       "expReward": 26,
       "goldReward": 14,
-      "description": "精英哥布林萨满，火球与护盾。",
+      "description": "近战小怪，血少，常成群出现。",
       "dropInfo": "掉落1级装备",
       "isElite": true,
       "baseMonster": "goblinShaman"
@@ -395,7 +395,7 @@
       "level": 10,
       "expReward": 73,
       "goldReward": 38,
-      "description": "精英骷髅骑士，冲锋斩。",
+      "description": "重甲骷髅，撞击会大幅减速。",
       "dropInfo": "掉落1级、5级装备",
       "isElite": true,
       "baseMonster": "skeletonKnight"
@@ -408,7 +408,7 @@
       "level": 10,
       "expReward": 73,
       "goldReward": 37,
-      "description": "精英骷髅法师，爆裂法球。",
+      "description": "远程骷髅法师，命中吸血。",
       "dropInfo": "掉落1级、5级装备",
       "isElite": true,
       "baseMonster": "skeletonMage"
@@ -421,7 +421,7 @@
       "level": 15,
       "expReward": 136,
       "goldReward": 68,
-      "description": "精英兽人勇士，破甲重击。",
+      "description": "近战兽人精英，盾击压制机动。",
       "dropInfo": "掉落1级、5级、10级装备",
       "isElite": true,
       "baseMonster": "orcWarrior"
@@ -434,7 +434,7 @@
       "level": 15,
       "expReward": 173,
       "goldReward": 87,
-      "description": "精英兽人督军，战吼与战斧重击。",
+      "description": "近战兽人，体格沉，压迫感强。",
       "dropInfo": "掉落1级、5级、10级装备",
       "isElite": true,
       "baseMonster": "orcWarlord"
@@ -447,7 +447,7 @@
       "level": 20,
       "expReward": 240,
       "goldReward": 120,
-      "description": "精英恶魔，暗影冲撞与烈焰爆发。",
+      "description": "近战恶魔，爪击减速。",
       "dropInfo": "掉落5级、10级、15级装备",
       "isElite": true,
       "baseMonster": "demon"
@@ -460,7 +460,7 @@
       "level": 20,
       "expReward": 231,
       "goldReward": 114,
-      "description": "精英小恶魔，突袭连击。",
+      "description": "小型恶魔，极快，残血攻得更急。",
       "dropInfo": "掉落5级、10级、15级装备",
       "isElite": true,
       "baseMonster": "demonImp"
@@ -473,7 +473,7 @@
       "level": 25,
       "expReward": 500,
       "goldReward": 250,
-      "description": "精英恶魔领主，王之践踏与恶魔献祭。",
+      "description": "强力恶魔头目，重创会减速并吸血。",
       "dropInfo": "掉落10级、15级、20级装备",
       "isElite": true,
       "baseMonster": "demonBoss"
@@ -492,7 +492,7 @@
         "multiplier": 0.82,
         "durationMs": 1600
       },
-      "description": "镇守深渊入口的重甲恶魔，步履沉重但盾击压迫极强。",
+      "description": "重甲恶魔，盾击很顶。",
       "dropInfo": "掉落20～35级装备（稀有～史诗）",
       "baseMonster": "demonGuardian"
     },
@@ -508,7 +508,7 @@
       "moveSpeedMult": 1.05,
       "berserkHpRatio": 0.45,
       "berserkCooldownMult": 0.78,
-      "description": "玻璃炮型恶魔，伤越重爪击越快。",
+      "description": "脆皮恶魔，残血攻速加快。",
       "dropInfo": "掉落20～35级装备",
       "baseMonster": "demonImp"
     },
@@ -521,7 +521,7 @@
       "expReward": 305,
       "goldReward": 148,
       "towerMinFloor": 41,
-      "description": "预言余烬之祸的远程萨满，火矢精准。",
+      "description": "远程萨满，火矢准。",
       "dropInfo": "掉落20～35级装备",
       "baseMonster": "demonSorcerer"
     },
@@ -535,7 +535,7 @@
       "goldReward": 198,
       "towerMinFloor": 81,
       "moveSpeedMult": 1.1,
-      "description": "自虚空中奔袭的轻装恶魔，极快逼近。",
+      "description": "轻装恶魔，逼近很快。",
       "dropInfo": "掉落30～45级装备",
       "baseMonster": "demon"
     },
@@ -553,7 +553,7 @@
         "delayMs": 240,
         "damageMult": 0.48
       },
-      "description": "操纵熵流的法师，主弹后追射弱能弹。",
+      "description": "远程法师，主弹后追弱能弹。",
       "dropInfo": "掉落35～50级装备",
       "baseMonster": "demonSorcerer"
     },
@@ -570,7 +570,7 @@
         "multiplier": 0.72,
         "durationMs": 2200
       },
-      "description": "腐化军团的督军，重击附带长减速。",
+      "description": "督军，重击长时间减速。",
       "dropInfo": "掉落35～50级装备",
       "baseMonster": "demonGeneral"
     },
@@ -585,7 +585,7 @@
       "towerMinFloor": 171,
       "berserkHpRatio": 0.4,
       "berserkCooldownMult": 0.8,
-      "description": "看守终焉之门，低血时攻速暴增。",
+      "description": "门卫，残血攻速暴增。",
       "dropInfo": "掉落45～60级装备",
       "baseMonster": "demonTitan"
     },
@@ -603,7 +603,7 @@
         "telegraphMs": 520,
         "damageMult": 0.86
       },
-      "description": "在落点引爆星渊能量，预警后范围伤害。",
+      "description": "落点预警后范围爆炸。",
       "dropInfo": "掉落50～60级装备",
       "baseMonster": "demonArchmage"
     },
@@ -625,7 +625,7 @@
         "multiplier": 0.75,
         "durationMs": 2000
       },
-      "description": "周期性展开湮灭护盾，破盾前极难击杀。",
+      "description": "周期性护盾，破盾前很难杀。",
       "dropInfo": "掉落50～60级装备",
       "baseMonster": "demonGuardian"
     },
@@ -644,7 +644,7 @@
         "maxStacks": 3,
         "drPerStack": 0.11
       },
-      "description": "站定叠晶壳减伤，移动则壳层碎裂。",
+      "description": "站着叠减伤，一跑壳就碎。",
       "dropInfo": "掉落25～40级装备",
       "baseMonster": "demonGuardian"
     },
@@ -662,7 +662,7 @@
         "weakMult": 0.78,
         "strongMult": 1.42
       },
-      "description": "锁链每第三击爆发，前两击较轻。",
+      "description": "锁链每第三击爆发。",
       "dropInfo": "掉落25～40级装备",
       "baseMonster": "skeletonKnight"
     },
@@ -680,7 +680,7 @@
         "durationMs": 4500,
         "dps": 14
       },
-      "description": "死亡后留下剧毒孢雾。",
+      "description": "死后留下毒雾。",
       "dropInfo": "掉落30～45级装备",
       "baseMonster": "demon"
     },
@@ -697,7 +697,7 @@
         "hpRatio": 0.42,
         "cooldownMs": 9500
       },
-      "description": "濒死时短距闪现贴近猎物。",
+      "description": "残血短距闪现贴近。",
       "dropInfo": "掉落40～55级装备",
       "baseMonster": "demonImp"
     },
@@ -711,7 +711,7 @@
       "goldReward": 265,
       "towerMinFloor": 101,
       "onHitLifeStealRatio": 0.1,
-      "description": "命中吸取生命，极难磨血。",
+      "description": "命中吸血，很难磨血。",
       "dropInfo": "掉落40～55级装备",
       "baseMonster": "demon"
     },
@@ -728,7 +728,7 @@
         "range": 125,
         "playerAttackCdMult": 1.14
       },
-      "description": "邪典光环压制你的普攻节奏。",
+      "description": "光环压制你的普攻节奏。",
       "dropInfo": "掉落45～60级装备",
       "baseMonster": "demonSorcerer"
     },
@@ -747,7 +747,7 @@
         "radius": 82,
         "damageMult": 2.1
       },
-      "description": "濒死缓慢逼近，引爆自毁。",
+      "description": "残血逼近后自爆。",
       "dropInfo": "掉落50～60级装备",
       "baseMonster": "skeleton"
     },
@@ -765,7 +765,7 @@
         "multiplier": 0.74,
         "durationMs": 1600
       },
-      "description": "撕咬常附带刺骨减速。",
+      "description": "撕咬附带减速。",
       "dropInfo": "掉落20～35级装备",
       "baseMonster": "demonImp"
     },
@@ -783,7 +783,7 @@
         "delayMs": 160,
         "damageMult": 0.38
       },
-      "description": "电浆连射，弹速快但单发较弱。",
+      "description": "电浆连射，单发不强。",
       "dropInfo": "掉落30～45级装备",
       "baseMonster": "demonImp"
     },
@@ -802,7 +802,7 @@
         "dps": 7,
         "emitIntervalMs": 480
       },
-      "description": "爬行留下腐蚀酸迹。",
+      "description": "爬行留下酸迹。",
       "dropInfo": "掉落30～45级装备",
       "baseMonster": "demon"
     },
@@ -816,7 +816,7 @@
       "goldReward": 252,
       "towerMinFloor": 101,
       "rangedRangeMult": 0.88,
-      "description": "黑曜熔浆短距高爆发喷射。",
+      "description": "短距熔浆高爆发。",
       "dropInfo": "掉落40～55级装备",
       "baseMonster": "demonSorcerer"
     },
@@ -832,7 +832,7 @@
       "knockbackOnHit": {
         "force": 62
       },
-      "description": "风爆击退，打乱你的站位。",
+      "description": "风爆击退，打乱站位。",
       "dropInfo": "掉落45～60级装备",
       "baseMonster": "demonImp"
     },
@@ -847,7 +847,7 @@
       "towerMinFloor": 81,
       "moveSpeedMult": 1.18,
       "firstHitBonusMult": 1.36,
-      "description": "极快刺客，首击格外致命。",
+      "description": "刺客，首击很疼。",
       "dropInfo": "掉落30～45级装备",
       "baseMonster": "demonImp"
     },
@@ -862,7 +862,7 @@
       "towerMinFloor": 101,
       "moveSpeedMult": 0.68,
       "rangedRangeMult": 1.38,
-      "description": "重型弩炮，超远射程但本体笨重。",
+      "description": "超远弩炮，本体笨。",
       "dropInfo": "掉落40～55级装备",
       "baseMonster": "skeletonArcher"
     },
@@ -883,7 +883,7 @@
         "range": 210,
         "multiplier": 1.08
       },
-      "description": "高阶巡逻官；身边小怪伤害+8%。",
+      "description": "高阶巡逻怪。",
       "dropInfo": "掉落45～60级装备",
       "baseMonster": "demonGeneral"
     },
@@ -899,7 +899,7 @@
       "twinSoulBond": {
         "tag": "bound_core_pair"
       },
-      "description": "与同缀体共享生命池，需一并击溃。",
+      "description": "与同缀体共享血量。",
       "dropInfo": "掉落40～55级装备",
       "baseMonster": "demonImp"
     },
@@ -915,7 +915,7 @@
       "twinSoulBond": {
         "tag": "bound_core_pair"
       },
-      "description": "与同缀体共享生命池，需一并击溃。",
+      "description": "与同缀体共享血量。",
       "dropInfo": "掉落40～55级装备",
       "baseMonster": "demonImp"
     },
@@ -937,7 +937,7 @@
         "slowMult": 0.72,
         "slowDurationMs": 900
       },
-      "description": "在脚下铺开法阵：缓速闯入者并为盟友回血。",
+      "description": "脚下法阵：减速并给盟友回血。",
       "dropInfo": "掉落38～52级装备",
       "baseMonster": "demonSorcerer"
     },
@@ -955,7 +955,7 @@
         "blessingDamageTakenMult": 0.72,
         "judgmentOutDamageMult": 1.28
       },
-      "description": "在祝福（减伤）与裁决（加攻）姿态间切换。",
+      "description": "在减伤姿态与加攻姿态间切换。",
       "dropInfo": "掉落42～58级装备",
       "baseMonster": "demonGuardian"
     },
@@ -975,7 +975,7 @@
         "halfArcRad": 0.65,
         "damageMult": 1.15
       },
-      "description": "钟摆横扫：独立扇形预警后挥击。",
+      "description": "扇形预警后横扫。",
       "dropInfo": "掉落38～52级装备",
       "baseMonster": "skeletonKnight"
     },
@@ -989,7 +989,7 @@
       "goldReward": 200,
       "towerMinFloor": 101,
       "goldBonusOnDeath": 135,
-      "description": "击杀时额外掉落金币。",
+      "description": "击杀多掉金币。",
       "dropInfo": "掉落35～50级装备",
       "baseMonster": "goblinScout"
     },
@@ -1007,7 +1007,7 @@
         "vulnerableMs": 3200,
         "damageTakenMult": 1.16
       },
-      "description": "开场带护盾，破盾后短暂易伤。",
+      "description": "开场有护盾，破盾后短暂易伤。",
       "dropInfo": "掉落40～55级装备",
       "baseMonster": "demonGuardian"
     },
@@ -1019,7 +1019,7 @@
       "level": 25,
       "expReward": 520,
       "goldReward": 260,
-      "description": "精英深渊恶魔，暗影冲撞与烈焰爆发。",
+      "description": "近战恶魔，爪击减速。",
       "dropInfo": "掉落15～30级装备",
       "isElite": true,
       "baseMonster": "demon"

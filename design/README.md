@@ -6,11 +6,13 @@
 
 | # | 文档 | 内容 | 状态 |
 |---|------|------|------|
+| 0 | [auto-battler-roguelike-design.md](./auto-battler-roguelike-design.md) | **现行主设计**：轻操作自走棋 + 恶魔塔 Roguelike | ✅ 现行 |
+| 0b | [static-art-prompt-reference.md](./static-art-prompt-reference.md) | **静态贴图 AI 提示词参考**：1:1 尺寸对照、分类模板、批量重绘 | ✅ |
 | 1 | [class-system-design.md](./class-system-design.md) | 职业体系：4基础→12一转→12二转，团队定位，转职流程 | ✅ |
 | 2 | [skill-system-design.md](./skill-system-design.md) | 128个职业技能：四大资源系统，Lv1~60完整技能表 | ✅ |
 | 3 | [equipment-system-rework.md](./equipment-system-rework.md) | 装备重构：基型/词缀前缀后缀Tier/传奇威能/2-4件套装/10槽位 | ✅ |
-| 4 | [growth-and-gameplay.md](./growth-and-gameplay.md) | 成长曲线/职业选择流/转职接入/天赋系统/主城扩建/UI重设计 | ✅ |
-| 5 | [dungeon-and-progression.md](./dungeon-and-progression.md) | 副本体系(日常/周常/深渊/裂隙/远古遗迹)/强化+20系统/装备突破觉醒/徽记/回路/材料体系 | ✅ |
+| 4 | [growth-and-gameplay.md](./growth-and-gameplay.md) | 成长曲线/职业选择流/转职接入/天赋系统/主城扩建/UI重设计 | 📦 部分过时（ARPG） |
+| 5 | [dungeon-and-progression.md](./dungeon-and-progression.md) | 副本体系(日常/周常/深渊/裂隙/远古遗迹)/强化+20系统/装备突破觉醒/徽记/回路/材料体系 | 📦 部分过时（ARPG） |
 | 6 | [equipment-class-adaptation.md](./equipment-class-adaptation.md) | 装备适配第一版（已被第3篇取代，存档参考） | 📦 |
 
 ## 职业重做文档

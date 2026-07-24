@@ -1067,6 +1067,7 @@ class Monster {
         // 走动动画相关
         this.walkAnimationTime = 0; // 走动动画时间（用于计算缩放）
         this.walkAnimationSpeed = 0.15; // 动画速度（每帧增加的值）
+        this.spriteAnimRuntime = typeof SpriteAnimationRuntime !== 'undefined' ? new SpriteAnimationRuntime() : null;
         
         // 受伤变红效果
         this.hurtUntil = 0; // 受伤变红状态结束时间
@@ -1241,6 +1242,54 @@ class Monster {
         }
         if (typeof window.tickMonsterBreakGauge === 'function') {
             window.tickMonsterBreakGauge(this);
+        }
+        this._updateSpriteAnimation(now);
+    }
+
+    /** 更新 sprite sheet 动画状态（walk/idle、朝向） */
+    _updateSpriteAnimation(now) {
+        if (!this.spriteAnimRuntime) return;
+        const assetManager = this.gameInstance?.assetManager;
+        if (!assetManager || !assetManager.getSpriteAnimationEntry(this.type)) return;
+
+        const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        const animName = speed > 0.15 ? 'walk' : 'idle';
+        if (this.vx < -0.08) this.spriteAnimRuntime.facingLeft = true;
+        else if (this.vx > 0.08) this.spriteAnimRuntime.facingLeft = false;
+        this._spriteMoveSpeed = speed;
+        this._spriteMaxSpeed = this.maxSpeed || this.speed || speed || 1;
+
+        const animData = assetManager.getSpriteAnimationSync(this.type);
+        if (animData && animData.meta) {
+            const strideWorld = animData.meta.strideWorld || this.size * 0.35;
+            const stepMs = this.gameInstance?.fixedTimeStep || (1000 / 60);
+            this.spriteAnimRuntime.tick(now, animData.meta, animName, {
+                moveSpeed: speed,
+                maxSpeed: this._spriteMaxSpeed,
+                strideWorld,
+                stepMs
+            });
+        } else {
+            const animId = typeof resolveSpriteAnimationId === 'function'
+                ? resolveSpriteAnimationId(this.type)
+                : this.type;
+            if (animId && !assetManager.spriteAnimationCache.get(animId)?.loadFailed) {
+                assetManager.loadSpriteAnimation(this.type);
+            }
+        }
+    }
+
+    /** 应用怪物受伤/冰冻滤镜 */
+    _applyMonsterStatusFilter(ctx, now, isFrozen, isHurt) {
+        if (isHurt) {
+            const hurtElapsed = now - (this.hurtUntil - 500);
+            const hurtProgress = Math.min(1.0, hurtElapsed / 500);
+            const redIntensity = 1.0 - hurtProgress;
+            ctx.filter = `saturate(${1.0 + redIntensity * 2.0}) brightness(${1.0 + redIntensity * 0.8}) hue-rotate(${-redIntensity * 20}deg)`;
+        } else if (isFrozen) {
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.globalAlpha = 0.7;
+            ctx.filter = 'hue-rotate(180deg) saturate(1.5)';
         }
     }
 
@@ -1700,39 +1749,26 @@ class Monster {
                 
                 if (monsterImg) {
                     ctx.save();
-                    
-                    // 应用受伤变红效果（优先于冰冻效果）
-                    if (isHurt) {
-                        // 受伤时变红：使用红色色调滤镜
-                        // 计算红色强度（随时间衰减）
-                        const hurtElapsed = now - (this.hurtUntil - 500);
-                        const hurtProgress = Math.min(1.0, hurtElapsed / 500); // 0到1，1表示完全恢复
-                        // 红色强度从1.0衰减到0
-                        const redIntensity = 1.0 - hurtProgress;
-                        // 使用红色色调滤镜：增加饱和度，提高亮度，调整色相偏向红色
-                        ctx.filter = `saturate(${1.0 + redIntensity * 2.0}) brightness(${1.0 + redIntensity * 0.8}) hue-rotate(${-redIntensity * 20}deg)`;
-                    } else if (isFrozen) {
-                        // 如果被冰冻，添加蓝色滤镜效果
-                        ctx.globalCompositeOperation = 'source-over';
-                        ctx.globalAlpha = 0.7;
-                        ctx.filter = 'hue-rotate(180deg) saturate(1.5)';
-                    }
-                    
-                    // 计算走动时的上下缩放效果
-                    const walkScale = 1.0 + Math.sin(this.walkAnimationTime) * 0.1; // 上下缩放10%
-                    
-                    // 计算绘制尺寸（应用缩放配置）
+                    this._applyMonsterStatusFilter(ctx, now, isFrozen, isHurt);
+
                     const baseScale = monsterConfig.scale || 1.0;
                     const drawSize = this.size * baseScale;
-                    
-                    // 应用缩放变换（只缩放Y轴，模拟上下跳动）
-                    ctx.translate(this.x, this.y);
-                    ctx.scale(1.0, walkScale);
-                    ctx.translate(-this.x, -this.y);
-                    
-                    // 绘制怪物贴图
-                    assetManager.drawEntityImage(ctx, monsterImg, this.x, this.y, drawSize, drawSize);
-                    
+                    const spriteAnim = assetManager.getSpriteAnimationSync(this.type);
+                    const moveSpeed = this._spriteMoveSpeed || Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                    const drewSprite = spriteAnim && this.spriteAnimRuntime
+                        && assetManager.drawSpriteAnimationFrame(
+                            ctx, spriteAnim, this.spriteAnimRuntime, this.x, this.y, drawSize, drawSize,
+                            { moveSpeed, maxSpeed: this._spriteMaxSpeed || this.maxSpeed || this.speed || moveSpeed || 1 }
+                        );
+
+                    if (!drewSprite) {
+                        const walkScale = 1.0 + Math.sin(this.walkAnimationTime) * 0.1;
+                        ctx.translate(this.x, this.y);
+                        ctx.scale(1.0, walkScale);
+                        ctx.translate(-this.x, -this.y);
+                        assetManager.drawEntityImage(ctx, monsterImg, this.x, this.y, drawSize, drawSize);
+                    }
+
                     ctx.restore();
                 } else {
                     // 回退：绘制默认圆形（也应用走动动画）
@@ -2909,11 +2945,28 @@ class TownScene {
             blacksmith: { x: 200, y: 300, size: 50, name: '铁匠铺', type: 'blacksmith' },
             jeweler: { x: 200, y: 450, size: 48, name: '珠宝匠', type: 'jeweler' },
             trainingGround: { x: 200, y: 620, size: 50, name: '训练场', type: 'training_ground' },
+            partyHall: { x: 400, y: 620, size: 50, name: '编队大厅', type: 'party_hall' },
             materialRealm: { x: 600, y: 620, size: 48, name: '材料秘境', type: 'material_realm' },
             awakeningGate: { x: 1000, y: 620, size: 52, name: '觉醒之门', type: 'awakening_gate' }
         };
+        // 自走棋主城布局：只保留攀塔与编队
+        this.autoBattlerBuildings = {
+            partyHall: { x: 420, y: 360, size: 56, name: '编队大厅', type: 'party_hall' },
+            towerEntrance: { x: 780, y: 360, size: 72, name: '开始攀塔', type: 'tower_entrance' }
+        };
         // 预加载贴图
         this._preloadTextures();
+    }
+
+    _isAutoBattlerTown() {
+        return !!(typeof window !== 'undefined' && window.AutoBattlerController
+            && typeof window.AutoBattlerController.isEnabled === 'function'
+            && window.AutoBattlerController.isEnabled());
+    }
+
+    getVisibleBuildings() {
+        if (this._isAutoBattlerTown()) return Object.values(this.autoBattlerBuildings);
+        return Object.values(this.buildings);
     }
 
     async _preloadTextures() {
@@ -2929,8 +2982,9 @@ class TownScene {
             await assetManager.loadEntityImage(floorImageName);
         }
 
-        // 预加载建筑贴图
-        for (const building of Object.values(this.buildings)) {
+        // 预加载建筑贴图（含自走棋精简布局）
+        const allBuildings = Object.values(this.buildings).concat(Object.values(this.autoBattlerBuildings || {}));
+        for (const building of allBuildings) {
             const imageName = assetManager.getBuildingImageName(building.type);
             if (imageName) {
                 await assetManager.loadEntityImage(imageName);
@@ -2940,6 +2994,8 @@ class TownScene {
 
     draw(ctx) {
         const assetManager = this.gameInstance?.assetManager;
+        const visible = this.getVisibleBuildings();
+        const abTown = this._isAutoBattlerTown();
         
         // 绘制地板贴图
         if (assetManager) {
@@ -2956,24 +3012,34 @@ class TownScene {
                     }
                 } else {
                     // 回退：绘制默认背景
-                    ctx.fillStyle = '#1a1a2e';
+                    ctx.fillStyle = abTown ? '#12141c' : '#1a1a2e';
                     ctx.fillRect(0, 0, this.width, this.height);
                 }
             } else {
                 // 回退：绘制默认背景
-                ctx.fillStyle = '#1a1a2e';
+                ctx.fillStyle = abTown ? '#12141c' : '#1a1a2e';
                 ctx.fillRect(0, 0, this.width, this.height);
             }
         } else {
             // 回退：绘制默认背景
-            ctx.fillStyle = '#1a1a2e';
+            ctx.fillStyle = abTown ? '#12141c' : '#1a1a2e';
             ctx.fillRect(0, 0, this.width, this.height);
+        }
+
+        if (abTown) {
+            ctx.fillStyle = 'rgba(212, 180, 90, 0.08)';
+            ctx.fillRect(0, 0, this.width, 70);
+            ctx.fillStyle = 'rgba(232, 228, 216, 0.85)';
+            ctx.font = '16px "Courier New", "Microsoft YaHei", monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('编队大厅分配经验 · 开始攀塔进入恶魔塔', this.width / 2, 42);
+            ctx.textAlign = 'left';
         }
         
         // 绘制建筑物（使用贴图）
         const highlightType = this.gameInstance && this.gameInstance.tutorialHighlightBuilding;
         if (assetManager) {
-            for (const building of Object.values(this.buildings)) {
+            for (const building of visible) {
                 if (highlightType && building.type === highlightType) {
                     const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 280);
                     ctx.save();
@@ -3003,18 +3069,19 @@ class TownScene {
             }
         } else {
             // 回退：绘制默认颜色方块
-            for (const building of Object.values(this.buildings)) {
+            for (const building of visible) {
                 this._drawBuildingFallback(ctx, building);
             }
         }
         
         // 绘制建筑名称
         ctx.textAlign = 'center';
-        Object.values(this.buildings).forEach(building => {
+        visible.forEach(building => {
             ctx.fillStyle = highlightType && building.type === highlightType ? '#ffd700' : '#fff';
-            ctx.font = '14px "Courier New", monospace';
+            ctx.font = (abTown ? '15px' : '14px') + ' "Courier New", "Microsoft YaHei", monospace';
             ctx.fillText(building.name, building.x, building.y + building.size / 2 + 15);
         });
+        ctx.textAlign = 'left';
     }
 
     _drawBuildingFallback(ctx, building) {
@@ -3024,6 +3091,7 @@ class TownScene {
             blacksmith: { fill: '#8b4513', stroke: '#ff6600' },
             shop: { fill: '#daa520', stroke: '#ffd700' },
             training_ground: { fill: '#2d5016', stroke: '#4a9eff' },
+            party_hall: { fill: '#1a3a4a', stroke: '#66ccdd' },
             class_master: { fill: '#4a2060', stroke: '#cc88ff' },
             skill_trainer: { fill: '#1a4060', stroke: '#66ccff' },
             enchanter: { fill: '#3a2060', stroke: '#aa66ff' },
@@ -3042,7 +3110,7 @@ class TownScene {
 
     checkInteraction(player) {
         const interactions = [];
-        Object.values(this.buildings).forEach(building => {
+        this.getVisibleBuildings().forEach(building => {
             const dx = building.x - player.x;
             const dy = building.y - player.y;
             const distance = Math.sqrt(dx * dx + dy * dy);

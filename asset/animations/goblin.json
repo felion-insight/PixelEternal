@@ -1,0 +1,52 @@
+{
+  "id": "goblin",
+  "sheet": "animations/goblin_sheet.png",
+  "frameWidth": 128,
+  "frameHeight": 128,
+  "sheetWidth": 384,
+  "sheetHeight": 128,
+  "anchor": {
+    "x": 64,
+    "y": 122
+  },
+  "frames": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "x": 128,
+      "y": 0,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "x": 256,
+      "y": 0,
+      "w": 128,
+      "h": 128
+    }
+  ],
+  "animations": {
+    "idle": {
+      "frames": [
+        0
+      ],
+      "fps": 4,
+      "loop": true
+    },
+    "walk": {
+      "frames": [
+        1,
+        2
+      ],
+      "fps": 6,
+      "loop": true
+    }
+  },
+  "view": "front",
+  "strideWorld": 10,
+  "walkMode": "procedural-front"
+}

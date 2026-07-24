@@ -6,6 +6,18 @@
 
     const BASE_CLASS_IDS = ['warrior', 'archer', 'mage', 'assassin'];
 
+    function classIconStyle(classId) {
+        const SAP = window.StaticArtPaths;
+        if (!SAP || !classId) return '';
+        const url = SAP.resolveDisplayIconUrl(SAP.getClassIconUrl(classId));
+        return url ? ` style="background-image:url(&quot;${url}&quot;)"` : '';
+    }
+
+    function classTreeNode(classId, text, nodeClass, colorStyle) {
+        const style = colorStyle ? ` style="${colorStyle}"` : '';
+        return `<div class="class-tree-node ${nodeClass || ''}"${style}><span class="class-tree-icon"${classIconStyle(classId)}></span><span>${text}</span></div>`;
+    }
+
     function $(id) { return document.getElementById(id); }
 
     window.ClassUI = class ClassUI {
@@ -342,6 +354,7 @@
                     return sk ? sk.name : sid;
                 });
                 card.innerHTML = `
+                    <div class="class-select-icon"${classIconStyle(id)}></div>
                     <h3>${def.name}</h3>
                     <p class="class-select-role">${def.role || ''} · ${def.description || ''}</p>
                     <div class="class-select-stats">
@@ -374,21 +387,21 @@
                 } else {
                     const lines = [];
                     const b = window.getClassDefinition(cd.baseClass);
-                    lines.push(`<div class="class-tree-node active">${b ? b.name : cd.baseClass} (基础)</div>`);
+                    lines.push(classTreeNode(cd.baseClass, `${b ? b.name : cd.baseClass} (基础)`, 'active'));
                     if (cd.firstAdvancement) {
                         const f = window.getClassDefinition(cd.firstAdvancement);
                         const fc = f && f.themeColor ? f.themeColor : '#88ff88';
                         const fl = f && f.themeLabel ? ` · ${f.themeLabel}` : '';
-                        lines.push(`<div class="class-tree-node active" style="color:${fc}">→ ${f ? f.name : cd.firstAdvancement} (一转)${fl}</div>`);
+                        lines.push(classTreeNode(cd.firstAdvancement, `→ ${f ? f.name : cd.firstAdvancement} (一转)${fl}`, 'active', `color:${fc}`));
                     } else if (p.level >= 20) {
-                        lines.push('<div class="class-tree-node locked">→ 一转（待转职）</div>');
+                        lines.push('<div class="class-tree-node locked"><span class="class-tree-icon"></span><span>→ 一转（待转职）</span></div>');
                     }
                     if (cd.secondAdvancement) {
                         const s = window.getClassDefinition(cd.secondAdvancement);
                         const sc = s && s.themeColor ? s.themeColor : '#88ff88';
-                        lines.push(`<div class="class-tree-node active" style="color:${sc}">→ ${s ? s.name : cd.secondAdvancement} (二转)</div>`);
+                        lines.push(classTreeNode(cd.secondAdvancement, `→ ${s ? s.name : cd.secondAdvancement} (二转)`, 'active', `color:${sc}`));
                     } else if (p.level >= 40 && cd.firstAdvancement) {
-                        lines.push('<div class="class-tree-node locked">→ 二转（待觉醒）</div>');
+                        lines.push('<div class="class-tree-node locked"><span class="class-tree-icon"></span><span>→ 二转（待觉醒）</span></div>');
                     }
                     treeEl.innerHTML = lines.join('');
                 }
@@ -484,10 +497,17 @@
                     ? window.KeybindSystem.getHotbarKeyLabel(hotIdx)
                     : (hotIdx >= 0 ? String(hotIdx + 1) : '');
                 const bindHint = hotIdx >= 0 ? `<span class="skill-panel-bind">快捷键 ${keyLabel}</span>` : '';
+                const skillIconUrl = this.game.resolveIconDisplayUrl(this.game.getSkillIconUrl(displayDef.name, displayDef.id));
+                const iconHtml = skillIconUrl
+                    ? `<span class="skill-panel-icon" style="background-image:url(${skillIconUrl})"></span>`
+                    : '<span class="skill-panel-icon"></span>';
                 row.innerHTML = `
                     <div class="skill-panel-row-head">
+                        ${iconHtml}
+                        <div class="skill-panel-row-text">
                         <strong>${displayDef.name}</strong>
                         <span>Lv${reqLv} · ${displayDef.type === 'passive' ? '被动' : '主动'}${bindHint}</span>
+                        </div>
                     </div>
                     <p class="skill-panel-desc">${desc}</p>
                     <p class="skill-panel-meta">${meta || `CD ${(displayDef.cooldownMs / 1000).toFixed(1)}s · 倍率 ${displayDef.damageMultiplier}x · 强化 +${enhLv}`}</p>
@@ -576,6 +596,12 @@
             const p = this.game.player;
             const bar = $('class-skill-bar');
             if (!bar) return;
+            if (document.body.classList.contains('pe-auto-battler-mode')
+                || document.body.classList.contains('pe-auto-battler-town')
+                || (this.game && typeof this.game.isAutoBattlerTownMode === 'function' && this.game.isAutoBattlerTownMode())) {
+                bar.style.display = 'none';
+                return;
+            }
             if (!window.hasPlayerClass(p.classData)) {
                 bar.style.display = 'none';
                 return;

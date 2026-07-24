@@ -4,7 +4,7 @@
     "warrior": {
       "id": "warrior",
       "name": "战士",
-      "description": "战士 — 基础职业",
+      "description": "近战基础职业。",
       "icon": "assets/icons/classes/warrior.png",
       "role": "mdps",
       "baseStats": {
@@ -52,7 +52,7 @@
     "archer": {
       "id": "archer",
       "name": "弓箭手",
-      "description": "弓箭手 — 基础职业",
+      "description": "远程基础职业。",
       "icon": "assets/icons/classes/archer.png",
       "role": "rdps",
       "baseStats": {
@@ -100,7 +100,7 @@
     "mage": {
       "id": "mage",
       "name": "法师",
-      "description": "法师 — 基础职业",
+      "description": "法术基础职业。",
       "icon": "assets/icons/classes/mage.png",
       "role": "rdps",
       "baseStats": {
@@ -148,7 +148,7 @@
     "assassin": {
       "id": "assassin",
       "name": "刺客",
-      "description": "暗影中的舞者，以极致的操作换取毁灭性的爆发。全职业最脆弱但上限最高。",
+      "description": "脆皮爆发，靠操作打高伤。",
       "icon": "assets/icons/classes/assassin.png",
       "role": "mdps",
       "difficulty": 5,
@@ -202,7 +202,7 @@
       "name": "骑士",
       "baseClass": "warrior",
       "requiredLevel": 20,
-      "description": "以圣光淬炼怒气的骑士，盾击与奉献突进守护队友。",
+      "description": "圣骑士，盾击与突进守护队友。",
       "icon": "assets/icons/classes/knight.png",
       "role": "tank",
       "statsModifier": {
@@ -240,7 +240,7 @@
       "name": "狂战士",
       "baseClass": "warrior",
       "requiredLevel": 20,
-      "description": "狂战士",
+      "description": "狂战士，低血高伤。",
       "icon": "assets/icons/classes/berserker.png",
       "role": "mdps",
       "statsModifier": {
@@ -276,7 +276,7 @@
       "name": "守护者",
       "baseClass": "warrior",
       "requiredLevel": 20,
-      "description": "以身为盾的守护者，举盾格挡、冲锋护队友、替队友承伤。",
+      "description": "坦克，格挡承伤，保护队友。",
       "icon": "assets/icons/classes/guardian.png",
       "role": "tank",
       "statsModifier": {
@@ -317,7 +317,7 @@
       "name": "游侠",
       "baseClass": "archer",
       "requiredLevel": 20,
-      "description": "游侠 — 自然与兽群之道，以宠物与陷阱控场输出。",
+      "description": "游侠，宠物与陷阱控场输出。",
       "icon": "assets/icons/classes/ranger.png",
       "role": "rdps",
       "statsModifier": {
@@ -354,7 +354,7 @@
       "name": "神射手",
       "baseClass": "archer",
       "requiredLevel": 20,
-      "description": "神射手 — 精准与致命之道，以瞄准与穿透斩杀目标。",
+      "description": "神射手，瞄准与穿透斩杀。",
       "icon": "assets/icons/classes/marksman.png",
       "role": "rdps",
       "statsModifier": {
@@ -390,7 +390,7 @@
       "name": "风行者",
       "baseClass": "archer",
       "requiredLevel": 20,
-      "description": "风行者 — 疾风与灵动之道，以位移与风筝掌控战局。",
+      "description": "风行者，位移风筝。",
       "icon": "assets/icons/classes/windrunner.png",
       "role": "mdps",
       "statsModifier": {
@@ -432,7 +432,7 @@
       "name": "巫师",
       "baseClass": "mage",
       "requiredLevel": 20,
-      "description": "元素舞者 — 三相位轮转驱动技能形态变换，切换叠共鸣层触发元素解放。",
+      "description": "元素法师，切相位叠共鸣爆发。",
       "icon": "assets/icons/classes/wizard.png",
       "role": "rdps",
       "statsModifier": {
@@ -478,7 +478,7 @@
       "name": "贤者",
       "baseClass": "mage",
       "requiredLevel": 20,
-      "description": "预判型治疗 — 以预知之盾吸收伤害获得时光沙漏，释放时间法术保护队友。",
+      "description": "预知治疗，护盾叠资源后开时间法术。",
       "icon": "assets/icons/classes/sage.png",
       "role": "healer",
       "statsModifier": {
@@ -524,7 +524,7 @@
       "name": "术士",
       "baseClass": "mage",
       "requiredLevel": 20,
-      "description": "诅咒织网与灵魂引爆 — 3连暗影箭、诅咒引爆、灵魂链接与暗黑漩涡。",
+      "description": "诅咒与暗影爆发。",
       "icon": "assets/icons/classes/warlock.png",
       "role": "rdps",
       "statsModifier": {
@@ -573,7 +573,7 @@
       "name": "影舞者",
       "baseClass": "assassin",
       "requiredLevel": 20,
-      "description": "精准的暗杀者，以背刺和连击点驱动的爆发循环消灭目标。",
+      "description": "刺客，背刺连击爆发。",
       "icon": "assets/icons/classes/shadowdancer.png",
       "role": "mdps",
       "difficulty": 4,
@@ -619,7 +619,7 @@
       "name": "骗术师",
       "baseClass": "assassin",
       "requiredLevel": 20,
-      "description": "操纵分身的幻术大师，以虚实掩人耳目、以分身代替自身承受伤害。",
+      "description": "幻术，分身承伤与迷惑。",
       "icon": "assets/icons/classes/trickster.png",
       "role": "support",
       "difficulty": 4,
@@ -665,7 +665,7 @@
       "name": "毒师",
       "baseClass": "assassin",
       "requiredLevel": 20,
-      "description": "毒术专家，以层层叠加的猛毒消磨敌人，在毒雾中优雅地收割生命。",
+      "description": "毒系，叠毒持续消耗。",
       "icon": "assets/icons/classes/venomancer.png",
       "role": "mdps",
       "difficulty": 3,
@@ -713,7 +713,7 @@
       "name": "圣骑士",
       "firstAdvancement": "knight",
       "requiredLevel": 40,
-      "description": "手持圣光的审判官，主动输出、叠圣盾、神罚爆发。",
+      "description": "审判官，圣光输出与圣盾。",
       "icon": "assets/icons/classes/paladin.png",
       "role": "tank",
       "statsModifier": {
@@ -735,7 +735,7 @@
       "name": "毁灭者",
       "firstAdvancement": "berserker",
       "requiredLevel": 40,
-      "description": "毁灭者",
+      "description": "毁灭者，高伤近战。",
       "icon": "assets/icons/classes/destroyer.png",
       "role": "mdps",
       "statsModifier": {
@@ -758,7 +758,7 @@
       "name": "神殿骑士",
       "firstAdvancement": "guardian",
       "requiredLevel": 40,
-      "description": "扎根大地、成为队友城墙的神殿骑士，壁垒格挡与圣约承伤。",
+      "description": "神殿骑士，壁垒格挡与承伤。",
       "icon": "assets/icons/classes/temple_knight.png",
       "role": "tank",
       "statsModifier": {
@@ -781,7 +781,7 @@
       "name": "兽王",
       "firstAdvancement": "ranger",
       "requiredLevel": 40,
-      "description": "兽王 — 兽群协同之道，以双指令轮换与猎物标记驱动爆发。",
+      "description": "兽王，双指令与猎物标记爆发。",
       "icon": "assets/icons/classes/beastmaster.png",
       "role": "rdps",
       "statsModifier": {
@@ -820,7 +820,7 @@
       "name": "死眼",
       "firstAdvancement": "marksman",
       "requiredLevel": 40,
-      "description": "死眼 — 维持高位精准、屏息窗口与狙击终结，锁定弱点后一击必杀。",
+      "description": "死眼，高精度狙击斩杀。",
       "icon": "assets/icons/classes/deadeye.png",
       "role": "rdps",
       "statsModifier": {
@@ -859,18 +859,18 @@
       "name": "幻影",
       "firstAdvancement": "windrunner",
       "requiredLevel": 40,
-      "description": "幻影 — 残影迷惑之道，以延时镜像复读制造「哪个才是真的」的战场错觉。",
+      "description": "幻影，镜像复读迷惑敌人。",
       "icon": "assets/icons/classes/phantom.png",
       "role": "mdps",
       "statsModifier": {
-        "hp": 0.90,
+        "hp": 0.9,
         "attack": 1.15,
         "defense": 0.85,
-        "magicAttack": 0.90,
-        "magicDefense": 0.90,
-        "speed": 1.30,
-        "critical": 1.20,
-        "dodge": 1.30
+        "magicAttack": 0.9,
+        "magicDefense": 0.9,
+        "speed": 1.3,
+        "critical": 1.2,
+        "dodge": 1.3
       },
       "resource": {
         "type": "wind_mark",
@@ -901,7 +901,7 @@
       "name": "大魔导师",
       "firstAdvancement": "wizard",
       "requiredLevel": 40,
-      "description": "元素融合者 — 相位桥梁、双元素熔合、维度裂隙与元素化身。",
+      "description": "元素融合，双元素熔合爆发。",
       "icon": "assets/icons/classes/archmage.png",
       "role": "rdps",
       "statsModifier": {
@@ -944,7 +944,7 @@
       "name": "先知",
       "firstAdvancement": "sage",
       "requiredLevel": 40,
-      "description": "操控时间本身 — 时间领域、命运编织与全队时光倒流。",
+      "description": "时间法师，领域与全队回溯。",
       "icon": "assets/icons/classes/oracle.png",
       "role": "healer",
       "statsModifier": {
@@ -990,7 +990,7 @@
       "name": "死灵法师",
       "firstAdvancement": "warlock",
       "requiredLevel": 40,
-      "description": "亡灵军团与DOT引爆 — 传染诅咒、灵魂收割与冥界之门。",
+      "description": "亡灵与持续伤害引爆。",
       "icon": "assets/icons/classes/necromancer.png",
       "role": "rdps",
       "statsModifier": {
@@ -1019,7 +1019,7 @@
       "name": "夜刃",
       "firstAdvancement": "shadowdancer",
       "requiredLevel": 40,
-      "description": "暗影中的死神。处决敌人如同割草，在永夜领域中无人能逃脱他的刀刃。",
+      "description": "暗影斩杀，处决收割。",
       "icon": "assets/icons/classes/nightblade.png",
       "role": "mdps",
       "difficulty": 5,
@@ -1043,7 +1043,7 @@
       "name": "幻术师",
       "firstAdvancement": "trickster",
       "requiredLevel": 40,
-      "description": "虚实领域的掌控者。当他布下镜影结界，战场便成为他的个人舞台。",
+      "description": "镜影控制，结界分身。",
       "icon": "assets/icons/classes/illusionist.png",
       "role": "support",
       "difficulty": 5,
@@ -1067,7 +1067,7 @@
       "name": "瘟疫使者",
       "firstAdvancement": "venomancer",
       "requiredLevel": 40,
-      "description": "行走的瘟疫之源。他的毒素如疫病般蔓延，所过之处寸草不生。",
+      "description": "瘟疫毒系，持续扩散伤害。",
       "icon": "assets/icons/classes/plaguebringer.png",
       "role": "mdps",
       "difficulty": 4,

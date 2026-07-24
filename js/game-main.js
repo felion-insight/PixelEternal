@@ -60,6 +60,11 @@ class Game {
         this.townScene = new TownScene(this); // 主城场景
         this.trainingGroundScene = new TrainingGroundScene(this); // 训练场场景
         this.skillLabScene = new SkillLabScene(this); // 技能实验场
+        this.animPreviewScene = typeof AnimPreviewScene !== 'undefined' ? new AnimPreviewScene(this) : null;
+        this.abSkillVfxLabScene = typeof AbSkillVfxLabScene !== 'undefined' ? new AbSkillVfxLabScene(this) : null;
+        this.abSkillVfxLabUI = typeof AbSkillVfxLabUI !== 'undefined' ? new AbSkillVfxLabUI(this) : null;
+        this._abVfxLabBattle = null;
+        this._lastAbVfxLabTick = 0;
         this.equipmentLabScene = typeof EquipmentLabScene !== 'undefined' ? new EquipmentLabScene(this) : null;
         this.equipmentLabController = typeof window.EquipmentLabController !== 'undefined'
             ? new window.EquipmentLabController(this) : null;
@@ -68,6 +73,15 @@ class Game {
         this.activeTrial = null; // { kind, targetId, bossId, title }
         this.activeDungeon = null; // { def, tier, dungeonId, tierId }
         this.dungeonUI = null;
+        this.partyMeta = (typeof window.PartyMetaSystem !== 'undefined')
+            ? window.PartyMetaSystem.createDefaultPartyMeta()
+            : null;
+        this.autoBattlerController = (typeof window.AutoBattlerController !== 'undefined')
+            ? new window.AutoBattlerController(this)
+            : null;
+        this.autoBattlerUI = (this.autoBattlerController && typeof window.AutoBattlerUI !== 'undefined')
+            ? new window.AutoBattlerUI(this, this.autoBattlerController)
+            : null;
         this.currentRoom = null; // 恶魔塔房间
         this.floor = 1; // 当前层数
         this.lastDeathFloor = 1; // 上次死亡的层数
@@ -283,6 +297,11 @@ class Game {
             ['weapon', 'offHand', 'helmet', 'body', 'hands', 'legs', 'feet', 'amulet', 'ring', 'belt'].forEach(slot => {
                 imageNames.add('equipment/slots/' + slot + '.png');
             });
+            if (typeof WEAPON_AFFINITY_CONFIG !== 'undefined' && WEAPON_AFFINITY_CONFIG.weaponTypes) {
+                Object.keys(WEAPON_AFFINITY_CONFIG.weaponTypes).forEach(wt => {
+                    imageNames.add('equipment/types/' + wt + '.png');
+                });
+            }
             imageNames.forEach(imageName => {
                 if (!this.assetManager.equipmentImageCache.has(imageName)) {
                     resourcesToLoad.push({
@@ -322,6 +341,22 @@ class Game {
                 });
             }
 
+            // 3b. Sprite Sheet 怪物动画
+            if (typeof SPRITE_ANIMATIONS !== 'undefined' && SPRITE_ANIMATIONS) {
+                const entities = SPRITE_ANIMATIONS.entities || SPRITE_ANIMATIONS;
+                Object.keys(entities).forEach((animId) => {
+                    const entry = entities[animId];
+                    if (entry && entry.sheet && entry.meta) {
+                        resourcesToLoad.push({
+                            type: 'spriteAnim',
+                            name: '动画:' + animId,
+                            imageName: entry.sheet,
+                            loadFn: () => this.assetManager.loadSpriteAnimation(animId)
+                        });
+                    }
+                });
+            }
+
             // 4. 飞射体 / 子弹贴图（asset/projectiles）
             if (typeof window.PROJECTILE_SPRITE_MAP !== 'undefined' && window.PROJECTILE_SPRITE_MAP) {
                 const pm = window.PROJECTILE_SPRITE_MAP;
@@ -345,13 +380,29 @@ class Game {
                     });
                 });
             }
+
+            // 5. 静态美术（职业/Buff/药水/自走棋等）
+            if (window.StaticArtPreloader && typeof StaticArtPreloader.collectStaticArtUrls === 'function') {
+                StaticArtPreloader.collectStaticArtUrls().forEach(entry => {
+                    if (!this.assetManager.genericImageCache.has(entry.url)) {
+                        resourcesToLoad.push({
+                            type: 'static_art',
+                            name: entry.label,
+                            imageName: entry.url,
+                            category: entry.category,
+                            loadFn: () => this.assetManager.preloadImageUrl(entry.url)
+                        });
+                    }
+                });
+            }
             
             const totalImages = resourcesToLoad.length;
             console.log('需要加载的资源数量:', totalImages, {
                 equipment: resourcesToLoad.filter(r => r.type === 'equipment').length,
                 monster: resourcesToLoad.filter(r => r.type === 'monster').length,
                 player: resourcesToLoad.filter(r => r.type === 'player').length,
-                projectile: resourcesToLoad.filter(r => r.type === 'projectile').length
+                projectile: resourcesToLoad.filter(r => r.type === 'projectile').length,
+                static_art: resourcesToLoad.filter(r => r.type === 'static_art').length
             });
             let loadedImages = 0;
             
@@ -380,9 +431,10 @@ class Game {
                     equipment: resourcesToLoad.filter(r => r.type === 'equipment').length,
                     monster: resourcesToLoad.filter(r => r.type === 'monster').length,
                     player: resourcesToLoad.filter(r => r.type === 'player').length,
-                    projectile: resourcesToLoad.filter(r => r.type === 'projectile').length
+                    projectile: resourcesToLoad.filter(r => r.type === 'projectile').length,
+                    static_art: resourcesToLoad.filter(r => r.type === 'static_art').length
                 };
-                statusText.textContent = `准备加载 ${totalImages} 个资源 (装备:${typeCounts.equipment} 怪物:${typeCounts.monster} 玩家:${typeCounts.player} 飞射体:${typeCounts.projectile})...`;
+                statusText.textContent = `准备加载 ${totalImages} 个资源 (装备:${typeCounts.equipment} 怪物:${typeCounts.monster} 玩家:${typeCounts.player} 飞射体:${typeCounts.projectile} 静态美术:${typeCounts.static_art})...`;
                 console.log('状态文本已更新:', statusText.textContent);
             }
             updateProgress();
@@ -402,7 +454,8 @@ class Game {
                     const typeName = resource.type === 'equipment' ? '装备' :
                                    resource.type === 'monster' ? '怪物' :
                                    resource.type === 'player' ? '玩家' :
-                                   resource.type === 'projectile' ? '飞射体' : '资源';
+                                   resource.type === 'projectile' ? '飞射体' :
+                                   resource.type === 'static_art' ? '静态美术' : '资源';
                     console.log(`开始加载资源: ${typeName} ${resource.name} (${resource.imageName})`);
                     return resource.loadFn().catch(error => {
                         // 静默处理错误，继续加载其他资源
@@ -433,6 +486,10 @@ class Game {
             }
             
             console.log('所有图片加载完成');
+
+            if (window.AutoBattlerAssets && window.AutoBattlerAssets.ensureLoaded) {
+                await window.AutoBattlerAssets.ensureLoaded();
+            }
             
             // 确保进度是100%
             loadedImages = totalImages;
@@ -771,6 +828,14 @@ class Game {
                     this.exitEquipmentLab();
                     return;
                 }
+                if (this.currentScene === SCENE_TYPES.ANIM_PREVIEW) {
+                    this.exitAnimPreview();
+                    return;
+                }
+                if (this.currentScene === SCENE_TYPES.AB_SKILL_VFX_LAB) {
+                    this.exitAbSkillVfxLab();
+                    return;
+                }
                 if (this.currentScene === SCENE_TYPES.TRIAL) {
                     this.abortTrial();
                     return;
@@ -864,6 +929,11 @@ class Game {
                 e.preventDefault();
                 if (this.skillLabUI.isOpen()) this.skillLabUI.close();
                 else this.skillLabUI.open();
+            }
+            if (!e.repeat && e.code === 'KeyP' && this.currentScene === SCENE_TYPES.ANIM_PREVIEW && this.animPreviewUI) {
+                e.preventDefault();
+                if (this.animPreviewUI.isOpen()) this.animPreviewUI.close();
+                else this.animPreviewUI.open();
             }
             if (!e.repeat && e.code === 'KeyO' && this.currentScene === SCENE_TYPES.EQUIPMENT_LAB && this.equipmentLabUI) {
                 e.preventDefault();
@@ -1094,6 +1164,7 @@ class Game {
         this.updateHUD();
         document.getElementById('room-type').textContent = '主城';
         document.getElementById('floor-number').textContent = '准备中';
+        if (typeof this.syncAutoBattlerTownHud === 'function') this.syncAutoBattlerTownHud();
         
         // 若本机曾用「保存到浏览器」写入存档码，启动时自动导入（剪贴板导入仍保留）
         this.tryAutoLoadBrowserSave();
@@ -1115,6 +1186,7 @@ class Game {
         this.classUI = new ClassUI(this);
         this.classUI.init();
         this.skillLabUI = typeof SkillLabUI !== 'undefined' ? new SkillLabUI(this) : null;
+        this.animPreviewUI = typeof AnimPreviewUI !== 'undefined' ? new AnimPreviewUI(this) : null;
         this.equipmentLabUI = typeof EquipmentLabUI !== 'undefined' ? new EquipmentLabUI(this) : null;
         this.npcUI = new NpcUI(this);
         this.npcUI.init();
@@ -1999,7 +2071,7 @@ class Game {
                     // 显示武器技能（含图标）
                     if (eq.slot === 'weapon' && eq.skill) {
                         const skillIconUrl = this.getSkillIconUrl(eq.skill.name);
-                        const skillIconHtml = skillIconUrl ? `<img src="${skillIconUrl}" alt="" style="width:24px;height:24px;vertical-align:middle;margin-right:6px;border-radius:4px;">` : '';
+                        const skillIconHtml = skillIconUrl ? `<img src="${skillIconUrl}" alt="" style="width:24px;height:24px;object-fit:contain;image-rendering:pixelated;vertical-align:middle;margin-right:6px;border-radius:4px;">` : '';
                         statsHTML += `<p>---</p>`;
                         statsHTML += `<p style="color: #ffaa00;"><strong>${skillIconHtml}武器技能: ${eq.skill.name}</strong></p>`;
                         statsHTML += `<p style="color: #aaa; font-size: 11px;">${eq.skill.description}</p>`;
@@ -2067,7 +2139,7 @@ class Game {
                         // 图片已缓存，立即设置
                         const imageUrl = this.assetManager.equipmentImageCache.get(imageName);
                         visual.style.backgroundImage = `url(${imageUrl})`;
-                        visual.style.backgroundSize = 'cover';
+                        visual.style.backgroundSize = 'contain';
                         visual.style.backgroundPosition = 'center';
                         visual.style.backgroundRepeat = 'no-repeat';
                     } else if (imageName) {
@@ -2100,7 +2172,7 @@ class Game {
                                 if (imageName && this.assetManager.equipmentImageCache.has(imageName)) {
                                     const imageUrl = this.assetManager.equipmentImageCache.get(imageName);
                                     visual.style.backgroundImage = `url(${imageUrl})`;
-                                    visual.style.backgroundSize = 'cover';
+                                    visual.style.backgroundSize = 'contain';
                                     visual.style.backgroundPosition = 'center';
                                     visual.style.backgroundRepeat = 'no-repeat';
                                 }
@@ -2398,7 +2470,7 @@ class Game {
                             : 'blueprint.png';
                         const base = window.location.protocol === 'file:' ? 'asset/' : (window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1) + 'asset/');
                         slot.style.backgroundImage = `url(${base}${imageName})`;
-                        slot.style.backgroundSize = 'cover';
+                        slot.style.backgroundSize = 'contain';
                         slot.style.backgroundPosition = 'center';
                         slot.style.backgroundRepeat = 'no-repeat';
                     } else {
@@ -2409,6 +2481,23 @@ class Game {
                         slot.style.display = 'flex';
                         slot.style.alignItems = 'center';
                         slot.style.justifyContent = 'center';
+                        slot.style.backgroundImage = '';
+                    }
+                } else if (item.type === 'potion' || (item.type === 'consumable' && item.consumableType === 'potion')) {
+                    slot.textContent = '';
+                    slot.style.fontSize = '';
+                    slot.style.textAlign = '';
+                    slot.style.display = '';
+                    slot.style.alignItems = '';
+                    slot.style.justifyContent = '';
+                    const rawUrl = window.StaticArtPaths && window.StaticArtPaths.getPotionIconUrl(item.name);
+                    const url = rawUrl ? this.resolveIconDisplayUrl(rawUrl) : '';
+                    if (url) {
+                        slot.style.backgroundImage = `url(${url})`;
+                        slot.style.backgroundSize = 'contain';
+                        slot.style.backgroundPosition = 'center';
+                        slot.style.backgroundRepeat = 'no-repeat';
+                    } else {
                         slot.style.backgroundImage = '';
                     }
                 } else {
@@ -2959,6 +3048,23 @@ class Game {
         if (previousScene === SCENE_TYPES.TOWER && targetScene !== SCENE_TYPES.TOWER && this.player) {
             this.resetDemonTowerTransientPlayerState();
         }
+        if (previousScene === SCENE_TYPES.AUTO_BATTLER && targetScene !== SCENE_TYPES.AUTO_BATTLER) {
+            if (this.autoBattlerUI) this.autoBattlerUI.hide();
+            if (this.autoBattlerController) {
+                this.autoBattlerController.battle = null;
+                this.autoBattlerController.run = null;
+            }
+            if (typeof this.setAutoBattlerPresentation === 'function') {
+                this.setAutoBattlerPresentation(false);
+            }
+        }
+        if (targetScene === SCENE_TYPES.AUTO_BATTLER && typeof this.setAutoBattlerPresentation === 'function') {
+            this.setAutoBattlerPresentation(true);
+        }
+        if (typeof this.syncAutoBattlerTownHud === 'function') {
+            // 下一帧同步，避免 transition 中途 scene 未落稳
+            setTimeout(() => this.syncAutoBattlerTownHud(), 0);
+        }
         
         // 切换背景音乐
         if (this.soundManager) {
@@ -3436,7 +3542,16 @@ class Game {
      * @param {string} skillName - 技能名称
      * @returns {string|null}
      */
-    getSkillIconUrl(skillName) {
+    resolveIconDisplayUrl(url) {
+        if (!url || !this.assetManager) return url;
+        return this.assetManager.getCachedDisplayUrl(url);
+    }
+
+    getSkillIconUrl(skillName, skillId) {
+        if (window.StaticArtPaths && window.StaticArtPaths.getSkillIconUrl) {
+            const url = window.StaticArtPaths.getSkillIconUrl(skillId || null, skillName);
+            if (url) return this.resolveIconDisplayUrl(url);
+        }
         if (typeof SKILL_ICON_MAP === 'undefined' || !skillName || !SKILL_ICON_MAP[skillName]) return null;
         
         // 优先 mappings（部署后多为 asset 根目录下的混淆文件名）；否则用 SKILL_ICON_MAP
@@ -3451,7 +3566,7 @@ class Game {
         
         // imageName 为相对 asset 的路径，如 skill_icons/xxx.png 或 xxx.png
         const base = window.location.protocol === 'file:' ? 'asset/' : (window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1) + 'asset/');
-        return base + imageName;
+        return this.resolveIconDisplayUrl(base + imageName);
     }
 
     /**
@@ -3460,9 +3575,13 @@ class Game {
      * @returns {string|null}
      */
     getBuffIconUrl(effectKey) {
+        if (window.StaticArtPaths && window.StaticArtPaths.getBuffIconUrl) {
+            const url = window.StaticArtPaths.getBuffIconUrl(effectKey);
+            if (url) return this.resolveIconDisplayUrl(url);
+        }
         if (typeof BUFF_ICON_MAP === 'undefined' || !effectKey || !BUFF_ICON_MAP[effectKey]) return null;
         const base = window.location.protocol === 'file:' ? 'asset/' : (window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1) + 'asset/');
-        return base + BUFF_ICON_MAP[effectKey];
+        return this.resolveIconDisplayUrl(base + BUFF_ICON_MAP[effectKey]);
     }
 
     /**
@@ -3529,11 +3648,7 @@ class Game {
                 iconDiv.style.backgroundImage = `url(${imageUrl})`;
                 iconDiv.style.backgroundPosition = 'center';
                 iconDiv.style.backgroundRepeat = 'no-repeat';
-                if (imageUrl.startsWith('data:')) {
-                    iconDiv.style.backgroundSize = 'contain';
-                } else {
-                    iconDiv.style.backgroundSize = '90%';
-                }
+                iconDiv.style.backgroundSize = 'contain';
             } else {
                 // 缓存不存在，异步加载
                 this.assetManager.setEquipmentBackgroundImage(iconDiv, item.name, item.quality, item);
@@ -3545,7 +3660,7 @@ class Game {
                 : 'blueprint.png';
             const base = window.location.protocol === 'file:' ? 'asset/' : (window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1) + 'asset/');
             iconDiv.style.backgroundImage = `url(${base}${imageName})`;
-            iconDiv.style.backgroundSize = 'cover';
+            iconDiv.style.backgroundSize = 'contain';
             iconDiv.style.backgroundPosition = 'center';
             iconDiv.style.backgroundRepeat = 'no-repeat';
             // 根据品质设置背景色
@@ -3567,6 +3682,15 @@ class Game {
             iconDiv.textContent = '✝';
             iconDiv.style.color = '#fff';
             iconDiv.style.textShadow = '0 0 4px rgba(0,0,0,0.85)';
+        } else if ((item.type === 'potion' || (item.type === 'consumable' && item.consumableType === 'potion')) && item.name) {
+            const rawUrl = window.StaticArtPaths && window.StaticArtPaths.getPotionIconUrl(item.name);
+            const url = rawUrl ? this.resolveIconDisplayUrl(rawUrl) : '';
+            if (url) {
+                iconDiv.style.backgroundImage = `url(${url})`;
+                iconDiv.style.backgroundSize = 'contain';
+                iconDiv.style.backgroundPosition = 'center';
+                iconDiv.style.backgroundRepeat = 'no-repeat';
+            }
         }
 
         return iconDiv;
@@ -3625,7 +3749,7 @@ class Game {
             const iconUrl = this.getSkillIconUrl(weapon.skill.name);
             if (iconUrl) {
                 skillBtn.style.backgroundImage = `url(${iconUrl})`;
-                skillBtn.style.backgroundSize = 'cover';
+                skillBtn.style.backgroundSize = 'contain';
                 skillBtn.style.backgroundPosition = 'center';
             } else {
                 skillBtn.style.backgroundImage = '';
@@ -3714,6 +3838,8 @@ class Game {
             const inCombatLab = this.currentScene === SCENE_TYPES.SKILL_LAB
                 || this.currentScene === SCENE_TYPES.EQUIPMENT_LAB
                 || this.currentScene === SCENE_TYPES.TRAINING;
+            const inAnimPreview = this.currentScene === SCENE_TYPES.ANIM_PREVIEW;
+            const inAbVfxLab = this.currentScene === SCENE_TYPES.AB_SKILL_VFX_LAB;
             const castBarActive = this.player._skillCastBar
                 && Date.now() < this.player._skillCastBar.endTime;
             const castingBlocksMove = this.player.isCastingSkill || castBarActive;
@@ -3726,7 +3852,7 @@ class Game {
             let dx = 0;
             let dy = 0;
             
-            if (!castingBlocksMove) {
+            if (!castingBlocksMove && !inAnimPreview && !inAbVfxLab) {
             const KB = window.KeybindSystem;
             if (KB && KB.isActionPressed(this, 'moveUp')) dy -= 1;
             if (KB && KB.isActionPressed(this, 'moveDown')) dy += 1;
@@ -3783,8 +3909,10 @@ class Game {
                 } else if (this.currentScene === SCENE_TYPES.DUNGEON && this.dungeonScene) {
                     this.player.attack(this.dungeonScene.getMonsters());
                 } else if (this.currentScene === SCENE_TYPES.TOWN) {
-                    // 主城无怪物，仍允许挥击（新手教程攻击步骤、练习操作）
-                    this.player.attack([]);
+                    // 自走棋主城不挥击；旧 ARPG 主城仍可练习
+                    if (!(typeof this.isAutoBattlerTownMode === 'function' && this.isAutoBattlerTownMode())) {
+                        this.player.attack([]);
+                    }
                 }
             }
         } catch (error) {
@@ -4220,6 +4348,19 @@ class Game {
                 return;
             }
             
+            // 自走棋 Roguelike：战斗阶段由模拟器驱动，跳过 ARPG 输入与房间逻辑
+            if (this.currentScene === SCENE_TYPES.AUTO_BATTLER && this.autoBattlerController) {
+                const abPhase = this.autoBattlerController.run && this.autoBattlerController.run.phase;
+                const abEnter = this.autoBattlerController.deployEnter;
+                if (abPhase === 'combat' || abPhase === 'transition' ||
+                    (abPhase === 'deploy' && abEnter)) {
+                    this.autoBattlerController.update(this.fixedTimeStep);
+                }
+                this.updateHUD();
+                this.maybeAutoSyncSaveCodeToLocalStorage(false);
+                return;
+            }
+
             // 更新玩家
             this.handleInput();
             this.updateWeaponSkillAimState();
@@ -4240,10 +4381,14 @@ class Game {
             const canInteract = timeSinceTransition >= 3000; // 3秒冷却
             const interactPressed = this._isInteractKeyEdge(canInteract);
             
-            // 更新相机位置，使玩家永远居中
-            // 相机偏移量 = 玩家位置 - 屏幕中心
-            this.cameraX = this.player.x - CONFIG.CANVAS_WIDTH / 2;
-            this.cameraY = this.player.y - CONFIG.CANVAS_HEIGHT / 2;
+            // 更新相机位置，使玩家永远居中（动画预览场景固定相机）
+            if (this.currentScene === SCENE_TYPES.ANIM_PREVIEW) {
+                this.cameraX = 0;
+                this.cameraY = 0;
+            } else {
+                this.cameraX = this.player.x - CONFIG.CANVAS_WIDTH / 2;
+                this.cameraY = this.player.y - CONFIG.CANVAS_HEIGHT / 2;
+            }
             
             // 更新飘浮文字
             // 对于固定位置的文字（如伤害数字），不需要传入玩家位置
@@ -4615,6 +4760,24 @@ class Game {
             } else if (this.currentScene === SCENE_TYPES.EQUIPMENT_LAB) {
                 this.updateEquipmentLab();
                 const interactions = this.equipmentLabScene.checkInteraction(this.player);
+                this.currentInteraction = interactions.length > 0 ? {
+                    type: 'portal',
+                    object: interactions[0],
+                    x: interactions[0].x,
+                    y: interactions[0].y - interactions[0].size / 2 - 30
+                } : null;
+            } else if (this.currentScene === SCENE_TYPES.ANIM_PREVIEW) {
+                this.updateAnimPreview();
+                const interactions = this.animPreviewScene.checkInteraction(this.player);
+                this.currentInteraction = interactions.length > 0 ? {
+                    type: 'portal',
+                    object: interactions[0],
+                    x: interactions[0].x,
+                    y: interactions[0].y - interactions[0].size / 2 - 30
+                } : null;
+            } else if (this.currentScene === (SCENE_TYPES.AB_SKILL_VFX_LAB || 'ab_skill_vfx_lab')) {
+                this.updateAbSkillVfxLab();
+                const interactions = this.abSkillVfxLabScene.checkInteraction(this.player);
                 this.currentInteraction = interactions.length > 0 ? {
                     type: 'portal',
                     object: interactions[0],
@@ -5052,6 +5215,7 @@ class Game {
                 blacksmith: () => this.openBlacksmith(),
                 shop: () => this.openShop(),
                 training_ground: () => this.enterTrainingGround(),
+                party_hall: () => this.autoBattlerUI && this.autoBattlerUI.showMeta(),
                 class_master: () => this.npcUI && this.npcUI.openClassMaster(),
                 skill_trainer: () => this.npcUI && this.npcUI.openSkillTrainer(),
                 enchanter: () => this.npcUI && this.npcUI.openEnchanter(),
@@ -5257,10 +5421,10 @@ class Game {
                 window.KeybindSystem.renderAllSettingsLists();
             }
 
-            // 如果在恶魔塔中，显示退出按钮
+            // 如果在恶魔塔 / 自走棋 Run 中，显示退出按钮
             const exitBtn = document.getElementById('esc-menu-exit-tower-btn');
             if (exitBtn) {
-                if (this.currentScene === SCENE_TYPES.TOWER) {
+                if (this.currentScene === SCENE_TYPES.TOWER || this.currentScene === SCENE_TYPES.AUTO_BATTLER) {
                     exitBtn.style.display = 'block';
                 } else {
                     exitBtn.style.display = 'none';
@@ -5325,6 +5489,13 @@ class Game {
         const modal = document.getElementById('tower-exit-confirm-modal');
         if (modal) {
             modal.classList.remove('show');
+        }
+
+        // 自走棋 Roguelike：放弃本局并结算经验银行
+        if (this.currentScene === SCENE_TYPES.AUTO_BATTLER && this.autoBattlerController && this.autoBattlerController.run) {
+            this.autoBattlerController.endRun(false);
+            this.closeEscMenu && this.closeEscMenu();
+            return;
         }
         
         // 确保不是死亡状态
@@ -5863,6 +6034,141 @@ class Game {
     exitEquipmentLab() {
         if (this.equipmentLabController) this.equipmentLabController.stop(false);
         this.returnToTown();
+    }
+
+    /** 进入角色动画预览场景 */
+    enterAnimPreview() {
+        if (typeof AnimPreviewScene !== 'undefined' && !this.animPreviewScene) {
+            this.animPreviewScene = new AnimPreviewScene(this);
+        }
+        if (typeof AnimPreviewUI !== 'undefined' && !this.animPreviewUI) {
+            this.animPreviewUI = new AnimPreviewUI(this);
+        }
+        if (!this.animPreviewScene || !this.animPreviewUI) {
+            console.error('[AnimPreview] 模块未加载');
+            return;
+        }
+        document.getElementById('dev-panel')?.classList.remove('show');
+        document.getElementById('dev-codex-panel')?.classList.remove('show');
+        this.devMode = false;
+        this.transitionScene(SCENE_TYPES.ANIM_PREVIEW);
+        const cx = CONFIG.CANVAS_WIDTH / 2;
+        const cy = CONFIG.CANVAS_HEIGHT / 2;
+        this.player.x = cx;
+        this.player.y = cy;
+        this.cameraX = 0;
+        this.cameraY = 0;
+        this.animPreviewScene.previewX = cx;
+        this.animPreviewScene.previewY = cy + 24;
+        this.animPreviewUI.open();
+        this._lastAnimPreviewTick = performance.now();
+        const am = this.assetManager;
+        if (am && typeof SPRITE_ANIMATIONS !== 'undefined' && SPRITE_ANIMATIONS) {
+            const entities = SPRITE_ANIMATIONS.entities || SPRITE_ANIMATIONS;
+            Object.keys(entities).forEach((id) => {
+                am.loadSpriteAnimation(id).catch(() => {});
+            });
+        }
+        if (am) am.loadPlayerGifFrames().catch(() => {});
+    }
+
+    /** 离开动画预览场景 */
+    exitAnimPreview() {
+        this.animPreviewUI?.close();
+        this.returnToTown();
+    }
+
+    /** 进入自走棋技能特效试验场（独立于 ARPG 技能/装备实验场） */
+    enterAbSkillVfxLab() {
+        if (!window.AutoBattleSimulator || !this.abSkillVfxLabUI) {
+            console.error('[AbSkillVfxLab] 模块未加载');
+            return;
+        }
+        if (typeof AbSkillVfxLabScene !== 'undefined' && !this.abSkillVfxLabScene) {
+            this.abSkillVfxLabScene = new AbSkillVfxLabScene(this);
+        }
+        if (!this.abSkillVfxLabScene) {
+            console.error('[AbSkillVfxLab] 场景未初始化');
+            return;
+        }
+        document.getElementById('dev-panel')?.classList.remove('show');
+        document.getElementById('dev-codex-panel')?.classList.remove('show');
+        this.devMode = false;
+        if (this.autoBattlerUI) {
+            this.autoBattlerUI.hide();
+            this.autoBattlerUI.hideMeta();
+            if (this.autoBattlerUI.root) this.autoBattlerUI.root.style.display = 'none';
+        }
+        document.body.classList.remove('pe-auto-battler-town');
+        const vfxScene = (typeof SCENE_TYPES !== 'undefined' && SCENE_TYPES.AB_SKILL_VFX_LAB)
+            ? SCENE_TYPES.AB_SKILL_VFX_LAB
+            : 'ab_skill_vfx_lab';
+        this.transitionScene(vfxScene);
+        if (typeof this.setAutoBattlerPresentation === 'function') {
+            this.setAutoBattlerPresentation(false);
+        }
+        document.body.classList.remove('pe-auto-battler-town');
+        document.body.classList.add('pe-ab-vfx-lab');
+        this.paused = false;
+        this.resizeCanvas();
+        const cw = CONFIG.CANVAS_WIDTH;
+        const ch = CONFIG.CANVAS_HEIGHT;
+        this.player.x = 50;
+        this.player.y = 50;
+        this.cameraX = 0;
+        this.cameraY = 0;
+        this._abVfxLabBattle = window.AutoBattleSimulator.createVfxPreviewBattle(cw, ch);
+        if (window.AutoBattlerAssets && window.AutoBattlerAssets.ensureLoaded) {
+            window.AutoBattlerAssets.ensureLoaded();
+        }
+        this.abSkillVfxLabUI.open();
+        this._lastAbVfxLabTick = performance.now();
+        this.addFloatingText(cw / 2, ch / 2 - 40, '自走棋技能特效试验场', '#8ec8ff');
+    }
+
+    /** 每帧驱动试验场特效动画（与 render 同步，避免只画不 tick） */
+    tickAbVfxLabPreview() {
+        if (!this._abVfxLabBattle || !window.AutoBattleSimulator) return;
+        const tick = performance.now();
+        const dt = Math.min(33, tick - (this._lastAbVfxLabTick || tick));
+        this._lastAbVfxLabTick = tick;
+        window.AutoBattleSimulator.tickVfxPreview(this._abVfxLabBattle, dt);
+    }
+
+    /** 离开自走棋技能特效试验场 */
+    exitAbSkillVfxLab() {
+        document.body.classList.remove('pe-ab-vfx-lab');
+        this.abSkillVfxLabUI?.close();
+        this._abVfxLabBattle = null;
+        this.returnToTown();
+    }
+
+    updateAbSkillVfxLab() {
+        const scene = this.abSkillVfxLabScene;
+        if (!scene || !this.player || !this._abVfxLabBattle) return;
+        const now = Date.now();
+        const canInteract = now - this.lastSceneTransitionTime >= 3000;
+        const interactions = scene.checkInteraction(this.player);
+        if (interactions.length > 0 && this._isInteractKeyEdge(canInteract)) {
+            this.exitAbSkillVfxLab();
+            return;
+        }
+    }
+
+    updateAnimPreview() {
+        const scene = this.animPreviewScene;
+        if (!scene || !this.player) return;
+        const now = Date.now();
+        const canInteract = now - this.lastSceneTransitionTime >= 3000;
+        const interactions = scene.checkInteraction(this.player);
+        if (interactions.length > 0 && this._isInteractKeyEdge(canInteract)) {
+            this.exitAnimPreview();
+            return;
+        }
+        const tick = performance.now();
+        const dt = Math.min(50, tick - (this._lastAnimPreviewTick || tick));
+        this._lastAnimPreviewTick = tick;
+        if (this.animPreviewUI) this.animPreviewUI.update(dt);
     }
 
     updateEquipmentLab() {
@@ -6666,6 +6972,11 @@ class Game {
             }
             this._equipmentLabReturnState = null;
         }
+        if (this.currentScene === SCENE_TYPES.AB_SKILL_VFX_LAB) {
+            this.abSkillVfxLabUI?.close();
+            this._abVfxLabBattle = null;
+            document.body.classList.remove('pe-ab-vfx-lab');
+        }
         if (this.currentScene === SCENE_TYPES.TRIAL) {
             if (this.trialScene) this.trialScene.reset();
             this.activeTrial = null;
@@ -6850,11 +7161,25 @@ class Game {
         
         // 更新HUD和房间信息显示
         this.updateHUD();
-        document.getElementById('room-type').textContent = '主城';
-        document.getElementById('floor-number').textContent = `上次到达: ${this.lastDeathFloor}层`;
+        if (typeof this.syncAutoBattlerTownHud === 'function' && this.isAutoBattlerTownMode()) {
+            this.syncAutoBattlerTownHud();
+        } else {
+            document.getElementById('room-type').textContent = '主城';
+            document.getElementById('floor-number').textContent = `上次到达: ${this.lastDeathFloor}层`;
+        }
     }
 
     enterTower() {
+        // 轻操作自走棋 Roguelike 模式（设计见 design/auto-battler-roguelike-design.md）
+        if (this.autoBattlerController && typeof window.AutoBattlerController !== 'undefined'
+            && window.AutoBattlerController.isEnabled()) {
+            this.autoBattlerController.startRun();
+            if (typeof window.notifyTutorialEvent === 'function') {
+                window.notifyTutorialEvent(this, 'enter_tower');
+            }
+            return;
+        }
+
         // 检查是否需要回退层数
         if (this.needFloorRollback) {
             // 回退5层，但至少为1层
@@ -7476,7 +7801,7 @@ class Game {
             // 显示武器技能（仅武器，含图标）
             if (equipment.slot === 'weapon' && equipment.skill) {
                 const skillIconUrl = this.getSkillIconUrl(equipment.skill.name);
-                const skillIconHtml = skillIconUrl ? `<img src="${skillIconUrl}" alt="" style="width:24px;height:24px;vertical-align:middle;margin-right:6px;border-radius:4px;">` : '';
+                const skillIconHtml = skillIconUrl ? `<img src="${skillIconUrl}" alt="" style="width:24px;height:24px;object-fit:contain;image-rendering:pixelated;vertical-align:middle;margin-right:6px;border-radius:4px;">` : '';
                 html += `<p>---</p>`;
                 html += `<p style="color: #ffaa00;"><strong>${skillIconHtml}武器技能: ${equipment.skill.name}</strong></p>`;
                 html += `<p style="color: #aaa; font-size: 11px;">${equipment.skill.description}</p>`;
@@ -8666,6 +8991,10 @@ class Game {
      * 调整canvas尺寸以占满屏幕
      */
     resizeCanvas() {
+        if (this._autoBattlerPresentation) {
+            this._applyAutoBattlerCanvasLayout();
+            return;
+        }
         const containerWidth = window.innerWidth;
         const containerHeight = window.innerHeight;
         
@@ -8685,6 +9014,67 @@ class Game {
         this.canvas.style.transform = 'translate(-50%, -50%)';
         this.canvas.style.display = 'block';
     }
+
+    /**
+     * 自走棋模式：隐藏旧 ARPG HUD，画布铺满视口，避免左右分屏错觉
+     */
+    setAutoBattlerPresentation(on) {
+        this._autoBattlerPresentation = !!on;
+        document.body.classList.toggle('pe-auto-battler-mode', !!on);
+        document.documentElement.classList.toggle('pe-auto-battler-mode-root', !!on);
+        if (on) {
+            document.body.classList.remove('pe-auto-battler-town');
+            this._applyAutoBattlerCanvasLayout();
+            if (typeof window.scrollTo === 'function') window.scrollTo(0, 0);
+        } else {
+            this.resizeCanvas();
+            this.syncAutoBattlerTownHud();
+        }
+    }
+
+    /** 主城启用自走棋时：隐藏旧爬塔 HUD，只留城镇导航 */
+    isAutoBattlerTownMode() {
+        return !!(typeof window.AutoBattlerController !== 'undefined'
+            && window.AutoBattlerController.isEnabled
+            && window.AutoBattlerController.isEnabled()
+            && this.currentScene === (typeof SCENE_TYPES !== 'undefined' ? SCENE_TYPES.TOWN : 'town')
+            && !this._autoBattlerPresentation);
+    }
+
+    syncAutoBattlerTownHud() {
+        const on = this.isAutoBattlerTownMode();
+        document.body.classList.toggle('pe-auto-battler-town', on);
+        if (!on) return;
+        const roomType = document.getElementById('room-type');
+        const floorEl = document.getElementById('floor-number');
+        if (roomType) roomType.textContent = '编队主城';
+        if (floorEl) {
+            const meta = this.partyMeta || (this.autoBattlerController && this.autoBattlerController.ensurePartyMeta());
+            if (meta) {
+                floorEl.textContent = `经验银行 ${meta.expBank} · 最高节点 ${meta.highestRunLayer || 0}`;
+            } else {
+                floorEl.textContent = '轻操作攀塔';
+            }
+        }
+        const skillBar = document.getElementById('class-skill-bar');
+        if (skillBar) skillBar.style.display = 'none';
+        const weapon = document.getElementById('weapon-skill-container');
+        if (weapon) weapon.style.display = 'none';
+    }
+
+    _applyAutoBattlerCanvasLayout() {
+        if (!this.canvas) return;
+        this.canvas.style.position = 'fixed';
+        this.canvas.style.top = '0';
+        this.canvas.style.left = '0';
+        this.canvas.style.transform = 'none';
+        this.canvas.style.margin = '0';
+        this.canvas.style.width = '100vw';
+        this.canvas.style.height = '100vh';
+        this.canvas.style.display = 'block';
+        this.canvas.style.zIndex = '1';
+        this.canvas.style.objectFit = 'cover';
+    }
     
     /**
      * 绘制游戏画面
@@ -8692,6 +9082,42 @@ class Game {
     draw() {
         // 清空画布
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // 自走棋场景：独立屏幕空间绘制（不跟随 ARPG 相机）
+        if (this.currentScene === SCENE_TYPES.AUTO_BATTLER && this.autoBattlerController) {
+            this.ctx.save();
+            this.autoBattlerController.render(this.ctx);
+            this.ctx.restore();
+            return;
+        }
+
+        // 动画预览：固定相机，整屏绘制预览场景
+        if (this.currentScene === SCENE_TYPES.ANIM_PREVIEW && this.animPreviewScene) {
+            this.ctx.save();
+            this.ctx.scale(2, 2);
+            this.animPreviewScene.draw(this.ctx);
+            this.ctx.restore();
+            return;
+        }
+
+        // 自走棋技能特效试验场
+        const vfxLabScene = (typeof SCENE_TYPES !== 'undefined' && SCENE_TYPES.AB_SKILL_VFX_LAB)
+            ? SCENE_TYPES.AB_SKILL_VFX_LAB
+            : 'ab_skill_vfx_lab';
+        if (this.currentScene === vfxLabScene && this.abSkillVfxLabScene) {
+            if (!this._abVfxLabBattle && window.AutoBattleSimulator) {
+                this._abVfxLabBattle = window.AutoBattleSimulator.createVfxPreviewBattle(
+                    CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT
+                );
+            }
+            if (this._abVfxLabBattle) {
+                this.ctx.save();
+                this.ctx.scale(2, 2);
+                this.abSkillVfxLabScene.draw(this.ctx, this._abVfxLabBattle);
+                this.ctx.restore();
+                return;
+            }
+        }
         
         // 保存当前状态并设置缩放为2倍
         this.ctx.save();
@@ -8747,6 +9173,8 @@ class Game {
             this.skillLabScene.draw(this.ctx);
         } else if (this.currentScene === SCENE_TYPES.EQUIPMENT_LAB && this.equipmentLabScene) {
             this.equipmentLabScene.draw(this.ctx);
+        } else if (this.currentScene === SCENE_TYPES.ANIM_PREVIEW && this.animPreviewScene) {
+            this.animPreviewScene.draw(this.ctx);
         } else if (this.currentScene === SCENE_TYPES.TRIAL) {
             this.trialScene.draw(this.ctx);
         } else if (this.currentScene === SCENE_TYPES.DUNGEON && this.dungeonScene) {
@@ -8784,7 +9212,9 @@ class Game {
         const playerOffsetX = CONFIG.CANVAS_WIDTH / 2 - this.player.x;
         const playerOffsetY = CONFIG.CANVAS_HEIGHT / 2 - this.player.y;
         this.ctx.translate(playerOffsetX, playerOffsetY);
-        this.player.draw(this.ctx);
+        if (this.currentScene !== SCENE_TYPES.ANIM_PREVIEW) {
+            this.player.draw(this.ctx);
+        }
         this.ctx.restore();
         
         // 绘制粒子系统（在世界坐标系中）- 需要应用相机偏移
@@ -9030,12 +9460,17 @@ class Game {
             }
             
         } else if (this.currentScene === SCENE_TYPES.TOWN && this.townScene) {
-            // 绘制主城建筑物（原本颜色）
-            Object.values(this.townScene.buildings).forEach(building => {
+            // 绘制主城建筑物（自走棋模式下仅可见建筑）
+            const townBuildings = typeof this.townScene.getVisibleBuildings === 'function'
+                ? this.townScene.getVisibleBuildings()
+                : Object.values(this.townScene.buildings);
+            townBuildings.forEach(building => {
                 const buildingX = offsetX + building.x * scale;
                 const buildingY = offsetY + building.y * scale;
-                if (building.name === '恶魔塔入口') {
+                if (building.type === 'tower_entrance') {
                     ctx.fillStyle = '#6a0dad';
+                } else if (building.type === 'party_hall') {
+                    ctx.fillStyle = '#66ccdd';
                 } else if (building.name === '铁匠铺') {
                     ctx.fillStyle = '#8b4513';
                 } else if (building.name === '商店') {
@@ -12813,7 +13248,10 @@ class Game {
                 shopLockedItems: Array.from(this.shopLockedItems),
                 shopTargetSlots: JSON.parse(JSON.stringify(this.shopTargetSlots)),
                 shopCapacityExpansionCount: this.shopCapacityExpansionCount,
-            }
+            },
+            partyMeta: this.partyMeta
+                ? JSON.parse(JSON.stringify(this.partyMeta))
+                : null
         };
         Object.keys(this.player.equipment).forEach(slot => {
             const eq = this.player.equipment[slot];
@@ -13332,6 +13770,14 @@ class Game {
                 this.activeDungeon = null;
                 if (this.dungeonScene) this.dungeonScene.reset();
             }
+            if (this.currentScene === SCENE_TYPES.AUTO_BATTLER || this.currentScene === 'auto_battler') {
+                this.currentScene = SCENE_TYPES.TOWN;
+            }
+            if (saveData.partyMeta && typeof window.PartyMetaSystem !== 'undefined') {
+                this.partyMeta = window.PartyMetaSystem.normalizePartyMeta(saveData.partyMeta);
+            } else if (typeof window.PartyMetaSystem !== 'undefined') {
+                this.partyMeta = window.PartyMetaSystem.createDefaultPartyMeta();
+            }
             const maxF = typeof window.getTowerMaxFloor === 'function' ? window.getTowerMaxFloor() : 240;
             this.floor = Math.min(saveData.game.floor || 1, maxF);
             this.lastDeathFloor = Math.min(saveData.game.lastDeathFloor || 1, maxF);
@@ -13590,6 +14036,12 @@ class Game {
             }
             
             // 渲染
+            const vfxLabScene = (typeof SCENE_TYPES !== 'undefined' && SCENE_TYPES.AB_SKILL_VFX_LAB)
+                ? SCENE_TYPES.AB_SKILL_VFX_LAB
+                : 'ab_skill_vfx_lab';
+            if (this.currentScene === vfxLabScene && this._abVfxLabBattle) {
+                this.tickAbVfxLabPreview();
+            }
             this.draw();
             this.updateDevInfo();
             

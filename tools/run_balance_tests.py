@@ -37,7 +37,7 @@ def parse_args():
     parser.add_argument("--level", type=int, default=60, help="测试等级")
     parser.add_argument("--infinite-resource", action="store_true", help="启用无限资源")
     parser.add_argument("--json-output", default="", help="可选：原始 JSON 结果输出路径")
-    parser.add_argument("--markdown-output", default="balance_test_report.md", help="Markdown 报告输出路径")
+    parser.add_argument("--markdown-output", default="artifacts/balance_test_report.md", help="Markdown 报告输出路径")
     parser.add_argument("--classes", default="", help="可选：仅测试指定职业ID，逗号分隔")
     parser.add_argument(
         "--equipment-preset",
@@ -572,7 +572,8 @@ def generate_static_report_fallback():
         report_lines.append("2. **资源循环调优**：在常规资源模式下，部分高消耗职业（如法师系、刺客系）需要关注其资源回复被动，避免出现空蓝只能打普攻的尴尬局面。")
         report_lines.append("3. **协同反应联动**：异常职业（Anomaly）如毒术士、瘟疫使者，其静态面板倍率虽低，但通过高频叠加 status_effects（中毒、流血等）并触发协同反应（如混沌、剧毒之火），其实际战斗 DPS 会成倍增长，这需要通过动态浏览器测试进行捕捉。")
 
-        report_path = Path(__file__).parent.parent / "balance_test_report.md"
+        report_path = Path(__file__).parent.parent / "artifacts" / "balance_test_report.md"
+        report_path.parent.mkdir(parents=True, exist_ok=True)
         with open(report_path, "w", encoding="utf-8") as f:
             f.write("\n".join(report_lines))
             

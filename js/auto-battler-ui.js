@@ -250,6 +250,130 @@
         return d ? d.name : id;
     }
 
+    function skillEntryDisplayName(entry) {
+        if (!entry) return '';
+        const SMS = window.SkillMutationSystem;
+        const combatId = SMS && SMS.resolveCombatSkillId
+            ? SMS.resolveCombatSkillId(entry)
+            : (entry.evolvedId || entry.id);
+        return skillName(combatId || entry.id);
+    }
+
+    function skillBranchModsHtml(entry, compact) {
+        const SMS = window.SkillMutationSystem;
+        if (!SMS || !entry) return '';
+        const groups = SMS.describeEntryBranches(entry) || [];
+        if (!groups.length && !entry.evolvedId) return '';
+        const formatBranch = SMS.formatBranchTagName
+            ? (n) => SMS.formatBranchTagName(n)
+            : (n) => String(n || '').replace(/支$/, '');
+        // 同一派系合并展示：派系框 + 分支框（可多个分支）
+        const byLineage = Object.create(null);
+        groups.forEach((g) => {
+            const key = g.lineageName || '派系';
+            if (!byLineage[key]) byLineage[key] = { lineageName: key, branches: [], effects: [] };
+            const btag = formatBranch(g.branchName);
+            if (btag && byLineage[key].branches.indexOf(btag) < 0) {
+                byLineage[key].branches.push(btag);
+            }
+            (g.effects || []).forEach((e) => byLineage[key].effects.push(e));
+        });
+        const chips = Object.keys(byLineage).map((key) => {
+            const g = byLineage[key];
+            const tip = (g.effects && g.effects.length)
+                ? g.effects.join('\n')
+                : (g.lineageName + (g.branches.length ? ' · ' + g.branches.join('、') : ''));
+            const branchBoxes = g.branches.map((b) =>
+                `<span class="ab-offer-tag ab-offer-tag-branch">${esc(b)}</span>`
+            ).join('');
+            return `<div class="ab-offer-tag-row ab-slot-tag-row" title="${esc(tip)}">
+                <span class="ab-offer-tag ab-offer-tag-lineage">${esc(g.lineageName)}</span>
+                ${branchBoxes}
+            </div>`;
+        }).join('');
+        let evoTip = '';
+        if (entry.evolvedId && SMS.describeEvolve) {
+            evoTip = SMS.describeEvolve(entry.evolvedId, entry.id);
+        }
+        const evo = entry.evolvedId
+            ? `<span class="ab-offer-tag ab-offer-tag-evo" title="${esc(evoTip)}">质变·${esc(skillName(entry.evolvedId))}</span>`
+            : '';
+        if (compact) {
+            return `<div class="ab-branch-row ab-branch-row-compact">${chips}${evo ? `<div class="ab-offer-tag-row ab-slot-tag-row">${evo}</div>` : ''}</div>`;
+        }
+        const detail = groups.map((g) => {
+            if (!g.effects || !g.effects.length) return '';
+            const btag = formatBranch(g.branchName);
+            return `<p class="ab-branch-effect-line"><strong>${esc(btag)}</strong> ${esc(g.effects.join('；'))}</p>`;
+        }).join('');
+        return `<div class="ab-branch-row">${chips}${evo ? `<div class="ab-offer-tag-row">${evo}</div>` : ''}</div>${detail}`;
+    }
+
+    function lineageProgressHtml(run) {
+        const SMS = window.SkillMutationSystem;
+        if (!SMS || !run) return '';
+        const list = SMS.lineageProgressList(run) || [];
+        const sparks = SMS.activeDuoSparks(run) || [];
+        if (!list.length && !sparks.length) return '';
+        let html = '<div class="ab-lineage-progress"><div class="ab-panel-section-title">派系进度</div><div class="ab-lineage-chips">';
+        list.slice(0, 8).forEach((l) => {
+            html += `<span class="ab-lineage-chip"><strong>${esc(l.name)}</strong><em>${l.count}</em></span>`;
+        });
+        html += '</div>';
+        if (sparks.length) {
+            html += '<div class="ab-spark-row">';
+            sparks.forEach((sp) => {
+                html += `<span class="ab-spark-chip" title="${esc(sp.desc || '')}">✦ ${esc(sp.name)}</span>`;
+            });
+            html += '</div>';
+        }
+        html += '</div>';
+        return html;
+    }
+
+    function rewardPreviewUpgradeHtml(opt, opts) {
+        opts = opts || {};
+        const rarity = opt.rarity || 'common';
+        const isEvolve = opt.type === 'skill_evolve';
+        const tag = isEvolve ? '质变' : '强化';
+        const sid = opt.skillId;
+        const SMS = window.SkillMutationSystem;
+        let effect = opt.effectText || opt.description || '';
+        if (!effect && !isEvolve && SMS && opt.upgradeId) {
+            const hit = SMS.lookupUpgrade(opt.upgradeId);
+            if (hit && hit.upgrade) effect = SMS.describeUpgrade(hit.upgrade);
+        }
+        if (!effect && isEvolve && SMS && opt.intoId) {
+            effect = SMS.describeEvolve(opt.intoId, opt.skillId);
+        }
+        const skillLabel = skillName(sid);
+        const title = opt.title || ('【' + skillLabel + '】' + tag);
+        const lineageTag = opt.lineageName || '';
+        const branchTag = opt.branchTag
+            || (SMS && SMS.formatBranchTagName ? SMS.formatBranchTagName(opt.branchName) : (opt.branchName || ''));
+        const tagBoxes = (lineageTag || branchTag)
+            ? `<div class="ab-offer-tag-row">
+                ${lineageTag ? `<span class="ab-offer-tag ab-offer-tag-lineage">${esc(lineageTag)}</span>` : ''}
+                ${branchTag ? `<span class="ab-offer-tag ab-offer-tag-branch">${esc(branchTag)}</span>` : ''}
+               </div>`
+            : '';
+        const upgradeLabel = (!isEvolve && opt.upgradeName)
+            ? `<span class="ab-reward-preview-meta ab-offer-upgrade-name">${esc(opt.upgradeName)}</span>`
+            : (isEvolve && opt.intoName
+                ? `<span class="ab-reward-preview-meta ab-offer-upgrade-name">→ ${esc(opt.intoName)}</span>`
+                : '');
+        return `<div class="ab-reward-preview skill-upgrade rarity-${esc(rarity)} ${opts.selected ? 'selected' : ''}" ${opts.attrs || ''}>
+            <div class="ab-reward-preview-icon" style="${skillIconStyle(sid)}"></div>
+            <div class="ab-reward-preview-body">
+                <span class="ab-reward-preview-tag">${tag}</span>
+                <strong class="ab-reward-preview-name">${esc(title)}</strong>
+                ${tagBoxes}
+                ${upgradeLabel}
+                <p class="ab-reward-preview-desc ab-upgrade-effect">${esc(effect || '强化该技能')}</p>
+            </div>
+        </div>`;
+    }
+
     function skillDescriptionText(defOrId) {
         const d = typeof defOrId === 'string' ? skillDef(defOrId) : defOrId;
         if (!d) return '未知技能';
@@ -330,12 +454,21 @@
 
     function skillCardHtml(defOrId, opts) {
         opts = opts || {};
-        const d = typeof defOrId === 'string' ? skillDef(defOrId) : defOrId;
-        const id = (d && d.id) || defOrId;
+        const entry = opts.entry || null;
+        const baseId = entry
+            ? entry.id
+            : ((typeof defOrId === 'string' ? defOrId : (defOrId && defOrId.id)) || defOrId);
+        const displayId = entry
+            ? ((window.SkillMutationSystem && window.SkillMutationSystem.resolveCombatSkillId(entry)) || baseId)
+            : baseId;
+        const d = skillDef(displayId) || skillDef(baseId) ||
+            (typeof defOrId === 'object' ? defOrId : null);
+        const id = displayId || baseId;
         const name = skillName(id);
-        const iconStyle = skillIconStyle(d || id);
-        const stars = opts.stars != null ? opts.stars : (d && d.stars);
+        const iconStyle = skillIconStyle(baseId || id);
+        const stars = opts.stars != null ? opts.stars : (entry && entry.stars) || (d && d.stars);
         const starLine = stars ? `<div class="ab-skill-stars">${esc(window.RunStateSystem.formatStarLabel(stars))}</div>` : '';
+        const branchLine = entry ? skillBranchModsHtml(entry, !!opts.compact) : '';
         const desc = opts.compact ? '' : `<p class="ab-detail-desc ab-skill-desc">${esc(skillDescriptionText(d || id))}</p>`;
         return `<div class="ab-detail-card skill ${opts.compact ? 'ab-card-compact' : ''} ${opts.selected ? 'selected' : ''}" ${opts.attrs || ''}>
             <div class="ab-card-row">
@@ -346,6 +479,7 @@
                 <strong>${esc(name)}</strong>
             </div>
             ${starLine}
+            ${branchLine}
             ${desc}
                 </div>
             </div>
@@ -481,6 +615,11 @@
 
     function rewardPreviewDraftOptHtml(opt, attrs) {
         if (!opt) return '';
+        if (opt.type === 'skill_upgrade' || opt.type === 'skill_evolve') {
+            return rewardPreviewUpgradeHtml(opt, {
+                attrs: attrs + ' data-open="none"'
+            });
+        }
         if (opt.type === 'skill' && opt.skill) {
             return rewardPreviewSkillHtml(opt.skill.id || opt.skill, {
                 attrs: attrs + ' data-open="skill"'
@@ -639,8 +778,8 @@
                         <header class="ab-hud-top">
                             <div class="ab-brand">
                                 <div>
-                                    <div class="ab-brand-title">编队大厅</div>
-                                    <div class="ab-brand-sub">分配经验 · 升级转职</div>
+                                    <div class="ab-brand-title">攀塔档案</div>
+                                    <div class="ab-brand-sub">等级在塔内休息处分配 · 从零开荒</div>
                                 </div>
                             </div>
                             <button type="button" id="ab-meta-close" class="ab-btn ab-btn-primary">关闭</button>
@@ -657,7 +796,7 @@
 
         _bind() {
             document.getElementById('ab-btn-abandon').onclick = () => {
-                if (confirm('放弃本局？构筑会清空，已获得经验仍会结算。')) {
+                if (confirm('放弃本局？构筑与局内等级会清空（等级不带出塔外）。')) {
                     this.controller.endRun(false);
                 }
             };
@@ -1224,7 +1363,8 @@
                 if (choice.kind === 'relic_pick') return true;
                 if (choice.kind === 'battle_pick' && choice.options && choice.options[oi]) {
                     const t = choice.options[oi].type;
-                    return t === 'gold' || t === 'heal';
+                    return t === 'gold' || t === 'heal' ||
+                        t === 'skill_upgrade' || t === 'skill_evolve';
                 }
                 return false;
             }
@@ -1252,6 +1392,11 @@
                 this.showToast('获得 ' + (result.amount || 0) + ' 金币');
             } else if (result && result.kind === 'heal') {
                 this.showToast('全队回复 ' + Math.round((result.pct || 0) * 100) + '% 生命');
+            } else if (result && (result.kind === 'skill_upgrade' || result.kind === 'skill_evolve')) {
+                const bits = [result.title || (result.kind === 'skill_evolve' ? '技能质变' : '技能强化')];
+                if (result.lineageName) bits.push(result.lineageName);
+                if (result.branchTag) bits.push(result.branchTag);
+                this.showToast(bits.join(' · '));
             }
             finish();
         }
@@ -1675,38 +1820,24 @@
             }, inMs + holdMs);
         }
 
-        _getMapFocusLayer(run) {
-            if (!run || !run.map) return 0;
-            if (!run.currentNodeId) return 0;
+        _getMapChoiceNodes(run) {
             const TRM = window.TowerRunMap;
+            if (!run || !run.map) return [];
+            if (!run.currentNodeId) {
+                const start = TRM.getNode(run.map, run.map.startId);
+                return start && !start.cleared ? [start] : [];
+            }
             const cur = TRM.getNode(run.map, run.currentNodeId);
-            if (!cur) return 0;
-            if (!cur.cleared) return cur.layer;
-            let nextLayer = null;
-            (cur.edges || []).forEach((edgeId) => {
-                const n = TRM.getNode(run.map, edgeId);
-                if (n && !n.cleared) {
-                    if (nextLayer == null || n.layer < nextLayer) nextLayer = n.layer;
-                }
-            });
-            return nextLayer != null ? nextLayer : cur.layer;
+            if (!cur) return [];
+            if (!cur.cleared) return [cur];
+            return (cur.edges || [])
+                .map((id) => TRM.getNode(run.map, id))
+                .filter((n) => n && !n.cleared);
         }
 
-        _scrollMapToLayer(mapEl, layerIndex) {
-            if (!mapEl) return;
-            const col = mapEl.querySelector('.ab-map-layer[data-layer="' + layerIndex + '"]');
-            if (!col) return;
-            const targetLeft = col.offsetLeft - Math.max(0, (mapEl.clientWidth - col.offsetWidth) * 0.5);
-            mapEl.scrollTo({
-                left: Math.max(0, targetLeft),
-                behavior: this._reduceMotion ? 'auto' : 'smooth'
-            });
-        }
-
-        _flashLayerBanner(host, layerHuman, actName) {
+        _flashLayerBanner(host, progressLabel) {
             if (!host || this._reduceMotion) return;
-            const actLine = actName ? `<span class="ab-layer-act">${esc(actName)}</span>` : '';
-            host.innerHTML = `<div class="ab-layer-banner">${actLine}<strong>第 ${layerHuman} 层</strong></div>`;
+            host.innerHTML = `<div class="ab-layer-banner"><strong>${esc(progressLabel || '前进')}</strong></div>`;
             setTimeout(() => { host.innerHTML = ''; }, 1600);
         }
 
@@ -1717,20 +1848,20 @@
             if (bankEl) {
                 bankEl.innerHTML = `
                     <div class="ab-bank-card">
-                        <div class="ab-bank-value">${meta.expBank}</div>
-                        <div class="ab-bank-label">经验银行</div>
+                        <div class="ab-bank-value">Lv.1</div>
+                        <div class="ab-bank-label">局外固定起点</div>
                     </div>
                     <div class="ab-bank-meta">
                         <div><span>通关</span><strong>${meta.runsCompleted}</strong></div>
                         <div><span>最高节点</span><strong>${meta.highestRunLayer}</strong></div>
-                    </div>`;
+                    </div>
+                    <p class="ab-muted" style="margin:10px 4px 0;line-height:1.45;">
+                        已取消经验银行。战斗获得的等级点请在<strong>塔内休息处</strong>分配给角色。
+                    </p>`;
             }
             if (!heroesEl) return;
             heroesEl.innerHTML = '';
             meta.heroes.forEach((h) => {
-                const need = window.PartyMetaSystem.expToNextLevel(h.level);
-                const opts = window.PartyMetaSystem.getAdvancementOptions(h);
-                const pct = Math.min(100, Math.floor((h.exp / Math.max(1, need)) * 100));
                 const card = document.createElement('div');
                 card.className = 'ab-hero-card ' + (CLASS_TONE[h.baseClass] || '');
                 const active = window.PartyMetaSystem.getActiveClassIdForHero(h);
@@ -1738,43 +1869,10 @@
                     <div class="ab-hero-card-head">
                         <div class="ab-avatar"${classIconStyle(h.baseClass)}>${esc(h.displayName[0])}</div>
                         <div>
-                            <h3>${esc(h.displayName)} <span class="ab-lv">Lv.${h.level}</span></h3>
-                            <p class="ab-muted">${esc(active)}</p>
+                            <h3>${esc(h.displayName)} <span class="ab-lv">起点 Lv.1</span></h3>
+                            <p class="ab-muted">${esc(active)} · 成长在塔内</p>
                         </div>
-                    </div>
-                    <div class="ab-expbar"><i style="width:${pct}%"></i></div>
-                    <div class="ab-exptext">${h.exp} / ${need}</div>
-                    <div class="ab-row">
-                        <button type="button" class="ab-btn ab-btn-sm" data-alloc="50">+50</button>
-                        <button type="button" class="ab-btn ab-btn-sm" data-alloc="200">+200</button>
-                        <button type="button" class="ab-btn ab-btn-sm ab-btn-primary" data-alloc="all">全部</button>
-                    </div>
-                    <div class="ab-row ab-job-row"></div>`;
-                card.querySelectorAll('[data-alloc]').forEach((btn) => {
-                    btn.onclick = () => {
-                        const amt = btn.getAttribute('data-alloc') === 'all' ? meta.expBank : parseInt(btn.getAttribute('data-alloc'), 10);
-                        window.PartyMetaSystem.allocateExpToHero(meta, h.baseClass, amt);
-                        if (this.game.saveGameToBrowserStorage) this.game.saveGameToBrowserStorage();
-                        this.refreshMeta();
-                    };
-                });
-                const jobRow = card.querySelector('.ab-job-row');
-                if (opts.length && ((h.level >= 20 && !h.classData.firstAdvancement) ||
-                    (h.level >= 40 && h.classData.firstAdvancement && !h.classData.secondAdvancement))) {
-                    opts.forEach((advId) => {
-                        const b = document.createElement('button');
-                        b.type = 'button';
-                        b.className = 'ab-btn ab-btn-sm ab-btn-gold';
-                        b.textContent = '转职 · ' + advId;
-                        b.onclick = () => {
-                            const res = window.PartyMetaSystem.tryAdvanceJob(h, advId);
-                            alert(res.message || (res.ok ? '成功' : '失败'));
-                            if (res.ok && this.game.saveGameToBrowserStorage) this.game.saveGameToBrowserStorage();
-                            this.refreshMeta();
-                        };
-                        jobRow.appendChild(b);
-                    });
-                }
+                    </div>`;
                 heroesEl.appendChild(card);
             });
         }
@@ -1789,7 +1887,7 @@
             if (stats) {
                 stats.innerHTML = `
                     <span class="ab-chip-stat gold"><i></i>${run.gold}</span>
-                    <span class="ab-chip-stat exp"><i></i>${run.runExpEarned}</span>
+                    <span class="ab-chip-stat exp"><i></i>点${run.pendingLevelPoints || 0}</span>
                     <span class="ab-chip-stat relic"><i></i>${run.relics.length}</span>`;
             }
             const phaseEl = document.getElementById('ab-phase-label');
@@ -1936,64 +2034,54 @@
             const el = document.getElementById('ab-map-view');
             const run = this.controller.run;
             if (!el || !run || !run.map) return;
-            const layers = {};
-            run.map.nodes.forEach((n) => {
-                if (!layers[n.layer]) layers[n.layer] = [];
-                layers[n.layer].push(n);
-            });
-            const layerKeys = Object.keys(layers).sort((a, b) => a - b);
-            const focusLayer = this._getMapFocusLayer(run);
+            const TRM = window.TowerRunMap;
+            const choices = this._getMapChoiceNodes(run);
+            const focusLayer = choices.length
+                ? choices[0].layer
+                : (run.currentNodeId
+                    ? ((TRM.getNode(run.map, run.currentNodeId) || {}).layer || 0)
+                    : 0);
             const layerAdvanced = this._lastMapFocusLayer != null && focusLayer > this._lastMapFocusLayer;
-            const shouldStagger = !this._reduceMotion && (this._lastMapFocusLayer == null || layerAdvanced);
+            const progressLabel = TRM.getProgressLabel
+                ? TRM.getProgressLabel(run.map, focusLayer)
+                : ('第 ' + (focusLayer + 1) + ' 层');
+            const history = (run.map.history || []).slice(-5);
+            let histHtml = '';
+            if (history.length) {
+                histHtml = '<div class="ab-map-history"><span class="ab-muted">近期</span>' +
+                    history.map((h) => `<span class="ab-map-hist-chip ${esc(h.type)}">${esc(TRM.nodeTypeLabel(h.type))}</span>`).join('') +
+                    '</div>';
+            }
+            const choiceHint = choices.length === 1
+                ? '进入下一节点'
+                : '从以下路线中选择一条';
             let html = `<div class="ab-scene-hero">
-                <h2>路线</h2>
+                <h2>${esc(progressLabel)}</h2>
+                <p class="ab-muted">${esc(choiceHint)}</p>
             </div>
             <div class="ab-map-stage">
                 <div class="ab-layer-banner-host" id="ab-layer-banner-host"></div>
-                <div class="ab-map ab-map-horizontal">`;
-            layerKeys.forEach((L, idx) => {
-                const layerNum = +L;
-                const layerCls = ['ab-map-layer'];
-                if (layerNum === focusLayer) layerCls.push('ab-map-layer-focus');
-                if (layerAdvanced && layerNum === focusLayer) layerCls.push('ab-map-layer-rise');
-                if (shouldStagger) layerCls.push('ab-map-layer-stagger');
-                html += `<div class="${layerCls.join(' ')}" data-layer="${layerNum}" style="--ab-layer-i:${idx}">`;
-                const act = window.TowerRunMap.getActForLayer ? window.TowerRunMap.getActForLayer(layerNum) : null;
-                const actTag = act && act.name ? `<small class="ab-act-tag">${esc(act.name)}</small>` : '';
-                html += `<div class="ab-layer-label"><span>${layerNum + 1}</span><small>层</small>${actTag}</div><div class="ab-layer-nodes">`;
-                layers[L].forEach((n) => {
-                    const label = window.TowerRunMap.nodeTypeLabel(n.type);
-                    const reachable = !run.currentNodeId
-                        ? n.id === run.map.startId
-                        : (() => {
-                            const cur = window.TowerRunMap.getNode(run.map, run.currentNodeId);
-                            return cur && cur.cleared && cur.edges.indexOf(n.id) >= 0 && !n.cleared;
-                        })();
-                    const cls = ['ab-node', n.type, n.cleared ? 'cleared' : '', reachable ? 'reachable' : '', n.id === run.currentNodeId ? 'current' : ''].join(' ');
-                    html += `<button type="button" class="${cls}" data-node="${n.id}" ${reachable && !n.cleared ? '' : 'disabled'}>
-                        ${nodeIconHtml(n.type)}
-                        <span class="ab-node-name">${esc(label)}</span>
-                    </button>`;
-                });
-                html += `</div></div>`;
-                if (idx < layerKeys.length - 1) {
-                    html += shouldStagger
-                        ? '<div class="ab-map-arrow ab-map-arrow-stagger" aria-hidden="true" style="--ab-layer-i:' + idx + '">›</div>'
-                        : '<div class="ab-map-arrow" aria-hidden="true">›</div>';
-                }
+                ${histHtml}
+                <div class="ab-map ab-map-choices">`;
+            choices.forEach((n, idx) => {
+                const label = TRM.nodeTypeLabel(n.type);
+                const cls = ['ab-node', 'ab-choice-node', n.type, 'reachable',
+                    !this._reduceMotion ? 'ab-map-layer-stagger' : ''].join(' ');
+                html += `<button type="button" class="${cls}" data-node="${n.id}" style="--ab-layer-i:${idx}">
+                    ${nodeIconHtml(n.type)}
+                    <span class="ab-node-name">${esc(label)}</span>
+                    <span class="ab-node-sub">选项 ${idx + 1}</span>
+                </button>`;
             });
+            if (!choices.length) {
+                html += '<p class="ab-muted">暂无可选节点</p>';
+            }
             html += '</div></div>';
             el.innerHTML = html;
-            const mapEl = el.querySelector('.ab-map-horizontal');
             if (layerAdvanced) {
-                this._flashLayerBanner(
-                    document.getElementById('ab-layer-banner-host'),
-                    focusLayer + 1,
-                    window.TowerRunMap.getActForLayer ? (window.TowerRunMap.getActForLayer(focusLayer) || {}).name : ''
-                );
+                this._flashLayerBanner(document.getElementById('ab-layer-banner-host'), progressLabel);
             }
             this._lastMapFocusLayer = focusLayer;
-            requestAnimationFrame(() => this._scrollMapToLayer(mapEl, focusLayer));
             el.querySelectorAll('[data-node]').forEach((btn) => {
                 btn.onclick = () => {
                     if (btn.disabled) return;
@@ -2359,31 +2447,48 @@
             }
             const cfgRewards = ((typeof CONFIG !== 'undefined' && CONFIG.AUTO_BATTLER_CONFIG) || {}).rewards || {};
             const healPct = Math.round((cfgRewards.restHealPct != null ? cfgRewards.restHealPct : 0.4) * 100);
+            const pending = (run && run.pendingLevelPoints) || 0;
             const heroBtns = (run.heroes || []).map((h) => {
                 const lv = h.runLevel || 0;
-                return `<button type="button" class="ab-btn ab-btn-sm ab-rest-level" data-hero="${esc(h.heroId)}">${esc(h.displayName)} <small>局内+${lv}</small></button>`;
+                const disabled = pending <= 0 ? ' disabled' : '';
+                return `<button type="button" class="ab-btn ab-btn-sm ab-rest-level" data-hero="${esc(h.heroId)}"${disabled}>${esc(h.displayName)} <small>局内+${lv}</small></button>`;
             }).join('');
             el.innerHTML = `<div class="ab-rest-card ab-rest-scene">
                 <h3>营地</h3>
-                <p>选择一项休整效果</p>
+                <p>战斗积累的等级点在此分配（可多次）</p>
+                <div class="ab-rest-level-row">
+                    <span>可分配点数：<strong id="ab-rest-pending">${pending}</strong></span>
+                    <div class="ab-rest-level-btns">${heroBtns}</div>
+                </div>
+                <p class="ab-muted" style="margin:8px 0 4px;">补给（选一项后离开，未分配点数会保留到下次休息）：</p>
                 <div class="ab-rest-choices">
                     <button type="button" class="ab-btn ab-btn-primary" data-rest="heal">回血 ${healPct}%</button>
                     <button type="button" class="ab-btn ab-btn-gold" data-rest="star">随机已装技能升星</button>
-                </div>
-                <div class="ab-rest-level-row">
-                    <span>或局内升级一人：</span>
-                    <div class="ab-rest-level-btns">${heroBtns}</div>
+                    <button type="button" class="ab-btn" data-rest="leave">直接离开</button>
                 </div>
                 <p class="ab-rest-msg" id="ab-rest-msg"></p>
             </div>`;
             this._showSceneView('ab-rest-view', 'rest');
             const msg = document.getElementById('ab-rest-msg');
+            const pendingEl = document.getElementById('ab-rest-pending');
+            const refreshLevelBtns = () => {
+                const left = (this.controller.run && this.controller.run.pendingLevelPoints) || 0;
+                if (pendingEl) pendingEl.textContent = String(left);
+                el.querySelectorAll('[data-hero]').forEach((btn) => {
+                    btn.disabled = left <= 0;
+                    const hid = btn.getAttribute('data-hero');
+                    const hero = (this.controller.run.heroes || []).find((h) => h.heroId === hid);
+                    const lv = hero ? (hero.runLevel || 0) : 0;
+                    const name = hero ? hero.displayName : hid;
+                    btn.innerHTML = `${esc(name)} <small>局内+${lv}</small>`;
+                });
+            };
             el.querySelectorAll('[data-rest]').forEach((btn) => {
                 btn.onclick = () => {
                     const res = this.controller.resolveRestChoice(btn.getAttribute('data-rest'));
                     if (!res.ok) { if (msg) msg.textContent = res.message || '失败'; return; }
                     if (msg) msg.textContent = res.message || '完成';
-                    setTimeout(leave, 650);
+                    if (res.leave) setTimeout(leave, 650);
                 };
             });
             el.querySelectorAll('[data-hero]').forEach((btn) => {
@@ -2391,7 +2496,8 @@
                     const res = this.controller.resolveRestChoice('level', btn.getAttribute('data-hero'));
                     if (!res.ok) { if (msg) msg.textContent = res.message || '失败'; return; }
                     if (msg) msg.textContent = res.message || '完成';
-                    setTimeout(leave, 650);
+                    refreshLevelBtns();
+                    this.refresh();
                 };
             });
         }
@@ -2406,11 +2512,11 @@
                 <h3>${summary.victory ? '通关成功' : '挑战失败'}</h3>
                 <div class="ab-summary-stats">
                     <div><span>本局经验</span><strong>+${summary.expEarned}</strong></div>
-                    <div><span>经验银行</span><strong>${summary.expBank}</strong></div>
+                    <div><span>未分配点数</span><strong>${summary.pendingLevelPoints || 0}</strong></div>
                     <div><span>推进节点</span><strong>${summary.layersCleared}</strong></div>
                 </div>
+                <p class="ab-muted" style="margin:8px 0 0;">等级不带出塔外；下次从 Lv.1 再开一局，在休息处分配成长。</p>
                 <div class="ab-actions">
-                    <button type="button" id="ab-summary-meta" class="ab-btn ab-btn-gold">分配经验</button>
                     <button type="button" id="ab-summary-town" class="ab-btn ab-btn-primary">返回主城</button>
                 </div>
             </div>`;
@@ -2419,7 +2525,6 @@
                 this.controller.returnToTown();
                 if (this.game.saveGameToBrowserStorage) this.game.saveGameToBrowserStorage();
             };
-            document.getElementById('ab-summary-meta').onclick = () => this.showMeta();
         }
 
         renderLoadout() {
@@ -2499,14 +2604,16 @@
 
             // —— 技能面板 ——
             html += `<div class="ab-loadout-panel ${tab === 'skills' ? 'active' : ''}" data-loadout-panel="skills">`;
+            html += lineageProgressHtml(run);
             html += '<div class="ab-panel-section"><div class="ab-panel-section-title">技能槽</div>';
             html += '<div class="ab-skill-hotbar">';
             for (let i = 0; i < 4; i++) {
-                const entry = hero.skillSlots[i];
-                const sid = RSS.skillEntryId(entry);
+                const entry = RSS.normalizeSkillEntry(hero.skillSlots[i]);
+                const sid = entry ? entry.id : null;
                 const stars = entry && entry.stars ? entry.stars : 1;
                 if (sid) {
                     const starLine = `<div class="ab-skill-stars">${esc(RSS.formatStarLabel(stars))}</div>`;
+                    const branchLine = skillBranchModsHtml(entry, true);
                     const canReplace = bag && bag.kind === 'skill' && RSS.canHeroUseSkill(hero, bag.id);
                     if (canReplace) {
                         html += `<button type="button" class="ab-slot-panel filled ab-skill-slot droppable ab-slot-compact" data-fill-skill="${i}">
@@ -2514,8 +2621,9 @@
                             <div class="ab-slot-gear-row">
                                 <span class="ab-slot-gear-icon" style="${skillIconStyle(sid)}"></span>
                                 <div>
-                                    <strong>${esc(skillName(sid))}</strong>
+                                    <strong>${esc(skillEntryDisplayName(entry))}</strong>
                                     ${starLine}
+                                    ${branchLine}
                                 </div>
                             </div>
                         </button>`;
@@ -2526,8 +2634,9 @@
                             <div class="ab-slot-gear-row">
                                 <span class="ab-slot-gear-icon" style="${skillIconStyle(sid)}"></span>
                                 <div>
-                                    <strong>${esc(skillName(sid))}</strong>
+                                    <strong>${esc(skillEntryDisplayName(entry))}</strong>
                                     ${starLine}
+                                    ${branchLine}
                                 </div>
                             </div>
                         </div>`;
@@ -2552,11 +2661,13 @@
                 html += '<span class="ab-muted">背包里没有技能</span>';
             }
             run.inventorySkills.forEach((entry) => {
-                const sid = RSS.skillEntryId(entry);
-                const stars = entry && entry.stars ? entry.stars : 1;
+                const norm = RSS.normalizeSkillEntry(entry);
+                const sid = norm ? norm.id : RSS.skillEntryId(entry);
+                const stars = norm && norm.stars ? norm.stars : 1;
                 const canUse = RSS.canHeroUseSkill(hero, sid);
                 const sel = bag && bag.kind === 'skill' && bag.id === sid;
                 html += skillCardHtml(sid, {
+                    entry: norm,
                     stars: stars,
                     attack: stats.attack * stats.skillMult,
                     selected: sel,

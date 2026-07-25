@@ -25,7 +25,27 @@
     "rangedRange": 160,
     "basicAttackIntervalMs": 900,
     "skillCooldownMult": 0.75,
-    "skillCastLockMs": 420
+    "skillCastLockMs": 420,
+    "classCombatBias": {
+      "warrior": {
+        "skillDamageMult": 1.12,
+        "basicDamageMult": 1.1
+      },
+      "archer": {
+        "skillDamageMult": 1.1,
+        "basicDamageMult": 1.06
+      },
+      "mage": {
+        "skillDamageMult": 1.16,
+        "basicDamageMult": 0.98
+      },
+      "assassin": {
+        "skillDamageMult": 0.78,
+        "basicDamageMult": 0.9,
+        "executeBonusCap": 2.55,
+        "executeThresholdCap": 0.32
+      }
+    }
   },
   "allyAttackVfx": {
     "warrior": {
@@ -50,81 +70,69 @@
     }
   },
   "enemyScaling": {
-    "layerPerStep": 0.085,
-    "eliteMult": 1.3,
-    "bossMult": 1.42,
-    "bossFinalMult": 1.68
+    "baseMult": 0.88,
+    "layerPerStep": 0.024,
+    "hpMult": 1.05,
+    "attackMult": 1.0,
+    "defenseMult": 1.0,
+    "earlyPressureLayers": 8,
+    "earlyPressureMax": 0.03,
+    "eliteMult": 1.15,
+    "bossMult": 1.08,
+    "firstBossMult": 0.7,
+    "bossFinalMult": 1.4
   },
   "run": {
-    "layers": 27,
-    "nodesPerLayer": [
-      1,
-      3,
-      3,
-      3,
-      3,
-      3,
-      3,
-      3,
-      1,
-      3,
-      3,
-      3,
-      3,
-      3,
-      3,
-      3,
-      1,
-      3,
-      3,
-      3,
-      3,
-      3,
-      3,
-      3,
-      1,
-      3,
-      1
-    ],
-    "bossLayers": [
-      8,
-      16,
-      24
-    ],
-    "finalBossLayer": 26,
-    "shopEveryLayers": [
-      4,
-      12,
-      20
-    ],
-    "restLayers": [
-      7,
-      15,
-      23
-    ],
-    "restChance": 0.16,
-    "eventChance": 0.28,
-    "eliteChance": 0.22,
+    "choicesPerStep": 3,
+    "earlyBattleHealPct": 0.2,
+    "restChance": 0.18,
+    "eventChance": 0.24,
+    "eliteChance": 0.12,
+    "battleChance": 0.42,
     "acts": [
       {
         "name": "入门层",
-        "layerStart": 0,
-        "layerEnd": 8
+        "preBossSteps": 15,
+        "bossType": "boss",
+        "eliteMax": 1,
+        "restMin": 3,
+        "shopMin": 2,
+        "banEliteFirst": 11,
+        "forceRestAt": [2, 5, 8, 13],
+        "forceShopAt": [4, 10]
       },
       {
         "name": "炼狱层",
-        "layerStart": 9,
-        "layerEnd": 16
+        "preBossSteps": 14,
+        "bossType": "boss",
+        "eliteMax": 3,
+        "restMin": 2,
+        "shopMin": 1,
+        "banEliteFirst": 0,
+        "forceRestAt": [6, 12],
+        "forceShopAt": [4]
       },
       {
         "name": "深渊层",
-        "layerStart": 17,
-        "layerEnd": 24
+        "preBossSteps": 14,
+        "bossType": "boss",
+        "eliteMax": 3,
+        "restMin": 2,
+        "shopMin": 1,
+        "banEliteFirst": 0,
+        "forceRestAt": [6, 12],
+        "forceShopAt": [5]
       },
       {
         "name": "终末层",
-        "layerStart": 25,
-        "layerEnd": 26
+        "preBossSteps": 6,
+        "bossType": "boss_final",
+        "eliteMax": 2,
+        "restMin": 1,
+        "shopMin": 1,
+        "banEliteFirst": 0,
+        "forceRestAt": [4],
+        "forceShopAt": [2]
       }
     ]
   },
@@ -196,8 +204,16 @@
       32
     ],
     "restHealPct": 0.4,
-    "inRunExpPerLevel": 280,
-    "inRunLevelCap": 8
+    "inRunExpPerLevel": 180,
+    "inRunLevelCap": 8,
+    "skillUpgradeOfferWeight": 1,
+    "newSkillOfferWeight": 0.62,
+    "skillEvolveOfferWeight": 1.25,
+    "maxEvolveOffersPerBattle": 1,
+    "maxUpgradeOffersPerBattle": 2,
+    "guaranteeNewSkillChance": 0.72,
+    "shapeOfferWeightBonus": 1.75,
+    "statOnlyOfferWeightPenalty": 0.55
   },
   "gearLoot": {
     "rarityStatMult": {
@@ -2092,14 +2108,14 @@
       "classTags": [
         "assassin"
       ],
-      "damageMult": 2.1,
-      "cooldownMs": 4200,
+      "damageMult": 1.65,
+      "cooldownMs": 5200,
       "range": 55,
-      "description": "突刺一名敌人，造成210%攻击力的伤害。",
+      "description": "突刺一名敌人，造成165%攻击力的伤害。",
       "effects": [
         {
           "type": "damage",
-          "mult": 2.1
+          "mult": 1.65
         }
       ]
     },
@@ -2109,15 +2125,15 @@
       "classTags": [
         "assassin"
       ],
-      "damageMult": 1.5,
-      "cooldownMs": 5500,
+      "damageMult": 1.15,
+      "cooldownMs": 6000,
       "range": 60,
       "aoe": true,
-      "description": "向周围掷出刀刃，对每个敌人造成150%攻击力的伤害。",
+      "description": "向周围掷出刀刃，对每个敌人造成115%攻击力的伤害。",
       "effects": [
         {
           "type": "damage",
-          "mult": 1.5,
+          "mult": 1.15,
           "aoe": true
         }
       ]
@@ -2154,15 +2170,15 @@
       "classTags": [
         "assassin"
       ],
-      "damageMult": 1.8,
-      "cooldownMs": 5000,
+      "damageMult": 1.5,
+      "cooldownMs": 5600,
       "range": 50,
-      "description": "从死角刺击，造成180%攻击力的伤害；对满血目标额外造成80%伤害。",
+      "description": "从死角刺击，造成150%攻击力的伤害；对满血目标提升至200%。",
       "effects": [
         {
           "type": "damage",
-          "mult": 1.8,
-          "fullHpBonusMult": 2.6
+          "mult": 1.5,
+          "fullHpBonusMult": 2
         }
       ]
     },
@@ -2219,16 +2235,16 @@
       "classTags": [
         "assassin"
       ],
-      "damageMult": 1.6,
-      "cooldownMs": 7500,
+      "damageMult": 1.45,
+      "cooldownMs": 8200,
       "range": 50,
-      "description": "对一名敌人造成160%攻击力的伤害；若其生命低于25%，伤害提升至400%。",
+      "description": "对一名敌人造成145%攻击力的伤害；若其生命低于25%，伤害提升至约2.5倍。",
       "effects": [
         {
           "type": "damage",
-          "mult": 1.6,
+          "mult": 1.45,
           "executeThreshold": 0.25,
-          "executeBonusMult": 4
+          "executeBonusMult": 2.5
         }
       ]
     },
@@ -2330,15 +2346,15 @@
       "classTags": [
         "assassin"
       ],
-      "damageMult": 1.25,
-      "cooldownMs": 5200,
+      "damageMult": 1.05,
+      "cooldownMs": 5800,
       "range": 58,
       "aoe": true,
-      "description": "高速旋转掷出刀刃，对周围每个敌人造成125%攻击力的伤害。",
+      "description": "高速旋转掷出刀刃，对周围每个敌人造成105%攻击力的伤害。",
       "effects": [
         {
           "type": "damage",
-          "mult": 1.25,
+          "mult": 1.05,
           "aoe": true
         }
       ]
@@ -2374,6 +2390,587 @@
           "target": "all_allies"
         }
       ]
+    },
+    {
+      "id": "iron_will_bulwark",
+      "name": "磐石之心",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 0,
+      "cooldownMs": 9000,
+      "range": 48,
+      "description": "铁壁意志质变：更厚的护盾与防御。",
+      "effects": [
+        {
+          "type": "shield",
+          "target": "self",
+          "pct": 0.2175,
+          "durationMs": 6000
+        },
+        {
+          "type": "buff",
+          "stat": "defense",
+          "pct": 0.405,
+          "durationMs": 6000,
+          "target": "self"
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "shield_wall_titan",
+      "name": "千钧盾墙",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 0,
+      "cooldownMs": 12000,
+      "range": 48,
+      "description": "盾墙质变：覆盖更广、盾量更高。",
+      "effects": [
+        {
+          "type": "shield",
+          "target": "all_allies",
+          "pct": 0.1,
+          "durationMs": 6000
+        },
+        {
+          "type": "shield",
+          "target": "front_allies",
+          "pct": 0.1,
+          "durationMs": 5000
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "shield_wall_cycle",
+      "name": "轮回盾墙",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 0,
+      "cooldownMs": 8364,
+      "range": 48,
+      "description": "盾墙质变：冷却更短、轮转更快。",
+      "effects": [
+        {
+          "type": "shield",
+          "target": "all_allies",
+          "pct": 0.13999999999999999,
+          "durationMs": 6000
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "last_stand_undying",
+      "name": "不死者低语",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 0,
+      "cooldownMs": 10000,
+      "range": 48,
+      "description": "背水一战质变：回复更猛，附带薄盾。",
+      "effects": [
+        {
+          "type": "heal_missing",
+          "pct": 0.4
+        },
+        {
+          "type": "shield",
+          "target": "self",
+          "pct": 0.12,
+          "durationMs": 5000
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "mend_shot_spring",
+      "name": "圣泉矢",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 0,
+      "cooldownMs": 8000,
+      "range": 170,
+      "description": "治疗射击质变：涌泉般的回复。",
+      "effects": [
+        {
+          "type": "heal",
+          "target": "lowest_ally",
+          "pct": 0.243
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "holy_nova_dawn",
+      "name": "黎明新星",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 0.85,
+      "cooldownMs": 9000,
+      "range": 75,
+      "aoe": true,
+      "description": "圣光新星质变：群疗与薄盾。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 0.85,
+          "aoe": true
+        },
+        {
+          "type": "heal",
+          "target": "all_allies",
+          "pct": 0.12
+        },
+        {
+          "type": "shield",
+          "target": "allies",
+          "pct": 0.08,
+          "durationMs": 4000
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "shield_slam_oath",
+      "name": "誓约盾击",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 1.8,
+      "cooldownMs": 4000,
+      "range": 48,
+      "description": "盾击质变：更重、附盾。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.8
+        },
+        {
+          "type": "stun",
+          "durationMs": 1000
+        },
+        {
+          "type": "shield",
+          "target": "self",
+          "pct": 0.12,
+          "durationMs": 4000
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "retaliation_oath",
+      "name": "守誓反击",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 0,
+      "cooldownMs": 8500,
+      "range": 48,
+      "description": "反击质变：守誓姿态。",
+      "effects": [
+        {
+          "type": "shield",
+          "target": "self",
+          "pct": 0.16799999999999998,
+          "durationMs": 5000
+        },
+        {
+          "type": "buff",
+          "stat": "defense",
+          "pct": 0.35,
+          "durationMs": 5000,
+          "target": "self"
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "bloodthirst_roar",
+      "name": "赤哮",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 1.6,
+      "cooldownMs": 6000,
+      "range": 48,
+      "description": "嗜血质变：赤哮吸血风暴。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 2.16,
+          "lifestealPct": 0.35
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "bloodthirst_cycle",
+      "name": "血河斩",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 1.6,
+      "cooldownMs": 5100,
+      "range": 48,
+      "description": "嗜血质变：噬生轮回。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 2.16,
+          "lifestealPct": 0.35
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "whirlwind_blood",
+      "name": "血河旋风",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 1.15,
+      "cooldownMs": 4800,
+      "range": 58,
+      "aoe": true,
+      "description": "旋风质变：血河狂岚。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.5525,
+          "aoe": true
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "whirlwind_rift",
+      "name": "裂帛旋风",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 1.15,
+      "cooldownMs": 4800,
+      "range": 58,
+      "aoe": true,
+      "description": "旋风质变：裂帛旋切。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.5525,
+          "aoe": true
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "hammerfall_blood",
+      "name": "崩血锤",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 2.2,
+      "cooldownMs": 7000,
+      "range": 50,
+      "description": "碎骨锤质变：崩血重击。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 2.9700000000000006,
+          "executeThreshold": 0.3,
+          "executeBonusMult": 3.5
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "hammerfall_judge",
+      "name": "断罪锤",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 2.2,
+      "cooldownMs": 7000,
+      "range": 50,
+      "description": "碎骨锤质变：断罪重刑。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 2.9700000000000006,
+          "executeThreshold": 0.3,
+          "executeBonusMult": 3.5
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "poison_arrow_vine",
+      "name": "碧藤毒矢",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 1,
+      "cooldownMs": 4500,
+      "range": 165,
+      "description": "毒箭质变：碧藤绞杀。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.35
+        },
+        {
+          "type": "dot",
+          "pctOfAttack": 0.27,
+          "durationMs": 4000,
+          "tickMs": 1000
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "barbed_arrow_bone",
+      "name": "骨花倒刺",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 0.95,
+      "cooldownMs": 4200,
+      "range": 165,
+      "description": "倒刺箭质变：骨花爆裂。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.2825
+        },
+        {
+          "type": "stack_dot",
+          "pctOfAttack": 0.12,
+          "durationMs": 5000,
+          "tickMs": 1000,
+          "maxStacks": 3
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "snipe_cloud",
+      "name": "穿云",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 2.8,
+      "cooldownMs": 7500,
+      "range": 190,
+      "description": "狙击质变：穿云一矢。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 3.78
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "hunters_mark_eye",
+      "name": "猎神之眼",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 0.8,
+      "cooldownMs": 6000,
+      "range": 180,
+      "description": "猎人印记质变：点睛集火。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.08
+        },
+        {
+          "type": "mark",
+          "bonusPct": 0.25,
+          "durationMs": 8000
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "fireball_inferno",
+      "name": "焚天火球",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 2,
+      "cooldownMs": 4000,
+      "range": 155,
+      "description": "火球质变：爆炸成片并剧烈点燃，伤害显著提升。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 2.9,
+          "aoe": true,
+          "splashMult": 1.25
+        },
+        {
+          "type": "dot",
+          "pctOfAttack": 0.4,
+          "durationMs": 5000,
+          "ticks": 5
+        },
+        {
+          "type": "dot_aoe",
+          "pctOfAttack": 0.2,
+          "durationMs": 4000
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "meteor_ash",
+      "name": "烬狱陨石",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 2.6,
+      "cooldownMs": 10000,
+      "range": 140,
+      "aoe": true,
+      "description": "陨石质变：烬域坠星。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 3.5100000000000002,
+          "aoe": true,
+          "splashMult": 1
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "arcane_missiles_orbit",
+      "name": "星轨飞弹",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 0.68,
+      "cooldownMs": 4500,
+      "range": 160,
+      "description": "奥术飞弹质变：星轨洪流。",
+      "effects": [
+        {
+          "type": "chain",
+          "mult": 0.9180000000000001,
+          "jumps": 4,
+          "falloff": 1
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "execution_final",
+      "name": "终焉处决",
+      "classTags": [
+        "assassin"
+      ],
+      "damageMult": 1.45,
+      "cooldownMs": 8200,
+      "range": 50,
+      "description": "处决质变：终焉点名。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.9575,
+          "executeThreshold": 0.25,
+          "executeBonusMult": 2.5
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "cleave_rift",
+      "name": "裂帛顺劈",
+      "classTags": [
+        "warrior"
+      ],
+      "damageMult": 1.3,
+      "cooldownMs": 5500,
+      "range": 55,
+      "aoe": true,
+      "description": "顺劈质变：裂帛开刃。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.7550000000000001,
+          "aoe": true
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "chain_lightning_sky",
+      "name": "连霄闪",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 1.3,
+      "cooldownMs": 6000,
+      "range": 155,
+      "description": "连锁闪电质变：连霄添雷。",
+      "effects": [
+        {
+          "type": "chain",
+          "mult": 1.7550000000000001,
+          "jumps": 3,
+          "falloff": 0.85
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "piercing_shot_thunder",
+      "name": "透骨霆矢",
+      "classTags": [
+        "archer"
+      ],
+      "damageMult": 1.25,
+      "cooldownMs": 5800,
+      "range": 175,
+      "description": "穿透射击质变：霆贯。",
+      "effects": [
+        {
+          "type": "chain",
+          "mult": 1.6875,
+          "jumps": 3,
+          "falloff": 0.88
+        }
+      ],
+      "evolved": true
+    },
+    {
+      "id": "life_drain_cycle",
+      "name": "啜魂咒",
+      "classTags": [
+        "mage"
+      ],
+      "damageMult": 1.5,
+      "cooldownMs": 5525,
+      "range": 150,
+      "description": "生命汲取质变：噬生轮回。",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 2.0250000000000004,
+          "lifestealPct": 0.5
+        }
+      ],
+      "evolved": true
     }
   ],
   "relics": [
@@ -4744,6 +5341,4087 @@
           ]
         }
       ]
+    }
+  ],
+  "lineages": [
+    {
+      "id": "immortal",
+      "name": "不灭甲胄",
+      "seeds": [
+        "iron_will",
+        "retaliation",
+        "shield_wall",
+        "last_stand"
+      ],
+      "branches": [
+        {
+          "id": "immortal_aegis",
+          "name": "凝盾支",
+          "skillIds": [
+            "iron_will",
+            "retaliation"
+          ],
+          "upgrades": [
+            {
+              "id": "immortal_aegis_thick",
+              "name": "厚茧",
+              "rarity": "common",
+              "mutate": {
+                "shieldPctMult": 1.55
+              },
+              "description": "护盾量大幅提升"
+            },
+            {
+              "id": "immortal_aegis_swift",
+              "name": "迅凝",
+              "rarity": "common",
+              "mutate": {
+                "shieldDurationMult": 1.5,
+                "shieldPctMult": 1.2
+              },
+              "description": "盾更厚更久"
+            },
+            {
+              "id": "immortal_aegis_echo",
+              "name": "碎盾回响",
+              "rarity": "uncommon",
+              "mutate": {
+                "shieldPctMult": 1.25,
+                "appendEffects": [
+                  {
+                    "type": "damage",
+                    "mult": 1,
+                    "aoe": true
+                  }
+                ]
+              },
+              "description": "护盾更厚，并反震周围"
+            }
+          ],
+          "evolve": {
+            "from": "iron_will",
+            "into": "iron_will_bulwark",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "immortal_mitigate",
+          "name": "卸力支",
+          "skillIds": [
+            "shield_wall",
+            "iron_will"
+          ],
+          "upgrades": [
+            {
+              "id": "immortal_mitigate_ease",
+              "name": "卸劲",
+              "rarity": "common",
+              "mutate": {
+                "appendEffects": [
+                  {
+                    "type": "buff",
+                    "stat": "damageTaken",
+                    "pct": -0.18,
+                    "durationMs": 5000,
+                    "target": "self"
+                  }
+                ]
+              },
+              "description": "施放后自身大幅减伤"
+            },
+            {
+              "id": "immortal_mitigate_sit",
+              "name": "磐坐",
+              "rarity": "common",
+              "mutate": {
+                "defenseBuffMult": 1.6,
+                "shieldPctMult": 1.2
+              },
+              "description": "防御与盾同升"
+            },
+            {
+              "id": "immortal_mitigate_wall",
+              "name": "厚壁",
+              "rarity": "uncommon",
+              "mutate": {
+                "shieldPctMult": 1.4,
+                "cooldownMult": 0.85,
+                "appendEffects": [
+                  {
+                    "type": "shield",
+                    "target": "front_allies",
+                    "pct": 0.1,
+                    "durationMs": 4000
+                  }
+                ]
+              },
+              "description": "更快、更厚，并护前排"
+            }
+          ],
+          "evolve": {
+            "from": "shield_wall",
+            "into": "shield_wall_titan",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "immortal_ember",
+          "name": "残息支",
+          "skillIds": [
+            "last_stand"
+          ],
+          "upgrades": [
+            {
+              "id": "immortal_ember_flame",
+              "name": "残焰",
+              "rarity": "common",
+              "mutate": {
+                "healMissingMult": 1.5
+              },
+              "description": "残血回复大幅提升"
+            },
+            {
+              "id": "immortal_ember_ash",
+              "name": "余烬盾",
+              "rarity": "uncommon",
+              "mutate": {
+                "healMissingMult": 1.25,
+                "appendEffects": [
+                  {
+                    "type": "shield",
+                    "target": "self",
+                    "pct": 0.18,
+                    "durationMs": 5000
+                  }
+                ]
+              },
+              "description": "回血并裹上厚盾"
+            },
+            {
+              "id": "immortal_ember_stand",
+              "name": "不屈",
+              "rarity": "rare",
+              "mutate": {
+                "healMissingMult": 1.3,
+                "appendEffects": [
+                  {
+                    "type": "buff",
+                    "stat": "deathSave",
+                    "pct": 1,
+                    "durationMs": 8000,
+                    "target": "self"
+                  },
+                  {
+                    "type": "shield",
+                    "target": "self",
+                    "pct": 0.15,
+                    "durationMs": 5000
+                  }
+                ]
+              },
+              "description": "免死姿态 + 护盾"
+            }
+          ],
+          "evolve": {
+            "from": "last_stand",
+            "into": "last_stand_undying",
+            "needUpgrades": 2
+          }
+        }
+      ],
+      "tag": "tank"
+    },
+    {
+      "id": "vitality",
+      "name": "圣泉咏叹",
+      "seeds": [
+        "mend_shot",
+        "holy_nova",
+        "rally"
+      ],
+      "branches": [
+        {
+          "id": "vitality_spring",
+          "name": "涌泉支",
+          "skillIds": [
+            "mend_shot"
+          ],
+          "upgrades": [
+            {
+              "id": "vitality_spring_gush",
+              "name": "涌泉",
+              "rarity": "common",
+              "mutate": {
+                "healMult": 1.45
+              },
+              "description": "治疗量大幅提升"
+            },
+            {
+              "id": "vitality_spring_rush",
+              "name": "急涌",
+              "rarity": "common",
+              "mutate": {
+                "cooldownMult": 0.78,
+                "healMult": 1.15
+              },
+              "description": "更快更猛的奶"
+            },
+            {
+              "id": "vitality_spring_dual",
+              "name": "双注",
+              "rarity": "uncommon",
+              "mutate": {
+                "healMult": 1.25,
+                "appendEffects": [
+                  {
+                    "type": "heal",
+                    "target": "lowest_ally",
+                    "pct": 0.16
+                  },
+                  {
+                    "type": "shield",
+                    "target": "lowest_ally",
+                    "pct": 0.08,
+                    "durationMs": 3500
+                  }
+                ]
+              },
+              "description": "额外奶最低血并给薄盾"
+            }
+          ],
+          "evolve": {
+            "from": "mend_shot",
+            "into": "mend_shot_spring",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "vitality_ripple",
+          "name": "涟漪支",
+          "skillIds": [
+            "holy_nova",
+            "rally"
+          ],
+          "upgrades": [
+            {
+              "id": "vitality_ripple_wave",
+              "name": "涟漪",
+              "rarity": "common",
+              "mutate": {
+                "healMult": 1.4,
+                "forceAoe": true
+              },
+              "description": "群疗大幅提升"
+            },
+            {
+              "id": "vitality_ripple_soft",
+              "name": "柔光",
+              "rarity": "common",
+              "mutate": {
+                "healMult": 1.3,
+                "appendEffects": [
+                  {
+                    "type": "buff",
+                    "stat": "damageTaken",
+                    "pct": -0.1,
+                    "durationMs": 4000,
+                    "target": "allies"
+                  }
+                ]
+              },
+              "description": "疗伤并短时减伤"
+            },
+            {
+              "id": "vitality_ripple_ring",
+              "name": "圣环",
+              "rarity": "uncommon",
+              "mutate": {
+                "healMult": 1.25,
+                "appendEffects": [
+                  {
+                    "type": "shield",
+                    "target": "allies",
+                    "pct": 0.12,
+                    "durationMs": 4000
+                  }
+                ]
+              },
+              "description": "群疗后全队薄盾"
+            }
+          ],
+          "evolve": {
+            "from": "holy_nova",
+            "into": "holy_nova_dawn",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "vitality_overflow",
+          "name": "圣溢支",
+          "skillIds": [
+            "mend_shot",
+            "holy_nova",
+            "rally"
+          ],
+          "upgrades": [
+            {
+              "id": "vitality_overflow_cup",
+              "name": "圣溢",
+              "rarity": "common",
+              "mutate": {
+                "healMult": 1.2,
+                "appendEffects": [
+                  {
+                    "type": "shield",
+                    "target": "allies",
+                    "pct": 0.1,
+                    "durationMs": 4000
+                  }
+                ]
+              },
+              "description": "治疗溢出转全队盾"
+            },
+            {
+              "id": "vitality_overflow_gospel",
+              "name": "福音律",
+              "rarity": "uncommon",
+              "mutate": {
+                "healMult": 1.35,
+                "cooldownMult": 0.85
+              },
+              "description": "疗↑·CD↓"
+            },
+            {
+              "id": "vitality_overflow_pulse",
+              "name": "脉泉",
+              "rarity": "rare",
+              "mutate": {
+                "healMult": 1.3,
+                "shieldPctMult": 1.35,
+                "cooldownMult": 0.9
+              },
+              "description": "疗盾节奏同升"
+            }
+          ]
+        }
+      ],
+      "tag": "heal"
+    },
+    {
+      "id": "knight_aegis",
+      "name": "誓盾轮回",
+      "seeds": [
+        "shield_slam",
+        "shield_bash",
+        "shield_wall",
+        "iron_will",
+        "retaliation"
+      ],
+      "branches": [
+        {
+          "id": "knight_bash",
+          "name": "盾击支",
+          "skillIds": [
+            "shield_slam",
+            "shield_bash"
+          ],
+          "upgrades": [
+            {
+              "id": "knight_bash_heavy",
+              "name": "重盾",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.4,
+                "stunDurationBonusMs": 250
+              },
+              "description": "更重更晕"
+            },
+            {
+              "id": "knight_bash_long",
+              "name": "久震",
+              "rarity": "common",
+              "mutate": {
+                "stunDurationBonusMs": 550,
+                "appendEffects": [
+                  {
+                    "type": "debuff",
+                    "stat": "defense",
+                    "pct": -0.12,
+                    "durationMs": 4000
+                  }
+                ]
+              },
+              "description": "长晕并碎甲"
+            },
+            {
+              "id": "knight_bash_bloom",
+              "name": "盾花",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.25,
+                "appendEffects": [
+                  {
+                    "type": "shield",
+                    "target": "self",
+                    "pct": 0.18,
+                    "durationMs": 4500
+                  },
+                  {
+                    "type": "stun",
+                    "durationMs": 700
+                  }
+                ]
+              },
+              "description": "命中给厚盾并再晕"
+            }
+          ],
+          "evolve": {
+            "from": "shield_slam",
+            "into": "shield_slam_oath",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "knight_wall",
+          "name": "盾墙支",
+          "skillIds": [
+            "shield_wall",
+            "iron_will"
+          ],
+          "upgrades": [
+            {
+              "id": "knight_wall_cycle",
+              "name": "轮转",
+              "rarity": "common",
+              "mutate": {
+                "cooldownMult": 0.78,
+                "shieldPctMult": 1.25
+              },
+              "description": "盾墙更快更厚"
+            },
+            {
+              "id": "knight_wall_thick",
+              "name": "加厚",
+              "rarity": "common",
+              "mutate": {
+                "shieldPctMult": 1.5
+              },
+              "description": "盾量暴涨"
+            },
+            {
+              "id": "knight_wall_cover",
+              "name": "友军覆盖",
+              "rarity": "uncommon",
+              "mutate": {
+                "shieldPctMult": 1.3,
+                "appendEffects": [
+                  {
+                    "type": "shield",
+                    "target": "front_allies",
+                    "pct": 0.16,
+                    "durationMs": 5000
+                  }
+                ]
+              },
+              "description": "前排覆盖厚盾"
+            }
+          ],
+          "evolve": {
+            "from": "shield_wall",
+            "into": "shield_wall_cycle",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "knight_oath",
+          "name": "守誓支",
+          "skillIds": [
+            "retaliation"
+          ],
+          "upgrades": [
+            {
+              "id": "knight_oath_stance",
+              "name": "反击姿态",
+              "rarity": "common",
+              "mutate": {
+                "shieldPctMult": 1.4,
+                "appendEffects": [
+                  {
+                    "type": "damage",
+                    "mult": 0.9,
+                    "aoe": true
+                  }
+                ]
+              },
+              "description": "反击盾↑并反震"
+            },
+            {
+              "id": "knight_oath_guard",
+              "name": "守誓防",
+              "rarity": "common",
+              "mutate": {
+                "defenseBuffMult": 1.5,
+                "appendEffects": [
+                  {
+                    "type": "buff",
+                    "stat": "damageTaken",
+                    "pct": -0.12,
+                    "durationMs": 4000,
+                    "target": "self"
+                  }
+                ]
+              },
+              "description": "防御与减伤"
+            },
+            {
+              "id": "knight_oath_haste",
+              "name": "受击缩隙",
+              "rarity": "uncommon",
+              "mutate": {
+                "cooldownMult": 0.8,
+                "shieldPctMult": 1.25,
+                "damageMult": 1.2
+              },
+              "description": "更快反击"
+            }
+          ],
+          "evolve": {
+            "from": "retaliation",
+            "into": "retaliation_oath",
+            "needUpgrades": 2
+          }
+        }
+      ],
+      "tag": "knight"
+    },
+    {
+      "id": "berserk_blood",
+      "name": "赤哮血河",
+      "seeds": [
+        "bloodthirst",
+        "whirlwind",
+        "cleave",
+        "hammerfall",
+        "charge"
+      ],
+      "branches": [
+        {
+          "id": "berserk_leech",
+          "name": "嗜血支",
+          "skillIds": [
+            "bloodthirst"
+          ],
+          "upgrades": [
+            {
+              "id": "berserk_leech_deep",
+              "name": "深噬",
+              "rarity": "common",
+              "mutate": {
+                "addLifestealPct": 0.25,
+                "damageMult": 1.2
+              },
+              "description": "大量吸血"
+            },
+            {
+              "id": "berserk_leech_thirst",
+              "name": "渴血",
+              "rarity": "uncommon",
+              "mutate": {
+                "addLifestealPct": 0.2,
+                "damageMult": 1.35,
+                "executeBonus": {
+                  "threshold": 0.4,
+                  "bonusMult": 2.4
+                }
+              },
+              "description": "残血越咬越狠"
+            },
+            {
+              "id": "berserk_leech_frenzy",
+              "name": "血渴",
+              "rarity": "rare",
+              "mutate": {
+                "damageMult": 1.3,
+                "cooldownMult": 0.85,
+                "addLifestealPct": 0.15,
+                "forceAoe": true,
+                "splashMult": 1.15
+              },
+              "description": "嗜血成片狂打"
+            }
+          ],
+          "evolve": {
+            "from": "bloodthirst",
+            "into": "bloodthirst_roar",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "berserk_storm",
+          "name": "狂岚支",
+          "skillIds": [
+            "whirlwind",
+            "cleave"
+          ],
+          "upgrades": [
+            {
+              "id": "berserk_storm_spin",
+              "name": "血旋",
+              "rarity": "common",
+              "mutate": {
+                "splashMult": 1.45,
+                "damageMult": 1.25,
+                "forceAoe": true,
+                "addLifestealPct": 0.1
+              },
+              "description": "更大旋风并吸血"
+            },
+            {
+              "id": "berserk_storm_gale",
+              "name": "狂岚",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.4,
+                "forceAoe": true,
+                "splashMult": 1.35
+              },
+              "description": "狂岚大范围"
+            },
+            {
+              "id": "berserk_storm_river",
+              "name": "血河",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.3,
+                "forceAoe": true,
+                "splashMult": 1.4,
+                "addLifestealPct": 0.18
+              },
+              "description": "血河旋风：群殴吸血"
+            }
+          ],
+          "evolve": {
+            "from": "whirlwind",
+            "into": "whirlwind_blood",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "berserk_break",
+          "name": "崩血支",
+          "skillIds": [
+            "hammerfall",
+            "charge"
+          ],
+          "upgrades": [
+            {
+              "id": "berserk_break_line",
+              "name": "崩折",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.25,
+                "executeBonus": {
+                  "threshold": 0.42,
+                  "bonusMult": 3.2
+                }
+              },
+              "description": "更容易崩杀"
+            },
+            {
+              "id": "berserk_break_charge",
+              "name": "血冲",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.4,
+                "forceAoe": true,
+                "splashMult": 1.2,
+                "appendEffects": [
+                  {
+                    "type": "stun",
+                    "durationMs": 600
+                  }
+                ]
+              },
+              "description": "冲锋重击并短晕"
+            },
+            {
+              "id": "berserk_break_crush",
+              "name": "崩锤",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.35,
+                "splashMult": 1.35,
+                "forceAoe": true,
+                "executeBonus": {
+                  "threshold": 0.4,
+                  "bonusMult": 2.8
+                }
+              },
+              "description": "崩锤溅射斩杀"
+            }
+          ],
+          "evolve": {
+            "from": "hammerfall",
+            "into": "hammerfall_blood",
+            "needUpgrades": 2
+          }
+        }
+      ],
+      "tag": "berserker"
+    },
+    {
+      "id": "poison",
+      "name": "腐骨花",
+      "seeds": [
+        "poison_arrow",
+        "poison_blade",
+        "barbed_arrow",
+        "hemorrhage",
+        "garrote"
+      ],
+      "branches": [
+        {
+          "id": "poison_stack",
+          "name": "叠毒支",
+          "skillIds": [
+            "poison_arrow",
+            "poison_blade"
+          ],
+          "upgrades": [
+            {
+              "id": "poison_stack_thick",
+              "name": "浓毒",
+              "rarity": "common",
+              "mutate": {
+                "dotMult": 1.5,
+                "appendEffects": [
+                  {
+                    "type": "dot",
+                    "pctOfAttack": 0.32,
+                    "durationMs": 5000,
+                    "ticks": 5
+                  }
+                ]
+              },
+              "description": "浓毒追加"
+            },
+            {
+              "id": "poison_stack_long",
+              "name": "长蚀",
+              "rarity": "common",
+              "mutate": {
+                "dotDurationMult": 1.5,
+                "dotMult": 1.3,
+                "damageMult": 1.15
+              },
+              "description": "毒伤更久更痛"
+            },
+            {
+              "id": "poison_stack_fang",
+              "name": "毒牙",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.25,
+                "forceAoe": true,
+                "splashMult": 1.15,
+                "appendEffects": [
+                  {
+                    "type": "dot",
+                    "pctOfAttack": 0.3,
+                    "durationMs": 4500,
+                    "ticks": 4
+                  }
+                ]
+              },
+              "description": "毒牙溅射"
+            }
+          ],
+          "evolve": {
+            "from": "poison_arrow",
+            "into": "poison_arrow_vine",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "poison_bone",
+          "name": "骨花支",
+          "skillIds": [
+            "barbed_arrow",
+            "hemorrhage"
+          ],
+          "upgrades": [
+            {
+              "id": "poison_bone_barb",
+              "name": "倒刺",
+              "rarity": "common",
+              "mutate": {
+                "stackDotBonus": 2,
+                "damageMult": 1.2,
+                "appendEffects": [
+                  {
+                    "type": "dot",
+                    "pctOfAttack": 0.25,
+                    "durationMs": 4500,
+                    "ticks": 4
+                  }
+                ]
+              },
+              "description": "倒刺叠层与流血"
+            },
+            {
+              "id": "poison_bone_bloom",
+              "name": "骨花爆",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.35,
+                "dotMult": 1.4,
+                "forceAoe": true,
+                "splashMult": 1.2
+              },
+              "description": "叠满爆裂成片"
+            },
+            {
+              "id": "poison_bone_thorn",
+              "name": "骨刺",
+              "rarity": "rare",
+              "mutate": {
+                "damageMult": 1.3,
+                "splashMult": 1.3,
+                "forceAoe": true,
+                "dotMult": 1.25
+              },
+              "description": "骨刺扩散"
+            }
+          ],
+          "evolve": {
+            "from": "barbed_arrow",
+            "into": "barbed_arrow_bone",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "poison_spread",
+          "name": "蔓生支",
+          "skillIds": [
+            "garrote",
+            "poison_arrow",
+            "poison_blade"
+          ],
+          "upgrades": [
+            {
+              "id": "poison_spread_aoe",
+              "name": "蔓延",
+              "rarity": "common",
+              "mutate": {
+                "forceAoe": true,
+                "splashMult": 1.25,
+                "appendEffects": [
+                  {
+                    "type": "dot_aoe",
+                    "pctOfAttack": 0.28,
+                    "durationMs": 5000
+                  }
+                ]
+              },
+              "description": "毒素蔓延成片"
+            },
+            {
+              "id": "poison_spread_breath",
+              "name": "疫息",
+              "rarity": "uncommon",
+              "mutate": {
+                "dotMult": 1.4,
+                "forceAoe": true,
+                "splashMult": 1.35,
+                "damageMult": 1.2
+              },
+              "description": "疫息毒潮"
+            },
+            {
+              "id": "poison_spread_root",
+              "name": "根蔓",
+              "rarity": "rare",
+              "mutate": {
+                "cooldownMult": 0.85,
+                "dotMult": 1.35,
+                "forceAoe": true,
+                "appendEffects": [
+                  {
+                    "type": "stun",
+                    "durationMs": 500,
+                    "aoe": true
+                  }
+                ]
+              },
+              "description": "毒蔓缠绕短控"
+            }
+          ]
+        }
+      ],
+      "tag": "poison"
+    },
+    {
+      "id": "marksman_snipe",
+      "name": "穿云一矢",
+      "seeds": [
+        "snipe",
+        "hunters_mark",
+        "power_shot",
+        "piercing_shot"
+      ],
+      "branches": [
+        {
+          "id": "snipe_far",
+          "name": "远狙支",
+          "skillIds": [
+            "snipe",
+            "power_shot"
+          ],
+          "upgrades": [
+            {
+              "id": "snipe_far_range",
+              "name": "远瞄",
+              "rarity": "common",
+              "mutate": {
+                "rangeBonus": 55,
+                "damageMult": 1.25
+              },
+              "description": "超远狙杀"
+            },
+            {
+              "id": "snipe_far_steady",
+              "name": "稳狙",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.4,
+                "rangeBonus": 25
+              },
+              "description": "重矢直伤"
+            },
+            {
+              "id": "snipe_far_wind",
+              "name": "穿风",
+              "rarity": "uncommon",
+              "mutate": {
+                "rangeBonus": 40,
+                "damageMult": 1.3,
+                "cooldownMult": 0.9
+              },
+              "description": "更远更快更痛"
+            }
+          ],
+          "evolve": {
+            "from": "snipe",
+            "into": "snipe_cloud",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "snipe_pierce",
+          "name": "穿云支",
+          "skillIds": [
+            "snipe",
+            "piercing_shot"
+          ],
+          "upgrades": [
+            {
+              "id": "snipe_pierce_bolt",
+              "name": "穿云",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.4,
+                "addChainJumps": 1
+              },
+              "description": "穿云并贯穿"
+            },
+            {
+              "id": "snipe_pierce_line",
+              "name": "透射",
+              "rarity": "uncommon",
+              "mutate": {
+                "addChainJumps": 2,
+                "chainFalloff": 1,
+                "damageMult": 1.25
+              },
+              "description": "多段贯穿不衰减"
+            },
+            {
+              "id": "snipe_pierce_focus",
+              "name": "凝矢",
+              "rarity": "rare",
+              "mutate": {
+                "damageMult": 1.5,
+                "addChainJumps": 1,
+                "executeBonus": {
+                  "threshold": 0.35,
+                  "bonusMult": 2.6
+                }
+              },
+              "description": "凝矢重击斩杀"
+            }
+          ]
+        },
+        {
+          "id": "snipe_eye",
+          "name": "点睛支",
+          "skillIds": [
+            "hunters_mark",
+            "snipe"
+          ],
+          "upgrades": [
+            {
+              "id": "snipe_eye_mark",
+              "name": "点睛",
+              "rarity": "common",
+              "mutate": {
+                "markAmpMult": 1.5,
+                "damageMult": 1.2,
+                "appendEffects": [
+                  {
+                    "type": "mark",
+                    "amp": 0.2,
+                    "durationMs": 5500
+                  }
+                ]
+              },
+              "description": "强力易伤烙印"
+            },
+            {
+              "id": "snipe_eye_long",
+              "name": "长印",
+              "rarity": "common",
+              "mutate": {
+                "markDurationMult": 1.6,
+                "markAmpMult": 1.3,
+                "damageMult": 1.15
+              },
+              "description": "印记更深更久"
+            },
+            {
+              "id": "snipe_eye_hunt",
+              "name": "猎眼",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.35,
+                "markAmpMult": 1.35,
+                "rangeBonus": 25,
+                "executeBonus": {
+                  "threshold": 0.4,
+                  "bonusMult": 2.5
+                }
+              },
+              "description": "猎眼集火"
+            }
+          ],
+          "evolve": {
+            "from": "hunters_mark",
+            "into": "hunters_mark_eye",
+            "needUpgrades": 2
+          }
+        }
+      ],
+      "tag": "marksman"
+    },
+    {
+      "id": "burn",
+      "name": "劫灰",
+      "seeds": [
+        "fireball",
+        "flame_wave",
+        "meteor",
+        "blizzard"
+      ],
+      "branches": [
+        {
+          "id": "burn_core",
+          "name": "燃芯支",
+          "skillIds": [
+            "fireball",
+            "flame_wave"
+          ],
+          "upgrades": [
+            {
+              "id": "burn_core_ignite",
+              "name": "燃芯",
+              "rarity": "common",
+              "mutate": {
+                "appendEffects": [
+                  {
+                    "type": "dot",
+                    "pctOfAttack": 0.35,
+                    "durationMs": 5000,
+                    "ticks": 5
+                  }
+                ],
+                "damageMult": 1.1
+              },
+              "description": "命中点燃：每跳约35%攻击，持续5秒"
+            },
+            {
+              "id": "burn_core_flame",
+              "name": "焰伤",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.35
+              },
+              "description": "火焰直伤大幅提升"
+            },
+            {
+              "id": "burn_core_wave",
+              "name": "焰潮",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.2,
+                "forceAoe": true,
+                "splashMult": 1.15,
+                "appendEffects": [
+                  {
+                    "type": "dot_aoe",
+                    "pctOfAttack": 0.18,
+                    "durationMs": 4000
+                  }
+                ]
+              },
+              "description": "火球炸成片，并留下灼烧地带"
+            }
+          ],
+          "evolve": {
+            "from": "fireball",
+            "into": "fireball_inferno",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "burn_meteor",
+          "name": "坠星支",
+          "skillIds": [
+            "meteor"
+          ],
+          "upgrades": [
+            {
+              "id": "burn_meteor_crash",
+              "name": "坠星",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.4,
+                "cooldownMult": 1.05
+              },
+              "description": "陨石重击"
+            },
+            {
+              "id": "burn_meteor_ash",
+              "name": "烬域",
+              "rarity": "uncommon",
+              "mutate": {
+                "splashMult": 1.5,
+                "forceAoe": true,
+                "appendEffects": [
+                  {
+                    "type": "dot_aoe",
+                    "pctOfAttack": 0.22,
+                    "durationMs": 4500
+                  }
+                ]
+              },
+              "description": "撞击溅射并烧焦地面"
+            },
+            {
+              "id": "burn_meteor_hell",
+              "name": "烬狱",
+              "rarity": "rare",
+              "mutate": {
+                "damageMult": 1.25,
+                "splashMult": 1.35,
+                "forceAoe": true
+              },
+              "description": "烬狱大爆炸"
+            }
+          ],
+          "evolve": {
+            "from": "meteor",
+            "into": "meteor_ash",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "burn_ember",
+          "name": "余烬支",
+          "skillIds": [
+            "blizzard",
+            "flame_wave",
+            "fireball"
+          ],
+          "upgrades": [
+            {
+              "id": "burn_ember_dot",
+              "name": "余烬",
+              "rarity": "common",
+              "mutate": {
+                "dotMult": 1.45,
+                "dotDurationMult": 1.2
+              },
+              "description": "灼烧伤害与时长提升"
+            },
+            {
+              "id": "burn_ember_soil",
+              "name": "焦土",
+              "rarity": "uncommon",
+              "mutate": {
+                "forceAoe": true,
+                "splashMult": 1.25,
+                "appendEffects": [
+                  {
+                    "type": "dot_aoe",
+                    "pctOfAttack": 0.2,
+                    "durationMs": 5000
+                  }
+                ]
+              },
+              "description": "留下焦土持续灼烧"
+            },
+            {
+              "id": "burn_ember_linger",
+              "name": "残焰",
+              "rarity": "rare",
+              "mutate": {
+                "dotDurationMult": 1.4,
+                "damageMult": 1.2,
+                "appendEffects": [
+                  {
+                    "type": "dot",
+                    "pctOfAttack": 0.25,
+                    "durationMs": 4000,
+                    "ticks": 4
+                  }
+                ]
+              },
+              "description": "命中追加长燃"
+            }
+          ]
+        }
+      ],
+      "tag": "burn"
+    },
+    {
+      "id": "archmage_arcana",
+      "name": "星轨奥涌",
+      "seeds": [
+        "arcane_missiles",
+        "arcane_burst",
+        "static_surge",
+        "arcane_shield"
+      ],
+      "branches": [
+        {
+          "id": "arcana_volley",
+          "name": "连珠支",
+          "skillIds": [
+            "arcane_missiles"
+          ],
+          "upgrades": [
+            {
+              "id": "arcana_volley_chain",
+              "name": "连珠",
+              "rarity": "common",
+              "mutate": {
+                "addChainJumps": 2,
+                "damageMult": 1.15
+              },
+              "description": "弹射+2"
+            },
+            {
+              "id": "arcana_volley_rain",
+              "name": "星雨",
+              "rarity": "uncommon",
+              "mutate": {
+                "addChainJumps": 2,
+                "chainFalloff": 1,
+                "damageMult": 1.2
+              },
+              "description": "星雨不衰减"
+            },
+            {
+              "id": "arcana_volley_flood",
+              "name": "洪流",
+              "rarity": "rare",
+              "mutate": {
+                "addChainJumps": 3,
+                "chainFalloff": 1,
+                "damageMult": 1.25,
+                "cooldownMult": 0.9
+              },
+              "description": "奥能洪流"
+            }
+          ],
+          "evolve": {
+            "from": "arcane_missiles",
+            "into": "arcane_missiles_orbit",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "arcana_burst",
+          "name": "爆涌支",
+          "skillIds": [
+            "arcane_burst",
+            "static_surge"
+          ],
+          "upgrades": [
+            {
+              "id": "arcana_burst_surge",
+              "name": "爆涌",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.4,
+                "forceAoe": true,
+                "splashMult": 1.25
+              },
+              "description": "奥能大爆"
+            },
+            {
+              "id": "arcana_burst_static",
+              "name": "静电",
+              "rarity": "uncommon",
+              "mutate": {
+                "addChainJumps": 2,
+                "damageMult": 1.25,
+                "forceAoe": true,
+                "splashMult": 1.15
+              },
+              "description": "静电跳爆"
+            },
+            {
+              "id": "arcana_burst_nova",
+              "name": "奥爆",
+              "rarity": "rare",
+              "mutate": {
+                "damageMult": 1.4,
+                "forceAoe": true,
+                "splashMult": 1.45,
+                "appendEffects": [
+                  {
+                    "type": "stun",
+                    "durationMs": 500,
+                    "aoe": true
+                  }
+                ]
+              },
+              "description": "奥爆震晕"
+            }
+          ]
+        },
+        {
+          "id": "arcana_swift",
+          "name": "捷咒支",
+          "skillIds": [
+            "arcane_missiles",
+            "arcane_burst",
+            "static_surge",
+            "arcane_shield"
+          ],
+          "upgrades": [
+            {
+              "id": "arcana_swift_cd",
+              "name": "捷咒",
+              "rarity": "common",
+              "mutate": {
+                "cooldownMult": 0.75,
+                "startReady": true
+              },
+              "description": "冷却大减，开场就绪"
+            },
+            {
+              "id": "arcana_swift_ready",
+              "name": "先机",
+              "rarity": "uncommon",
+              "mutate": {
+                "startReady": true,
+                "cooldownMult": 0.8,
+                "damageMult": 1.2
+              },
+              "description": "先手洪流"
+            },
+            {
+              "id": "arcana_swift_flow",
+              "name": "咒流",
+              "rarity": "rare",
+              "mutate": {
+                "cooldownMult": 0.72,
+                "damageMult": 1.25,
+                "addChainJumps": 1
+              },
+              "description": "连放洪流"
+            }
+          ]
+        }
+      ],
+      "tag": "mage"
+    },
+    {
+      "id": "execute",
+      "name": "断罪",
+      "seeds": [
+        "execution",
+        "hammerfall",
+        "snipe",
+        "backstab"
+      ],
+      "branches": [
+        {
+          "id": "execute_line",
+          "name": "抬线支",
+          "skillIds": [
+            "execution",
+            "hammerfall"
+          ],
+          "upgrades": [
+            {
+              "id": "execute_line_raise",
+              "name": "抬线",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.15,
+                "executeBonus": {
+                  "threshold": 0.32,
+                  "bonusMult": 2.4
+                }
+              },
+              "description": "略易触发斩杀"
+            },
+            {
+              "id": "execute_line_watch",
+              "name": "盯梢",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.22,
+                "executeBonus": {
+                  "threshold": 0.3,
+                  "bonusMult": 2.5
+                }
+              },
+              "description": "处刑直伤"
+            },
+            {
+              "id": "execute_line_doom",
+              "name": "终焉感",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.2,
+                "executeBonus": {
+                  "threshold": 0.34,
+                  "bonusMult": 2.6
+                }
+              },
+              "description": "终焉点名"
+            }
+          ],
+          "evolve": {
+            "from": "execution",
+            "into": "execution_final",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "execute_heavy",
+          "name": "重刑支",
+          "skillIds": [
+            "execution",
+            "hammerfall",
+            "snipe"
+          ],
+          "upgrades": [
+            {
+              "id": "execute_heavy_blow",
+              "name": "重刑",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.2,
+                "executeBonus": {
+                  "threshold": 0.28,
+                  "bonusMult": 2.7
+                }
+              },
+              "description": "斩杀倍率提升"
+            },
+            {
+              "id": "execute_heavy_strike",
+              "name": "处刑一击",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.3,
+                "executeBonus": {
+                  "threshold": 0.3,
+                  "bonusMult": 2.6
+                }
+              },
+              "description": "一击重刑"
+            },
+            {
+              "id": "execute_heavy_judge",
+              "name": "断罪",
+              "rarity": "rare",
+              "mutate": {
+                "damageMult": 1.25,
+                "cooldownMult": 0.92,
+                "splashMult": 1.1,
+                "executeBonus": {
+                  "threshold": 0.32,
+                  "bonusMult": 2.6
+                }
+              },
+              "description": "断罪强化"
+            }
+          ],
+          "evolve": {
+            "from": "hammerfall",
+            "into": "hammerfall_judge",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "execute_reap",
+          "name": "收割支",
+          "skillIds": [
+            "backstab",
+            "execution"
+          ],
+          "upgrades": [
+            {
+              "id": "execute_reap_cut",
+              "name": "收割",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.2,
+                "addLifestealPct": 0.1,
+                "executeBonus": {
+                  "threshold": 0.3,
+                  "bonusMult": 2.4
+                }
+              },
+              "description": "收割吸血"
+            },
+            {
+              "id": "execute_reap_cd",
+              "name": "回隙",
+              "rarity": "uncommon",
+              "mutate": {
+                "cooldownMult": 0.88,
+                "damageMult": 1.15,
+                "executeBonus": {
+                  "threshold": 0.3,
+                  "bonusMult": 2.4
+                }
+              },
+              "description": "斩杀后更快出手"
+            },
+            {
+              "id": "execute_reap_shadow",
+              "name": "影割",
+              "rarity": "rare",
+              "mutate": {
+                "damageMult": 1.22,
+                "addLifestealPct": 0.12,
+                "cooldownMult": 0.9,
+                "executeBonus": {
+                  "threshold": 0.32,
+                  "bonusMult": 2.5
+                }
+              },
+              "description": "影割连斩"
+            }
+          ]
+        }
+      ],
+      "tag": "execute"
+    },
+    {
+      "id": "cleave",
+      "name": "横扫裂帛",
+      "seeds": [
+        "cleave",
+        "whirlwind",
+        "blade_flurry",
+        "fan_of_knives"
+      ],
+      "branches": [
+        {
+          "id": "cleave_edge",
+          "name": "开刃支",
+          "skillIds": [
+            "cleave"
+          ],
+          "upgrades": [
+            {
+              "id": "cleave_edge_open",
+              "name": "开刃",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.4,
+                "splashMult": 1.25,
+                "forceAoe": true
+              },
+              "description": "顺劈更痛更开"
+            },
+            {
+              "id": "cleave_edge_wide",
+              "name": "阔刃",
+              "rarity": "common",
+              "mutate": {
+                "splashMult": 1.55,
+                "forceAoe": true,
+                "damageMult": 1.25
+              },
+              "description": "阔刃大溅射"
+            },
+            {
+              "id": "cleave_edge_rift",
+              "name": "裂帛",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.35,
+                "splashMult": 1.4,
+                "forceAoe": true,
+                "appendEffects": [
+                  {
+                    "type": "debuff",
+                    "stat": "defense",
+                    "pct": -0.12,
+                    "durationMs": 4000,
+                    "aoe": true
+                  }
+                ]
+              },
+              "description": "裂帛碎甲"
+            }
+          ],
+          "evolve": {
+            "from": "cleave",
+            "into": "cleave_rift",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "cleave_spin",
+          "name": "旋帛支",
+          "skillIds": [
+            "whirlwind",
+            "blade_flurry"
+          ],
+          "upgrades": [
+            {
+              "id": "cleave_spin_cut",
+              "name": "旋切",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.4,
+                "forceAoe": true,
+                "splashMult": 1.35
+              },
+              "description": "旋切大片"
+            },
+            {
+              "id": "cleave_spin_rain",
+              "name": "帛雨",
+              "rarity": "uncommon",
+              "mutate": {
+                "forceAoe": true,
+                "splashMult": 1.5,
+                "damageMult": 1.3,
+                "cooldownMult": 0.9
+              },
+              "description": "帛雨乱舞"
+            },
+            {
+              "id": "cleave_spin_storm",
+              "name": "旋岚",
+              "rarity": "rare",
+              "mutate": {
+                "damageMult": 1.35,
+                "cooldownMult": 0.82,
+                "forceAoe": true,
+                "splashMult": 1.4
+              },
+              "description": "旋岚节奏"
+            }
+          ],
+          "evolve": {
+            "from": "whirlwind",
+            "into": "whirlwind_rift",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "cleave_skull",
+          "name": "裂颅支",
+          "skillIds": [
+            "cleave",
+            "fan_of_knives"
+          ],
+          "upgrades": [
+            {
+              "id": "cleave_skull_stun",
+              "name": "裂颅",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.25,
+                "forceAoe": true,
+                "splashMult": 1.2,
+                "appendEffects": [
+                  {
+                    "type": "stun",
+                    "durationMs": 900,
+                    "aoe": true
+                  }
+                ]
+              },
+              "description": "群体裂颅晕"
+            },
+            {
+              "id": "cleave_skull_break",
+              "name": "碎甲",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.3,
+                "forceAoe": true,
+                "appendEffects": [
+                  {
+                    "type": "debuff",
+                    "stat": "defense",
+                    "pct": -0.2,
+                    "durationMs": 5000,
+                    "aoe": true
+                  },
+                  {
+                    "type": "stun",
+                    "durationMs": 600,
+                    "aoe": true
+                  }
+                ]
+              },
+              "description": "群晕碎甲"
+            },
+            {
+              "id": "cleave_skull_rift",
+              "name": "裂颅刃",
+              "rarity": "rare",
+              "mutate": {
+                "damageMult": 1.35,
+                "splashMult": 1.4,
+                "forceAoe": true,
+                "stunDurationBonusMs": 350
+              },
+              "description": "裂颅强化"
+            }
+          ]
+        }
+      ],
+      "tag": "cleave"
+    },
+    {
+      "id": "chain",
+      "name": "连霄雷",
+      "seeds": [
+        "chain_lightning",
+        "static_surge",
+        "piercing_shot",
+        "arcane_missiles"
+      ],
+      "branches": [
+        {
+          "id": "chain_add",
+          "name": "添雷支",
+          "skillIds": [
+            "chain_lightning",
+            "static_surge"
+          ],
+          "upgrades": [
+            {
+              "id": "chain_add_jump",
+              "name": "添跳",
+              "rarity": "common",
+              "mutate": {
+                "addChainJumps": 2,
+                "damageMult": 1.15
+              },
+              "description": "弹射+2"
+            },
+            {
+              "id": "chain_add_flash",
+              "name": "再闪",
+              "rarity": "uncommon",
+              "mutate": {
+                "addChainJumps": 2,
+                "damageMult": 1.25,
+                "chainFalloff": 0.95
+              },
+              "description": "再跳且少衰减"
+            },
+            {
+              "id": "chain_add_sky",
+              "name": "连霄",
+              "rarity": "rare",
+              "mutate": {
+                "addChainJumps": 3,
+                "chainFalloff": 1,
+                "damageMult": 1.2
+              },
+              "description": "连霄不衰减"
+            }
+          ],
+          "evolve": {
+            "from": "chain_lightning",
+            "into": "chain_lightning_sky",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "chain_pierce",
+          "name": "霆贯支",
+          "skillIds": [
+            "piercing_shot",
+            "arcane_missiles"
+          ],
+          "upgrades": [
+            {
+              "id": "chain_pierce_jump",
+              "name": "霆贯",
+              "rarity": "common",
+              "mutate": {
+                "addChainJumps": 2,
+                "damageMult": 1.2
+              },
+              "description": "霆贯多跳"
+            },
+            {
+              "id": "chain_pierce_full",
+              "name": "落雷",
+              "rarity": "uncommon",
+              "mutate": {
+                "addChainJumps": 2,
+                "chainFalloff": 1,
+                "damageMult": 1.3
+              },
+              "description": "落雷不衰减"
+            },
+            {
+              "id": "chain_pierce_bolt",
+              "name": "霆矢",
+              "rarity": "rare",
+              "mutate": {
+                "damageMult": 1.35,
+                "addChainJumps": 2,
+                "forceAoe": true,
+                "splashMult": 1.15
+              },
+              "description": "霆矢溅射"
+            }
+          ],
+          "evolve": {
+            "from": "piercing_shot",
+            "into": "piercing_shot_thunder",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "chain_dmg",
+          "name": "雷伤支",
+          "skillIds": [
+            "chain_lightning",
+            "static_surge",
+            "piercing_shot"
+          ],
+          "upgrades": [
+            {
+              "id": "chain_dmg_wrath",
+              "name": "霆怒",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.4,
+                "addChainJumps": 1
+              },
+              "description": "雷伤暴涨"
+            },
+            {
+              "id": "chain_dmg_spark",
+              "name": "余电",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.25,
+                "addChainJumps": 1,
+                "appendEffects": [
+                  {
+                    "type": "stun",
+                    "durationMs": 700
+                  }
+                ]
+              },
+              "description": "余电晕眩"
+            },
+            {
+              "id": "chain_dmg_storm",
+              "name": "雷暴",
+              "rarity": "rare",
+              "mutate": {
+                "damageMult": 1.35,
+                "splashMult": 1.3,
+                "forceAoe": true,
+                "addChainJumps": 1,
+                "appendEffects": [
+                  {
+                    "type": "stun",
+                    "durationMs": 500,
+                    "aoe": true
+                  }
+                ]
+              },
+              "description": "雷暴成片"
+            }
+          ]
+        }
+      ],
+      "tag": "chain"
+    },
+    {
+      "id": "sustain",
+      "name": "噬生轮回",
+      "seeds": [
+        "bloodthirst",
+        "life_drain",
+        "hemorrhage",
+        "shadow_bolt"
+      ],
+      "branches": [
+        {
+          "id": "sustain_deep",
+          "name": "深噬支",
+          "skillIds": [
+            "bloodthirst",
+            "life_drain"
+          ],
+          "upgrades": [
+            {
+              "id": "sustain_deep_leech",
+              "name": "深噬",
+              "rarity": "common",
+              "mutate": {
+                "addLifestealPct": 0.28,
+                "damageMult": 1.25
+              },
+              "description": "大量吸血"
+            },
+            {
+              "id": "sustain_deep_drain",
+              "name": "啜取",
+              "rarity": "common",
+              "mutate": {
+                "healMult": 1.4,
+                "addLifestealPct": 0.18,
+                "damageMult": 1.2
+              },
+              "description": "汲取强化"
+            },
+            {
+              "id": "sustain_deep_vein",
+              "name": "血脉",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.35,
+                "addLifestealPct": 0.22,
+                "forceAoe": true,
+                "splashMult": 1.15
+              },
+              "description": "血脉成片吸血"
+            }
+          ],
+          "evolve": {
+            "from": "bloodthirst",
+            "into": "bloodthirst_cycle",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "sustain_cycle",
+          "name": "轮回支",
+          "skillIds": [
+            "life_drain",
+            "shadow_bolt"
+          ],
+          "upgrades": [
+            {
+              "id": "sustain_cycle_kill",
+              "name": "轮回",
+              "rarity": "common",
+              "mutate": {
+                "addLifestealPct": 0.2,
+                "onKillHealPct": 0.15,
+                "damageMult": 1.25
+              },
+              "description": "击杀回血"
+            },
+            {
+              "id": "sustain_cycle_sip",
+              "name": "回息",
+              "rarity": "uncommon",
+              "mutate": {
+                "addLifestealPct": 0.22,
+                "cooldownMult": 0.85,
+                "damageMult": 1.25
+              },
+              "description": "更快啜魂"
+            },
+            {
+              "id": "sustain_cycle_soul",
+              "name": "噬魂",
+              "rarity": "rare",
+              "mutate": {
+                "damageMult": 1.4,
+                "addLifestealPct": 0.25,
+                "forceAoe": true,
+                "splashMult": 1.2
+              },
+              "description": "噬魂扩散"
+            }
+          ],
+          "evolve": {
+            "from": "life_drain",
+            "into": "life_drain_cycle",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "sustain_thirst",
+          "name": "渴血支",
+          "skillIds": [
+            "bloodthirst",
+            "hemorrhage"
+          ],
+          "upgrades": [
+            {
+              "id": "sustain_thirst_low",
+              "name": "渴血",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.4,
+                "executeBonus": {
+                  "threshold": 0.45,
+                  "bonusMult": 2.4
+                },
+                "addLifestealPct": 0.12
+              },
+              "description": "残血越打越痛"
+            },
+            {
+              "id": "sustain_thirst_frenzy",
+              "name": "狂噬",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.35,
+                "addLifestealPct": 0.2,
+                "cooldownMult": 0.88
+              },
+              "description": "狂噬续命"
+            },
+            {
+              "id": "sustain_thirst_river",
+              "name": "血河斩",
+              "rarity": "rare",
+              "mutate": {
+                "damageMult": 1.45,
+                "splashMult": 1.3,
+                "forceAoe": true,
+                "addLifestealPct": 0.18
+              },
+              "description": "血河成片"
+            }
+          ]
+        }
+      ],
+      "tag": "sustain"
+    },
+    {
+      "id": "glass",
+      "name": "琉璃劫火",
+      "seeds": [
+        "fireball",
+        "snipe",
+        "backstab",
+        "arcane_burst"
+      ],
+      "branches": [
+        {
+          "id": "glass_thin",
+          "name": "薄命支",
+          "skillIds": [
+            "fireball",
+            "snipe",
+            "backstab",
+            "arcane_burst"
+          ],
+          "upgrades": [
+            {
+              "id": "glass_thin_edge",
+              "name": "薄刃",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.4,
+                "cooldownMult": 0.95
+              },
+              "description": "玻璃炮：直伤大幅提升"
+            },
+            {
+              "id": "glass_thin_risk",
+              "name": "孤注",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.55,
+                "appendEffects": [
+                  {
+                    "type": "buff",
+                    "stat": "damageTaken",
+                    "pct": 0.08,
+                    "durationMs": 3000,
+                    "target": "self"
+                  }
+                ]
+              },
+              "description": "爆发更高，施放后短暂更脆"
+            },
+            {
+              "id": "glass_thin_break",
+              "name": "碎命",
+              "rarity": "rare",
+              "mutate": {
+                "damageMult": 1.35,
+                "executeBonus": {
+                  "threshold": 0.45,
+                  "bonusMult": 2.4
+                }
+              },
+              "description": "残血目标额外重击"
+            }
+          ]
+        },
+        {
+          "id": "glass_burst",
+          "name": "爆裂支",
+          "skillIds": [
+            "fireball",
+            "snipe",
+            "backstab",
+            "arcane_burst"
+          ],
+          "upgrades": [
+            {
+              "id": "glass_burst_boom",
+              "name": "爆裂",
+              "rarity": "common",
+              "mutate": {
+                "forceAoe": true,
+                "splashMult": 1.25,
+                "damageMult": 1.2,
+                "appendEffects": [
+                  {
+                    "type": "dot",
+                    "pctOfAttack": 0.22,
+                    "durationMs": 3500,
+                    "ticks": 3
+                  }
+                ]
+              },
+              "description": "命中爆炸成片并点燃"
+            },
+            {
+              "id": "glass_burst_pierce",
+              "name": "贯通",
+              "rarity": "uncommon",
+              "mutate": {
+                "forceAoe": true,
+                "splashMult": 1.4,
+                "damageMult": 1.25,
+                "addChainJumps": 1
+              },
+              "description": "爆炸贯通：溅射更远并弹射一次"
+            },
+            {
+              "id": "glass_burst_nova",
+              "name": "琉璃爆",
+              "rarity": "rare",
+              "mutate": {
+                "forceAoe": true,
+                "splashMult": 1.55,
+                "damageMult": 1.3,
+                "cooldownMult": 0.9,
+                "appendEffects": [
+                  {
+                    "type": "dot_aoe",
+                    "pctOfAttack": 0.2,
+                    "durationMs": 4000
+                  }
+                ]
+              },
+              "description": "大爆炸 + 灼烧地带"
+            }
+          ]
+        }
+      ],
+      "tag": "glass"
+    },
+    {
+      "id": "wizard_inferno",
+      "name": "焚天烬狱",
+      "seeds": [
+        "fireball",
+        "meteor",
+        "flame_wave"
+      ],
+      "branches": [
+        {
+          "id": "wizard_core",
+          "name": "燃芯支",
+          "skillIds": [
+            "fireball",
+            "flame_wave"
+          ],
+          "upgrades": [
+            {
+              "id": "wizard_core_ignite",
+              "name": "焚芯",
+              "rarity": "common",
+              "mutate": {
+                "appendEffects": [
+                  {
+                    "type": "dot",
+                    "pctOfAttack": 0.4,
+                    "durationMs": 5000,
+                    "ticks": 5
+                  }
+                ],
+                "damageMult": 1.15
+              },
+              "description": "强力点燃"
+            },
+            {
+              "id": "wizard_core_burst",
+              "name": "焚爆",
+              "rarity": "uncommon",
+              "mutate": {
+                "forceAoe": true,
+                "splashMult": 1.3,
+                "damageMult": 1.25,
+                "appendEffects": [
+                  {
+                    "type": "dot",
+                    "pctOfAttack": 0.28,
+                    "durationMs": 4000,
+                    "ticks": 4
+                  }
+                ]
+              },
+              "description": "火球炸开并持续燃烧"
+            },
+            {
+              "id": "wizard_core_sky",
+              "name": "焚天",
+              "rarity": "rare",
+              "mutate": {
+                "forceAoe": true,
+                "splashMult": 1.45,
+                "damageMult": 1.35,
+                "cooldownMult": 0.92
+              },
+              "description": "焚天大焰爆"
+            }
+          ],
+          "evolve": {
+            "from": "fireball",
+            "into": "fireball_inferno",
+            "needUpgrades": 2
+          }
+        },
+        {
+          "id": "wizard_meteor",
+          "name": "坠星支",
+          "skillIds": [
+            "meteor",
+            "flame_wave"
+          ],
+          "upgrades": [
+            {
+              "id": "wizard_meteor_fall",
+              "name": "坠焰",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.35,
+                "splashMult": 1.25,
+                "forceAoe": true
+              },
+              "description": "坠星溅射"
+            },
+            {
+              "id": "wizard_meteor_field",
+              "name": "焰域",
+              "rarity": "uncommon",
+              "mutate": {
+                "forceAoe": true,
+                "splashMult": 1.4,
+                "appendEffects": [
+                  {
+                    "type": "dot_aoe",
+                    "pctOfAttack": 0.25,
+                    "durationMs": 5000
+                  }
+                ]
+              },
+              "description": "坠落后留下焰域"
+            }
+          ]
+        }
+      ],
+      "tag": "wizard"
+    },
+    {
+      "id": "bulwark",
+      "name": "千仞壁",
+      "seeds": [
+        "iron_will",
+        "shield_wall",
+        "battle_shout"
+      ],
+      "branches": [
+        {
+          "id": "bulwark_wall",
+          "name": "承壁支",
+          "skillIds": [
+            "iron_will",
+            "shield_wall"
+          ],
+          "upgrades": [
+            {
+              "id": "bulwark_wall_thick",
+              "name": "承壁",
+              "rarity": "common",
+              "mutate": {
+                "shieldPctMult": 1.45
+              },
+              "description": "护盾量大幅提升"
+            },
+            {
+              "id": "bulwark_wall_cover",
+              "name": "壁垒",
+              "rarity": "uncommon",
+              "mutate": {
+                "shieldPctMult": 1.25,
+                "appendEffects": [
+                  {
+                    "type": "shield",
+                    "target": "front_allies",
+                    "pct": 0.12,
+                    "durationMs": 4500
+                  }
+                ]
+              },
+              "description": "为前排覆盖护盾"
+            }
+          ]
+        },
+        {
+          "id": "bulwark_guard",
+          "name": "护阵支",
+          "skillIds": [
+            "shield_wall",
+            "battle_shout",
+            "iron_will"
+          ],
+          "upgrades": [
+            {
+              "id": "bulwark_guard_ease",
+              "name": "护阵",
+              "rarity": "common",
+              "mutate": {
+                "appendEffects": [
+                  {
+                    "type": "buff",
+                    "stat": "damageTaken",
+                    "pct": -0.15,
+                    "durationMs": 4500,
+                    "target": "front_allies"
+                  }
+                ]
+              },
+              "description": "前排短时大幅减伤"
+            },
+            {
+              "id": "bulwark_guard_rally",
+              "name": "镇守",
+              "rarity": "uncommon",
+              "mutate": {
+                "defenseBuffMult": 1.5,
+                "shieldPctMult": 1.2,
+                "cooldownMult": 0.9
+              },
+              "description": "防御与盾量同升"
+            }
+          ]
+        }
+      ],
+      "tag": "tank"
+    },
+    {
+      "id": "tempo",
+      "name": "刻漏疾响",
+      "seeds": [
+        "war_cry",
+        "charge",
+        "shadow_step",
+        "fireball",
+        "arcane_missiles"
+      ],
+      "branches": [
+        {
+          "id": "tempo_tick",
+          "name": "急刻支",
+          "skillIds": [
+            "war_cry",
+            "charge",
+            "shadow_step",
+            "fireball",
+            "arcane_missiles"
+          ],
+          "upgrades": [
+            {
+              "id": "tempo_tick_haste",
+              "name": "急刻",
+              "rarity": "common",
+              "mutate": {
+                "cooldownMult": 0.78,
+                "startReady": true
+              },
+              "description": "冷却大幅缩短，开场更快就绪"
+            },
+            {
+              "id": "tempo_tick_rush",
+              "name": "连响",
+              "rarity": "uncommon",
+              "mutate": {
+                "cooldownMult": 0.72,
+                "damageMult": 1.15
+              },
+              "description": "技能洪流：更快更痛"
+            }
+          ]
+        },
+        {
+          "id": "tempo_echo",
+          "name": "连响支",
+          "skillIds": [
+            "charge",
+            "shadow_step",
+            "fireball",
+            "arcane_missiles"
+          ],
+          "upgrades": [
+            {
+              "id": "tempo_echo_double",
+              "name": "回响",
+              "rarity": "common",
+              "mutate": {
+                "cooldownMult": 0.88,
+                "appendEffects": [
+                  {
+                    "type": "damage",
+                    "mult": 0.7
+                  }
+                ]
+              },
+              "description": "施放后追加一记余波伤害"
+            },
+            {
+              "id": "tempo_echo_chain",
+              "name": "叠响",
+              "rarity": "uncommon",
+              "mutate": {
+                "cooldownMult": 0.85,
+                "addChainJumps": 1,
+                "damageMult": 1.12
+              },
+              "description": "更快，并多一段传导"
+            }
+          ]
+        }
+      ],
+      "tag": "tempo"
+    },
+    {
+      "id": "fortune",
+      "name": "天骰偏宠",
+      "seeds": [
+        "execution",
+        "snipe",
+        "power_shot",
+        "backstab"
+      ],
+      "branches": [
+        {
+          "id": "fortune_crit",
+          "name": "暴骰支",
+          "skillIds": [
+            "execution",
+            "snipe",
+            "power_shot",
+            "backstab"
+          ],
+          "upgrades": [
+            {
+              "id": "fortune_crit_dice",
+              "name": "暴骰",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.45
+              },
+              "description": "高额直伤（暴击感）"
+            },
+            {
+              "id": "fortune_crit_lucky",
+              "name": "偏宠",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.3,
+                "executeBonus": {
+                  "threshold": 0.4,
+                  "bonusMult": 2.8
+                }
+              },
+              "description": "残血时伤害暴涨"
+            }
+          ]
+        },
+        {
+          "id": "fortune_gamble",
+          "name": "豪赌支",
+          "skillIds": [
+            "execution",
+            "snipe",
+            "backstab"
+          ],
+          "upgrades": [
+            {
+              "id": "fortune_gamble_allin",
+              "name": "豪赌",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.7,
+                "cooldownMult": 1.12
+              },
+              "description": "更慢但极痛的一击"
+            },
+            {
+              "id": "fortune_gamble_jack",
+              "name": "通杀",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.35,
+                "forceAoe": true,
+                "splashMult": 1.2,
+                "executeBonus": {
+                  "threshold": 0.35,
+                  "bonusMult": 3
+                }
+              },
+              "description": "豪赌成片斩杀"
+            }
+          ]
+        }
+      ],
+      "tag": "fortune"
+    },
+    {
+      "id": "control",
+      "name": "囚龙枷",
+      "seeds": [
+        "shield_bash",
+        "frost_nova",
+        "smoke_bomb",
+        "frost_bind"
+      ],
+      "branches": [
+        {
+          "id": "control_long",
+          "name": "久囚支",
+          "skillIds": [
+            "shield_bash",
+            "frost_nova",
+            "frost_bind"
+          ],
+          "upgrades": [
+            {
+              "id": "control_long_hold",
+              "name": "久囚",
+              "rarity": "common",
+              "mutate": {
+                "stunDurationBonusMs": 500
+              },
+              "description": "控制时长大幅增加"
+            },
+            {
+              "id": "control_long_chain",
+              "name": "枷锁",
+              "rarity": "uncommon",
+              "mutate": {
+                "stunDurationBonusMs": 350,
+                "appendEffects": [
+                  {
+                    "type": "stun",
+                    "durationMs": 700
+                  }
+                ]
+              },
+              "description": "追加一段控制"
+            }
+          ]
+        },
+        {
+          "id": "control_aoe",
+          "name": "枷面支",
+          "skillIds": [
+            "frost_nova",
+            "smoke_bomb",
+            "shield_bash"
+          ],
+          "upgrades": [
+            {
+              "id": "control_aoe_wide",
+              "name": "枷面",
+              "rarity": "common",
+              "mutate": {
+                "forceAoe": true,
+                "appendEffects": [
+                  {
+                    "type": "stun",
+                    "durationMs": 900,
+                    "aoe": true
+                  }
+                ]
+              },
+              "description": "控制扩散为群体"
+            },
+            {
+              "id": "control_aoe_lock",
+              "name": "龙枷",
+              "rarity": "uncommon",
+              "mutate": {
+                "forceAoe": true,
+                "stunDurationBonusMs": 400,
+                "damageMult": 1.15
+              },
+              "description": "群控并附带伤害"
+            }
+          ]
+        }
+      ],
+      "tag": "control"
+    },
+    {
+      "id": "guardian_bastion",
+      "name": "苍穹卫阵",
+      "seeds": [
+        "battle_shout",
+        "rally",
+        "iron_will",
+        "shield_wall"
+      ],
+      "branches": [
+        {
+          "id": "guardian_array",
+          "name": "卫阵支",
+          "skillIds": [
+            "battle_shout",
+            "iron_will",
+            "shield_wall"
+          ],
+          "upgrades": [
+            {
+              "id": "guardian_array_wall",
+              "name": "卫阵",
+              "rarity": "common",
+              "mutate": {
+                "appendEffects": [
+                  {
+                    "type": "shield",
+                    "target": "allies",
+                    "pct": 0.1,
+                    "durationMs": 4500
+                  }
+                ]
+              },
+              "description": "全队护盾"
+            },
+            {
+              "id": "guardian_array_hold",
+              "name": "苍穹",
+              "rarity": "uncommon",
+              "mutate": {
+                "shieldPctMult": 1.35,
+                "appendEffects": [
+                  {
+                    "type": "buff",
+                    "stat": "damageTaken",
+                    "pct": -0.1,
+                    "durationMs": 4000,
+                    "target": "allies"
+                  }
+                ]
+              },
+              "description": "全队减伤薄盾"
+            }
+          ]
+        },
+        {
+          "id": "guardian_shout",
+          "name": "战吼支",
+          "skillIds": [
+            "battle_shout",
+            "rally"
+          ],
+          "upgrades": [
+            {
+              "id": "guardian_shout_power",
+              "name": "战吼",
+              "rarity": "common",
+              "mutate": {
+                "defenseBuffMult": 1.4,
+                "healMult": 1.2
+              },
+              "description": "战吼增益强化"
+            },
+            {
+              "id": "guardian_shout_ward",
+              "name": "加护",
+              "rarity": "uncommon",
+              "mutate": {
+                "healMult": 1.25,
+                "appendEffects": [
+                  {
+                    "type": "shield",
+                    "target": "allies",
+                    "pct": 0.08,
+                    "durationMs": 4000
+                  }
+                ]
+              },
+              "description": "治疗后附盾"
+            }
+          ]
+        },
+        {
+          "id": "guardian_ward",
+          "name": "加护支",
+          "skillIds": [
+            "rally",
+            "iron_will",
+            "shield_wall"
+          ],
+          "upgrades": [
+            {
+              "id": "guardian_ward_shell",
+              "name": "加护罩",
+              "rarity": "common",
+              "mutate": {
+                "shieldPctMult": 1.4,
+                "shieldDurationMult": 1.3
+              },
+              "description": "盾更厚更久"
+            },
+            {
+              "id": "guardian_ward_pulse",
+              "name": "卫光",
+              "rarity": "uncommon",
+              "mutate": {
+                "appendEffects": [
+                  {
+                    "type": "heal",
+                    "target": "allies",
+                    "pct": 0.08
+                  },
+                  {
+                    "type": "shield",
+                    "target": "allies",
+                    "pct": 0.06,
+                    "durationMs": 3500
+                  }
+                ]
+              },
+              "description": "治疗+护盾脉冲"
+            }
+          ]
+        }
+      ],
+      "tag": "guardian"
+    },
+    {
+      "id": "wind_kiting",
+      "name": "风痕游猎",
+      "seeds": [
+        "backstep_shot",
+        "volley",
+        "power_shot"
+      ],
+      "branches": [
+        {
+          "id": "wind_trace",
+          "name": "风痕支",
+          "skillIds": [
+            "backstep_shot",
+            "power_shot"
+          ],
+          "upgrades": [
+            {
+              "id": "wind_trace_range",
+              "name": "风痕",
+              "rarity": "common",
+              "mutate": {
+                "rangeBonus": 45,
+                "damageMult": 1.2
+              },
+              "description": "更远更痛"
+            },
+            {
+              "id": "wind_trace_step",
+              "name": "游风",
+              "rarity": "uncommon",
+              "mutate": {
+                "rangeBonus": 30,
+                "cooldownMult": 0.85,
+                "damageMult": 1.15
+              },
+              "description": "风筝节奏"
+            }
+          ]
+        },
+        {
+          "id": "wind_hunt",
+          "name": "游猎支",
+          "skillIds": [
+            "volley",
+            "backstep_shot",
+            "power_shot"
+          ],
+          "upgrades": [
+            {
+              "id": "wind_hunt_volley",
+              "name": "游猎",
+              "rarity": "common",
+              "mutate": {
+                "forceAoe": true,
+                "splashMult": 1.3,
+                "damageMult": 1.2
+              },
+              "description": "箭雨成片"
+            },
+            {
+              "id": "wind_hunt_mark",
+              "name": "猎风",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.25,
+                "appendEffects": [
+                  {
+                    "type": "debuff",
+                    "stat": "defense",
+                    "pct": -0.12,
+                    "durationMs": 4000
+                  }
+                ]
+              },
+              "description": "命中减防"
+            }
+          ]
+        }
+      ],
+      "tag": "wind"
+    },
+    {
+      "id": "warlock_curse",
+      "name": "虚帷咒蚀",
+      "seeds": [
+        "shadow_bolt",
+        "life_drain",
+        "death_mark"
+      ],
+      "branches": [
+        {
+          "id": "warlock_curse_b",
+          "name": "咒蚀支",
+          "skillIds": [
+            "shadow_bolt",
+            "death_mark"
+          ],
+          "upgrades": [
+            {
+              "id": "warlock_curse_dot",
+              "name": "咒蚀",
+              "rarity": "common",
+              "mutate": {
+                "appendEffects": [
+                  {
+                    "type": "dot",
+                    "pctOfAttack": 0.3,
+                    "durationMs": 5000,
+                    "ticks": 5
+                  }
+                ],
+                "damageMult": 1.15
+              },
+              "description": "暗箭附带诅咒持续伤害"
+            },
+            {
+              "id": "warlock_curse_deep",
+              "name": "虚帷",
+              "rarity": "uncommon",
+              "mutate": {
+                "dotMult": 1.4,
+                "markAmpMult": 1.3,
+                "damageMult": 1.2
+              },
+              "description": "诅咒与易伤加深"
+            }
+          ]
+        },
+        {
+          "id": "warlock_drain",
+          "name": "啜魂支",
+          "skillIds": [
+            "life_drain",
+            "shadow_bolt"
+          ],
+          "upgrades": [
+            {
+              "id": "warlock_drain_sip",
+              "name": "啜魂",
+              "rarity": "common",
+              "mutate": {
+                "addLifestealPct": 0.22,
+                "damageMult": 1.2
+              },
+              "description": "大量吸血"
+            },
+            {
+              "id": "warlock_drain_veil",
+              "name": "魂蚀",
+              "rarity": "uncommon",
+              "mutate": {
+                "addLifestealPct": 0.18,
+                "damageMult": 1.25,
+                "appendEffects": [
+                  {
+                    "type": "dot",
+                    "pctOfAttack": 0.22,
+                    "durationMs": 4000,
+                    "ticks": 4
+                  }
+                ]
+              },
+              "description": "吸血并留下诅咒"
+            }
+          ]
+        }
+      ],
+      "tag": "warlock"
+    },
+    {
+      "id": "phantom_shadow",
+      "name": "无相割裂",
+      "seeds": [
+        "shadow_step",
+        "backstab",
+        "shadow_pierce"
+      ],
+      "branches": [
+        {
+          "id": "phantom_form",
+          "name": "无相支",
+          "skillIds": [
+            "shadow_step",
+            "backstab"
+          ],
+          "upgrades": [
+            {
+              "id": "phantom_form_step",
+              "name": "无相",
+              "rarity": "common",
+              "mutate": {
+                "cooldownMult": 0.8,
+                "damageMult": 1.25
+              },
+              "description": "影步更快更痛"
+            },
+            {
+              "id": "phantom_form_fade",
+              "name": "消影",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.35,
+                "appendEffects": [
+                  {
+                    "type": "buff",
+                    "stat": "damageTaken",
+                    "pct": -0.12,
+                    "durationMs": 2500,
+                    "target": "self"
+                  }
+                ]
+              },
+              "description": "出手后短暂减伤"
+            }
+          ]
+        },
+        {
+          "id": "phantom_cut",
+          "name": "割裂支",
+          "skillIds": [
+            "backstab",
+            "shadow_pierce"
+          ],
+          "upgrades": [
+            {
+              "id": "phantom_cut_bleed",
+              "name": "割裂",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.3,
+                "appendEffects": [
+                  {
+                    "type": "dot",
+                    "pctOfAttack": 0.28,
+                    "durationMs": 4500,
+                    "ticks": 4
+                  }
+                ]
+              },
+              "description": "背刺撕开流血"
+            },
+            {
+              "id": "phantom_cut_back",
+              "name": "后裂",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.2,
+                "addLifestealPct": 0.08,
+                "executeBonus": {
+                  "threshold": 0.3,
+                  "bonusMult": 2.3
+                }
+              },
+              "description": "后排斩杀感"
+            }
+          ]
+        }
+      ],
+      "tag": "phantom"
+    },
+    {
+      "id": "beast_swarm",
+      "name": "千刃虫潮",
+      "seeds": [
+        "fan_of_knives",
+        "poison_blade",
+        "blade_flurry"
+      ],
+      "branches": [
+        {
+          "id": "beast_swarm_b",
+          "name": "虫潮支",
+          "skillIds": [
+            "fan_of_knives",
+            "blade_flurry"
+          ],
+          "upgrades": [
+            {
+              "id": "beast_swarm_wave",
+              "name": "虫潮",
+              "rarity": "common",
+              "mutate": {
+                "forceAoe": true,
+                "splashMult": 1.25,
+                "damageMult": 1.12
+              },
+              "description": "刀扇成潮"
+            },
+            {
+              "id": "beast_swarm_nest",
+              "name": "虫巢",
+              "rarity": "uncommon",
+              "mutate": {
+                "forceAoe": true,
+                "splashMult": 1.2,
+                "appendEffects": [
+                  {
+                    "type": "dot_aoe",
+                    "pctOfAttack": 0.16,
+                    "durationMs": 4000
+                  }
+                ]
+              },
+              "description": "群体毒潮"
+            }
+          ]
+        },
+        {
+          "id": "beast_blades",
+          "name": "千刃支",
+          "skillIds": [
+            "poison_blade",
+            "fan_of_knives",
+            "blade_flurry"
+          ],
+          "upgrades": [
+            {
+              "id": "beast_blades_cut",
+              "name": "千刃",
+              "rarity": "common",
+              "mutate": {
+                "damageMult": 1.12,
+                "addChainJumps": 1,
+                "appendEffects": [
+                  {
+                    "type": "dot",
+                    "pctOfAttack": 0.18,
+                    "durationMs": 4000,
+                    "ticks": 4
+                  }
+                ]
+              },
+              "description": "多段切割并带毒"
+            },
+            {
+              "id": "beast_blades_flurry",
+              "name": "刃雨",
+              "rarity": "uncommon",
+              "mutate": {
+                "forceAoe": true,
+                "splashMult": 1.2,
+                "damageMult": 1.15,
+                "cooldownMult": 0.92
+              },
+              "description": "刃雨乱舞"
+            }
+          ]
+        }
+      ],
+      "tag": "beast"
+    },
+    {
+      "id": "pierce",
+      "name": "透骨线",
+      "seeds": [
+        "piercing_shot",
+        "shadow_pierce",
+        "power_shot"
+      ],
+      "branches": [
+        {
+          "id": "pierce_bone",
+          "name": "透骨支",
+          "skillIds": [
+            "piercing_shot",
+            "shadow_pierce",
+            "power_shot"
+          ],
+          "upgrades": [
+            {
+              "id": "pierce_bone_line",
+              "name": "透骨",
+              "rarity": "common",
+              "mutate": {
+                "addChainJumps": 2,
+                "damageMult": 1.2
+              },
+              "description": "贯穿两段"
+            },
+            {
+              "id": "pierce_bone_full",
+              "name": "穿心",
+              "rarity": "uncommon",
+              "mutate": {
+                "addChainJumps": 2,
+                "chainFalloff": 1,
+                "damageMult": 1.25
+              },
+              "description": "贯穿不衰减"
+            }
+          ]
+        },
+        {
+          "id": "pierce_line",
+          "name": "连线支",
+          "skillIds": [
+            "piercing_shot",
+            "power_shot"
+          ],
+          "upgrades": [
+            {
+              "id": "pierce_line_link",
+              "name": "连线",
+              "rarity": "common",
+              "mutate": {
+                "addChainJumps": 1,
+                "rangeBonus": 35,
+                "damageMult": 1.15
+              },
+              "description": "更远更连"
+            },
+            {
+              "id": "pierce_line_drill",
+              "name": "钻射",
+              "rarity": "uncommon",
+              "mutate": {
+                "addChainJumps": 2,
+                "damageMult": 1.3,
+                "forceAoe": true,
+                "splashMult": 1.15
+              },
+              "description": "钻射溅射"
+            }
+          ]
+        }
+      ],
+      "tag": "pierce"
+    },
+    {
+      "id": "stun",
+      "name": "震狱",
+      "seeds": [
+        "shield_bash",
+        "hammerfall",
+        "frost_bind"
+      ],
+      "branches": [
+        {
+          "id": "stun_long",
+          "name": "久震支",
+          "skillIds": [
+            "shield_bash",
+            "hammerfall",
+            "frost_bind"
+          ],
+          "upgrades": [
+            {
+              "id": "stun_long_hold",
+              "name": "久震",
+              "rarity": "common",
+              "mutate": {
+                "stunDurationBonusMs": 550,
+                "damageMult": 1.15
+              },
+              "description": "眩晕显著加长"
+            },
+            {
+              "id": "stun_long_break",
+              "name": "震骨",
+              "rarity": "uncommon",
+              "mutate": {
+                "stunDurationBonusMs": 400,
+                "damageMult": 1.3,
+                "appendEffects": [
+                  {
+                    "type": "debuff",
+                    "stat": "defense",
+                    "pct": -0.15,
+                    "durationMs": 4000
+                  }
+                ]
+              },
+              "description": "晕更久并碎甲"
+            }
+          ]
+        },
+        {
+          "id": "stun_jail",
+          "name": "狱晕支",
+          "skillIds": [
+            "shield_bash",
+            "hammerfall",
+            "frost_bind"
+          ],
+          "upgrades": [
+            {
+              "id": "stun_jail_aoe",
+              "name": "狱晕",
+              "rarity": "common",
+              "mutate": {
+                "forceAoe": true,
+                "appendEffects": [
+                  {
+                    "type": "stun",
+                    "durationMs": 1000,
+                    "aoe": true
+                  }
+                ]
+              },
+              "description": "群体震晕"
+            },
+            {
+              "id": "stun_jail_quake",
+              "name": "狱震",
+              "rarity": "uncommon",
+              "mutate": {
+                "forceAoe": true,
+                "splashMult": 1.25,
+                "damageMult": 1.25,
+                "stunDurationBonusMs": 300
+              },
+              "description": "震地群控"
+            }
+          ]
+        }
+      ],
+      "tag": "stun"
+    },
+    {
+      "id": "shield",
+      "name": "琉璃罩",
+      "seeds": [
+        "arcane_shield",
+        "iron_will",
+        "shield_wall"
+      ],
+      "branches": [
+        {
+          "id": "shield_thick",
+          "name": "罩厚支",
+          "skillIds": [
+            "arcane_shield",
+            "iron_will",
+            "shield_wall"
+          ],
+          "upgrades": [
+            {
+              "id": "shield_thick_shell",
+              "name": "罩厚",
+              "rarity": "common",
+              "mutate": {
+                "shieldPctMult": 1.55
+              },
+              "description": "护盾量暴涨"
+            },
+            {
+              "id": "shield_thick_mirror",
+              "name": "琉璃",
+              "rarity": "uncommon",
+              "mutate": {
+                "shieldPctMult": 1.35,
+                "appendEffects": [
+                  {
+                    "type": "damage",
+                    "mult": 0.8,
+                    "aoe": true
+                  }
+                ]
+              },
+              "description": "破罩反震周围"
+            }
+          ]
+        },
+        {
+          "id": "shield_long",
+          "name": "罩久支",
+          "skillIds": [
+            "arcane_shield",
+            "iron_will",
+            "shield_wall"
+          ],
+          "upgrades": [
+            {
+              "id": "shield_long_time",
+              "name": "罩久",
+              "rarity": "common",
+              "mutate": {
+                "shieldDurationMult": 1.5,
+                "shieldPctMult": 1.2
+              },
+              "description": "盾更久更厚"
+            },
+            {
+              "id": "shield_long_pulse",
+              "name": "罩脉",
+              "rarity": "uncommon",
+              "mutate": {
+                "shieldDurationMult": 1.35,
+                "cooldownMult": 0.88,
+                "appendEffects": [
+                  {
+                    "type": "shield",
+                    "target": "self",
+                    "pct": 0.1,
+                    "durationMs": 4000
+                  }
+                ]
+              },
+              "description": "冷却更快，额外叠盾"
+            }
+          ]
+        }
+      ],
+      "tag": "shield"
+    },
+    {
+      "id": "backline",
+      "name": "影幕远射",
+      "seeds": [
+        "snipe",
+        "power_shot",
+        "arcane_missiles",
+        "backstep_shot"
+      ],
+      "branches": [
+        {
+          "id": "backline_veil",
+          "name": "影幕支",
+          "skillIds": [
+            "snipe",
+            "power_shot",
+            "backstep_shot"
+          ],
+          "upgrades": [
+            {
+              "id": "backline_veil_focus",
+              "name": "影幕",
+              "rarity": "common",
+              "mutate": {
+                "rangeBonus": 50,
+                "damageMult": 1.3
+              },
+              "description": "后排专精：更远更痛"
+            },
+            {
+              "id": "backline_veil_safe",
+              "name": "帷射",
+              "rarity": "uncommon",
+              "mutate": {
+                "rangeBonus": 35,
+                "damageMult": 1.25,
+                "cooldownMult": 0.9
+              },
+              "description": "远射节奏"
+            }
+          ]
+        },
+        {
+          "id": "backline_far",
+          "name": "远射支",
+          "skillIds": [
+            "snipe",
+            "arcane_missiles",
+            "power_shot"
+          ],
+          "upgrades": [
+            {
+              "id": "backline_far_bolt",
+              "name": "远射",
+              "rarity": "common",
+              "mutate": {
+                "rangeBonus": 40,
+                "damageMult": 1.35
+              },
+              "description": "超远直伤"
+            },
+            {
+              "id": "backline_far_pierce",
+              "name": "透幕",
+              "rarity": "uncommon",
+              "mutate": {
+                "rangeBonus": 30,
+                "addChainJumps": 1,
+                "damageMult": 1.25
+              },
+              "description": "远距贯穿"
+            }
+          ]
+        }
+      ],
+      "tag": "backline"
+    },
+    {
+      "id": "barrage",
+      "name": "星雨无尽",
+      "seeds": [
+        "arcane_missiles",
+        "volley",
+        "arrow_storm",
+        "blade_flurry"
+      ],
+      "branches": [
+        {
+          "id": "barrage_star",
+          "name": "星雨支",
+          "skillIds": [
+            "arcane_missiles",
+            "volley",
+            "arrow_storm"
+          ],
+          "upgrades": [
+            {
+              "id": "barrage_star_rain",
+              "name": "星雨",
+              "rarity": "common",
+              "mutate": {
+                "addChainJumps": 2,
+                "damageMult": 1.15
+              },
+              "description": "洪流多跳"
+            },
+            {
+              "id": "barrage_star_flood",
+              "name": "无尽",
+              "rarity": "uncommon",
+              "mutate": {
+                "addChainJumps": 2,
+                "chainFalloff": 1,
+                "cooldownMult": 0.88,
+                "damageMult": 1.2
+              },
+              "description": "不衰减的技能洪流"
+            }
+          ]
+        },
+        {
+          "id": "barrage_endless",
+          "name": "无尽支",
+          "skillIds": [
+            "blade_flurry",
+            "volley",
+            "arcane_missiles"
+          ],
+          "upgrades": [
+            {
+              "id": "barrage_endless_tempo",
+              "name": "连雨",
+              "rarity": "common",
+              "mutate": {
+                "cooldownMult": 0.8,
+                "forceAoe": true,
+                "splashMult": 1.2
+              },
+              "description": "更快成片"
+            },
+            {
+              "id": "barrage_endless_storm",
+              "name": "暴雨",
+              "rarity": "uncommon",
+              "mutate": {
+                "cooldownMult": 0.78,
+                "forceAoe": true,
+                "splashMult": 1.35,
+                "damageMult": 1.2
+              },
+              "description": "暴雨倾泻"
+            }
+          ]
+        }
+      ],
+      "tag": "barrage"
+    },
+    {
+      "id": "ranger_toxin",
+      "name": "碧藤毒誓",
+      "seeds": [
+        "poison_arrow",
+        "barbed_arrow",
+        "garrote"
+      ],
+      "branches": [
+        {
+          "id": "ranger_toxin_stack",
+          "name": "叠毒支",
+          "skillIds": [
+            "poison_arrow",
+            "barbed_arrow",
+            "garrote"
+          ],
+          "upgrades": [
+            {
+              "id": "ranger_toxin_thick",
+              "name": "浓藤",
+              "rarity": "common",
+              "mutate": {
+                "dotMult": 1.4,
+                "appendEffects": [
+                  {
+                    "type": "dot",
+                    "pctOfAttack": 0.3,
+                    "durationMs": 5000,
+                    "ticks": 5
+                  }
+                ]
+              },
+              "description": "浓毒追加"
+            },
+            {
+              "id": "ranger_toxin_spread",
+              "name": "蔓毒",
+              "rarity": "uncommon",
+              "mutate": {
+                "forceAoe": true,
+                "dotMult": 1.3,
+                "appendEffects": [
+                  {
+                    "type": "dot_aoe",
+                    "pctOfAttack": 0.22,
+                    "durationMs": 4500
+                  }
+                ]
+              },
+              "description": "毒素蔓延成片"
+            }
+          ]
+        },
+        {
+          "id": "ranger_toxin_vine",
+          "name": "碧藤支",
+          "skillIds": [
+            "poison_arrow",
+            "garrote",
+            "barbed_arrow"
+          ],
+          "upgrades": [
+            {
+              "id": "ranger_toxin_vine_bind",
+              "name": "碧藤",
+              "rarity": "common",
+              "mutate": {
+                "appendEffects": [
+                  {
+                    "type": "dot",
+                    "pctOfAttack": 0.28,
+                    "durationMs": 4500,
+                    "ticks": 4
+                  },
+                  {
+                    "type": "stun",
+                    "durationMs": 500
+                  }
+                ]
+              },
+              "description": "毒藤缠绕短控"
+            },
+            {
+              "id": "ranger_toxin_vine_burst",
+              "name": "藤爆",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.3,
+                "forceAoe": true,
+                "splashMult": 1.25,
+                "dotMult": 1.25
+              },
+              "description": "藤爆溅毒"
+            }
+          ]
+        }
+      ],
+      "tag": "ranger"
+    },
+    {
+      "id": "deadeye_execute",
+      "name": "终焉点名",
+      "seeds": [
+        "execution",
+        "snipe",
+        "death_mark"
+      ],
+      "branches": [
+        {
+          "id": "deadeye_line",
+          "name": "抬线支",
+          "skillIds": [
+            "execution",
+            "snipe",
+            "death_mark"
+          ],
+          "upgrades": [
+            {
+              "id": "deadeye_line_raise",
+              "name": "抬线",
+              "rarity": "common",
+              "mutate": {
+                "executeBonus": {
+                  "threshold": 0.32,
+                  "bonusMult": 2.4
+                },
+                "damageMult": 1.12
+              },
+              "description": "更容易触发斩杀"
+            },
+            {
+              "id": "deadeye_line_doom",
+              "name": "终焉",
+              "rarity": "uncommon",
+              "mutate": {
+                "executeBonus": {
+                  "threshold": 0.34,
+                  "bonusMult": 2.55
+                },
+                "damageMult": 1.18
+              },
+              "description": "终焉处刑"
+            }
+          ]
+        },
+        {
+          "id": "deadeye_name",
+          "name": "点名支",
+          "skillIds": [
+            "snipe",
+            "execution",
+            "death_mark"
+          ],
+          "upgrades": [
+            {
+              "id": "deadeye_name_mark",
+              "name": "点名",
+              "rarity": "common",
+              "mutate": {
+                "markAmpMult": 1.35,
+                "damageMult": 1.18,
+                "appendEffects": [
+                  {
+                    "type": "mark",
+                    "amp": 0.16,
+                    "durationMs": 5000
+                  }
+                ]
+              },
+              "description": "命中附加强标记"
+            },
+            {
+              "id": "deadeye_name_shot",
+              "name": "点射",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.28,
+                "rangeBonus": 30,
+                "executeBonus": {
+                  "threshold": 0.32,
+                  "bonusMult": 2.4
+                }
+              },
+              "description": "点名狙击"
+            }
+          ]
+        }
+      ],
+      "tag": "deadeye"
+    },
+    {
+      "id": "mark",
+      "name": "猎神烙印",
+      "seeds": [
+        "hunters_mark",
+        "death_mark",
+        "snipe"
+      ],
+      "branches": [
+        {
+          "id": "mark_deep",
+          "name": "深烙支",
+          "skillIds": [
+            "hunters_mark",
+            "death_mark",
+            "snipe"
+          ],
+          "upgrades": [
+            {
+              "id": "mark_deep_amp",
+              "name": "深烙",
+              "rarity": "common",
+              "mutate": {
+                "markAmpMult": 1.5,
+                "damageMult": 1.15
+              },
+              "description": "易伤大幅提升"
+            },
+            {
+              "id": "mark_deep_brand",
+              "name": "死印",
+              "rarity": "uncommon",
+              "mutate": {
+                "markAmpMult": 1.4,
+                "markDurationMult": 1.4,
+                "damageMult": 1.25
+              },
+              "description": "更深更久的烙印"
+            }
+          ]
+        },
+        {
+          "id": "mark_long",
+          "name": "长印支",
+          "skillIds": [
+            "hunters_mark",
+            "death_mark"
+          ],
+          "upgrades": [
+            {
+              "id": "mark_long_time",
+              "name": "长印",
+              "rarity": "common",
+              "mutate": {
+                "markDurationMult": 1.6,
+                "markAmpMult": 1.2
+              },
+              "description": "印记更持久"
+            },
+            {
+              "id": "mark_long_focus",
+              "name": "猎眼",
+              "rarity": "uncommon",
+              "mutate": {
+                "markDurationMult": 1.4,
+                "damageMult": 1.3,
+                "appendEffects": [
+                  {
+                    "type": "mark",
+                    "amp": 0.18,
+                    "durationMs": 6000
+                  }
+                ]
+              },
+              "description": "攻击技也带弱标记"
+            }
+          ]
+        },
+        {
+          "id": "mark_dye",
+          "name": "染印支",
+          "skillIds": [
+            "snipe",
+            "hunters_mark",
+            "death_mark"
+          ],
+          "upgrades": [
+            {
+              "id": "mark_dye_hit",
+              "name": "染印",
+              "rarity": "common",
+              "mutate": {
+                "appendEffects": [
+                  {
+                    "type": "mark",
+                    "amp": 0.15,
+                    "durationMs": 4500
+                  }
+                ],
+                "damageMult": 1.2
+              },
+              "description": "普技命中染上烙印"
+            },
+            {
+              "id": "mark_dye_burst",
+              "name": "印爆",
+              "rarity": "uncommon",
+              "mutate": {
+                "damageMult": 1.35,
+                "appendEffects": [
+                  {
+                    "type": "mark",
+                    "amp": 0.22,
+                    "durationMs": 5000
+                  },
+                  {
+                    "type": "dot",
+                    "pctOfAttack": 0.2,
+                    "durationMs": 3000,
+                    "ticks": 3
+                  }
+                ]
+              },
+              "description": "烙印爆发并灼烧"
+            }
+          ]
+        }
+      ],
+      "tag": "mark"
+    },
+    {
+      "id": "drain",
+      "name": "啜魂",
+      "seeds": [
+        "life_drain",
+        "shadow_bolt",
+        "bloodthirst"
+      ],
+      "branches": [
+        {
+          "id": "drain_sip",
+          "name": "啜取支",
+          "skillIds": [
+            "life_drain",
+            "shadow_bolt",
+            "bloodthirst"
+          ],
+          "upgrades": [
+            {
+              "id": "drain_sip_deep",
+              "name": "啜取",
+              "rarity": "common",
+              "mutate": {
+                "addLifestealPct": 0.25,
+                "damageMult": 1.2
+              },
+              "description": "大量吸血"
+            },
+            {
+              "id": "drain_sip_flood",
+              "name": "魂潮",
+              "rarity": "uncommon",
+              "mutate": {
+                "addLifestealPct": 0.2,
+                "forceAoe": true,
+                "splashMult": 1.2,
+                "damageMult": 1.2
+              },
+              "description": "群体啜魂"
+            }
+          ]
+        },
+        {
+          "id": "drain_soul",
+          "name": "魂噬支",
+          "skillIds": [
+            "life_drain",
+            "shadow_bolt"
+          ],
+          "upgrades": [
+            {
+              "id": "drain_soul_bite",
+              "name": "魂噬",
+              "rarity": "common",
+              "mutate": {
+                "addLifestealPct": 0.18,
+                "damageMult": 1.3,
+                "appendEffects": [
+                  {
+                    "type": "dot",
+                    "pctOfAttack": 0.25,
+                    "durationMs": 4000,
+                    "ticks": 4
+                  }
+                ]
+              },
+              "description": "噬魂并留下诅咒"
+            },
+            {
+              "id": "drain_soul_cycle",
+              "name": "轮噬",
+              "rarity": "uncommon",
+              "mutate": {
+                "addLifestealPct": 0.22,
+                "cooldownMult": 0.88,
+                "damageMult": 1.25
+              },
+              "description": "更快的啜魂循环"
+            }
+          ]
+        }
+      ],
+      "tag": "drain"
+    }
+  ],
+  "duoSparks": [
+    {
+      "id": "spark_heal_wall",
+      "name": "圣愈壁垒",
+      "need": {
+        "immortal": 2,
+        "vitality": 2
+      },
+      "desc": "治疗溢出转盾加强",
+      "effects": {
+        "healToShieldBonus": 0.15
+      }
+    },
+    {
+      "id": "spark_oath_spring",
+      "name": "誓约圣泉",
+      "need": {
+        "knight_aegis": 2,
+        "vitality": 2
+      },
+      "desc": "持盾时群疗↑",
+      "effects": {
+        "shieldedHealMult": 1.15
+      }
+    },
+    {
+      "id": "spark_blood_doom",
+      "name": "血河断罪",
+      "need": {
+        "berserk_blood": 2,
+        "execute": 2
+      },
+      "desc": "斩杀击杀短狂暴",
+      "effects": {
+        "executeKillFrenzyMs": 2500
+      }
+    },
+    {
+      "id": "spark_poison_mark",
+      "name": "腐骨烙印",
+      "need": {
+        "poison": 2,
+        "mark": 2
+      },
+      "desc": "标记目标毒伤↑",
+      "effects": {
+        "markedDotMult": 1.25
+      }
+    },
+    {
+      "id": "spark_chain_eye",
+      "name": "雷链猎眼",
+      "need": {
+        "chain": 2,
+        "marksman_snipe": 2
+      },
+      "desc": "弹射少衰减",
+      "effects": {
+        "chainFalloffBonus": 0.08
+      }
+    },
+    {
+      "id": "spark_ash_storm",
+      "name": "烬狱雷云",
+      "need": {
+        "burn": 2,
+        "chain": 2
+      },
+      "desc": "弹射附点燃",
+      "effects": {
+        "chainAppendIgnite": true
+      }
+    },
+    {
+      "id": "spark_rift_wall",
+      "name": "裂帛千仞",
+      "need": {
+        "cleave": 2,
+        "bulwark": 2
+      },
+      "desc": "群体技给前排盾",
+      "effects": {
+        "aoeFrontShieldPct": 0.06
+      }
+    },
+    {
+      "id": "spark_glass_tempo",
+      "name": "琉璃疾响",
+      "need": {
+        "glass": 2,
+        "tempo": 2
+      },
+      "desc": "玻璃炮技能洪流",
+      "effects": {
+        "glassCooldownMult": 0.9
+      }
     }
   ]
 }

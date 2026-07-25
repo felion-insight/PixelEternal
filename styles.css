@@ -5312,6 +5312,133 @@ body.pe-auto-battler-town #room-info {
     letter-spacing: 0;
     margin: 2px 0 4px;
 }
+.ab-branch-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 3px 0 2px;
+}
+.ab-branch-row-compact { margin: 2px 0 0; }
+.ab-branch-chip {
+    display: inline-block;
+    font-size: 10px;
+    line-height: 1.2;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #d8c89a;
+    background: rgba(180, 150, 80, 0.16);
+    border: 1px solid rgba(212, 180, 90, 0.28);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ab-branch-evo {
+    color: #e8c070;
+    background: rgba(220, 140, 60, 0.18);
+    border-color: rgba(230, 160, 70, 0.4);
+}
+.ab-lineage-progress {
+    margin: 0 0 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(212, 180, 90, 0.14);
+}
+.ab-lineage-chips, .ab-spark-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+}
+.ab-lineage-chip {
+    font-size: 11px;
+    color: #d8d0b8;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    padding: 2px 7px;
+}
+.ab-lineage-chip em {
+    font-style: normal;
+    margin-left: 5px;
+    color: #ffd76a;
+}
+.ab-spark-chip {
+    font-size: 11px;
+    color: #c8e0ff;
+    background: rgba(100, 140, 200, 0.16);
+    border: 1px solid rgba(120, 160, 220, 0.35);
+    border-radius: 4px;
+    padding: 2px 7px;
+}
+.ab-reward-preview.skill-upgrade .ab-reward-preview-tag {
+    color: #e0c070;
+}
+.ab-offer-tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 6px 0 2px;
+}
+.ab-offer-tag {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    border: 1px solid transparent;
+}
+.ab-offer-tag-lineage {
+    color: #e8d9a8;
+    background: rgba(212, 180, 90, 0.14);
+    border-color: rgba(212, 180, 90, 0.38);
+}
+.ab-offer-tag-branch {
+    color: #c8d8f0;
+    background: rgba(110, 150, 210, 0.14);
+    border-color: rgba(120, 160, 220, 0.38);
+}
+.ab-offer-tag-evo {
+    color: #e8c070;
+    background: rgba(220, 140, 60, 0.18);
+    border-color: rgba(230, 160, 70, 0.4);
+}
+.ab-slot-tag-row {
+    margin: 3px 0 0;
+    gap: 4px;
+}
+.ab-slot-tag-row .ab-offer-tag {
+    min-height: 18px;
+    padding: 1px 6px;
+    font-size: 10px;
+}
+.ab-offer-upgrade-name {
+    display: block;
+    margin-top: 4px;
+    color: #b8b0a0;
+    font-size: 11px;
+}
+.ab-upgrade-effect {
+    color: #e8dfc0 !important;
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+    margin-top: 6px !important;
+}
+.ab-branch-effect-line {
+    margin: 4px 0 0;
+    font-size: 11px;
+    color: #c8c0a8;
+    line-height: 1.4;
+}
+.ab-branch-effect-line strong {
+    color: #e0c070;
+    margin-right: 4px;
+    font-weight: 600;
+}
 .ab-reward-preview-desc {
     margin: 4px 0 0;
     font-size: 11px;
@@ -5696,6 +5823,41 @@ body.pe-auto-battler-town #room-info {
 .ab-gold { color: var(--ab-gold-bright); }
 
 .ab-map { display: flex; flex-direction: column; gap: 10px; }
+.ab-map-choices {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
+    gap: 14px;
+    padding: 18px 8px 28px;
+    min-height: 200px;
+}
+.ab-map-choices .ab-choice-node {
+    min-width: 120px;
+    width: 140px;
+    min-height: 118px;
+    padding: 14px 10px;
+    gap: 8px;
+}
+.ab-map-choices .ab-node-sub {
+    font-size: 10px;
+    color: var(--ab-muted);
+}
+.ab-map-history {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+.ab-map-hist-chip {
+    font-size: 11px;
+    padding: 2px 8px;
+    border: 1px solid rgba(140, 140, 160, 0.35);
+    background: rgba(20, 22, 30, 0.55);
+    color: var(--ab-muted);
+}
 .ab-map-stage {
     position: relative;
 }

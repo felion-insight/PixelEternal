@@ -61,6 +61,10 @@ class Game {
         this.trainingGroundScene = new TrainingGroundScene(this); // 训练场场景
         this.skillLabScene = new SkillLabScene(this); // 技能实验场
         this.animPreviewScene = typeof AnimPreviewScene !== 'undefined' ? new AnimPreviewScene(this) : null;
+        this.abSkillVfxLabScene = typeof AbSkillVfxLabScene !== 'undefined' ? new AbSkillVfxLabScene(this) : null;
+        this.abSkillVfxLabUI = typeof AbSkillVfxLabUI !== 'undefined' ? new AbSkillVfxLabUI(this) : null;
+        this._abVfxLabBattle = null;
+        this._lastAbVfxLabTick = 0;
         this.equipmentLabScene = typeof EquipmentLabScene !== 'undefined' ? new EquipmentLabScene(this) : null;
         this.equipmentLabController = typeof window.EquipmentLabController !== 'undefined'
             ? new window.EquipmentLabController(this) : null;
@@ -826,6 +830,10 @@ class Game {
                 }
                 if (this.currentScene === SCENE_TYPES.ANIM_PREVIEW) {
                     this.exitAnimPreview();
+                    return;
+                }
+                if (this.currentScene === SCENE_TYPES.AB_SKILL_VFX_LAB) {
+                    this.exitAbSkillVfxLab();
                     return;
                 }
                 if (this.currentScene === SCENE_TYPES.TRIAL) {
@@ -3831,6 +3839,7 @@ class Game {
                 || this.currentScene === SCENE_TYPES.EQUIPMENT_LAB
                 || this.currentScene === SCENE_TYPES.TRAINING;
             const inAnimPreview = this.currentScene === SCENE_TYPES.ANIM_PREVIEW;
+            const inAbVfxLab = this.currentScene === SCENE_TYPES.AB_SKILL_VFX_LAB;
             const castBarActive = this.player._skillCastBar
                 && Date.now() < this.player._skillCastBar.endTime;
             const castingBlocksMove = this.player.isCastingSkill || castBarActive;
@@ -3843,7 +3852,7 @@ class Game {
             let dx = 0;
             let dy = 0;
             
-            if (!castingBlocksMove && !inAnimPreview) {
+            if (!castingBlocksMove && !inAnimPreview && !inAbVfxLab) {
             const KB = window.KeybindSystem;
             if (KB && KB.isActionPressed(this, 'moveUp')) dy -= 1;
             if (KB && KB.isActionPressed(this, 'moveDown')) dy += 1;
@@ -4766,6 +4775,15 @@ class Game {
                     x: interactions[0].x,
                     y: interactions[0].y - interactions[0].size / 2 - 30
                 } : null;
+            } else if (this.currentScene === (SCENE_TYPES.AB_SKILL_VFX_LAB || 'ab_skill_vfx_lab')) {
+                this.updateAbSkillVfxLab();
+                const interactions = this.abSkillVfxLabScene.checkInteraction(this.player);
+                this.currentInteraction = interactions.length > 0 ? {
+                    type: 'portal',
+                    object: interactions[0],
+                    x: interactions[0].x,
+                    y: interactions[0].y - interactions[0].size / 2 - 30
+                } : null;
             } else if (this.currentScene === SCENE_TYPES.TRIAL) {
                 this.updateTrial();
                 const interactions = this.trialScene.checkInteraction(this.player);
@@ -5197,7 +5215,7 @@ class Game {
                 blacksmith: () => this.openBlacksmith(),
                 shop: () => this.openShop(),
                 training_ground: () => this.enterTrainingGround(),
-                party_hall: () => this.autoBattlerUI && this.autoBattlerUI.showMeta(),
+                party_hall: () => this.enterTower(),
                 class_master: () => this.npcUI && this.npcUI.openClassMaster(),
                 skill_trainer: () => this.npcUI && this.npcUI.openSkillTrainer(),
                 enchanter: () => this.npcUI && this.npcUI.openEnchanter(),
@@ -6060,6 +6078,83 @@ class Game {
         this.returnToTown();
     }
 
+    /** 进入自走棋技能特效试验场（独立于 ARPG 技能/装备实验场） */
+    enterAbSkillVfxLab() {
+        if (!window.AutoBattleSimulator || !this.abSkillVfxLabUI) {
+            console.error('[AbSkillVfxLab] 模块未加载');
+            return;
+        }
+        if (typeof AbSkillVfxLabScene !== 'undefined' && !this.abSkillVfxLabScene) {
+            this.abSkillVfxLabScene = new AbSkillVfxLabScene(this);
+        }
+        if (!this.abSkillVfxLabScene) {
+            console.error('[AbSkillVfxLab] 场景未初始化');
+            return;
+        }
+        document.getElementById('dev-panel')?.classList.remove('show');
+        document.getElementById('dev-codex-panel')?.classList.remove('show');
+        this.devMode = false;
+        if (this.autoBattlerUI) {
+            this.autoBattlerUI.hide();
+            this.autoBattlerUI.hideMeta();
+            if (this.autoBattlerUI.root) this.autoBattlerUI.root.style.display = 'none';
+        }
+        document.body.classList.remove('pe-auto-battler-town');
+        const vfxScene = (typeof SCENE_TYPES !== 'undefined' && SCENE_TYPES.AB_SKILL_VFX_LAB)
+            ? SCENE_TYPES.AB_SKILL_VFX_LAB
+            : 'ab_skill_vfx_lab';
+        this.transitionScene(vfxScene);
+        if (typeof this.setAutoBattlerPresentation === 'function') {
+            this.setAutoBattlerPresentation(false);
+        }
+        document.body.classList.remove('pe-auto-battler-town');
+        document.body.classList.add('pe-ab-vfx-lab');
+        this.paused = false;
+        this.resizeCanvas();
+        const cw = CONFIG.CANVAS_WIDTH;
+        const ch = CONFIG.CANVAS_HEIGHT;
+        this.player.x = 50;
+        this.player.y = 50;
+        this.cameraX = 0;
+        this.cameraY = 0;
+        this._abVfxLabBattle = window.AutoBattleSimulator.createVfxPreviewBattle(cw, ch);
+        if (window.AutoBattlerAssets && window.AutoBattlerAssets.ensureLoaded) {
+            window.AutoBattlerAssets.ensureLoaded();
+        }
+        this.abSkillVfxLabUI.open();
+        this._lastAbVfxLabTick = performance.now();
+        this.addFloatingText(cw / 2, ch / 2 - 40, '自走棋技能特效试验场', '#8ec8ff');
+    }
+
+    /** 每帧驱动试验场特效动画（与 render 同步，避免只画不 tick） */
+    tickAbVfxLabPreview() {
+        if (!this._abVfxLabBattle || !window.AutoBattleSimulator) return;
+        const tick = performance.now();
+        const dt = Math.min(33, tick - (this._lastAbVfxLabTick || tick));
+        this._lastAbVfxLabTick = tick;
+        window.AutoBattleSimulator.tickVfxPreview(this._abVfxLabBattle, dt);
+    }
+
+    /** 离开自走棋技能特效试验场 */
+    exitAbSkillVfxLab() {
+        document.body.classList.remove('pe-ab-vfx-lab');
+        this.abSkillVfxLabUI?.close();
+        this._abVfxLabBattle = null;
+        this.returnToTown();
+    }
+
+    updateAbSkillVfxLab() {
+        const scene = this.abSkillVfxLabScene;
+        if (!scene || !this.player || !this._abVfxLabBattle) return;
+        const now = Date.now();
+        const canInteract = now - this.lastSceneTransitionTime >= 3000;
+        const interactions = scene.checkInteraction(this.player);
+        if (interactions.length > 0 && this._isInteractKeyEdge(canInteract)) {
+            this.exitAbSkillVfxLab();
+            return;
+        }
+    }
+
     updateAnimPreview() {
         const scene = this.animPreviewScene;
         if (!scene || !this.player) return;
@@ -6876,6 +6971,11 @@ class Game {
                 window.restoreSkillLabPlayerState(this.player, this._equipmentLabReturnState);
             }
             this._equipmentLabReturnState = null;
+        }
+        if (this.currentScene === SCENE_TYPES.AB_SKILL_VFX_LAB) {
+            this.abSkillVfxLabUI?.close();
+            this._abVfxLabBattle = null;
+            document.body.classList.remove('pe-ab-vfx-lab');
         }
         if (this.currentScene === SCENE_TYPES.TRIAL) {
             if (this.trialScene) this.trialScene.reset();
@@ -8947,11 +9047,11 @@ class Game {
         if (!on) return;
         const roomType = document.getElementById('room-type');
         const floorEl = document.getElementById('floor-number');
-        if (roomType) roomType.textContent = '编队主城';
+        if (roomType) roomType.textContent = '恶魔塔主城';
         if (floorEl) {
             const meta = this.partyMeta || (this.autoBattlerController && this.autoBattlerController.ensurePartyMeta());
             if (meta) {
-                floorEl.textContent = `经验银行 ${meta.expBank} · 最高节点 ${meta.highestRunLayer || 0}`;
+                floorEl.textContent = `从零开荒 · 最高节点 ${meta.highestRunLayer || 0}`;
             } else {
                 floorEl.textContent = '轻操作攀塔';
             }
@@ -8998,6 +9098,25 @@ class Game {
             this.animPreviewScene.draw(this.ctx);
             this.ctx.restore();
             return;
+        }
+
+        // 自走棋技能特效试验场
+        const vfxLabScene = (typeof SCENE_TYPES !== 'undefined' && SCENE_TYPES.AB_SKILL_VFX_LAB)
+            ? SCENE_TYPES.AB_SKILL_VFX_LAB
+            : 'ab_skill_vfx_lab';
+        if (this.currentScene === vfxLabScene && this.abSkillVfxLabScene) {
+            if (!this._abVfxLabBattle && window.AutoBattleSimulator) {
+                this._abVfxLabBattle = window.AutoBattleSimulator.createVfxPreviewBattle(
+                    CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT
+                );
+            }
+            if (this._abVfxLabBattle) {
+                this.ctx.save();
+                this.ctx.scale(2, 2);
+                this.abSkillVfxLabScene.draw(this.ctx, this._abVfxLabBattle);
+                this.ctx.restore();
+                return;
+            }
         }
         
         // 保存当前状态并设置缩放为2倍
@@ -13917,6 +14036,12 @@ class Game {
             }
             
             // 渲染
+            const vfxLabScene = (typeof SCENE_TYPES !== 'undefined' && SCENE_TYPES.AB_SKILL_VFX_LAB)
+                ? SCENE_TYPES.AB_SKILL_VFX_LAB
+                : 'ab_skill_vfx_lab';
+            if (this.currentScene === vfxLabScene && this._abVfxLabBattle) {
+                this.tickAbVfxLabPreview();
+            }
             this.draw();
             this.updateDevInfo();
             

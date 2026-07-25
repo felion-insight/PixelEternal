@@ -371,6 +371,20 @@
         attack *= (relicFx.attackMult || 1);
         defense += (relicFx.flatDefense || 0);
         maxHp *= (relicFx.maxHpMult || 1);
+        maxHp = Math.floor(maxHp);
+        // 沿用局内残血（休息/治疗/战损）；未初始化（hp/maxHp 皆 0）时按满血开局
+        // 已阵亡（maxHp>0 且 hp<=0）保持 0 血，不可再以「假活」进场
+        let startHp = maxHp;
+        if (heroRun.maxHp > 0 && heroRun.hp != null) {
+            if (heroRun.hp <= 0) {
+                startHp = 0;
+            } else {
+                const ratio = Math.min(1, Math.max(0, heroRun.hp) / heroRun.maxHp);
+                startHp = Math.max(1, Math.min(maxHp, Math.floor(maxHp * ratio)));
+            }
+        } else if (heroRun.hp > 0) {
+            startHp = Math.max(1, Math.min(maxHp, Math.floor(heroRun.hp)));
+        }
         const mutators = (relicFx && relicFx.skillMutators) || [];
         const RS = window.RelicSystem;
         const basicBase = (cfg().combat || {}).basicAttackIntervalMs || 900;
@@ -384,8 +398,8 @@
             row: heroRun.boardRow,
             x: 0,
             y: 0,
-            maxHp: Math.floor(maxHp),
-            hp: Math.floor(maxHp),
+            maxHp: maxHp,
+            hp: startHp,
             attack: attack,
             defense: defense,
             speed: stats.speed,
@@ -398,18 +412,25 @@
             basicCd: 0,
             skills: (heroRun.skillSlots || []).filter(Boolean).map((entry) => {
                 const RSS = window.RunStateSystem;
+                const SMS = window.SkillMutationSystem;
                 const norm = RSS && RSS.normalizeSkillEntry
                     ? RSS.normalizeSkillEntry(entry)
-                    : { id: typeof entry === 'string' ? entry : entry.id, stars: 1 };
-                const sid = norm.id;
-                const d = skillDef(sid) || { id: sid, damageMult: 1.5, cooldownMs: 5000, range: stats.range };
+                    : { id: typeof entry === 'string' ? entry : entry.id, stars: 1, branchMods: [] };
+                const baseId = norm.id;
+                const sid = (SMS && SMS.resolveCombatSkillId)
+                    ? SMS.resolveCombatSkillId(norm)
+                    : (norm.evolvedId || baseId);
+                const d = skillDef(sid) || skillDef(baseId) || { id: sid, damageMult: 1.5, cooldownMs: 5000, range: stats.range };
                 const scale = RSS && RSS.getStarScaling
                     ? RSS.getStarScaling(norm.stars)
                     : { damageMult: 1, cooldownMult: 1, chainJumpBonus: 0, lifestealBonus: 0 };
+                const branchMods = norm.branchMods || [];
                 const sk = {
                     id: sid,
+                    baseSkillId: baseId,
                     name: d.name || sid,
                     stars: norm.stars || 1,
+                    branchMods: branchMods.slice(),
                     damageMult: (d.damageMult || 1.5) * scale.damageMult,
                     cooldownMs: Math.floor((d.cooldownMs || 5000) * scale.cooldownMult * gearCdMult),
                     range: d.range || stats.range,
@@ -418,21 +439,36 @@
                     lifestealBonus: scale.lifestealBonus || 0,
                     cd: 0
                 };
+                if (SMS && SMS.applyBranchModsToInstance) {
+                    SMS.applyBranchModsToInstance(sk, d, branchMods);
+                }
                 if (RS && RS.applySkillMutatorsToInstance) {
                     RS.applySkillMutatorsToInstance(sk, d, mutators);
                 }
                 return sk;
             }),
             color: allyClassColor(inferAllyClassFamily({ baseClass: heroRun.baseClass })),
-            alive: true,
+            alive: startHp > 0,
             targetId: null,
             hitFlash: 0,
             statuses: []
         };
     }
 
+    function isHeroCombatReady(heroRun) {
+        if (!heroRun) return false;
+        if (heroRun.boardCol < 0 || heroRun.boardRow < 0) return false;
+        // 已有血条且归零 = 阵亡，本场不上阵
+        if (heroRun.maxHp > 0 && (heroRun.hp == null || heroRun.hp <= 0)) return false;
+        return true;
+    }
+
     function buildEnemyUnit(template, col, row, scale) {
         const s = scale || 1;
+        const sc = cfg().enemyScaling || {};
+        const hpM = sc.hpMult != null ? sc.hpMult : 1;
+        const atkM = sc.attackMult != null ? sc.attackMult : 1;
+        const defM = sc.defenseMult != null ? sc.defenseMult : 1;
         const unit = {
             id: 'enemy_' + template.id + '_' + col + '_' + row + '_' + Math.floor(Math.random() * 9999),
             side: 'enemy',
@@ -442,10 +478,10 @@
             row: row,
             x: 0,
             y: 0,
-            maxHp: Math.floor(template.hp * s),
-            hp: Math.floor(template.hp * s),
-            attack: template.attack * s,
-            defense: template.defense * s,
+            maxHp: Math.floor(template.hp * s * hpM),
+            hp: Math.floor(template.hp * s * hpM),
+            attack: template.attack * s * atkM,
+            defense: template.defense * s * defM,
             speed: template.speed,
             range: template.range,
             skillMult: 1,
@@ -468,9 +504,26 @@
     function scaleForNode(nodeType, layer) {
         const sc = cfg().enemyScaling || {};
         const step = sc.layerPerStep != null ? sc.layerPerStep : 0.08;
-        let s = 1 + layer * step;
+        const base = sc.baseMult != null ? sc.baseMult : 1;
+        const L = Math.max(0, layer | 0);
+        let s = base + L * step;
+        // 前期额外压力：层数越浅越高，随层衰减，留给后期成型构筑的碾压感
+        const epLayers = sc.earlyPressureLayers != null ? sc.earlyPressureLayers : 0;
+        const epMax = sc.earlyPressureMax != null ? sc.earlyPressureMax : 0;
+        if (epLayers > 0 && epMax > 0) {
+            const t = Math.max(0, 1 - L / epLayers);
+            s *= 1 + epMax * t;
+        }
         if (nodeType === 'elite') s *= sc.eliteMult != null ? sc.eliteMult : 1.22;
-        if (nodeType === 'boss') s *= sc.bossMult != null ? sc.bossMult : 1.32;
+        if (nodeType === 'boss') {
+            s *= sc.bossMult != null ? sc.bossMult : 1.32;
+            const act = window.TowerRunMap && window.TowerRunMap.getActLayoutForLayer
+                ? window.TowerRunMap.getActLayoutForLayer(L)
+                : null;
+            if (act && act.index === 0) {
+                s *= sc.firstBossMult != null ? sc.firstBossMult : 0.85;
+            }
+        }
         if (nodeType === 'boss_final') s *= sc.bossFinalMult != null ? sc.bossFinalMult : 1.55;
         return s;
     }
@@ -519,6 +572,9 @@
         const templates = cfg().enemyTemplates || [];
         const r = rng || Math.random;
         const find = (id) => templates.find((t) => t.id === id) || templates[0];
+        const encLayer = (window.TowerRunMap && window.TowerRunMap.toEncounterLayer)
+            ? window.TowerRunMap.toEncounterLayer(layer)
+            : layer;
         const s = scaleForNode(nodeType, layer);
         const ECS = window.EnemyCompositionSystem;
 
@@ -545,7 +601,7 @@
 
         const tierList = enc[nodeType] || enc.battle;
         const tier = Array.isArray(tierList)
-            ? resolveEncounterTier(tierList, layer)
+            ? resolveEncounterTier(tierList, encLayer)
             : (tierList && tierList.squad ? tierList : null);
 
         if (tier && tier.squad && tier.squad.length) {
@@ -600,21 +656,150 @@
         }
         let best = null;
         let bestD = Infinity;
-        const preferBack = unit.baseClass === 'assassin';
+        // 刺客：在接敌圈内优先后排，避免无视近身前排去硬冲最远端
+        const family = inferAllyClassFamily({ baseClass: unit.baseClass });
+        const preferBack = family === 'assassin' || unit.baseClass === 'assassin';
+        const meleeR = (cfg().combat && cfg().combat.meleeRange) || 42;
+        const backBias = preferBack ? Math.max(48, meleeR * 1.4) : 0;
+        const seekR = preferBack ? Math.max(200, meleeR * 5) : Infinity;
         enemies.forEach((e) => {
-            if (!e.alive) return;
+            if (!e.alive || e.hp <= 0) return;
             let d = dist(unit, e);
-            if (preferBack) d -= e.row * 20;
+            if (preferBack) {
+                if (d <= seekR) d -= (e.row || 0) * backBias;
+                else d += 28;
+            }
             if (d < bestD) { bestD = d; best = e; }
         });
         return best;
     }
 
+    function classCombatBias(baseClass) {
+        const table = ((cfg().combat || {}).classCombatBias) || {};
+        const family = inferAllyClassFamily({ baseClass: baseClass });
+        return table[baseClass] || table[family] || {};
+    }
+
     function pushFx(battle, fx) {
+        if (battle && battle.headless) return;
         if (!battle.fx) battle.fx = [];
         battle.fx.push(fx);
-        const cap = battle.vfxLab ? 520 : 320;
+        const cap = battle.vfxLab ? 640 : 420;
         if (battle.fx.length > cap) battle.fx.splice(0, battle.fx.length - cap);
+    }
+
+    function ensureBattleMetrics(battle) {
+        if (!battle) return null;
+        if (!battle.metrics) {
+            battle.metrics = {
+                damageDealt: {},
+                damageTaken: {},
+                healing: {},
+                kills: {},
+                skillCasts: {},
+                skillDamage: {},
+                basicDamage: {},
+                crits: 0,
+                samples: 0
+            };
+        }
+        return battle.metrics;
+    }
+
+    function metricsKey(unit) {
+        if (!unit) return 'unknown';
+        if (unit.side === 'ally') {
+            return unit.baseClass || unit.heroId || unit.name || 'ally';
+        }
+        return unit.templateId || unit.name || 'enemy';
+    }
+
+    function bumpMetric(map, key, amount) {
+        if (!map || !key || !(amount > 0)) return;
+        map[key] = (map[key] || 0) + amount;
+    }
+
+    function recordCombatDamage(battle, attacker, target, dmg, meta) {
+        const m = ensureBattleMetrics(battle);
+        if (!m || !(dmg > 0)) return;
+        const aKey = metricsKey(attacker);
+        const tKey = metricsKey(target);
+        bumpMetric(m.damageDealt, aKey, dmg);
+        bumpMetric(m.damageTaken, tKey, dmg);
+        if (meta && meta.isSkill) {
+            const sid = meta.skillId || meta.skill || 'skill';
+            bumpMetric(m.skillDamage, sid, dmg);
+            bumpMetric(m.skillDamage, aKey + '::' + sid, dmg);
+        } else {
+            bumpMetric(m.basicDamage, aKey, dmg);
+        }
+        if (meta && meta.crit) m.crits += 1;
+        if (target && (target.hp <= 0 || !target.alive)) bumpMetric(m.kills, aKey, 1);
+    }
+
+    function summarizeBattleMetrics(battle) {
+        const m = ensureBattleMetrics(battle) || {};
+        const allies = battle.allies || [];
+        const enemies = battle.enemies || [];
+        const allyDealt = {};
+        const allyTaken = {};
+        const allyHeal = {};
+        let totalAllyDealt = 0;
+        let totalAllyTaken = 0;
+        allies.forEach((u) => {
+            const k = metricsKey(u);
+            const dealt = (m.damageDealt && m.damageDealt[k]) || 0;
+            const taken = (m.damageTaken && m.damageTaken[k]) || 0;
+            const heal = (m.healing && m.healing[k]) || 0;
+            allyDealt[k] = dealt;
+            allyTaken[k] = taken;
+            allyHeal[k] = heal;
+            totalAllyDealt += dealt;
+            totalAllyTaken += taken;
+        });
+        const share = {};
+        Object.keys(allyDealt).forEach((k) => {
+            share[k] = totalAllyDealt > 0 ? allyDealt[k] / totalAllyDealt : 0;
+        });
+        const takenShare = {};
+        Object.keys(allyTaken).forEach((k) => {
+            takenShare[k] = totalAllyTaken > 0 ? allyTaken[k] / totalAllyTaken : 0;
+        });
+        const allyHpLeft = allies.reduce((s, u) => s + Math.max(0, u.hp || 0), 0);
+        const allyHpMax = allies.reduce((s, u) => s + Math.max(1, u.maxHp || 0), 0);
+        const enemyHpLeft = enemies.reduce((s, u) => s + Math.max(0, u.hp || 0), 0);
+        const enemyHpMax = enemies.reduce((s, u) => s + Math.max(1, u.maxHp || 0), 0);
+        const durationMs = battle.elapsed || 0;
+        const dps = durationMs > 0 ? (totalAllyDealt / (durationMs / 1000)) : 0;
+        const skillTop = Object.keys(m.skillDamage || {})
+            .filter((k) => k.indexOf('::') < 0)
+            .map((id) => ({ id: id, damage: m.skillDamage[id] }))
+            .sort((a, b) => b.damage - a.damage)
+            .slice(0, 12);
+        return {
+            victory: !!battle.victory,
+            durationMs: durationMs,
+            allyDps: dps,
+            allyDealt: allyDealt,
+            allyTaken: allyTaken,
+            allyHeal: allyHeal,
+            damageShare: share,
+            takenShare: takenShare,
+            totalAllyDealt: totalAllyDealt,
+            totalAllyTaken: totalAllyTaken,
+            allyHpRatio: allyHpMax > 0 ? allyHpLeft / allyHpMax : 0,
+            enemyHpRatio: enemyHpMax > 0 ? enemyHpLeft / enemyHpMax : 0,
+            alliesAlive: allies.filter((u) => u.alive).length,
+            alliesTotal: allies.length,
+            enemiesAlive: enemies.filter((u) => u.alive).length,
+            enemiesTotal: enemies.length,
+            kills: m.kills || {},
+            skillCasts: m.skillCasts || {},
+            skillTop: skillTop,
+            crits: m.crits || 0,
+            enemyCount: enemies.length,
+            enemyHpMax: enemyHpMax
+        };
     }
 
     function burstParticles(battle, x, y, color, glow, count, speed, pixel) {
@@ -1202,6 +1387,9 @@
                 break;
             }
             case 'backstab':
+                spawnAssassinCloneBurst(battle, params.sx || params.tx, params.sy || params.ty, fx.color, fx.glow, {
+                    count: 3, dist: 20, phase: (params.strikeAng || 0) + 0.4, center: false
+                });
                 spawnMeleeArc(battle, params.tx, params.ty, params.strikeAng || (params.ang + Math.PI), Object.assign({}, fx, { heavy: true, rip: true }));
                 spawnHeavyImpact(battle, params.tx, params.ty, {
                     color: fx.color, glow: fx.glow, radius: 36, rip: true, ripCount: 5, particles: 18
@@ -1221,6 +1409,9 @@
                 spawnBloodDripFx(battle, params.tx, params.ty, fx.color, fx.glow, 14);
                 break;
             case 'execution_strike':
+                spawnAssassinCloneBurst(battle, params.tx, params.ty, fx.color, fx.glow, {
+                    count: 4, dist: 26, phase: params.strikeAng || 0
+                });
                 spawnMeleeArc(battle, params.tx, params.ty, params.strikeAng || (params.ang + Math.PI), Object.assign({}, fx, { heavy: true, rip: true }));
                 spawnHeavyImpact(battle, params.tx, params.ty, {
                     color: '#ff2233', glow: '#ff6677', radius: 48, rip: true, ripCount: 6, particles: 22, speed: 150, rays: 9
@@ -1296,22 +1487,31 @@
                     color: fx.color, glow: fx.glow, radius: 54, rip: true, ripCount: 5, particles: 20, speed: 140, rays: 8
                 });
                 break;
-            case 'fireball_explode':
+            case 'fireball_explode': {
+                const scale = params.impactScale != null ? params.impactScale : 1;
+                const heavy = !!params.heavy;
+                const baseR = params.radius || 42;
                 spawnRuneCollapse(battle, params.tx, params.ty, {
                     color: fx.color, glow: fx.glow,
                     element: params.element || 'fire',
-                    radius: params.radius || 42, life: 400
+                    radius: baseR, life: heavy ? 520 : 400
                 });
                 spawnHeavyImpact(battle, params.tx, params.ty, {
                     color: fx.color, glow: fx.glow,
-                    radius: 54, particles: 24, speed: 155, rays: 10
+                    radius: (heavy ? 70 : 54) * Math.min(1.6, scale),
+                    particles: heavy ? 36 : 24,
+                    speed: heavy ? 190 : 155,
+                    rays: heavy ? 14 : 10
                 });
                 pushFx(battle, {
                     type: 'wave', x: params.tx, y: params.ty,
                     color: fx.color, glow: fx.glow,
-                    life: 520, maxLife: 520, radius: 38, rings: 2, skill: true
+                    life: heavy ? 680 : 520, maxLife: heavy ? 680 : 520,
+                    radius: (heavy ? 56 : 38) * Math.min(1.5, scale),
+                    rings: heavy ? 3 : 2, skill: true
                 });
                 break;
+            }
             case 'arcane_pulse':
                 spawnArcaneBlast(battle, params.x, params.y, {
                     color: fx.color, glow: fx.glow,
@@ -1607,6 +1807,110 @@
         if (opts.rip) spawnRipLines(battle, x, y, opts);
     }
 
+    /** 战士多层刀光：交叉斩 + 火花 */
+    function spawnWarriorSlashBurst(battle, x, y, angle, opts) {
+        opts = opts || {};
+        const color = opts.color || '#e8a050';
+        const glow = opts.glow || '#ffd080';
+        const layers = opts.layers != null ? opts.layers : 3;
+        const heavy = opts.heavy !== false;
+        for (let i = 0; i < layers; i++) {
+            const offset = (i - (layers - 1) / 2) * 0.38;
+            const delay = i * 42;
+            if (delay <= 0) {
+                spawnMeleeArc(battle, x, y, angle + offset, {
+                    color: color, glow: glow, heavy: heavy, wide: !!opts.wide || i === 0,
+                    rip: i === layers - 1, life: 300 + i * 30
+                });
+            } else {
+                pushDelayEmitter(battle, delay, 'cleave_arc', {
+                    x: x, y: y, ang: angle, offset: offset,
+                    color: color, glow: glow, profile: { color: color, glow: glow }
+                });
+            }
+        }
+        pushFx(battle, {
+            type: 'slash', x: x, y: y, angle: angle + 0.15,
+            color: glow, glow: '#fff6d0', heavy: true, aoe: !!opts.wide,
+            life: 280, maxLife: 280, skill: true
+        });
+        burstPixelParticles(battle, x, y, glow, color, opts.particles || 12, opts.speed || 120);
+        if (opts.impact) {
+            spawnHeavyImpact(battle, x, y, {
+                color: color, glow: glow, radius: opts.radius || 34,
+                particles: 10, rip: true, ripCount: 3
+            });
+        }
+    }
+
+    /** 刺客残影/分身环绕 */
+    function spawnAssassinCloneBurst(battle, x, y, color, glow, opts) {
+        opts = opts || {};
+        const count = opts.count != null ? opts.count : 3;
+        const dist = opts.dist != null ? opts.dist : 24;
+        const phase = opts.phase || 0;
+        for (let i = 0; i < count; i++) {
+            const a = phase + (Math.PI * 2 * i) / count;
+            pushFx(battle, {
+                type: 'afterimage',
+                x: x + Math.cos(a) * dist,
+                y: y + Math.sin(a) * dist * 0.72,
+                color: color || '#7744aa',
+                glow: glow || '#cc88ff',
+                clone: true,
+                life: 480 + i * 50,
+                maxLife: 560,
+                skill: true
+            });
+        }
+        if (opts.center !== false) {
+            pushFx(battle, {
+                type: 'afterimage',
+                x: x, y: y,
+                color: color || '#7744aa',
+                glow: glow || '#cc88ff',
+                clone: true,
+                life: 360, maxLife: 360, skill: true
+            });
+        }
+    }
+
+    function pushDamageNumber(battle, target, dmg, opts) {
+        opts = opts || {};
+        const isSkill = !!opts.isSkill;
+        const crit = !!opts.crit;
+        const ally = opts.ally !== false;
+        const big = dmg >= 70 || (isSkill && dmg >= 35) || crit;
+        const huge = dmg >= 140 || (crit && isSkill && dmg >= 55);
+        let fontSize = isSkill ? 28 : (crit ? 24 : 17);
+        if (big) fontSize += 6;
+        if (huge) fontSize += 10;
+        const text = (crit ? '暴击 ' : '') + String(dmg) + (isSkill ? '!' : '');
+        let color = ally ? '#ffe8c8' : '#ff9a9a';
+        if (crit) color = '#ffd76a';
+        else if (isSkill) color = ally ? '#9adcff' : '#ffb0e0';
+        if (huge) color = crit ? '#fff0a8' : (ally ? '#c8f0ff' : '#ffc0e8');
+        pushFx(battle, {
+            type: 'dmg',
+            x: target.x + (Math.random() * 22 - 11),
+            y: target.y - (isSkill ? 42 : 32) - (huge ? 6 : 0),
+            text: text,
+            color: color,
+            crit: crit || isSkill,
+            skill: isSkill,
+            big: big,
+            huge: huge,
+            fontSize: fontSize,
+            pop: huge ? 1.85 : (big ? 1.55 : 1.35),
+            life: huge ? 1250 : (isSkill ? 1050 : 820),
+            maxLife: huge ? 1250 : (isSkill ? 1050 : 820),
+            vy: huge ? -92 : (isSkill ? -74 : -54)
+        });
+        if (big || isSkill) {
+            battle.shake = Math.max(battle.shake || 0, huge ? 5.5 : (crit ? 3.8 : 2.6));
+        }
+    }
+
     function spawnMeleeThrust(battle, x0, y0, x1, y1, opts) {
         pushFx(battle, {
             type: 'melee_thrust',
@@ -1655,14 +1959,16 @@
         pushFx(battle, {
             type: 'afterimage', x: x, y: y,
             color: color || '#7744aa', glow: glow || '#cc88ff',
-            life: 320, maxLife: 320, skill: true
+            clone: true,
+            life: 380, maxLife: 380, skill: true
         });
+        spawnAssassinCloneBurst(battle, x, y, color, glow, { count: 3, dist: 18, center: false });
         pushFx(battle, {
             type: 'burst', x: x, y: y,
             color: glow || color || '#cc88ff',
-            life: 280, maxLife: 280, skill: true
+            life: 320, maxLife: 320, skill: true
         });
-        burstPixelParticles(battle, x, y, glow || '#fff', color || '#888', 10, 95);
+        burstPixelParticles(battle, x, y, glow || '#fff', color || '#888', 14, 110);
     }
 
     /** 重击冲击包：白闪 + 冲击波 + 震裂 + 碎屑 */
@@ -1709,13 +2015,31 @@
         const ty = target.y;
         const behind = behindEnemyPoint(ax, ay, tx, ty, opts.dist || 34);
         spawnVanishPuff(battle, ax, ay, opts.color, opts.glow);
+        // 闪现路径上再甩两道分身残影
+        for (let i = 1; i <= 2; i++) {
+            const t = i / 3;
+            pushFx(battle, {
+                type: 'afterimage',
+                x: ax + (behind.x - ax) * t + (i === 1 ? -10 : 10),
+                y: ay + (behind.y - ay) * t,
+                color: opts.color || '#7744aa',
+                glow: opts.glow || '#cc88ff',
+                clone: true,
+                life: 420 - i * 40,
+                maxLife: 420,
+                skill: true
+            });
+        }
+        spawnAssassinCloneBurst(battle, behind.x, behind.y, opts.color, opts.glow, {
+            count: 2, dist: 16, phase: behind.ang, center: false
+        });
         startUnitVfxMove(attacker, ax, ay, behind.x, behind.y, opts.duration || 240, {
             trail: true,
             afterimage: true,
             color: opts.glow || opts.color,
             glow: opts.color,
             ease: opts.ease || 'out',
-            trailEvery: opts.trailEvery || 22,
+            trailEvery: opts.trailEvery || 16,
             arriveAction: opts.arriveAction,
             arriveParams: Object.assign({
                 tx: tx, ty: ty,
@@ -2016,7 +2340,7 @@
     }
 
     function resolveSkillEffects(sk, mutators) {
-        const def = skillDef(sk.id);
+        const def = skillDef(sk.id) || skillDef(sk.baseSkillId);
         let effects;
         if (def && def.effects && def.effects.length) {
             effects = def.effects;
@@ -2026,6 +2350,10 @@
                 mult: sk.damageMult != null ? sk.damageMult : (def && def.damageMult) || 1.5,
                 aoe: !!(sk.aoe || (def && def.aoe))
             }];
+        }
+        const SMS = window.SkillMutationSystem;
+        if (SMS && SMS.applyBranchModsToEffects && sk.branchMods && sk.branchMods.length) {
+            effects = SMS.applyBranchModsToEffects(effects, def, sk.branchMods);
         }
         const RS = window.RelicSystem;
         if (RS && RS.applySkillMutatorsToEffects && mutators && mutators.length) {
@@ -2154,7 +2482,10 @@
         const before = unit.hp;
         unit.hp = Math.min(unit.maxHp, unit.hp + amount);
         const healed = unit.hp - before;
-        if (healed > 0) pushHealFx(battle, unit, healed);
+        if (healed > 0) {
+            pushHealFx(battle, unit, healed);
+            bumpMetric(ensureBattleMetrics(battle).healing, metricsKey(unit), healed);
+        }
         return healed;
     }
 
@@ -2219,6 +2550,7 @@
         const splash = eff.splashMult != null ? eff.splashMult : 0.75;
         const metaBase = {
             isSkill: true,
+            skillId: sk.id || sk.baseSkillId || sk.name,
             skillName: sk.name,
             lifestealPct: (eff.lifestealPct || 0) + (sk.lifestealBonus || 0),
             executeThreshold: eff.executeThreshold,
@@ -2276,7 +2608,19 @@
                         mult: mult,
                         lifestealPct: (eff.lifestealPct || 0) + lifeBonus
                     }, t, relicFx);
-                    mult *= eff.falloff != null ? eff.falloff : 0.85;
+                    if (relicFx && relicFx.chainAppendIgnite) {
+                        addStatus(t, {
+                            type: 'dot',
+                            t: 3000,
+                            tickMs: 1000,
+                            nextTick: 0,
+                            pctOfAttack: 0.12,
+                            sourceAttack: unit.attack * (unit.skillMult || 1) * attackBuffMult(unit)
+                        });
+                    }
+                    const baseFall = eff.falloff != null ? eff.falloff : 0.85;
+                    const fallBonus = (relicFx && relicFx.chainFalloffBonus) || 0;
+                    mult *= Math.min(1, baseFall + fallBonus);
                 }
                 return;
             }
@@ -2416,6 +2760,11 @@
         let dmg = Math.max(1, raw - defenseValue(target) * 0.5);
         let crit = false;
         const ECS = window.EnemyCompositionSystem;
+        const bias = attacker.side === 'ally' ? classCombatBias(attacker.baseClass) : {};
+        if (attacker.side === 'ally') {
+            if (meta.isSkill) dmg *= bias.skillDamageMult != null ? bias.skillDamageMult : 1;
+            else dmg *= bias.basicDamageMult != null ? bias.basicDamageMult : 1;
+        }
         if (attacker.side === 'ally' && relicFx) {
             if ((attacker.row || 0) >= 2) dmg *= relicFx.backRowDamageMult || 1;
             if (meta.isSkill) dmg *= relicFx.skillDamageMult || 1;
@@ -2442,14 +2791,27 @@
         }
         const mark = (target.statuses || []).find((s) => s.type === 'mark' && s.t > 0);
         if (mark) dmg *= (1 + (mark.bonusPct || 0));
-        if (meta.executeThreshold && target.hp / Math.max(1, target.maxHp) <= meta.executeThreshold) {
-            dmg *= meta.executeBonusMult || 2;
+        if (meta.executeThreshold) {
+            let execTh = meta.executeThreshold;
+            let execBonus = meta.executeBonusMult || 2;
+            if (bias.executeThresholdCap != null) execTh = Math.min(execTh, bias.executeThresholdCap);
+            if (bias.executeBonusCap != null) execBonus = Math.min(execBonus, bias.executeBonusCap);
+            if (target.hp / Math.max(1, target.maxHp) <= execTh) {
+                dmg *= execBonus;
+            }
+        }
+        if (!target.alive || target.hp <= 0) {
+            target.alive = false;
+            target.hp = 0;
+            return 0;
         }
         dmg = Math.floor(dmg);
         dmg = absorbShield(target, dmg);
         if (dmg <= 0) return 0;
         target.hp -= dmg;
         target.hitFlash = meta.isSkill ? 220 : 140;
+        if (meta.crit == null) meta.crit = crit;
+        recordCombatDamage(battle, attacker, target, dmg, meta);
         if (target.hp <= 0) {
             target.hp = 0;
             target.alive = false;
@@ -2502,29 +2864,35 @@
             }
         }
         const isSkill = !!meta.isSkill;
-        pushFx(battle, {
-            type: 'dmg',
-            x: target.x + (Math.random() * 16 - 8),
-            y: target.y - (isSkill ? 36 : 28),
-            text: isSkill ? (dmg + '!') : String(dmg),
-            color: crit ? '#ffd76a' : (isSkill
-                ? (attacker.side === 'ally' ? '#7ecbff' : '#ffb0e0')
-                : (attacker.side === 'ally' ? '#ffe8c8' : '#ff9a9a')),
-            crit: crit || isSkill,
-            skill: isSkill,
-            life: isSkill ? 950 : 750,
-            maxLife: isSkill ? 950 : 750,
-            vy: isSkill ? -62 : -48
+        pushDamageNumber(battle, target, dmg, {
+            isSkill: isSkill,
+            crit: crit,
+            ally: attacker.side === 'ally'
         });
         pushFx(battle, {
             type: 'burst',
             x: target.x,
             y: target.y,
             color: isSkill ? '#9ad0ff' : (attacker.color || '#fff'),
-            life: isSkill ? 360 : 220,
-            maxLife: isSkill ? 360 : 220,
+            life: isSkill ? 420 : 240,
+            maxLife: isSkill ? 420 : 240,
             skill: isSkill
         });
+        if (isSkill || crit) {
+            burstPixelParticles(
+                battle, target.x, target.y,
+                crit ? '#ffd76a' : '#c8e8ff',
+                attacker.color || '#fff',
+                crit ? 10 : 7,
+                crit ? 130 : 100
+            );
+            pushFx(battle, {
+                type: 'hit_flash',
+                x: target.x, y: target.y,
+                radius: crit ? 22 : (isSkill ? 18 : 12),
+                life: 150, maxLife: 150, skill: true
+            });
+        }
         if (meta.trait) {
             spawnEnemyTraitDamageFx(battle, attacker, target, meta);
         }
@@ -2563,6 +2931,7 @@
             snipe: { style: 'snipe', color: '#ffee66', glow: '#ffffaa', nameColor: '#ffe840' },
             barbed_arrow: { style: 'barbed', color: '#cc5544', glow: '#ff9988', nameColor: '#ff7766' },
             fireball: { style: 'fireball', color: '#ff6622', glow: '#ffcc44', nameColor: '#ffaa55' },
+            fireball_inferno: { style: 'fireball', color: '#ff4400', glow: '#ffdd55', nameColor: '#ff9944' },
             frost_nova: { style: 'frost', color: '#66ccff', glow: '#d0f0ff', nameColor: '#a0e0ff' },
             shadow_bolt: { style: 'shadow', color: '#9955dd', glow: '#d0a0ff', nameColor: '#c090ff' },
             arcane_burst: { style: 'arcane', color: '#6688ff', glow: '#c0d0ff', nameColor: '#a0b8ff' },
@@ -2665,24 +3034,34 @@
                 break;
             case 'dagger_thrust':
                 spawnVanishPuff(battle, ax, ay, fx.color, fx.glow);
-                spawnMeleeThrust(battle, ax, ay, tx, ty, Object.assign({}, fx, { life: 240 }));
+                spawnMeleeThrust(battle, ax, ay, tx, ty, Object.assign({}, fx, { life: 260 }));
                 pushFx(battle, {
                     type: 'rip_line', x: tx, y: ty, angle: ang + Math.PI,
-                    length: 16, color: fx.color, glow: fx.glow,
+                    length: 22, color: fx.color, glow: fx.glow,
+                    life: 320, maxLife: 360, skill: true
+                });
+                pushFx(battle, {
+                    type: 'rip_line', x: tx, y: ty, angle: ang + Math.PI + 0.35,
+                    length: 16, color: fx.glow, glow: fx.color,
                     life: 280, maxLife: 320, skill: true
                 });
+                burstPixelParticles(battle, tx, ty, fx.glow, fx.color, 8, 110);
                 break;
             case 'melee_heavy':
-                spawnMeleeArc(battle, midX, midY, ang, Object.assign({}, fx, { heavy: true, rip: true, life: 280 }));
+                spawnWarriorSlashBurst(battle, midX, midY, ang, {
+                    color: fx.color, glow: fx.glow, layers: 3, heavy: true, particles: 10
+                });
                 pushFx(battle, {
                     type: 'ring', x: midX, y: midY, color: fx.glow,
-                    life: 240, maxLife: 240, radius: 14, skill: true
+                    life: 280, maxLife: 280, radius: 18, skill: true
                 });
-                burstPixelParticles(battle, tx, ty, fx.glow, fx.color, 6, 95);
+                burstPixelParticles(battle, tx, ty, fx.glow, fx.color, 10, 115);
                 break;
             case 'melee_slash':
             default:
-                spawnMeleeArc(battle, midX, midY, ang, Object.assign({}, fx, { life: 220 }));
+                spawnWarriorSlashBurst(battle, midX, midY, ang, {
+                    color: fx.color, glow: fx.glow, layers: 2, heavy: false, particles: 7
+                });
                 break;
         }
     }
@@ -2929,21 +3308,35 @@
 
     function spawnSkillFx(battle, attacker, target, skill) {
         const id = (skill && skill.id) || '';
-        const def = skillDef(id);
-        const p = skillVfxProfile(id);
+        const baseId = (skill && skill.baseSkillId) || id;
+        const def = skillDef(id) || skillDef(baseId);
+        // 质变技能优先用本体特效色（如焚天火球沿用火球）
+        const baseProfile = skillVfxProfile(baseId);
+        const p = (baseId !== id && baseProfile && baseProfile.style !== 'bolt')
+            ? baseProfile
+            : skillVfxProfile(id);
         const ax = attacker.x;
         const ay = attacker.y;
         const tx = target.x;
         const ty = target.y;
         const ang = Math.atan2(ty - ay, tx - ax);
-        const aoeR = Math.max(36, (skill && skill.range) ? skill.range * 0.32 : 48);
-        const kind = skillCombatKind(id);
+        const SMS = window.SkillMutationSystem;
+        const branchVfx = (SMS && SMS.summarizeBranchVfx && skill && skill.branchMods)
+            ? SMS.summarizeBranchVfx(skill.branchMods)
+            : { impactScale: 1, orbScale: 1, hasDot: false, forceAoe: false, intensity: 0 };
+        const evolvedBoost = (skill && skill.baseSkillId && skill.id !== skill.baseSkillId) ? 1.35 : 1;
+        const impactScale = (branchVfx.impactScale || 1) * evolvedBoost;
+        const orbScale = (branchVfx.orbScale || 1) * Math.min(1.25, evolvedBoost);
+        let aoeR = Math.max(36, (skill && skill.range) ? skill.range * 0.32 : 48) * impactScale;
+        if (branchVfx.forceAoe || (skill && skill.aoe)) aoeR *= 1.15;
+        const kind = skillCombatKind(id) || skillCombatKind(baseId);
         const fxOpts = { color: p.color, glow: p.glow };
         const mageDamage = def && (def.classTags || []).includes('mage') && kind !== 'support';
 
         if (!mageDamage) {
             pushFx(battle, {
-                type: 'cast', x: ax, y: ay, color: p.color, glow: p.glow, life: 420, maxLife: 420, skill: true
+                type: 'cast', x: ax, y: ay, color: p.color, glow: p.glow,
+                life: 420 + (branchVfx.intensity || 0) * 40, maxLife: 420, skill: true
             });
         }
         pushFx(battle, {
@@ -2956,6 +3349,9 @@
             case 'shield_slam': {
                 const stopX = ax + (tx - ax) * 0.55;
                 const stopY = ay + (ty - ay) * 0.55;
+                spawnWarriorSlashBurst(battle, (ax + tx) / 2, (ay + ty) / 2, ang, {
+                    color: p.color, glow: p.glow, layers: 2, particles: 8
+                });
                 startUnitVfxMove(attacker, ax, ay, stopX, stopY, 220, {
                     trail: true, color: p.color, glow: p.glow, ease: 'out',
                     arriveAction: 'shield_slam',
@@ -2966,10 +3362,13 @@
             case 'charge': {
                 const stopX = tx - Math.cos(ang) * 20;
                 const stopY = ty - Math.sin(ang) * 20;
-                burstPixelParticles(battle, ax, ay, p.glow, p.color, 8, 70);
+                burstPixelParticles(battle, ax, ay, p.glow, p.color, 12, 90);
+                spawnWarriorSlashBurst(battle, ax, ay, ang, {
+                    color: p.color, glow: p.glow, layers: 2, particles: 8
+                });
                 startUnitVfxMove(attacker, ax, ay, stopX, stopY, 400, {
                     trail: true, afterimage: true, color: p.glow, glow: p.color, ease: 'inout',
-                    trailEvery: 28, snapBack: true, holdMs: 380,
+                    trailEvery: 22, snapBack: true, holdMs: 380,
                     arriveAction: 'charge',
                     arriveParams: { tx: tx, ty: ty, ang: ang, color: p.color, glow: p.glow, skillId: id, profile: p }
                 });
@@ -2981,34 +3380,92 @@
                 pushDelayEmitter(battle, 360, 'war_cry_wave', { x: ax, y: ay, radius: aoeR * 0.65, color: p.glow, glow: p.color, profile: p });
                 spawnMeleeArc(battle, ax, ay, ang, Object.assign({}, fxOpts, { wide: true }));
                 break;
+            case 'iron_will_bulwark':
             case 'iron_will':
-                spawnShieldBubbleFx(battle, ax, ay - 4, p.color, p.glow, 46);
-                attachShieldAura(attacker, { color: p.color, glow: p.glow, radius: 44, durationMs: 7000, shards: 12 });
-                pushFx(battle, { type: 'ring', x: ax, y: ay, color: p.glow, life: 620, maxLife: 620, radius: 48, skill: true });
+                spawnShieldBubbleFx(battle, ax, ay - 4, p.color, p.glow, 46 * impactScale);
+                attachShieldAura(attacker, {
+                    color: p.color, glow: p.glow,
+                    radius: 44 * impactScale,
+                    durationMs: 7000 + (branchVfx.intensity || 0) * 700,
+                    shards: 12 + (branchVfx.intensity || 0) * 3
+                });
+                pushFx(battle, {
+                    type: 'ring', x: ax, y: ay, color: p.glow,
+                    life: 620, maxLife: 620, radius: 48 * impactScale, skill: true
+                });
+                if (branchVfx.intensity > 0) {
+                    pushFx(battle, {
+                        type: 'wave', x: ax, y: ay, color: p.color, glow: p.glow,
+                        life: 560, maxLife: 560, radius: 52 * impactScale, rings: 2, skill: true
+                    });
+                }
                 break;
             case 'arcane_shield':
                 spawnMageRitual(battle, ax, ay, {
                     element: 'shield', color: p.color, glow: p.glow,
                     radius: 46, life: 760, layer: 'full', spin: 0.45, spinInner: -0.65
                 });
-                spawnShieldBubbleFx(battle, ax, ay - 4, p.color, p.glow, 46);
-                attachShieldAura(attacker, { color: p.color, glow: p.glow, radius: 44, durationMs: 7000, shards: 12 });
-                break;
-            case 'cleave':
-                for (let i = -2; i <= 2; i++) {
-                    pushDelayEmitter(battle, 60 + i * 70, 'cleave_arc', {
-                        x: (ax + tx) / 2 + i * 10, y: (ay + ty) / 2,
-                        ang: ang, offset: i * 0.16, color: p.color, glow: p.glow, profile: p
+                spawnShieldBubbleFx(battle, ax, ay - 4, p.color, p.glow, 46 * impactScale);
+                attachShieldAura(attacker, {
+                    color: p.color, glow: p.glow,
+                    radius: 44 * impactScale,
+                    durationMs: 7000 + (branchVfx.intensity || 0) * 600,
+                    shards: 12 + (branchVfx.intensity || 0) * 3
+                });
+                if (branchVfx.intensity > 0) {
+                    pushFx(battle, {
+                        type: 'wave', x: ax, y: ay, color: p.color, glow: p.glow,
+                        life: 560, maxLife: 560, radius: 50 * impactScale, rings: 2, skill: true
                     });
                 }
-                pushFx(battle, { type: 'wave', x: (ax + tx) / 2, y: (ay + ty) / 2, color: p.color, glow: p.glow, life: 640, maxLife: 640, radius: aoeR, rings: 3, skill: true });
                 break;
+            case 'cleave_rift':
+            case 'cleave': {
+                const midX = (ax + tx) / 2;
+                const midY = (ay + ty) / 2;
+                spawnWarriorSlashBurst(battle, midX, midY, ang, {
+                    color: p.color, glow: p.glow,
+                    layers: 3 + Math.min(2, branchVfx.intensity || 0),
+                    wide: true, impact: true, radius: 38 * impactScale, particles: 16
+                });
+                const arcs = 2 + Math.min(3, branchVfx.intensity || 0);
+                for (let i = -arcs; i <= arcs; i++) {
+                    pushDelayEmitter(battle, 80 + i * 50, 'cleave_arc', {
+                        x: midX + i * (10 * impactScale), y: midY,
+                        ang: ang, offset: i * 0.18, color: p.color, glow: p.glow, profile: p
+                    });
+                }
+                pushFx(battle, {
+                    type: 'wave', x: midX, y: midY, color: p.color, glow: p.glow,
+                    life: 640 + (branchVfx.intensity || 0) * 80, maxLife: 720,
+                    radius: aoeR * 1.15, rings: 3 + Math.min(2, branchVfx.intensity || 0), skill: true
+                });
+                if (branchVfx.forceAoe || impactScale > 1.25) {
+                    spawnHeavyImpact(battle, tx, ty, {
+                        color: p.color, glow: p.glow, radius: 40 * impactScale, particles: 18, speed: 140, rays: 8
+                    });
+                }
+                break;
+            }
             case 'last_stand':
                 spawnHealRiseFx(battle, ax, ay, p.color, p.glow, 16);
                 break;
+            case 'hammerfall_blood':
+            case 'hammerfall_judge':
             case 'hammerfall':
-                pushDelayEmitter(battle, 280, 'hammer_smash', { tx: tx, ty: ty, ang: ang, color: p.color, glow: p.glow, profile: p, skillId: id });
-                pushFx(battle, { type: 'ring', x: tx, y: ty - 20, color: p.glow, life: 320, maxLife: 320, radius: 18, skill: true });
+                pushDelayEmitter(battle, 280, 'hammer_smash', {
+                    tx: tx, ty: ty, ang: ang, color: p.color, glow: p.glow, profile: p, skillId: id
+                });
+                pushFx(battle, {
+                    type: 'ring', x: tx, y: ty - 20, color: p.glow,
+                    life: 320, maxLife: 320, radius: 18 * impactScale, skill: true
+                });
+                if (branchVfx.forceAoe || impactScale > 1.25) {
+                    pushFx(battle, {
+                        type: 'wave', x: tx, y: ty, color: p.color, glow: p.glow,
+                        life: 560, maxLife: 560, radius: aoeR * 0.9, rings: 3, skill: true
+                    });
+                }
                 break;
             case 'bloodthirst':
                 startUnitVfxMove(attacker, ax, ay, ax + (tx - ax) * 0.45, ay + (ty - ay) * 0.45, 200, {
@@ -3028,18 +3485,28 @@
                     attachShieldAura(u, { color: p.color, glow: p.glow, radius: 36, durationMs: 6000, shards: 8 });
                 });
                 break;
-            case 'whirlwind':
-                for (let i = 0; i < 5; i++) {
-                    pushDelayEmitter(battle, i * 50, 'cleave_arc', {
-                        x: ax, y: ay, ang: ang + (i - 2) * 0.32,
+            case 'whirlwind_blood':
+            case 'whirlwind_rift':
+            case 'whirlwind': {
+                spawnWarriorSlashBurst(battle, ax, ay, ang, {
+                    color: p.color, glow: p.glow, layers: 4, wide: true, particles: 14
+                });
+                const spins = 6 + Math.min(4, branchVfx.intensity || 0);
+                for (let i = 0; i < spins; i++) {
+                    pushDelayEmitter(battle, i * 40, 'cleave_arc', {
+                        x: ax, y: ay, ang: ang + (i - spins / 2) * 0.36,
                         offset: 0, color: p.color, glow: p.glow, profile: p
                     });
                 }
                 pushFx(battle, {
                     type: 'wave', x: ax, y: ay, color: p.color, glow: p.glow,
-                    life: 580, maxLife: 580, radius: aoeR * 1.05, rings: 3, skill: true
+                    life: 620 + (branchVfx.intensity || 0) * 60, maxLife: 720,
+                    radius: aoeR * (1.15 + (branchVfx.intensity || 0) * 0.08),
+                    rings: 3 + Math.min(2, branchVfx.intensity || 0), skill: true
                 });
+                burstPixelParticles(battle, ax, ay, p.glow, p.color, 16, 130);
                 break;
+            }
             case 'shield_bash': {
                 const stopX = ax + (tx - ax) * 0.45;
                 const stopY = ay + (ty - ay) * 0.45;
@@ -3058,10 +3525,19 @@
                     spawnHealRiseFx(battle, u.x, u.y, '#ffd76a', '#fff0b0', 6);
                 });
                 break;
+            case 'retaliation_oath':
             case 'retaliation':
-                spawnShieldBubbleFx(battle, ax, ay - 4, p.color, p.glow, 44);
-                attachShieldAura(attacker, { color: p.color, glow: p.glow, radius: 42, durationMs: 5000, shards: 10 });
-                pushFx(battle, { type: 'ring', x: ax, y: ay, color: p.glow, life: 620, maxLife: 620, radius: 46, skill: true });
+                spawnShieldBubbleFx(battle, ax, ay - 4, p.color, p.glow, 44 * impactScale);
+                attachShieldAura(attacker, {
+                    color: p.color, glow: p.glow,
+                    radius: 42 * impactScale,
+                    durationMs: 5000 + (branchVfx.intensity || 0) * 500,
+                    shards: 10 + (branchVfx.intensity || 0) * 2
+                });
+                pushFx(battle, {
+                    type: 'ring', x: ax, y: ay, color: p.glow,
+                    life: 620, maxLife: 620, radius: 46 * impactScale, skill: true
+                });
                 break;
             case 'backstep_shot': {
                 const backX = ax - Math.cos(ang) * 22;
@@ -3089,14 +3565,24 @@
                     delay: 270, radius: 22, heavy: true, particles: 9
                 });
                 break;
+            case 'poison_arrow_vine':
             case 'poison_arrow':
                 spawnArcherSingleShot(battle, ax, ay, tx, ty, p, {
-                    width: 4, skipImpact: true
+                    width: 4 * orbScale, skipImpact: true
                 });
                 pushDelayEmitter(battle, 250, 'poison_splash', {
                     tx: tx, ty: ty, color: p.color, glow: p.glow
                 });
-                attachStatusVisual(target, 'poison_aura', { color: p.color, glow: p.glow, durationMs: 4000 });
+                attachStatusVisual(target, 'poison_aura', {
+                    color: p.color, glow: p.glow,
+                    durationMs: 4000 + (branchVfx.intensity || 0) * 800
+                });
+                if (branchVfx.forceAoe || branchVfx.hasDot) {
+                    pushFx(battle, {
+                        type: 'wave', x: tx, y: ty, color: p.color, glow: p.glow,
+                        life: 520, maxLife: 520, radius: aoeR * 0.7, rings: 2, skill: true
+                    });
+                }
                 break;
             case 'hunters_mark':
                 spawnArcherSingleShot(battle, ax, ay, tx, ty, p, {
@@ -3186,18 +3672,30 @@
                     life: 420, maxLife: 420, radius: aoeR * 0.55, skill: true
                 });
                 break;
+            case 'snipe_cloud':
             case 'snipe':
                 pushFx(battle, {
                     type: 'cast', x: ax, y: ay, color: p.color, glow: p.glow,
-                    life: 360, maxLife: 360, skill: true
+                    life: 360 + (branchVfx.intensity || 0) * 40, maxLife: 420, skill: true
                 });
-                spawnArcherAimMark(battle, tx, ty, 18, p.color, p.glow, 360, { rich: true, intensity: 1.6 });
+                spawnArcherAimMark(battle, tx, ty, 18 * orbScale, p.color, p.glow, 360, {
+                    rich: true, intensity: 1.6 + (branchVfx.intensity || 0) * 0.25
+                });
                 spawnArrowProjectile(battle, ax, ay - 2, tx, ty, {
-                    color: p.color, glow: p.glow, width: 7, life: 340
+                    color: p.color, glow: p.glow, width: 7 * orbScale, life: 340
                 });
                 spawnArcherShotImpact(battle, tx, ty, p, {
-                    delay: 300, radius: 26, heavy: true, particles: 12
+                    delay: 300,
+                    radius: 26 * impactScale,
+                    heavy: true,
+                    particles: 12 + (branchVfx.intensity || 0) * 4
                 });
+                if (branchVfx.chainBonus || impactScale > 1.3) {
+                    pushFx(battle, {
+                        type: 'wave', x: tx, y: ty, color: p.color, glow: p.glow,
+                        life: 480, maxLife: 480, radius: 36 * impactScale, rings: 2, skill: true
+                    });
+                }
                 break;
             case 'barbed_arrow':
                 spawnArcherSingleShot(battle, ax, ay, tx, ty, p, { width: 4, skipImpact: true });
@@ -3208,23 +3706,40 @@
                     color: p.color, glow: p.glow, durationMs: 5000, stacks: 3
                 });
                 break;
+            case 'fireball_inferno':
             case 'fireball': {
-                const elem = mageElementForSkill(id);
+                const elem = mageElementForSkill('fireball');
+                const boomR = Math.max(48, aoeR * (branchVfx.forceAoe || skill.aoe ? 0.85 : 0.55));
                 spawnMageCastCharge(battle, ax, ay - 2, p.color, p.glow, {
-                    element: elem, radius: 30, life: 400
+                    element: elem, radius: 30 * orbScale, life: 400 + (branchVfx.intensity || 0) * 50
                 });
                 spawnMageRitual(battle, tx, ty, {
                     element: elem, color: p.color, glow: p.glow,
-                    radius: Math.max(40, aoeR * 0.52), life: 440, spin: -0.55
+                    radius: boomR, life: 440 + (branchVfx.intensity || 0) * 40, spin: -0.55
                 });
                 spawnSpellTether(battle, ax, ay - 4, tx, ty, { color: p.color, glow: p.glow, life: 380 });
                 spawnMagicOrb(battle, ax, ay, tx, ty, {
-                    color: p.color, glow: p.glow, radius: 18, element: 'fire', life: 340
+                    color: p.color, glow: p.glow, radius: 18 * orbScale, element: 'fire', life: 340
                 });
                 pushDelayEmitter(battle, 320, 'fireball_explode', {
                     tx: tx, ty: ty, color: p.color, glow: p.glow,
-                    profile: p, skillId: id, element: elem, radius: aoeR * 0.52
+                    profile: p, skillId: id, element: elem,
+                    radius: boomR,
+                    impactScale: impactScale,
+                    heavy: !!(branchVfx.forceAoe || branchVfx.hasDot || impactScale > 1.2)
                 });
+                if (branchVfx.hasDot || id === 'fireball_inferno') {
+                    attachStatusVisual(target, 'bleed_aura', {
+                        color: '#ff6622', glow: '#ffcc44',
+                        durationMs: 4500, stacks: 2 + (branchVfx.intensity || 0)
+                    });
+                }
+                if (branchVfx.forceAoe || skill.aoe || id === 'fireball_inferno') {
+                    pushFx(battle, {
+                        type: 'wave', x: tx, y: ty, color: p.color, glow: p.glow,
+                        life: 620, maxLife: 620, radius: boomR * 0.9, rings: 3, skill: true
+                    });
+                }
                 break;
             }
             case 'frost_nova': {
@@ -3271,25 +3786,37 @@
                 });
                 break;
             }
+            case 'chain_lightning_sky':
             case 'chain_lightning':
             case 'static_surge': {
                 const chainEff = (def && def.effects) ? def.effects.find((e) => e.type === 'chain') : { jumps: 3 };
+                const jumps = ((chainEff && chainEff.jumps) || 3) + (skill.chainJumpBonus || 0) + (branchVfx.chainBonus || 0);
                 const foes = attacker.side === 'ally' ? battle.enemies : battle.allies;
-                spawnChainLightningVfx(battle, attacker, foes, target, id, chainEff || { jumps: 3 }, {
+                spawnChainLightningVfx(battle, attacker, foes, target, id, { jumps: jumps }, {
                     mode: 'lightning', element: 'lightning'
                 });
+                if (branchVfx.intensity > 0) {
+                    pushFx(battle, {
+                        type: 'wave', x: tx, y: ty, color: p.color, glow: p.glow,
+                        life: 500, maxLife: 500, radius: 42 * impactScale, rings: 2, skill: true
+                    });
+                }
                 break;
             }
+            case 'piercing_shot_thunder':
             case 'piercing_shot': {
                 const chainEff = (def && def.effects) ? def.effects.find((e) => e.type === 'chain') : { jumps: 3 };
+                const jumps = ((chainEff && chainEff.jumps) || 3) + (skill.chainJumpBonus || 0) + (branchVfx.chainBonus || 0);
                 const foes = attacker.side === 'ally' ? battle.enemies : battle.allies;
-                spawnChainLightningVfx(battle, attacker, foes, target, id, chainEff || { jumps: 3 }, { mode: 'arrow' });
+                spawnChainLightningVfx(battle, attacker, foes, target, id, { jumps: jumps }, { mode: 'arrow' });
                 break;
             }
+            case 'arcane_missiles_orbit':
             case 'arcane_missiles': {
                 const chainEff = (def && def.effects) ? def.effects.find((e) => e.type === 'chain') : { jumps: 4 };
+                const jumps = ((chainEff && chainEff.jumps) || 4) + (skill.chainJumpBonus || 0) + (branchVfx.chainBonus || 0);
                 const foes = attacker.side === 'ally' ? battle.enemies : battle.allies;
-                spawnChainLightningVfx(battle, attacker, foes, target, id, chainEff || { jumps: 4 }, {
+                spawnChainLightningVfx(battle, attacker, foes, target, id, { jumps: jumps }, {
                     mode: 'arcane', element: 'arcane'
                 });
                 break;
@@ -3421,12 +3948,22 @@
                 });
                 attachStatusVisual(target, 'bleed_aura', { color: p.color, glow: p.glow, durationMs: 6000, stacks: 3 });
                 break;
+            case 'execution_final':
             case 'execution':
                 startAssassinAmbush(battle, attacker, target, {
                     color: p.color, glow: p.glow, profile: p, skillId: id,
-                    dist: 30, duration: 250, holdMs: 340,
+                    dist: 30, duration: 250, holdMs: 340 + (branchVfx.intensity || 0) * 40,
                     arriveAction: 'execution_strike'
                 });
+                if (impactScale > 1.2 || branchVfx.intensity > 0) {
+                    pushDelayEmitter(battle, 280, 'hammer_smash', {
+                        tx: tx, ty: ty, ang: ang, color: p.color, glow: p.glow, profile: p, skillId: id
+                    });
+                    pushFx(battle, {
+                        type: 'wave', x: tx, y: ty, color: p.color, glow: p.glow,
+                        life: 520, maxLife: 520, radius: 40 * impactScale, rings: 2, skill: true
+                    });
+                }
                 break;
             case 'shadow_step':
                 startAssassinAmbush(battle, attacker, target, {
@@ -3520,9 +4057,15 @@
         // 技能后短暂锁普攻，避免技能瞬间被普攻淹没
         const lock = (combat && combat.skillCastLockMs) != null ? combat.skillCastLockMs : 420;
         unit.basicCd = Math.max(unit.basicCd, lock);
-        unit.castFlash = 700;
+        const SMS = window.SkillMutationSystem;
+        const branchVfx = (SMS && SMS.summarizeBranchVfx && sk.branchMods)
+            ? SMS.summarizeBranchVfx(sk.branchMods)
+            : { intensity: 0 };
+        unit.castFlash = 700 + Math.min(400, (branchVfx.intensity || 0) * 120);
         unit.lastSkillName = sk.name || sk.id;
         unit.skillCasts = (unit.skillCasts || 0) + 1;
+        bumpMetric(ensureBattleMetrics(battle).skillCasts, sk.id || sk.name || 'skill', 1);
+        bumpMetric(ensureBattleMetrics(battle).skillCasts, metricsKey(unit) + '::casts', 1);
         if (!battle.log) battle.log = [];
         battle.log.push({
             t: battle.elapsed || 0,
@@ -3565,9 +4108,28 @@
         const relicFx = window.RelicSystem
             ? window.RelicSystem.aggregateRelicEffects(run.relics)
             : {};
+        const SMS = window.SkillMutationSystem;
+        if (SMS && SMS.aggregateDuoSparkEffects) {
+            const sparkFx = SMS.aggregateDuoSparkEffects(run);
+            Object.keys(sparkFx).forEach((k) => {
+                if (sparkFx[k] == null) return;
+                if (typeof sparkFx[k] === 'number' && typeof relicFx[k] === 'number') {
+                    if (k.indexOf('Mult') >= 0 || k.indexOf('mult') >= 0) relicFx[k] = (relicFx[k] || 1) * sparkFx[k];
+                    else relicFx[k] = (relicFx[k] || 0) + sparkFx[k];
+                } else if (typeof sparkFx[k] === 'boolean') {
+                    relicFx[k] = !!(relicFx[k] || sparkFx[k]);
+                } else {
+                    relicFx[k] = sparkFx[k];
+                }
+            });
+            if (sparkFx.glassCooldownMult && sparkFx.glassCooldownMult !== 1) {
+                relicFx.cooldownMult = (relicFx.cooldownMult || 1) * sparkFx.glassCooldownMult;
+            }
+        }
         const allies = run.heroes
-            .filter((h) => h.boardCol >= 0 && h.boardRow >= 0)
-            .map((h) => buildAllyUnit(h, relicFx));
+            .filter((h) => isHeroCombatReady(h))
+            .map((h) => buildAllyUnit(h, relicFx))
+            .filter((u) => u.alive && u.hp > 0);
         // 放大后同步攻击距离；技能射程至少覆盖普攻距离，避免永远放不出技
         allies.forEach((u, idx) => {
             if ((u.range || 0) > 90) u.range = combat.rangedRange;
@@ -3576,7 +4138,7 @@
                 const baseR = (sk.range || u.range) * scaleR;
                 sk.range = Math.max(baseR, u.range);
                 // 错开开局就绪，避免同一帧全员齐放看不清
-                sk.cd = si * 120 + idx * 80;
+                sk.cd = sk.startReady ? 0 : (si * 120 + idx * 80);
             });
             u.speed = (u.speed || 70) * Math.max(1, scaleR * 0.85);
             u.skillCasts = 0;
@@ -3635,7 +4197,15 @@
             : {};
         const allies = run.heroes
             .filter((h) => h.boardCol >= 0 && h.boardRow >= 0)
-            .map((h) => buildAllyUnit(h, relicFx));
+            .map((h) => {
+                const u = buildAllyUnit(h, relicFx);
+                // 布阵预览仍显示阵亡者（灰态），实战 createBattle 不会带上他们
+                if (!u.alive || u.hp <= 0) {
+                    u.preview = true;
+                    u.deadPreview = true;
+                }
+                return u;
+            });
         const nodeSeed = ((run.seed || 1) ^ ((node.layer + 1) * 9973) ^ ((node.id || '').length * 131)) >>> 0;
         const rng = window.RunStateSystem.mulberry32(nodeSeed);
         const enemies = generateEnemies(node.type, node.layer, rng).map((e) => {
@@ -3701,11 +4271,15 @@
     }
 
     function living(units) {
-        return units.filter((u) => u.alive);
+        return units.filter((u) => u && u.alive && u.hp > 0);
     }
 
     function tickUnit(battle, unit, allies, enemies, dtMs, relicFx, combat) {
-        if (!unit.alive) return;
+        if (!unit.alive || unit.hp <= 0) {
+            unit.alive = false;
+            unit.hp = Math.max(0, unit.hp || 0);
+            return;
+        }
         tickStatuses(battle, unit, dtMs, relicFx);
         tickUnitAuras(unit, dtMs);
         if (unit.hitFlash > 0) unit.hitFlash = Math.max(0, unit.hitFlash - dtMs);
@@ -3822,7 +4396,10 @@
                 }
             } else if (fx.type === 'dmg' || fx.type === 'skillname') {
                 fx.y += (fx.vy || -40) * dt;
-                if (fx.type === 'dmg') fx.vy = (fx.vy || -40) + 60 * dt;
+                if (fx.type === 'dmg') {
+                    fx.vy = (fx.vy || -40) + 55 * dt;
+                    fx.x += Math.sin((fx.life || 0) * 0.04) * (fx.huge ? 10 : 4) * dt;
+                }
             } else if (fx.type === 'spark') {
                 fx.y += (fx.vy != null ? fx.vy : 20) * dt;
             } else if (fx.type === 'particle') {
@@ -3943,7 +4520,14 @@
     }
 
     function beginVictoryFinale(battle) {
-        if (battle.victoryPending) return;
+        if (battle.victoryPending || battle.finished) return;
+        if (battle.skipFinale || battle.headless) {
+            battle.finished = true;
+            battle.victory = true;
+            battle.victoryPending = false;
+            battle.finale = null;
+            return;
+        }
         battle.victoryPending = true;
         battle.finale = {
             t: 0,
@@ -4036,6 +4620,10 @@
 
         tickUnitVfxMoves(battle, dtMs);
         tickFx(battle, dtMs);
+        if (battle.shake) {
+            battle.shake = Math.max(0, battle.shake - dtMs * 0.018);
+            if (battle.shake < 0.2) battle.shake = 0;
+        }
 
         if (!battle.finished && battle.elapsed >= maxDur) {
             battle.finished = true;
@@ -4049,9 +4637,12 @@
     function syncHeroHpFromBattle(run, battle) {
         battle.allies.forEach((u) => {
             const h = window.RunStateSystem.findHero(run, u.heroId);
-            if (h) {
-                h.hp = u.hp;
-                h.maxHp = u.maxHp;
+            if (!h) return;
+            h.maxHp = u.maxHp;
+            if (!u.alive || u.hp <= 0) {
+                h.hp = 0;
+            } else {
+                h.hp = Math.max(1, Math.min(u.maxHp, Math.floor(u.hp)));
             }
         });
     }
@@ -4488,13 +5079,14 @@
                 const span = fx.heavy ? 1.05 : 0.9;
                 strokeArcSlash(fx.x, fx.y, fx.angle, r, fx.color || '#ffe0a0', fx.glow, fx.heavy ? 7 : 5, t, span);
             } else if (fx.type === 'melee_arc') {
-                const r = fx.heavy ? (fx.wide ? 44 : 36) : 28;
-                const span = fx.wide ? 1.25 : (fx.heavy ? 1.05 : 0.85);
-                strokeArcSlash(fx.x, fx.y, fx.angle, r, fx.color || '#ffe0a0', fx.glow, fx.heavy ? 8 : 5, t, span);
+                const r = fx.heavy ? (fx.wide ? 50 : 40) : 32;
+                const span = fx.wide ? 1.35 : (fx.heavy ? 1.15 : 0.95);
+                strokeArcSlash(fx.x, fx.y, fx.angle, r, fx.color || '#ffe0a0', fx.glow, fx.heavy ? 9 : 6, t, span);
+                strokeArcSlash(fx.x, fx.y, (fx.angle || 0) + 0.55, r * 0.78, fx.glow || fx.color, '#fff8e0', fx.heavy ? 5 : 3.5, t * 0.75, span * 0.7);
                 if (fx.glow) {
-                    ctx.globalAlpha = t * 0.35;
+                    ctx.globalAlpha = t * 0.42;
                     ctx.strokeStyle = fx.glow;
-                    ctx.lineWidth = 12;
+                    ctx.lineWidth = 14;
                     ctx.lineCap = 'round';
                     ctx.beginPath();
                     ctx.arc(fx.x, fx.y, r * 0.85, (fx.angle || 0) - span, (fx.angle || 0) + span);
@@ -4565,16 +5157,36 @@
                 ctx.restore();
                 ctx.globalAlpha = 1;
             } else if (fx.type === 'afterimage') {
-                const r = 18;
-                ctx.globalAlpha = t * 0.42;
-                ctx.fillStyle = fx.color || '#7744aa';
+                const clone = !!fx.clone;
+                const r = clone ? 22 : 18;
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = t * (clone ? 0.38 : 0.28);
+                ctx.fillStyle = fx.glow || fx.color || '#cc88ff';
                 ctx.beginPath();
-                ctx.ellipse(fx.x, fx.y, r * 0.65, r, 0, 0, Math.PI * 2);
+                ctx.ellipse(fx.x, fx.y, r * 0.9, r * 1.15, 0, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.globalAlpha = t * 0.55;
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.globalAlpha = t * (clone ? 0.55 : 0.42);
+                ctx.fillStyle = fx.color || '#7744aa';
+                // 人形剪影：头 + 身
+                ctx.beginPath();
+                ctx.ellipse(fx.x, fx.y - r * 0.55, r * 0.28, r * 0.32, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(fx.x, fx.y + r * 0.15, r * 0.42, r * 0.7, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = t * 0.7;
                 ctx.strokeStyle = fx.glow || '#cc88ff';
-                ctx.lineWidth = 2;
+                ctx.lineWidth = clone ? 2.5 : 2;
+                ctx.beginPath();
+                ctx.ellipse(fx.x, fx.y, r * 0.55, r * 0.95, 0, 0, Math.PI * 2);
                 ctx.stroke();
+                if (clone && t > 0.55) {
+                    ctx.globalAlpha = (t - 0.55) * 1.4;
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                }
                 ctx.globalAlpha = 1;
             } else if (fx.type === 'arrow_proj') {
                 const prog = 1 - t;
@@ -5228,18 +5840,40 @@
                 ctx.fill();
                 ctx.globalAlpha = 1;
             } else if (fx.type === 'dmg') {
-                ctx.globalAlpha = Math.min(1, t * 1.6);
-                ctx.fillStyle = fx.color || '#fff';
-                ctx.font = (fx.skill ? 'bold 22px' : (fx.crit ? 'bold 18px' : 'bold 14px')) +
-                    ' "Courier New", monospace';
+                const elapsed = 1 - t;
+                const pop = fx.pop || 1.2;
+                let scale = 1;
+                if (elapsed < 0.16) scale = pop - (pop - 1) * (elapsed / 0.16);
+                else if (t < 0.22) scale = 0.88 + t * 0.55;
+                const baseSize = fx.fontSize || (fx.skill ? 26 : (fx.crit ? 20 : 15));
+                const fs = Math.max(12, Math.round(baseSize * scale));
+                ctx.save();
+                ctx.translate(fx.x, fx.y);
+                ctx.globalAlpha = Math.min(1, t * 1.85);
+                ctx.font = 'bold ' + fs + 'px "Courier New", "Microsoft YaHei", monospace';
                 ctx.textAlign = 'center';
-                if (fx.skill) {
-                    ctx.strokeStyle = 'rgba(0,0,0,0.65)';
-                    ctx.lineWidth = 3;
-                    ctx.strokeText(fx.text, fx.x, fx.y);
+                ctx.textBaseline = 'middle';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = 'rgba(0,0,0,0.78)';
+                ctx.lineWidth = fx.huge ? 5 : (fx.big || fx.skill ? 4 : 3);
+                ctx.strokeText(fx.text, 0, 0);
+                if (fx.huge || fx.crit) {
+                    ctx.globalCompositeOperation = 'lighter';
+                    ctx.globalAlpha = Math.min(1, t * 1.2) * 0.55;
+                    ctx.fillStyle = fx.huge ? '#fff6c8' : '#ffe8a0';
+                    ctx.fillText(fx.text, 0, 0);
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.globalAlpha = Math.min(1, t * 1.85);
                 }
-                ctx.fillText(fx.text, fx.x, fx.y);
-                ctx.textAlign = 'left';
+                ctx.fillStyle = fx.color || '#fff';
+                ctx.fillText(fx.text, 0, 0);
+                if (fx.huge && t > 0.7) {
+                    ctx.globalAlpha = (t - 0.7) * 2.2;
+                    ctx.strokeStyle = fx.color || '#fff';
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeText(fx.text, 0, 0);
+                }
+                ctx.restore();
                 ctx.globalAlpha = 1;
             }
         }
@@ -5556,6 +6190,7 @@
         spawnEnemyTraitHitFx,
         spawnEnemyTraitDamageFx,
         syncHeroHpFromBattle,
+        isHeroCombatReady,
         living,
         drawFx,
         drawUnitAuras,
@@ -5566,6 +6201,9 @@
         clearVfxPreview,
         listVfxLabSkills,
         skillDamageIntensity,
-        arrowStormVfxFromIntensity
+        arrowStormVfxFromIntensity,
+        summarizeBattleMetrics,
+        ensureBattleMetrics,
+        scaleForNode
     };
 })();

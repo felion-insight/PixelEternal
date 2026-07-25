@@ -10,6 +10,7 @@
 
 | 文件模式 | 生成工具 |
 |----------|----------|
+| `ab_balance_report.md`、`ab_balance_report.json` | `node tools/test_auto_battler_balance.js`（主测：爬塔至首 Boss；`--climb-only` / `--quick`） |
 | `balance_test_report.md`、`balance_*.json` | `python tools/run_balance_tests.py` |
 | `equipment_system_test_report.json` | `python tools/run_equipment_system_tests.py` |
 | `equipment_lab_audit.json` | `node tools/audit_equipment_lab.js` |

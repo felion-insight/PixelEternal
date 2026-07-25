@@ -583,6 +583,32 @@
                 </div>
             </div>
         </div>
+        <!-- 自走棋技能特效试验场（独立于 ARPG 技能/装备实验场） -->
+        <div id="ab-skill-vfx-lab-modal">
+            <div id="ab-skill-vfx-lab-header">
+                <h2>自走棋 · 技能特效试验场</h2>
+                <button type="button" id="close-ab-skill-vfx-lab">关闭 (ESC)</button>
+            </div>
+            <div id="ab-skill-vfx-lab-content">
+                <p class="ab-vfx-lab-hint">预览恶魔塔自走棋全部主动技能特效 · 左侧画布为演示棋盘 · 与旧技能实验场无关</p>
+                <div class="ab-vfx-lab-toolbar">
+                    <label>筛选
+                        <select id="ab-vfx-lab-filter">
+                            <option value="all">全部职业</option>
+                            <option value="warrior">战士</option>
+                            <option value="archer">弓手</option>
+                            <option value="mage">法师</option>
+                            <option value="assassin">刺客</option>
+                            <option value="generic">通用</option>
+                        </select>
+                    </label>
+                    <button type="button" id="ab-vfx-lab-replay" class="pe-btn pe-btn--sm pe-btn--info">重播当前</button>
+                    <button type="button" id="ab-vfx-lab-clear" class="pe-btn pe-btn--sm">清空特效</button>
+                </div>
+                <div id="ab-vfx-lab-status" class="ab-vfx-lab-status">点击技能开始预览</div>
+                <div id="ab-vfx-lab-skill-list"></div>
+            </div>
+        </div>
         <aside id="equipment-lab-showcase-card" aria-live="polite">
             <div class="equipment-lab-showcase-topline">
                 <span id="equipment-lab-showcase-category">装备演示</span>
@@ -1118,6 +1144,7 @@
                 <p style="color: #888; font-size: 11px; margin: 0 0 8px; line-height: 1.35;">实验场测试技能 VFX；动画预览查看 sprite sheet / 玩家 GIF（idle、walk、逐帧步进）。</p>
                 <button type="button" class="pe-btn pe-btn--sm pe-btn--info" onclick="game.enterSkillLab()">进入技能实验场景</button>
                 <button type="button" class="pe-btn pe-btn--sm pe-btn--warning" onclick="game.enterEquipmentLab()">进入装备试验场景</button>
+                <button type="button" class="pe-btn pe-btn--sm" onclick="game.enterAbSkillVfxLab()">自走棋技能特效场</button>
                 <button type="button" class="pe-btn pe-btn--sm pe-btn--success" onclick="game.enterAnimPreview()">角色动画预览</button>
             </div>
 
@@ -1380,7 +1407,7 @@
                 <h2>技能</h2>
                 <button type="button" id="skill-panel-close">关闭 (K)</button>
             </div>
-            <p class="skill-panel-hint">装配技能到快捷键 · 按 ESC → 键位设置 可自定义按键</p>
+            <p class="skill-panel-hint">选择技能装配到快捷键 · 每个槽位可切换不同技能</p>
             <div id="skill-panel-hotbar-edit"></div>
             <div id="skill-panel-list"></div>
         </div>
@@ -1475,14 +1502,17 @@
     <script src="js/elite-boons.js"></script>
     <script src="js/party-meta-system.js"></script>
     <script src="js/relic-system.js"></script>
+    <script src="js/skill-mutation-system.js"></script>
     <script src="js/run-state-system.js"></script>
     <script src="js/tower-run-map.js"></script>
-    <script src="js/auto-battle-simulator.js"></script>
+    <script src="js/enemy-composition-system.js?v=20260724-vfx"></script>
+    <script src="js/auto-battle-simulator.js?v=20260724-ally-vfx"></script>
     <script src="js/auto-battler-assets.js"></script>
     <script src="js/auto-battler-scene-bg.js"></script>
     <script src="js/auto-battler-events.js"></script>
     <script src="js/auto-battler-controller.js"></script>
     <script src="js/auto-battler-ui.js"></script>
+    <script src="js/auto-battler-skill-vfx-lab.js?v=20260723-vfx-lab2"></script>
     <script src="js/game-entities.js"></script>
     <script src="js/monster-codex-mechanics.js"></script>
     <!-- 游戏模块 -->

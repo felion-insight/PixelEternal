@@ -108,7 +108,16 @@
             const meta = this.ensurePartyMeta();
             const s = seed != null ? seed : (Date.now() & 0x7fffffff);
             this.run = window.RunStateSystem.createRunState(meta, s);
-            this.run.map = window.TowerRunMap.generateRunMap(s, window.RunStateSystem.rngFromRun(this.run));
+            const rng = window.RunStateSystem.rngFromRun(this.run);
+            const TRM = window.TowerRunMap;
+            this.run.map = TRM.createEmptyMap
+                ? TRM.createEmptyMap(s)
+                : { seed: s, layers: 1, nodes: [], startId: null, nextChoices: [] };
+            if (TRM.generateOpeningChoices) {
+                TRM.generateOpeningChoices(this.run.map, rng);
+            } else {
+                this.run.map = TRM.generateRunMap(s, rng);
+            }
             if (window.AutoBattlerAssets && window.AutoBattlerAssets.ensureLoaded) {
                 window.AutoBattlerAssets.ensureLoaded();
             }
@@ -157,7 +166,7 @@
             this.run.victory = !!victory;
             const earned = this.run.runExpEarned || 0;
             const meta = this.ensurePartyMeta();
-            meta.expBank += earned;
+            // 不再写入经验银行：等级只在塔内休息处分配，局外等级恒为 1
             if (victory) meta.runsCompleted += 1;
             const layer = this.run.path.length;
             if (layer > meta.highestRunLayer) meta.highestRunLayer = layer;
@@ -166,7 +175,7 @@
             const summary = {
                 victory: !!victory,
                 expEarned: earned,
-                expBank: meta.expBank,
+                pendingLevelPoints: this.run.pendingLevelPoints || 0,
                 layersCleared: this.run.path.length
             };
             this.battle = null;
@@ -283,36 +292,49 @@
             const pct = ((cfg().rewards || {}).restHealPct != null)
                 ? cfg().rewards.restHealPct
                 : 0.4;
+            // 休息可复活阵亡角色（从 0 加起）
             this.run.heroes.forEach((h) => {
-                h.hp = Math.min(h.maxHp, h.hp + Math.floor(h.maxHp * pct));
+                const cur = Math.max(0, h.hp || 0);
+                h.hp = Math.min(h.maxHp, cur + Math.floor(h.maxHp * pct));
             });
         }
 
-        /** 休整三选一：回血 / 局内升级一人 / 随机已装技能升星 */
+        /**
+         * 休整：分配等级点（可多次）/ 回血 / 升星 / 离开
+         * 等级点由战斗经验累积，仅在此处加到角色上。
+         */
         resolveRestChoice(choiceId, heroId) {
             if (!this.run || this.run.phase !== 'rest' || this.run.restResolved) {
                 return { ok: false, message: '无效状态' };
             }
             const rng = window.RunStateSystem.rngFromRun(this.run);
-            let result = { ok: true, choice: choiceId };
+            let result = { ok: true, choice: choiceId, leave: false };
             if (choiceId === 'heal') {
                 this.applyRest();
                 result.message = '全队回复生命';
+                result.leave = true;
             } else if (choiceId === 'level') {
                 const targetId = heroId || (this.run.heroes[0] && this.run.heroes[0].heroId);
                 const res = window.RunStateSystem.addRunLevelToHero(this.run, targetId);
                 if (!res.ok) return res;
-                result.message = (res.hero.displayName || targetId) + ' 局内等级 +1（现 ' + res.runLevel + '）';
+                result.message = (res.hero.displayName || targetId) + ' 局内等级 +1（现 +' +
+                    res.runLevel + '）· 剩余点数 ' + (res.pending || 0);
                 result.hero = res.hero;
+                result.pending = res.pending;
+                result.leave = false;
             } else if (choiceId === 'star') {
                 const res = window.RunStateSystem.starUpRandomEquippedSkill(this.run, rng);
                 if (!res.ok) return res;
                 result.message = '「' + res.name + '」升至 ' + res.stars + ' 星';
                 result.starUp = res;
+                result.leave = true;
+            } else if (choiceId === 'leave') {
+                result.message = '离开营地';
+                result.leave = true;
             } else {
                 return { ok: false, message: '未知选项' };
             }
-            this.run.restResolved = true;
+            if (result.leave) this.run.restResolved = true;
             return result;
         }
 
@@ -531,6 +553,28 @@
             }
         }
 
+        _advanceMapAfterClear(node) {
+            if (!this.run || !node || !window.TowerRunMap.generateNextChoices) return;
+            const rng = window.RunStateSystem.rngFromRun(this.run);
+            window.TowerRunMap.generateNextChoices(this.run.map, node, rng);
+        }
+
+        _applyEarlyBattleHeal(node) {
+            if (!node || node.type !== 'battle') return;
+            const runCfg = cfg().run || {};
+            const pct = runCfg.earlyBattleHealPct != null ? runCfg.earlyBattleHealPct : 0;
+            if (pct <= 0) return;
+            const act = window.TowerRunMap.getActLayoutForLayer
+                ? window.TowerRunMap.getActLayoutForLayer(node.layer)
+                : null;
+            if (!act || act.index !== 0) return;
+            // 小胜回血不复活阵亡者，避免 0 血「假活」进下一场
+            this.run.heroes.forEach((h) => {
+                if ((h.hp || 0) <= 0) return;
+                h.hp = Math.min(h.maxHp, h.hp + Math.floor(h.maxHp * pct));
+            });
+        }
+
         onCombatEnd(victory) {
             const node = window.TowerRunMap.getNode(this.run.map, this.run.currentNodeId);
             if (!victory) {
@@ -539,12 +583,14 @@
             }
             node.cleared = true;
             this.run.path.push(node.id);
+            this._applyEarlyBattleHeal(node);
             this.grantCombatRewards(node);
             if (node.type === 'boss_final') {
                 this.run.phase = 'reward';
                 this.ui && this.ui.showReward(() => this.endRun(true));
                 return;
             }
+            this._advanceMapAfterClear(node);
             this.run.phase = 'reward';
             this.ui && this.ui.showReward(() => {
                 this.run.phase = 'map';
@@ -579,7 +625,7 @@
             const exp = Math.floor((expMin + rng() * (expMax - expMin)) * (relicFx.expMult || 1));
             this.run.gold += gold;
             this.run.runExpEarned += exp;
-            // 局内成长：战斗经验部分转化为局内等级进度
+            // 局内成长：战斗经验转化为「可分配等级点」，仅在休息处手动加到角色
             const inRunShare = Math.floor(exp * 0.55);
             const levelsGained = window.RunStateSystem.grantInRunExp
                 ? window.RunStateSystem.grantInRunExp(this.run, inRunShare)
@@ -603,7 +649,10 @@
                     if (relics.length) choices.push({ kind: 'relic_pick', options: relics });
                 }
             } else {
-                const draft = window.RunStateSystem.buildBattleDraftOptions(this.run, rng);
+                const SMS = window.SkillMutationSystem;
+                const draft = SMS && SMS.buildBattleOffers
+                    ? SMS.buildBattleOffers(this.run, rng)
+                    : window.RunStateSystem.buildBattleDraftOptions(this.run, rng);
                 choices.push({ kind: 'battle_pick', options: draft });
             }
 
@@ -642,7 +691,32 @@
             } else if (choice.kind === 'battle_pick') {
                 const opt = choice.options[optionIndex];
                 if (opt) {
-                    if (opt.type === 'skill' && opt.skill) {
+                    const SMS = window.SkillMutationSystem;
+                    if (opt.type === 'skill_upgrade' && SMS) {
+                        const res = SMS.applySkillUpgrade(this.run, opt);
+                        result = res.ok
+                            ? {
+                                kind: 'skill_upgrade',
+                                title: opt.title || res.title,
+                                skillId: opt.skillId,
+                                lineageName: opt.lineageName,
+                                branchTag: opt.branchTag || opt.branchName,
+                                upgradeName: opt.upgradeName
+                            }
+                            : { kind: 'none' };
+                    } else if (opt.type === 'skill_evolve' && SMS) {
+                        const res = SMS.applySkillEvolve(this.run, opt);
+                        result = res.ok
+                            ? {
+                                kind: 'skill_evolve',
+                                title: opt.title || res.title,
+                                skillId: opt.skillId,
+                                intoId: opt.intoId,
+                                lineageName: opt.lineageName,
+                                branchTag: opt.branchTag || opt.branchName
+                            }
+                            : { kind: 'none' };
+                    } else if (opt.type === 'skill' && opt.skill) {
                         const res = window.RunStateSystem.addSkillToInventory(
                             this.run, opt.skill.id, opt.skill.stars || 1
                         );
@@ -764,6 +838,7 @@
             if (node) {
                 node.cleared = true;
                 this.run.path.push(node.id);
+                this._advanceMapAfterClear(node);
             }
             this.run.phase = 'map';
             this.ui && this.ui.refresh();
@@ -825,9 +900,17 @@
 
             const b = this.battle;
             window.AutoBattleSimulator.reanchorBattle(b, w, h);
+            const shake = b.shake || 0;
+            if (shake > 0.15) {
+                const sx = (Math.random() - 0.5) * shake * 2;
+                const sy = (Math.random() - 0.5) * shake * 2;
+                ctx.save();
+                ctx.translate(sx, sy);
+            }
             this.drawBoardCells(ctx, b);
             if (this.run.phase === 'deploy') this._drawDeployDragOverlay(ctx, b);
             this.drawUnits(ctx, b);
+            if (shake > 0.15) ctx.restore();
 
             if (b.finale && b.finale.phase === 'slowmo' && this.run.phase === 'combat') {
                 this._renderSlowmoFinale(ctx, b, w, h);
@@ -1185,7 +1268,8 @@
                 const ux = enterPos ? enterPos.x : (rp ? rp.x : u.x);
                 const uy = enterPos ? enterPos.y : (rp ? rp.y : u.y);
                 const radius = unitRadius;
-                const alpha = enterPos ? 1 : (u.preview ? 0.5 : 1);
+                let alpha = enterPos ? 1 : (u.preview ? 0.5 : 1);
+                if (u.deadPreview) alpha = 0.32;
                 ctx.globalAlpha = alpha;
                 ctx.fillStyle = 'rgba(0,0,0,0.4)';
                 ctx.beginPath();

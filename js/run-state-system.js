@@ -46,9 +46,15 @@
 
 
 
-    function makeSkillEntry(id, stars) {
+    function makeSkillEntry(id, stars, extras) {
 
-        return { id: id, stars: Math.max(1, stars | 0 || 1) };
+        const e = { id: id, stars: Math.max(1, stars | 0 || 1), branchMods: [] };
+
+        if (extras && Array.isArray(extras.branchMods)) e.branchMods = extras.branchMods.slice();
+
+        if (extras && extras.evolvedId) e.evolvedId = extras.evolvedId;
+
+        return e;
 
     }
 
@@ -62,7 +68,16 @@
 
         if (typeof entry === 'object' && entry.id) {
 
-            return makeSkillEntry(entry.id, entry.stars || 1);
+            const extras = {
+                branchMods: Array.isArray(entry.branchMods) ? entry.branchMods : [],
+                evolvedId: entry.evolvedId || null
+            };
+
+            const out = makeSkillEntry(entry.id, entry.stars || 1, extras);
+
+            if (!extras.evolvedId) delete out.evolvedId;
+
+            return out;
 
         }
 
@@ -266,7 +281,8 @@
 
             if (h.baseClass === 'warrior') { h.boardCol = 1; h.boardRow = 0; }
 
-            else if (h.baseClass === 'assassin') { h.boardCol = 2; h.boardRow = 0; }
+            // 刺客默认中排：近战切入，但不与坦克抢前排
+            else if (h.baseClass === 'assassin') { h.boardCol = 2; h.boardRow = 1; }
 
             else if (h.baseClass === 'archer') { h.boardCol = 1; h.boardRow = 2; }
 
@@ -285,6 +301,8 @@
             runExpEarned: 0,
 
             inRunExpPool: 0,
+
+            pendingLevelPoints: 0,
 
             skillsGainedThisRun: 0,
 
@@ -1245,6 +1263,10 @@
 
 
 
+    /**
+     * 战斗经验只累积「可分配等级点」，不自动加到角色上。
+     * 点数在休息处由玩家手动分配。
+     */
     function grantInRunExp(run, amount) {
 
         if (!run || !amount) return 0;
@@ -1261,14 +1283,15 @@
 
             const underCap = (run.heroes || []).filter((h) => (h.runLevel || 0) < cap);
 
-            if (!underCap.length) break;
+            const pending = run.pendingLevelPoints || 0;
+
+            const room = underCap.reduce((s, h) => s + Math.max(0, cap - (h.runLevel || 0)), 0);
+
+            if (room <= pending) break;
 
             run.inRunExpPool -= per;
 
-            // 优先给等级最低者
-            underCap.sort((a, b) => (a.runLevel || 0) - (b.runLevel || 0));
-
-            underCap[0].runLevel = (underCap[0].runLevel || 0) + 1;
+            run.pendingLevelPoints = pending + 1;
 
             gained += 1;
 
@@ -1286,13 +1309,21 @@
 
         if (!hero) return { ok: false, message: '无效角色' };
 
+        if ((run.pendingLevelPoints || 0) <= 0) {
+
+            return { ok: false, message: '没有可分配的等级点（战斗获取，休息处分配）' };
+
+        }
+
         const cap = ((cfg().rewards || {}).inRunLevelCap) || 8;
 
         if ((hero.runLevel || 0) >= cap) return { ok: false, message: '已达局内等级上限' };
 
+        run.pendingLevelPoints = (run.pendingLevelPoints || 0) - 1;
+
         hero.runLevel = (hero.runLevel || 0) + 1;
 
-        return { ok: true, hero: hero, runLevel: hero.runLevel };
+        return { ok: true, hero: hero, runLevel: hero.runLevel, pending: run.pendingLevelPoints };
 
     }
 

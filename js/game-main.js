@@ -5215,7 +5215,7 @@ class Game {
                 blacksmith: () => this.openBlacksmith(),
                 shop: () => this.openShop(),
                 training_ground: () => this.enterTrainingGround(),
-                party_hall: () => this.autoBattlerUI && this.autoBattlerUI.showMeta(),
+                party_hall: () => this.enterTower(),
                 class_master: () => this.npcUI && this.npcUI.openClassMaster(),
                 skill_trainer: () => this.npcUI && this.npcUI.openSkillTrainer(),
                 enchanter: () => this.npcUI && this.npcUI.openEnchanter(),
@@ -9047,11 +9047,11 @@ class Game {
         if (!on) return;
         const roomType = document.getElementById('room-type');
         const floorEl = document.getElementById('floor-number');
-        if (roomType) roomType.textContent = '编队主城';
+        if (roomType) roomType.textContent = '恶魔塔主城';
         if (floorEl) {
             const meta = this.partyMeta || (this.autoBattlerController && this.autoBattlerController.ensurePartyMeta());
             if (meta) {
-                floorEl.textContent = `经验银行 ${meta.expBank} · 最高节点 ${meta.highestRunLayer || 0}`;
+                floorEl.textContent = `从零开荒 · 最高节点 ${meta.highestRunLayer || 0}`;
             } else {
                 floorEl.textContent = '轻操作攀塔';
             }

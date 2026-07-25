@@ -2949,10 +2949,9 @@ class TownScene {
             materialRealm: { x: 600, y: 620, size: 48, name: '材料秘境', type: 'material_realm' },
             awakeningGate: { x: 1000, y: 620, size: 52, name: '觉醒之门', type: 'awakening_gate' }
         };
-        // 自走棋主城布局：只保留攀塔与编队
+        // 自走棋主城布局：只保留攀塔入口
         this.autoBattlerBuildings = {
-            partyHall: { x: 420, y: 360, size: 56, name: '编队大厅', type: 'party_hall' },
-            towerEntrance: { x: 780, y: 360, size: 72, name: '开始攀塔', type: 'tower_entrance' }
+            towerEntrance: { x: 600, y: 360, size: 72, name: '开始攀塔', type: 'tower_entrance' }
         };
         // 预加载贴图
         this._preloadTextures();
@@ -3032,7 +3031,7 @@ class TownScene {
             ctx.fillStyle = 'rgba(232, 228, 216, 0.85)';
             ctx.font = '16px "Courier New", "Microsoft YaHei", monospace';
             ctx.textAlign = 'center';
-            ctx.fillText('编队大厅分配经验 · 开始攀塔进入恶魔塔', this.width / 2, 42);
+            ctx.fillText('开始攀塔（等级在休息处分配）', this.width / 2, 42);
             ctx.textAlign = 'left';
         }
         

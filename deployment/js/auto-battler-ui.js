@@ -652,6 +652,68 @@
         return '';
     }
 
+    function partyHudSummary(run) {
+        let hp = 0;
+        let max = 0;
+        let alive = 0;
+        const heroes = (run && run.heroes) || [];
+        heroes.forEach((h) => {
+            const mh = Math.max(0, h.maxHp || 0);
+            const cur = Math.max(0, h.hp || 0);
+            max += mh;
+            hp += cur;
+            if (cur > 0) alive += 1;
+        });
+        const pct = max > 0 ? Math.round((hp / max) * 100) : 0;
+        return { alive: alive, total: heroes.length, pct: pct, hp: hp, max: max };
+    }
+
+    function hudRelicIconsHtml(relicIds) {
+        const ids = relicIds || [];
+        if (!ids.length) {
+            return '<span class="ab-hud-relics-empty">暂无</span>';
+        }
+        return ids.map((id) => {
+            const def = window.RelicSystem && window.RelicSystem.getRelicDef
+                ? window.RelicSystem.getRelicDef(id)
+                : null;
+            const name = (def && def.name) || id;
+            const desc = (def && def.description) || '';
+            const tip = desc ? (name + ' — ' + desc) : name;
+            const style = relicIconStyle(def || id);
+            if (style) {
+                return `<span class="ab-hud-relic" style="${style}" title="${esc(tip)}"></span>`;
+            }
+            return `<span class="ab-hud-relic ab-hud-relic-fallback" title="${esc(tip)}">${esc((name && name[0]) || '?')}</span>`;
+        }).join('');
+    }
+
+    function hudStatsHtml(run) {
+        if (!run) return '';
+        const party = partyHudSummary(run);
+        const pending = run.pendingLevelPoints || 0;
+        const gold = run.gold || 0;
+        const relics = run.relics || [];
+        return `
+            <div class="ab-stat-block gold">
+                <span class="ab-stat-label">金币</span>
+                <strong class="ab-stat-value">${gold}</strong>
+            </div>
+            <div class="ab-stat-block exp" title="战斗积累，在休息处分配给角色">
+                <span class="ab-stat-label">等级</span>
+                <strong class="ab-stat-value">${pending}</strong>
+            </div>
+            <div class="ab-stat-block party" title="存活 ${party.alive}/${party.total} · 生命 ${party.pct}%">
+                <span class="ab-stat-label">队伍</span>
+                <strong class="ab-stat-value">${party.alive}/${party.total}</strong>
+                <span class="ab-stat-sub">${party.pct}%</span>
+            </div>
+            <div class="ab-stat-block relics">
+                <span class="ab-stat-label">遗物${relics.length ? ' · ' + relics.length : ''}</span>
+                <div class="ab-hud-relics">${hudRelicIconsHtml(relics)}</div>
+            </div>`;
+    }
+
     class AutoBattlerUI {
         constructor(game, controller) {
             this.game = game;
@@ -1877,19 +1939,19 @@
             });
         }
 
+        _renderHudStats(run) {
+            const stats = document.getElementById('ab-stats');
+            if (!stats) return;
+            stats.innerHTML = hudStatsHtml(run);
+        }
+
         refresh() {
             const run = this.controller.run;
             if (!run) return;
             if (this.game && this.game._autoBattlerPresentation && this.game._applyAutoBattlerCanvasLayout) {
                 this.game._applyAutoBattlerCanvasLayout();
             }
-            const stats = document.getElementById('ab-stats');
-            if (stats) {
-                stats.innerHTML = `
-                    <span class="ab-chip-stat gold"><i></i>${run.gold}</span>
-                    <span class="ab-chip-stat exp"><i></i>点${run.pendingLevelPoints || 0}</span>
-                    <span class="ab-chip-stat relic"><i></i>${run.relics.length}</span>`;
-            }
+            this._renderHudStats(run);
             const phaseEl = document.getElementById('ab-phase-label');
             this._setPhaseLabel(phaseEl, run.phase);
             this._syncEncounterPanel();
@@ -2103,13 +2165,7 @@
             const run = this.controller.run;
             const phaseEl = document.getElementById('ab-phase-label');
             this._setPhaseLabel(phaseEl, 'reward');
-            const stats = document.getElementById('ab-stats');
-            if (stats && run) {
-                stats.innerHTML = `
-                    <span class="ab-chip-stat gold"><i></i>${run.gold}</span>
-                    <span class="ab-chip-stat exp"><i></i>${run.runExpEarned}</span>
-                    <span class="ab-chip-stat relic"><i></i>${run.relics.length}</span>`;
-            }
+            this._renderHudStats(run);
             const bench = document.getElementById('ab-bench');
             if (bench) bench.style.display = 'none';
 

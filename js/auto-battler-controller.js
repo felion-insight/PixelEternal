@@ -106,8 +106,10 @@
 
         startRun(seed) {
             const meta = this.ensurePartyMeta();
+            window.__partyMetaRef = meta;
             const s = seed != null ? seed : (Date.now() & 0x7fffffff);
             this.run = window.RunStateSystem.createRunState(meta, s);
+            if (window.AscensionHub) window.AscensionHub.onStartRun(this.run, meta);
             const rng = window.RunStateSystem.rngFromRun(this.run);
             const TRM = window.TowerRunMap;
             this.run.map = TRM.createEmptyMap
@@ -118,6 +120,7 @@
             } else {
                 this.run.map = TRM.generateRunMap(s, rng);
             }
+            this.run.map._runRef = this.run;
             if (window.AutoBattlerAssets && window.AutoBattlerAssets.ensureLoaded) {
                 window.AutoBattlerAssets.ensureLoaded();
             }
@@ -127,6 +130,8 @@
             this.run.currentNodeId = null;
             this.run.phase = 'map';
             this.battle = null;
+            this._pendingPactSelect = window.DemonPact && window.DemonPact.isUnlocked(meta) &&
+                window.AscensionHub && window.AscensionHub.isEnabled('demonPact');
 
             // 初始化生命
             this.run.heroes.forEach((h) => {
@@ -150,7 +155,24 @@
             this.game.paused = false;
             if (this.ui) this.ui.show();
             this.ui && this.ui.refresh();
+            if (this._pendingPactSelect && this.ui && this.ui.showPactSelect) {
+                this._pendingPactSelect = false;
+                this.ui.showPactSelect(meta);
+            }
             return this.run;
+        }
+
+        applyPactChoice(pactId, stars) {
+            if (!this.run || !window.DemonPact) return false;
+            window.DemonPact.applyPact(this.run, pactId, stars);
+            window.DemonPact.applyToRun(this.run);
+            this.ui && this.ui.refresh();
+            return true;
+        }
+
+        skipPactChoice() {
+            this._pendingPactSelect = false;
+            this.ui && this.ui.refresh();
         }
 
         _canvasSize() {
@@ -166,6 +188,10 @@
             this.run.victory = !!victory;
             const earned = this.run.runExpEarned || 0;
             const meta = this.ensurePartyMeta();
+            if (victory && window.AscensionHub) window.AscensionHub.onRunVictory(meta);
+            if (!victory && window.DemonPact && window.DemonPact.shouldWipeMetaOnFailure(this.run)) {
+                window.DemonPact.wipeMetaOnFailure(meta);
+            }
             // 不再写入经验银行：等级只在塔内休息处分配，局外等级恒为 1
             if (victory) meta.runsCompleted += 1;
             const layer = this.run.path.length;
@@ -176,7 +202,8 @@
                 victory: !!victory,
                 expEarned: earned,
                 pendingLevelPoints: this.run.pendingLevelPoints || 0,
-                layersCleared: this.run.path.length
+                layersCleared: this.run.path.length,
+                deathNarrative: !victory && this.run.ascension ? this.run.ascension.deathStats : null
             };
             this.battle = null;
             if (this.ui) this.ui.showRunSummary(summary);
@@ -265,6 +292,7 @@
                 case 'elite':
                 case 'boss':
                 case 'boss_final':
+                    if (this._trySkirmish(node)) break;
                     this.run.phase = 'deploy';
                     this.refreshDeployPreview();
                     this.beginDeployEnter();
@@ -278,6 +306,38 @@
                     break;
                 case 'event':
                     this.run.phase = 'event';
+                    if (window.EventChainSystem) {
+                        const zoneId = this.run.ascension && this.run.ascension.zoneId;
+                        window.EventChainSystem.maybeStartChainOnEvent(this.run, zoneId);
+                        const chainEv = window.EventChainSystem.getActiveChainEvent(this.run);
+                        if (chainEv) {
+                            this.run.currentEvent = chainEv;
+                            break;
+                        }
+                    }
+                    if (this.run.ascension && this.run.ascension.pendingCorruptionBoss) {
+                        this.run.ascension.pendingCorruptionBoss = false;
+                        this.run.currentEvent = {
+                            id: 'corruption_boss',
+                            title: '腐化具现',
+                            desc: '腐化值过高，腐化 Boss 降临！',
+                            choices: [{ id: 'fight', label: '迎战', desc: '进入战斗' }]
+                        };
+                        break;
+                    }
+                    if (window.EventChainSystem && window.AscensionHub &&
+                        window.AscensionHub.isEnabled('eventChains')) {
+                        const rng = window.RunStateSystem ? window.RunStateSystem.rngFromRun(this.run) : Math.random;
+                        const roll = typeof rng === 'function' ? rng() : Math.random();
+                        if (roll < 0.2) {
+                            const standalone = window.EventChainSystem.pickRandomStandalone(rng);
+                            const ev = window.EventChainSystem.standaloneToCurrentEvent(standalone);
+                            if (ev) {
+                                this.run.currentEvent = ev;
+                                break;
+                            }
+                        }
+                    }
                     this.run.currentEvent = window.AutoBattlerEvents
                         ? window.AutoBattlerEvents.pickEvent(this.run)
                         : null;
@@ -289,13 +349,15 @@
         }
 
         applyRest() {
+            if (window.DemonPact && !window.DemonPact.canRestHeal(this.run)) return;
             const pct = ((cfg().rewards || {}).restHealPct != null)
                 ? cfg().rewards.restHealPct
                 : 0.4;
-            // 休息可复活阵亡角色（从 0 加起）
+            const corrFx = window.CurseSystem ? window.CurseSystem.getCorruptionEffects(this.run) : null;
+            const healMult = corrFx && corrFx.restHealMult ? corrFx.restHealMult : 1;
             this.run.heroes.forEach((h) => {
                 const cur = Math.max(0, h.hp || 0);
-                h.hp = Math.min(h.maxHp, cur + Math.floor(h.maxHp * pct));
+                h.hp = Math.min(h.maxHp, cur + Math.floor(h.maxHp * pct * healMult));
             });
         }
 
@@ -322,6 +384,13 @@
                 result.hero = res.hero;
                 result.pending = res.pending;
                 result.leave = false;
+            } else if (choiceId === 'purify') {
+                if (window.CurseSystem && window.CurseSystem.purify(this.run)) {
+                    result.message = '净化仪式：腐化 -20';
+                    result.leave = false;
+                } else {
+                    return { ok: false, message: '金币不足或无法净化' };
+                }
             } else if (choiceId === 'star') {
                 const res = window.RunStateSystem.starUpRandomEquippedSkill(this.run, rng);
                 if (!res.ok) return res;
@@ -417,6 +486,50 @@
             this.battle = window.AutoBattleSimulator.createDeployPreview(this.run, node, this._canvasSize());
         }
 
+        _trySkirmish(node) {
+            if (!window.CombatPacing || !window.AscensionHub ||
+                !window.AscensionHub.isEnabled('skirmishMode')) return false;
+            const preview = window.AutoBattleSimulator.createDeployPreview
+                ? window.AutoBattleSimulator.createDeployPreview(this.run, node, this._canvasSize())
+                : null;
+            const encounter = preview ? { enemies: preview.enemies } : { enemies: [] };
+            if (!window.CombatPacing.canSkirmish(this.run, encounter, node)) return false;
+            if (this.ui && this.ui.showSkirmishChoice) {
+                this.run.phase = 'skirmish_choice';
+                this.ui.showSkirmishChoice(node, encounter);
+                return true;
+            }
+            return false;
+        }
+
+        resolveSkirmish(node, useSkirmish) {
+            if (!useSkirmish) {
+                this.run.phase = 'deploy';
+                this.refreshDeployPreview();
+                this.beginDeployEnter();
+                this.ui && this.ui.refresh();
+                return;
+            }
+            const preview = window.AutoBattleSimulator.createDeployPreview(this.run, node, this._canvasSize());
+            const rng = window.RunStateSystem.rngFromRun(this.run);
+            const result = window.CombatPacing.resolveSkirmish(this.run, { enemies: preview.enemies }, rng);
+            this.run.phase = 'map';
+            if (result.victory) {
+                node.cleared = true;
+                this.run.path.push(node.id);
+                this._applyEarlyBattleHeal(node);
+                if (result.goldMult > 0) this.grantCombatRewards(node);
+                this._advanceMapAfterClear(node);
+                this.run.phase = 'reward';
+                this.ui && this.ui.showReward(() => {
+                    this.run.phase = 'map';
+                    this.ui && this.ui.refresh();
+                });
+            } else {
+                this.endRun(false);
+            }
+        }
+
         startCombat() {
             if (!this.run || this.run.phase !== 'deploy') return false;
             if (this.deployEnter) return false;
@@ -424,6 +537,14 @@
             if (!placed.length) return false;
             const node = window.TowerRunMap.getNode(this.run.map, this.run.currentNodeId);
             this.battle = window.AutoBattleSimulator.createBattle(this.run, node, this._canvasSize());
+            this.battle.runRef = this.run;
+            const meta = this.ensurePartyMeta();
+            const speedUnlock = meta.ascension && meta.ascension.speedUnlock;
+            let scale = (this.run.ascension && this.run.ascension.battleSpeedScale) || 1;
+            if (scale > 1 && speedUnlock && !speedUnlock['x' + scale]) scale = 1;
+            this.battle.timeScale = scale;
+            if (window.AscensionHub) window.AscensionHub.onBattleStart(this.run, this.battle, node);
+            if (window.BossPhaseSystem) window.BossPhaseSystem.attachBattleRef(this.battle);
             this.run.phase = 'combat';
             this.ui && this.ui.showCombat();
             return true;
@@ -468,6 +589,30 @@
                 return !!occ;
             }
             if (hit) return this.setHeroCell(selected, hit.col, hit.row);
+            return false;
+        }
+
+        handleReverseCombatClick(canvasX, canvasY) {
+            const b = this.battle;
+            if (!b || !b.mutationReverse || !this.run || this.run.phase !== 'combat') return false;
+            const ABS = window.AutoBattleSimulator;
+            if (!ABS || !ABS.hitTestEnemyUnit) return false;
+            const enemy = ABS.hitTestEnemyUnit(b.board, b.origin, canvasX, canvasY, b.enemies);
+            const ally = ABS.hitTestAllyUnit(b.board, b.origin, canvasX, canvasY, b.allies);
+            if (enemy && enemy.alive) {
+                (b.enemies || []).forEach((u) => { u.playerControlled = u.id === enemy.id; });
+                b.reverseSelectedId = enemy.id;
+                if (this.ui && this.ui.toast) this.ui.toast('已选择：' + (enemy.name || '敌人'));
+                return true;
+            }
+            if (ally && ally.alive && b.reverseSelectedId) {
+                const sel = (b.enemies || []).find((u) => u.id === b.reverseSelectedId);
+                if (sel) {
+                    sel.targetId = ally.id;
+                    if (this.ui && this.ui.toast) this.ui.toast('目标：' + (ally.name || '我方'));
+                }
+                return true;
+            }
             return false;
         }
 
@@ -577,6 +722,15 @@
 
         onCombatEnd(victory) {
             const node = window.TowerRunMap.getNode(this.run.map, this.run.currentNodeId);
+            if (window.AscensionHub) {
+                window.AscensionHub.onCombatEnd(this.run, this.battle, victory);
+            }
+            if (this.battle && this.battle.tacticalWithdraw) {
+                this.battle = null;
+                this.run.phase = 'map';
+                this.ui && this.ui.refresh();
+                return;
+            }
             if (!victory) {
                 this.endRun(false);
                 return;
@@ -622,8 +776,14 @@
             }
 
             const gold = Math.floor((goldMin + rng() * (goldMax - goldMin)) * (relicFx.goldMult || 1));
-            const exp = Math.floor((expMin + rng() * (expMax - expMin)) * (relicFx.expMult || 1));
-            this.run.gold += gold;
+            let exp = Math.floor((expMin + rng() * (expMax - expMin)) * (relicFx.expMult || 1));
+            if (window.DemonPact) {
+                const mod = window.DemonPact.modifyRewards(gold, exp, this.run);
+                this.run.gold += mod.gold;
+                exp = mod.exp;
+            } else {
+                this.run.gold += gold;
+            }
             this.run.runExpEarned += exp;
             // 局内成长：战斗经验转化为「可分配等级点」，仅在休息处手动加到角色
             const inRunShare = Math.floor(exp * 0.55);
@@ -825,6 +985,30 @@
             if (!this.run || this.run.phase !== 'event') {
                 return { ok: false, message: '无效状态' };
             }
+            if (window.EventChainSystem && this.run.currentEvent && this.run.currentEvent.chainId) {
+                const result = window.EventChainSystem.resolveChainChoice(this.run, choiceId);
+                if (result.ok && this.run.ascension && this.run.ascension.pendingForcedCombat) {
+                    result.forcedCombat = this.run.ascension.pendingForcedCombat;
+                }
+                return result;
+            }
+            if (this.run.currentEvent && this.run.currentEvent.id === 'corruption_boss' && choiceId === 'fight') {
+                this.run.ascension.pendingForcedCombat = 'boss';
+                return { ok: true, messages: ['腐化 Boss 现身'] };
+            }
+            if (window.EventChainSystem && this.run.currentEvent && this.run.currentEvent.eventId) {
+                const standalone = window.EventChainSystem.resolveStandalone(
+                    this.run, this.run.currentEvent.eventId || this.run.currentEvent.id, choiceId
+                );
+                if (standalone) {
+                    if (standalone.openShop) {
+                        this.run.phase = 'shop';
+                    } else if (standalone.ok) {
+                        this.run.currentEvent = null;
+                    }
+                    return standalone;
+                }
+            }
             if (!window.AutoBattlerEvents) {
                 return { ok: false, message: '事件系统未加载' };
             }
@@ -834,6 +1018,16 @@
         }
 
         finishNonCombatNode() {
+            if (this.run && this.run.ascension && this.run.ascension.pendingForcedCombat) {
+                const fc = this.run.ascension.pendingForcedCombat;
+                this.run.ascension.pendingForcedCombat = null;
+                const node = window.TowerRunMap.getNode(this.run.map, this.run.currentNodeId);
+                if (node) {
+                    node.type = fc === 'elite' ? 'elite' : (fc === 'boss' ? 'boss' : 'battle');
+                    this.enterNode(node);
+                    return;
+                }
+            }
             const node = window.TowerRunMap.getNode(this.run.map, this.run.currentNodeId);
             if (node) {
                 node.cleared = true;
@@ -899,6 +1093,21 @@
             }
 
             const b = this.battle;
+            const visionHalf = this.run.ascension && this.run.ascension.visionHalf;
+            let visionClip = null;
+            if (visionHalf && phase === 'combat') {
+                ctx.save();
+                ctx.beginPath();
+                if (visionHalf === 'right') {
+                    ctx.rect(w / 2, 0, w / 2, h);
+                    visionClip = 'right';
+                } else {
+                    ctx.rect(0, 0, w / 2, h);
+                    visionClip = 'left';
+                }
+                ctx.clip();
+            }
+
             window.AutoBattleSimulator.reanchorBattle(b, w, h);
             const shake = b.shake || 0;
             if (shake > 0.15) {
@@ -911,6 +1120,53 @@
             if (this.run.phase === 'deploy') this._drawDeployDragOverlay(ctx, b);
             this.drawUnits(ctx, b);
             if (shake > 0.15) ctx.restore();
+            if (typeof window.AutoBattleSimulator.drawUnitAuras === 'function') {
+                window.AutoBattleSimulator.drawUnitAuras(ctx, b);
+            }
+            if (typeof window.AutoBattleSimulator.drawFx === 'function') {
+                window.AutoBattleSimulator.drawFx(ctx, b);
+            }
+            if (b.juiceSystem && window.JuiceCore && window.JuiceCore.draw && !b.trueModeNoNumbers) {
+                window.JuiceCore.draw(ctx, b.juiceSystem, w, h);
+            }
+            if (visionClip) {
+                ctx.restore();
+                ctx.fillStyle = 'rgba(0,0,0,0.82)';
+                if (visionClip === 'left') ctx.fillRect(w / 2, 0, w / 2, h);
+                else ctx.fillRect(0, 0, w / 2, h);
+            }
+            this.drawCombatLog(ctx, b);
+            if (b.mutationReverse && this.run.phase === 'combat' && !b.finished) {
+                ctx.save();
+                ctx.fillStyle = 'rgba(40, 12, 8, 0.78)';
+                ctx.fillRect(w * 0.12, h - 42, w * 0.76, 28);
+                ctx.strokeStyle = '#ff6644';
+                ctx.strokeRect(w * 0.12, h - 42, w * 0.76, 28);
+                ctx.fillStyle = '#ffb088';
+                ctx.font = '13px "Courier New", "Microsoft YaHei", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('反转战斗：点击敌人选择 · 点击我方单位设目标', w * 0.5, h - 24);
+                ctx.restore();
+            }
+
+            if (b.bossPhaseBanner && b.bossPhaseBanner.life > 0) {
+                const banner = b.bossPhaseBanner;
+                const alpha = Math.min(1, banner.life / Math.max(1, banner.maxLife || 2500));
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = 'rgba(8, 6, 18, 0.75)';
+                ctx.fillRect(w * 0.25, 18, w * 0.5, 52);
+                ctx.strokeStyle = '#c45a5a';
+                ctx.strokeRect(w * 0.25, 18, w * 0.5, 52);
+                ctx.fillStyle = '#f0d78c';
+                ctx.font = 'bold 18px "Courier New", "Microsoft YaHei", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(banner.text || 'Boss 阶段', w * 0.5, 40);
+                ctx.fillStyle = '#ccc';
+                ctx.font = '13px "Courier New", "Microsoft YaHei", monospace';
+                ctx.fillText(banner.hint || '', w * 0.5, 58);
+                ctx.restore();
+            }
 
             if (b.finale && b.finale.phase === 'slowmo' && this.run.phase === 'combat') {
                 this._renderSlowmoFinale(ctx, b, w, h);
@@ -1252,6 +1508,7 @@
             const selected = this.ui && this.ui._selectedHero;
             const cell = (b.board && b.board.cellSize) || 70;
             const unitRadius = this._unitSpriteRadius(cell);
+            const hideHud = !!(b.trueModeNoHud && this.run && this.run.phase === 'combat');
             const enterMap = new Map();
             if (this.deployEnter && this.run && this.run.phase === 'deploy') {
                 this.deployEnter.units.forEach((slot) => {
@@ -1312,7 +1569,15 @@
                     ctx.strokeStyle = 'rgba(255,255,255,0.3)';
                     ctx.stroke();
                 }
-                if (!u.preview && !enterPos) {
+                if (b.mutationReverse && u.side === 'enemy' && u.id === b.reverseSelectedId && u.playerControlled) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#ff6644';
+                    ctx.lineWidth = 3;
+                    ctx.arc(ux, uy, radius + 6, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.lineWidth = 1;
+                }
+                if (!u.preview && !enterPos && !hideHud) {
                     const bw = radius * 2.1;
                     ctx.fillStyle = 'rgba(0,0,0,0.6)';
                     ctx.fillRect(ux - bw / 2, uy - radius - 12, bw, 6);
@@ -1342,17 +1607,19 @@
                         });
                     }
                 }
-                if (u.castFlash > 0 && u.lastSkillName) {
+                if (u.castFlash > 0 && u.lastSkillName && !hideHud) {
                     ctx.fillStyle = 'rgba(126, 203, 255, 0.95)';
                     ctx.font = 'bold ' + Math.max(12, Math.floor(cell * 0.15)) + 'px "Courier New", "Microsoft YaHei", monospace';
                     ctx.textAlign = 'center';
                     ctx.fillText(u.lastSkillName, ux, uy - radius - 24);
                 }
-                ctx.fillStyle = '#e8e4d8';
-                ctx.font = Math.max(11, Math.floor(cell * 0.14)) + 'px "Courier New", monospace';
-                ctx.textAlign = 'center';
-                ctx.fillText(u.name, ux, uy + radius + 16);
-                ctx.textAlign = 'left';
+                if (!hideHud) {
+                    ctx.fillStyle = '#e8e4d8';
+                    ctx.font = Math.max(11, Math.floor(cell * 0.14)) + 'px "Courier New", monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(u.name, ux, uy + radius + 16);
+                    ctx.textAlign = 'left';
+                }
                 ctx.globalAlpha = 1;
             };
             (b.enemies || []).forEach(drawUnit);
@@ -1376,18 +1643,12 @@
                     ctx.globalAlpha = 1;
                 }
             }
-            if (typeof window.AutoBattleSimulator.drawUnitAuras === 'function') {
-                window.AutoBattleSimulator.drawUnitAuras(ctx, b);
-            }
-            if (typeof window.AutoBattleSimulator.drawFx === 'function') {
-                window.AutoBattleSimulator.drawFx(ctx, b);
-            }
-            this.drawCombatLog(ctx, b);
         }
 
         drawCombatLog(ctx, b) {
             if (!b || b.preview || !b.log || !b.log.length) return;
             if (this.run && this.run.phase !== 'combat') return;
+            if (b.trueModeNoHud) return;
             const lines = b.log.slice(-5);
             const x = 16;
             let y = 78;

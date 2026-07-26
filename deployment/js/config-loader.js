@@ -50,6 +50,15 @@ class ConfigLoader {
                 { key: 'TUTORIAL_CONFIG', file: 'config/tutorial-config.json' },
                 { key: 'MATERIAL_DEFINITIONS', file: 'config/material-config.json' },
                 { key: 'AUTO_BATTLER_CONFIG', file: 'config/auto-battler-config.json' },
+                { key: 'AUTO_BATTLER_ENCOUNTERS', file: 'config/auto-battler-encounters.json' },
+                { key: 'ASCENSION_CONFIG', file: 'config/ascension-config.json' },
+                { key: 'JUICE_CONFIG', file: 'config/juice-config.json' },
+                { key: 'COMMANDER_CONFIG', file: 'config/commander-config.json' },
+                { key: 'SYNERGY_MATRIX_CONFIG', file: 'config/synergy-matrix-config.json' },
+                { key: 'ZONE_ECOLOGY_CONFIG', file: 'config/zone-ecology-config.json' },
+                { key: 'CURSE_CONFIG', file: 'config/curse-config.json' },
+                { key: 'DEMON_PACT_CONFIG', file: 'config/demon-pact-config.json' },
+                { key: 'EVENT_CHAINS_CONFIG', file: 'config/event-chains-config.json' },
                 { key: 'SPRITE_ANIMATIONS', file: 'config/sprite-animations.json' }
             ];
 
@@ -97,6 +106,24 @@ class ConfigLoader {
                 }
             } catch (e) {
                 console.warn('dungeon-config.json 未加载:', e);
+            }
+
+            try {
+                const buildSimple = await this.loadJSON('config/build-simplification.json');
+                if (buildSimple && buildSimple.BUILD_SIMPLIFICATION && this.configs.AUTO_BATTLER_CONFIG) {
+                    Object.assign(this.configs.AUTO_BATTLER_CONFIG, buildSimple.BUILD_SIMPLIFICATION);
+                }
+            } catch (e) {
+                console.warn('build-simplification.json 未加载:', e);
+            }
+
+            try {
+                const contentExp = await this.loadJSON('config/content-expansion.json');
+                if (contentExp && contentExp.CONTENT_EXPANSION) {
+                    this.mergeContentExpansion(contentExp.CONTENT_EXPANSION);
+                }
+            } catch (e) {
+                console.warn('content-expansion.json 未加载:', e);
             }
 
             // 将配置赋值给全局变量
@@ -156,6 +183,71 @@ class ConfigLoader {
             // 其他错误也抛出
             throw new Error(`加载 ${path} 失败: ${error.message}`);
         }
+    }
+
+    /**
+     * 合并 Ascension 内容扩展包到各子系统配置
+     */
+    mergeContentExpansion(exp) {
+        if (!exp || typeof exp !== 'object') return;
+        const ab = this.configs.AUTO_BATTLER_CONFIG;
+        if (ab) {
+            if (Array.isArray(exp.relics)) {
+                ab.relics = (ab.relics || []).concat(exp.relics);
+                const curse = this.configs.CURSE_CONFIG;
+                if (curse) {
+                    const root = curse.CURSE_CONFIG || curse;
+                    root.cursedRelics = root.cursedRelics || {};
+                    exp.relics.forEach((r) => {
+                        if (!r || r.rarity !== 'curse') return;
+                        const fx = r.effects || {};
+                        root.cursedRelics[r.id] = {
+                            id: r.id,
+                            name: r.name,
+                            description: r.description,
+                            positive: fx.positive || {},
+                            negative: fx.negative || {},
+                            riskLevel: fx.riskLevel || 3,
+                            corruptionPerBattle: fx.corruptionPerBattle || 5
+                        };
+                    });
+                }
+            }
+        }
+        const cmd = this.configs.COMMANDER_CONFIG;
+        if (cmd && exp.commanderAbilities) {
+            const root = cmd.COMMANDER_CONFIG || cmd;
+            root.abilities = Object.assign(root.abilities || {}, exp.commanderAbilities);
+        }
+        const syn = this.configs.SYNERGY_MATRIX_CONFIG;
+        if (syn) {
+            const root = syn.SYNERGY_MATRIX_CONFIG || syn;
+            if (exp.synergyBinary) Object.assign(root.binary || (root.binary = {}), exp.synergyBinary);
+            if (exp.synergyTernary) Object.assign(root.ternary || (root.ternary = {}), exp.synergyTernary);
+            if (exp.synergyQuaternary) root.quaternary = Object.assign(root.quaternary || {}, exp.synergyQuaternary);
+        }
+        const zone = this.configs.ZONE_ECOLOGY_CONFIG;
+        if (zone && exp.zones) {
+            const root = zone.ZONE_ECOLOGY_CONFIG || zone;
+            root.zones = Object.assign(root.zones || {}, exp.zones);
+            root.branchZones = Object.keys(exp.zones);
+        }
+        if (exp.bossPhases) {
+            this.configs.BOSS_PHASES_EXPANSION = exp.bossPhases;
+        }
+        const evt = this.configs.EVENT_CHAINS_CONFIG;
+        if (evt && exp.eventChains) {
+            const root = evt.EVENT_CHAINS_CONFIG || evt;
+            root.chains = Object.assign(root.chains || {}, exp.eventChains);
+        }
+        const pact = this.configs.DEMON_PACT_CONFIG;
+        if (pact && exp.demonPacts) {
+            const root = pact.DEMON_PACT_CONFIG || pact;
+            root.pacts = Object.assign(root.pacts || {}, exp.demonPacts);
+        }
+        if (exp.weatherConfig) this.configs.WEATHER_CONFIG = exp.weatherConfig;
+        if (exp.bondConfig) this.configs.BOND_CONFIG = exp.bondConfig;
+        if (exp.mutatedNodeConfig) this.configs.MUTATED_NODE_CONFIG = exp.mutatedNodeConfig;
     }
 
     /**
@@ -234,9 +326,59 @@ class ConfigLoader {
         }
         if (this.configs.AUTO_BATTLER_CONFIG) {
             window.AUTO_BATTLER_CONFIG = this.configs.AUTO_BATTLER_CONFIG;
-            if (window.CONFIG && typeof window.CONFIG === 'object') {
-                window.CONFIG.AUTO_BATTLER_CONFIG = this.configs.AUTO_BATTLER_CONFIG;
+            if (this.configs.AUTO_BATTLER_ENCOUNTERS && typeof this.configs.AUTO_BATTLER_ENCOUNTERS === 'object') {
+                Object.assign(window.AUTO_BATTLER_CONFIG, this.configs.AUTO_BATTLER_ENCOUNTERS);
             }
+            if (window.CONFIG && typeof window.CONFIG === 'object') {
+                window.CONFIG.AUTO_BATTLER_CONFIG = window.AUTO_BATTLER_CONFIG;
+            }
+        }
+        if (this.configs.ASCENSION_CONFIG && this.configs.ASCENSION_CONFIG.ascension) {
+            window.ASCENSION_CONFIG = this.configs.ASCENSION_CONFIG;
+            if (window.CONFIG) window.CONFIG.ASCENSION = this.configs.ASCENSION_CONFIG.ascension;
+        }
+        if (this.configs.JUICE_CONFIG) {
+            window.JUICE_CONFIG = this.configs.JUICE_CONFIG.JUICE_CONFIG || this.configs.JUICE_CONFIG;
+            if (window.CONFIG) window.CONFIG.JUICE_CONFIG = window.JUICE_CONFIG;
+        }
+        if (this.configs.COMMANDER_CONFIG) {
+            window.COMMANDER_CONFIG = this.configs.COMMANDER_CONFIG.COMMANDER_CONFIG || this.configs.COMMANDER_CONFIG;
+            if (window.CONFIG) window.CONFIG.COMMANDER_CONFIG = window.COMMANDER_CONFIG;
+        }
+        if (this.configs.SYNERGY_MATRIX_CONFIG) {
+            window.SYNERGY_MATRIX_CONFIG = this.configs.SYNERGY_MATRIX_CONFIG.SYNERGY_MATRIX_CONFIG || this.configs.SYNERGY_MATRIX_CONFIG;
+            if (window.CONFIG) window.CONFIG.SYNERGY_MATRIX_CONFIG = window.SYNERGY_MATRIX_CONFIG;
+        }
+        if (this.configs.ZONE_ECOLOGY_CONFIG) {
+            window.ZONE_ECOLOGY_CONFIG = this.configs.ZONE_ECOLOGY_CONFIG.ZONE_ECOLOGY_CONFIG || this.configs.ZONE_ECOLOGY_CONFIG;
+            if (window.CONFIG) window.CONFIG.ZONE_ECOLOGY_CONFIG = window.ZONE_ECOLOGY_CONFIG;
+        }
+        if (this.configs.CURSE_CONFIG) {
+            window.CURSE_CONFIG = this.configs.CURSE_CONFIG.CURSE_CONFIG || this.configs.CURSE_CONFIG;
+            if (window.CONFIG) window.CONFIG.CURSE_CONFIG = window.CURSE_CONFIG;
+        }
+        if (this.configs.DEMON_PACT_CONFIG) {
+            window.DEMON_PACT_CONFIG = this.configs.DEMON_PACT_CONFIG.DEMON_PACT_CONFIG || this.configs.DEMON_PACT_CONFIG;
+            if (window.CONFIG) window.CONFIG.DEMON_PACT_CONFIG = window.DEMON_PACT_CONFIG;
+        }
+        if (this.configs.EVENT_CHAINS_CONFIG) {
+            window.EVENT_CHAINS_CONFIG = this.configs.EVENT_CHAINS_CONFIG.EVENT_CHAINS_CONFIG || this.configs.EVENT_CHAINS_CONFIG;
+            if (window.CONFIG) window.CONFIG.EVENT_CHAINS_CONFIG = window.EVENT_CHAINS_CONFIG;
+        }
+        if (this.configs.WEATHER_CONFIG) {
+            window.WEATHER_CONFIG = this.configs.WEATHER_CONFIG;
+            if (window.CONFIG) window.CONFIG.WEATHER_CONFIG = window.WEATHER_CONFIG;
+        }
+        if (this.configs.BOND_CONFIG) {
+            window.BOND_CONFIG = this.configs.BOND_CONFIG;
+            if (window.CONFIG) window.CONFIG.BOND_CONFIG = window.BOND_CONFIG;
+        }
+        if (this.configs.MUTATED_NODE_CONFIG) {
+            window.MUTATED_NODE_CONFIG = this.configs.MUTATED_NODE_CONFIG;
+            if (window.CONFIG) window.CONFIG.MUTATED_NODE_CONFIG = window.MUTATED_NODE_CONFIG;
+        }
+        if (this.configs.BOSS_PHASES_EXPANSION) {
+            window.BOSS_PHASES_EXPANSION = this.configs.BOSS_PHASES_EXPANSION;
         }
         if (this.configs.SPRITE_ANIMATIONS) {
             window.SPRITE_ANIMATIONS = this.configs.SPRITE_ANIMATIONS;

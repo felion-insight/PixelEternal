@@ -43,6 +43,8 @@ Pixel Eternal/
 │   ├── run-state-system.js    # 单局状态 / 休息加点
 │   ├── tower-run-map.js       # 动态三选一地图
 │   ├── auto-battler-*.js      # 自走棋流程 / UI / 事件
+│   ├── ascension-hub.js       # Ascension 集成枢纽与开关
+│   ├── commander-mode.js / juice-core.js / synergy-matrix.js …
 │   ├── auto-battle-simulator.js
 │   ├── relic-system.js / skill-mutation-system.js
 │   ├── enemy-composition-system.js
@@ -51,6 +53,8 @@ Pixel Eternal/
 ├── config/
 │   ├── auto-battler-config.json      # 自走棋主配置
 │   ├── auto-battler-encounters.json  # 遭遇编成
+│   ├── ascension-config.json         # Ascension 功能开关
+│   ├── commander-config.json / juice-config.json / …
 │   ├── game-config.json / class-config.json / skill-config.json
 │   └── …                      # 装备、怪物、秘境等（多用于旧模式）
 │
@@ -89,14 +93,14 @@ Pixel Eternal/
   → 通关最终 Boss 或战败 / 放弃 → 结算 → 回城（构筑清空）
 ```
 
-### 章节结构（约 53 步）
+### 章节结构（Ascension 压缩约 35 步）
 
-| 章节 | 名称 | Boss 前步数 | Boss 层（0 起） | 类型 |
-|------|------|------------:|----------------:|------|
-| 1 | 入门层 | 15 | 15 | Boss |
-| 2 | 炼狱层 | 14 | 30 | Boss |
-| 3 | 深渊层 | 14 | 45 | Boss |
-| 4 | 终末层 | 6 | 52 | 最终 Boss |
+| 章节 | 名称 | Boss 前步数 | 区域 ID |
+|------|------|------------:|---------|
+| 1 | 灰烬荒原 | 9 | ashen_wastes |
+| 2 | 熔岩裂谷 | 9 | magma_rift |
+| 3 | 虚空深渊 | 9 | void_abyss |
+| 4 | 终末王座 | 4 | throne_of_end |
 
 地图不预生成整图；按章节节拍动态生成，并带精英上限、强制休息/商店等约束。
 

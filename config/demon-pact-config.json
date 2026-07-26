@@ -1,0 +1,45 @@
+{
+  "DEMON_PACT_CONFIG": {
+    "pacts": {
+      "wrath": {
+        "id": "wrath",
+        "name": "愤怒契约",
+        "description": "敌人攻击+15%，奖励+25%",
+        "enemyAttackMult": 1.15,
+        "rewardMult": 1.25,
+        "stars": 1
+      },
+      "greed": {
+        "id": "greed",
+        "name": "贪婪契约",
+        "description": "商店价格+20%，金币奖励+40%",
+        "shopPriceMult": 1.2,
+        "goldRewardMult": 1.4,
+        "stars": 1
+      },
+      "pride": {
+        "id": "pride",
+        "name": "傲慢契约",
+        "description": "指挥官能量恢复-30%，遗物掉落+30%",
+        "commanderRegenMult": 0.7,
+        "relicDropMult": 1.3,
+        "stars": 2
+      },
+      "despair": {
+        "id": "despair",
+        "name": "绝望契约",
+        "description": "全队生命-10%，经验+35%",
+        "teamHpMult": 0.9,
+        "expRewardMult": 1.35,
+        "stars": 2
+      }
+    },
+    "starScaling": {
+      "1": { "rewardMult": 1.0, "difficultyMult": 1.0 },
+      "2": { "rewardMult": 1.35, "difficultyMult": 1.25 },
+      "3": { "rewardMult": 1.75, "difficultyMult": 1.55 },
+      "4": { "rewardMult": 2.2, "difficultyMult": 1.9 },
+      "5": { "rewardMult": 2.8, "difficultyMult": 2.3 }
+    }
+  }
+}

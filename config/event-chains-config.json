@@ -1,0 +1,131 @@
+{
+  "EVENT_CHAINS_CONFIG": {
+    "maxConcurrentChains": 3,
+    "chains": {
+      "demon_hunter_revenge": {
+        "id": "demon_hunter_revenge",
+        "name": "恶魔猎手的复仇",
+        "zone": "ashen_wastes",
+        "nodes": [
+          {
+            "id": "dh_1",
+            "eventId": "wounded_demon_hunter",
+            "choices": [
+              { "id": "help", "label": "帮助猎手", "next": "dh_2a" },
+              { "id": "ignore", "label": "离开", "next": null }
+            ]
+          },
+          {
+            "id": "dh_2a",
+            "eventId": "hunter_reward",
+            "choices": [
+              { "id": "accept", "label": "接受报酬", "next": "dh_3", "rewards": { "gold": 80, "relic": "tactical_goggles" } }
+            ]
+          },
+          {
+            "id": "dh_3",
+            "eventId": "hunter_finale",
+            "choices": [
+              { "id": "fight", "label": "并肩作战", "next": null, "rewards": { "gold": 150 }, "unlockMeta": "hunter_ally" }
+            ]
+          }
+        ]
+      },
+      "lost_legion": {
+        "id": "lost_legion",
+        "name": "失落军团",
+        "zone": "ashen_wastes",
+        "nodes": [
+          {
+            "id": "ll_1",
+            "eventId": "ancient_barracks",
+            "choices": [
+              { "id": "explore", "label": "探索军营", "next": "ll_2" }
+            ]
+          },
+          {
+            "id": "ll_2",
+            "eventId": "wake_phantoms",
+            "choices": [
+              { "id": "awaken", "label": "唤醒幽灵", "next": "ll_3", "corruption": 10 }
+            ]
+          },
+          {
+            "id": "ll_3",
+            "eventId": "legion_aid",
+            "choices": [
+              { "id": "accept", "label": "接受助战", "next": null, "unlockCommander": "summon_reinforcements" }
+            ]
+          }
+        ]
+      },
+      "merchant_revenge": {
+        "id": "merchant_revenge",
+        "name": "商人的复仇",
+        "zone": "any",
+        "nodes": [
+          {
+            "id": "mr_1",
+            "eventId": "shop_robbery",
+            "trigger": "shop_rob",
+            "choices": [
+              { "id": "rob", "label": "抢劫", "next": "mr_2", "gold": 100 }
+            ]
+          },
+          {
+            "id": "mr_2",
+            "eventId": "assassin_pursuit",
+            "choices": [
+              { "id": "fight", "label": "迎战", "next": "mr_3" }
+            ]
+          },
+          {
+            "id": "mr_3",
+            "eventId": "merchant_boss",
+            "choices": [
+              { "id": "defeat", "label": "击败首领", "next": null, "rewards": { "gold": 200, "relic": "fortune_coin" } }
+            ]
+          }
+        ]
+      }
+    },
+    "standaloneEvents": {
+      "mystic_altar": {
+        "id": "mystic_altar",
+        "name": "神秘祭坛",
+        "choices": [
+          { "id": "hp", "label": "献祭生命", "costHpPct": 0.15, "reward": "random_relic" },
+          { "id": "gold", "label": "献祭金币", "costGold": 50, "reward": "random_relic" },
+          { "id": "leave", "label": "离开" }
+        ]
+      },
+      "wandering_merchant": {
+        "id": "wandering_merchant",
+        "name": "流浪商人",
+        "choices": [
+          { "id": "buy", "label": "购买", "action": "shop" },
+          { "id": "rob", "label": "抢劫", "action": "start_chain", "chainId": "merchant_revenge" },
+          { "id": "leave", "label": "离开" }
+        ]
+      },
+      "ancient_chest": {
+        "id": "ancient_chest",
+        "name": "古代宝箱",
+        "choices": [
+          { "id": "open", "label": "打开", "trapChance": 0.3, "reward": "random_loot" },
+          { "id": "lockpick", "label": "撬锁", "requiresClass": "assassin", "reward": "random_loot" },
+          { "id": "leave", "label": "离开" }
+        ]
+      },
+      "holy_spring": {
+        "id": "holy_spring",
+        "name": "圣泉",
+        "choices": [
+          { "id": "purify", "label": "净化", "purifyCorruption": 30 },
+          { "id": "drink", "label": "饮用", "healPct": 0.5 },
+          { "id": "leave", "label": "离开" }
+        ]
+      }
+    }
+  }
+}

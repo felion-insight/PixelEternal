@@ -61,6 +61,11 @@
     }
 
     function lookupUpgrade(upgradeId) {
+        const starUps = cfg().starUpgrades || {};
+        if (starUps[upgradeId]) {
+            const su = starUps[upgradeId];
+            return { upgrade: { id: upgradeId, mutate: su.mutate || su }, branch: null, lineage: null };
+        }
         return upgradeIndex()[upgradeId] || null;
     }
 
@@ -222,10 +227,9 @@
             );
             out.forEach((eff) => {
                 if (eff && eff.type === 'damage') {
-                    if (eff.executeThreshold == null || th > eff.executeThreshold) {
-                        eff.executeThreshold = th;
-                    }
-                    eff.executeBonusMult = Math.max(eff.executeBonusMult || 0, bonus);
+                    const curTh = eff.executeThreshold != null ? eff.executeThreshold : 0;
+                    eff.executeThreshold = Math.min(0.34, Math.max(curTh, th));
+                    eff.executeBonusMult = Math.min(2.7, Math.max(eff.executeBonusMult || 0, bonus));
                 }
             });
         }

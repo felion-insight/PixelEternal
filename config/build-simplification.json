@@ -1,0 +1,86 @@
+{
+  "BUILD_SIMPLIFICATION": {
+    "skillProgression": {
+      "maxStars": 3,
+      "starDamageMultPerStar": 0,
+      "starCooldownMultPerStar": 0,
+      "useStarMutations": true
+    },
+    "equipmentSlots": ["weapon", "armor"],
+    "gearLoot": {
+      "weaponShare": 0.5,
+      "rarityStatMult": {
+        "common": 1,
+        "uncommon": 1.12,
+        "rare": 1.28,
+        "legendary": 1.5
+      }
+    },
+    "starUpgrades": {
+      "fireball_star2": {
+        "mutate": {
+          "appendEffects": [{ "type": "damage", "mult": 0.55, "aoe": true }]
+        }
+      },
+      "fireball_star3": {
+        "mutate": {
+          "appendEffects": [{ "type": "dot_aoe", "pctOfAttack": 0.05, "durationMs": 4000, "aoe": true }]
+        }
+      },
+      "shield_slam_star2": {
+        "mutate": {
+          "appendEffects": [{ "type": "debuff", "stat": "defense", "pct": -0.15, "durationMs": 4000 }]
+        }
+      },
+      "shield_slam_star3": {
+        "mutate": {
+          "appendEffects": [{ "type": "knockback", "distance": 1 }, { "type": "stun", "durationMs": 600 }]
+        }
+      },
+      "backstep_shot_star2": {
+        "mutate": { "addPierce": true, "damageMult": 1.08 }
+      },
+      "backstep_shot_star3": {
+        "mutate": { "addChainJumps": 2, "damageMult": 1.05 }
+      },
+      "shadow_pierce_star2": {
+        "mutate": { "damageMult": 1.15, "appendEffects": [{ "type": "bleed", "pctOfAttack": 0.08, "durationMs": 3000 }] }
+      },
+      "shadow_pierce_star3": {
+        "mutate": { "addChainJumps": 1, "critBonus": 0.2 }
+      },
+      "cleave_star2": { "mutate": { "forceAoe": true, "damageMult": 1.1 } },
+      "cleave_star3": { "mutate": { "damageMult": 1.2, "appendEffects": [{ "type": "slow", "pct": 0.2, "durationMs": 2000, "aoe": true }] } },
+      "poison_arrow_star2": { "mutate": { "dotMult": 1.4 } },
+      "poison_arrow_star3": { "mutate": { "addChainJumps": 1, "appendEffects": [{ "type": "poison", "stacks": 2 }] } }
+    },
+    "starMutations": {
+      "fireball": { "2": "fireball_star2", "3": "fireball_star3" },
+      "shield_slam": { "2": "shield_slam_star2", "3": "shield_slam_star3" },
+      "backstep_shot": { "2": "backstep_shot_star2", "3": "backstep_shot_star3" },
+      "shadow_pierce": { "2": "shadow_pierce_star2", "3": "shadow_pierce_star3" },
+      "cleave": { "2": "cleave_star2", "3": "cleave_star3" },
+      "poison_arrow": { "2": "poison_arrow_star2", "3": "poison_arrow_star3" }
+    },
+    "gearArchetypes": {
+      "weapons": [
+        { "id": "greatsword", "name": "双手剑", "attack": 14, "basicIntervalMult": 1.35, "basicCleave": true, "range": 52, "classTags": ["warrior"], "desc": "慢速高伤，普攻顺劈" },
+        { "id": "tower_shield_axe", "name": "塔盾斧", "attack": 10, "defense": 4, "basicIntervalMult": 1.15, "range": 48, "classTags": ["warrior"], "desc": "中速，偏坦" },
+        { "id": "longbow", "name": "长弓", "attack": 9, "range": 175, "basicPierce": true, "basicIntervalMult": 1.05, "classTags": ["archer"], "desc": "远距穿透" },
+        { "id": "crossbow", "name": "重弩", "attack": 12, "range": 160, "basicIntervalMult": 1.25, "critChance": 0.06, "classTags": ["archer"], "desc": "高伤慢速" },
+        { "id": "arcane_staff", "name": "奥术法杖", "attack": 8, "range": 145, "skillDamageMult": 1.12, "cooldownMult": 0.95, "classTags": ["mage"], "desc": "技能向" },
+        { "id": "element_wand", "name": "元素魔杖", "attack": 7, "range": 130, "basicChain": 1, "classTags": ["mage"], "desc": "普攻弹射" },
+        { "id": "twin_daggers", "name": "双匕", "attack": 7, "basicIntervalMult": 0.78, "basicMultihit": 2, "range": 45, "classTags": ["assassin"], "desc": "快速连击" },
+        { "id": "shadow_blade", "name": "影刃", "attack": 9, "critChance": 0.1, "range": 48, "classTags": ["assassin"], "desc": "高暴击" }
+      ],
+      "armors": [
+        { "id": "heavy_plate", "name": "重甲", "defense": 14, "maxHp": 45, "passive": "thorns", "passivePct": 0.15, "classTags": ["generic"], "desc": "高防，受击反伤15%" },
+        { "id": "leather_harness", "name": "皮甲", "defense": 8, "maxHp": 25, "passive": "dodge", "passivePct": 0.12, "classTags": ["generic"], "desc": "闪避+12%" },
+        { "id": "cloth_robes", "name": "布甲", "defense": 4, "maxHp": 15, "cooldownMult": 0.8, "classTags": ["generic"], "desc": "技能CD-20%" },
+        { "id": "battle_mail", "name": "战阵铠", "defense": 10, "maxHp": 35, "passive": "frontline", "passivePct": 0.1, "classTags": ["warrior"], "desc": "前排减伤10%" },
+        { "id": "hunter_vest", "name": "猎手背心", "defense": 6, "maxHp": 20, "passive": "backline", "passivePct": 0.12, "classTags": ["archer"], "desc": "后排伤害+12%" },
+        { "id": "arcane_mantle", "name": "奥术披风", "defense": 5, "maxHp": 18, "skillDamageMult": 1.08, "classTags": ["mage"], "desc": "技能伤害+8%" }
+      ]
+    }
+  }
+}

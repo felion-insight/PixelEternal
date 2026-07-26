@@ -30,6 +30,22 @@
         };
     }
 
+    function createDefaultAscensionMeta() {
+        if (window.AscensionHub && window.AscensionHub.createDefaultMetaAscension) {
+            return window.AscensionHub.createDefaultMetaAscension();
+        }
+        return {
+            demonPactUnlocked: false,
+            speedUnlock: { x2: false, x3: false },
+            deathArchive: [],
+            metaUnlocks: [],
+            completedChains: [],
+            unlockedCommanderAbilities: [],
+            runsWithVictory: 0,
+            firstVictory: false
+        };
+    }
+
     function createDefaultPartyMeta() {
         const order = (cfg().partyOrder || DEFAULT_ORDER).slice();
         return {
@@ -38,7 +54,8 @@
             highestRunLayer: 0,
             runsCompleted: 0,
             unlockedRelicIds: [],
-            unlockedSkillIds: []
+            unlockedSkillIds: [],
+            ascension: createDefaultAscensionMeta()
         };
     }
 
@@ -72,6 +89,11 @@
         def.runsCompleted = Math.max(0, raw.runsCompleted | 0 || 0);
         def.unlockedRelicIds = Array.isArray(raw.unlockedRelicIds) ? raw.unlockedRelicIds.slice() : [];
         def.unlockedSkillIds = Array.isArray(raw.unlockedSkillIds) ? raw.unlockedSkillIds.slice() : [];
+        if (window.AscensionHub && window.AscensionHub.normalizeMetaAscension) {
+            def.ascension = window.AscensionHub.normalizeMetaAscension(raw.ascension);
+        } else {
+            def.ascension = createDefaultAscensionMeta();
+        }
         def.levelsResetToTowerRest = true;
         return def;
     }

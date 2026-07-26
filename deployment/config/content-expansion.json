@@ -1,0 +1,2019 @@
+{
+  "CONTENT_EXPANSION": {
+    "commanderAbilities": {
+      "taunt_aura": {
+        "id": "taunt_aura",
+        "name": "嘲讽光环",
+        "cost": 30,
+        "cooldownMs": 15000,
+        "type": "instant",
+        "effectType": "taunt_aura",
+        "durationMs": 3000,
+        "damageReduction": 0.4,
+        "basic": true,
+        "description": "强制所有敌人攻击指定角色3秒，该角色减伤40%"
+      },
+      "mana_burn": {
+        "id": "mana_burn",
+        "name": "法力燃烧",
+        "cost": 35,
+        "cooldownMs": 12000,
+        "type": "instant",
+        "effectType": "mana_burn",
+        "durationMs": 3000,
+        "manaDamagePct": 0.1,
+        "basic": true,
+        "description": "指定敌人沉默3秒，并受到其最大法力值10%的伤害"
+      },
+      "swap_positions": {
+        "id": "swap_positions",
+        "name": "换位",
+        "cost": 20,
+        "cooldownMs": 8000,
+        "type": "instant",
+        "effectType": "swap_positions",
+        "invulnDurationMs": 2000,
+        "basic": true,
+        "description": "交换两名友方位置，换位后2秒无敌"
+      },
+      "blood_sacrifice": {
+        "id": "blood_sacrifice",
+        "name": "血祭",
+        "cost": 0,
+        "cooldownMs": 30000,
+        "type": "instant",
+        "effectType": "blood_sacrifice",
+        "hpCostPct": 0.25,
+        "teamDamageMult": 1.5,
+        "durationMs": 4000,
+        "unlockCurse": "blood_pact_curse",
+        "description": "消耗当前生命25%，全队伤害+50%持续4秒"
+      },
+      "revive_ally": {
+        "id": "revive_ally",
+        "name": "复活",
+        "cost": 80,
+        "cooldownMs": 60000,
+        "type": "instant",
+        "effectType": "revive_ally",
+        "reviveHpPct": 0.3,
+        "clearDebuffs": true,
+        "unlockMeta": "first_victory",
+        "description": "复活一名阵亡角色，30%生命，清除所有Debuff"
+      },
+      "summon_totem": {
+        "id": "summon_totem",
+        "name": "召唤图腾",
+        "cost": 45,
+        "cooldownMs": 20000,
+        "type": "instant",
+        "effectType": "summon_totem",
+        "durationMs": 12000,
+        "totemTypes": [
+          "heal",
+          "attack",
+          "taunt"
+        ],
+        "unlockChain": "lost_legion",
+        "description": "召唤治疗/攻击/嘲讽图腾（3选1），持续12秒"
+      },
+      "mirror_unit": {
+        "id": "mirror_unit",
+        "name": "镜像",
+        "cost": 55,
+        "cooldownMs": 25000,
+        "type": "instant",
+        "effectType": "mirror_unit",
+        "durationMs": 8000,
+        "statMult": 0.5,
+        "unlockPactStars": 3,
+        "description": "复制一名友方单位（50%属性），持续8秒"
+      },
+      "black_hole": {
+        "id": "black_hole",
+        "name": "黑洞",
+        "cost": 70,
+        "cooldownMs": 30000,
+        "type": "instant",
+        "effectType": "black_hole",
+        "durationMs": 3000,
+        "pullRadius": 120,
+        "unlockPactStars": 5,
+        "description": "战场中央生成黑洞，持续吸引所有敌人3秒"
+      },
+      "purify_team": {
+        "id": "purify_team",
+        "name": "净化",
+        "cost": 40,
+        "cooldownMs": 18000,
+        "type": "instant",
+        "effectType": "purify_team",
+        "immunityDurationMs": 3000,
+        "unlockZone": "void_abyss",
+        "description": "清除全队所有Debuff，并在3秒内免疫"
+      },
+      "frenzy_order": {
+        "id": "frenzy_order",
+        "name": "狂暴号令",
+        "cost": 50,
+        "cooldownMs": 22000,
+        "type": "instant",
+        "effectType": "frenzy_order",
+        "attackMult": 1.4,
+        "damageTakenMult": 1.2,
+        "durationMs": 6000,
+        "unlockPactStars": 7,
+        "description": "全队攻击+40%，受到伤害+20%，持续6秒"
+      },
+      "time_rift": {
+        "id": "time_rift",
+        "name": "时间裂隙",
+        "cost": 90,
+        "cooldownMs": 45000,
+        "type": "instant",
+        "effectType": "time_rift",
+        "teRegenBlockMs": 10000,
+        "resetSkillCooldowns": true,
+        "unlockPactStars": 10,
+        "description": "全场友方技能CD重置，但接下来10秒无法自然恢复TE"
+      },
+      "ultimate_sacrifice": {
+        "id": "ultimate_sacrifice",
+        "name": "终极牺牲",
+        "cost": 100,
+        "cooldownMs": 90000,
+        "type": "instant",
+        "effectType": "ultimate_sacrifice",
+        "shieldFromHp": true,
+        "noRevive": true,
+        "unlockPactStars": 15,
+        "description": "牺牲一名友方（当前生命转化为全队护盾），被牺牲者本场不可复活"
+      }
+    },
+    "relics": [
+      {
+        "id": "combo_gloves",
+        "name": "连击手套",
+        "description": "普攻有20%几率额外攻击1次。",
+        "rarity": "common",
+        "buildTags": [
+          "tempo"
+        ],
+        "effects": {
+          "extraAttackChance": 0.2
+        }
+      },
+      {
+        "id": "vipers_fang",
+        "name": "毒蛇之牙",
+        "description": "普攻附加中毒（每秒3%攻击，3秒）。",
+        "rarity": "common",
+        "buildTags": [
+          "poison"
+        ],
+        "effects": {
+          "onHitDot": {
+            "pctOfAttack": 0.03,
+            "durationMs": 3000,
+            "tickMs": 1000
+          }
+        }
+      },
+      {
+        "id": "giant_belt",
+        "name": "巨人腰带",
+        "description": "最大生命+15%。",
+        "rarity": "common",
+        "buildTags": [
+          "wall"
+        ],
+        "effects": {
+          "maxHpMult": 1.15
+        }
+      },
+      {
+        "id": "swift_boots",
+        "name": "疾风靴",
+        "description": "移动速度+20%。",
+        "rarity": "common",
+        "buildTags": [
+          "tempo"
+        ],
+        "effects": {
+          "moveSpeedMult": 1.2
+        }
+      },
+      {
+        "id": "armor_break_hammer",
+        "name": "破甲锤",
+        "description": "攻击降低目标5防御（可叠加3次）。",
+        "rarity": "common",
+        "buildTags": [
+          "warrior"
+        ],
+        "effects": {
+          "armorBreak": {
+            "flat": 5,
+            "maxStacks": 3
+          }
+        }
+      },
+      {
+        "id": "magic_lens",
+        "name": "魔法透镜",
+        "description": "技能射程+15%。",
+        "rarity": "common",
+        "buildTags": [
+          "range"
+        ],
+        "effects": {
+          "skillRangeMult": 1.15
+        }
+      },
+      {
+        "id": "life_orb",
+        "name": "生命宝珠",
+        "description": "每场战斗开始恢复10%生命。",
+        "rarity": "common",
+        "buildTags": [
+          "sustain"
+        ],
+        "effects": {
+          "battleStartHealPct": 0.1
+        }
+      },
+      {
+        "id": "thorn_cloak",
+        "name": "荆棘斗篷",
+        "description": "受击反弹10%伤害。",
+        "rarity": "common",
+        "buildTags": [
+          "wall"
+        ],
+        "effects": {
+          "thornsPct": 0.1
+        }
+      },
+      {
+        "id": "frenzy_totem",
+        "name": "狂暴图腾",
+        "description": "生命低于50%时攻击+15%。",
+        "rarity": "common",
+        "buildTags": [
+          "warrior"
+        ],
+        "effects": {
+          "lowHpAttackMult": {
+            "threshold": 0.5,
+            "mult": 1.15
+          }
+        }
+      },
+      {
+        "id": "frost_ring",
+        "name": "冰霜之环",
+        "description": "近战攻击附加冰冻（减速30%，1.5秒）。",
+        "rarity": "rare",
+        "buildTags": [
+          "control"
+        ],
+        "effects": {
+          "meleeOnHit": {
+            "type": "slow",
+            "value": 0.3,
+            "durationMs": 1500
+          }
+        }
+      },
+      {
+        "id": "thunder_staff",
+        "name": "雷霆法杖",
+        "description": "技能命中时20%几率触发闪电链。",
+        "rarity": "rare",
+        "buildTags": [
+          "chain"
+        ],
+        "effects": {
+          "skillChainChance": {
+            "chance": 0.2,
+            "jumps": 2
+          }
+        }
+      },
+      {
+        "id": "shadowstep_shoes",
+        "name": "影步鞋",
+        "description": "闪避后下次攻击必暴击。",
+        "rarity": "rare",
+        "buildTags": [
+          "assassin"
+        ],
+        "effects": {
+          "dodgeNextCrit": true
+        }
+      },
+      {
+        "id": "holy_amulet",
+        "name": "圣光护符",
+        "description": "受到致命伤害时保留1生命（每场1次）。",
+        "rarity": "rare",
+        "buildTags": [
+          "sustain"
+        ],
+        "effects": {
+          "cheatDeath": {
+            "hp": 1,
+            "perBattle": 1
+          }
+        }
+      },
+      {
+        "id": "greedy_hand",
+        "name": "贪婪之手",
+        "description": "击杀时额外掉落金币+50%。",
+        "rarity": "rare",
+        "buildTags": [
+          "economy"
+        ],
+        "effects": {
+          "killGoldBonus": 0.5
+        }
+      },
+      {
+        "id": "knowledge_scroll",
+        "name": "知识卷轴",
+        "description": "技能获得经验+25%。",
+        "rarity": "rare",
+        "buildTags": [
+          "economy"
+        ],
+        "effects": {
+          "skillExpMult": 1.25
+        }
+      },
+      {
+        "id": "war_horn",
+        "name": "战争号角",
+        "description": "战斗开始时全队攻击+10%，持续5秒。",
+        "rarity": "rare",
+        "buildTags": [
+          "tempo"
+        ],
+        "effects": {
+          "battleStartBuff": {
+            "attackMult": 1.1,
+            "durationMs": 5000
+          }
+        }
+      },
+      {
+        "id": "void_blade",
+        "name": "虚空之刃",
+        "description": "攻击无视目标20%防御。",
+        "rarity": "rare",
+        "buildTags": [
+          "assassin"
+        ],
+        "effects": {
+          "armorPenPct": 0.2
+        }
+      },
+      {
+        "id": "rebirth_cross",
+        "name": "重生十字",
+        "description": "阵亡时立即复活（20%生命，每场1次）。",
+        "rarity": "rare",
+        "buildTags": [
+          "sustain"
+        ],
+        "effects": {
+          "reviveOnDeath": {
+            "hpPct": 0.2,
+            "perBattle": 1
+          }
+        }
+      },
+      {
+        "id": "infinite_blade",
+        "name": "无限之刃",
+        "description": "普攻无冷却（原为0.9秒间隔）。",
+        "rarity": "legendary",
+        "buildTags": [
+          "tempo"
+        ],
+        "effects": {
+          "basicAttackIntervalMult": 0
+        }
+      },
+      {
+        "id": "chaos_orb",
+        "name": "混沌法球",
+        "description": "技能随机附加一种元素效果（火/冰/雷）。",
+        "rarity": "legendary",
+        "buildTags": [
+          "mage"
+        ],
+        "effects": {
+          "randomElementOnSkill": [
+            "fire",
+            "ice",
+            "lightning"
+          ]
+        }
+      },
+      {
+        "id": "phoenix_feather",
+        "name": "凤凰之羽",
+        "description": "死亡时爆炸（200%攻击AOE），3秒后满血复活（每场1次）。",
+        "rarity": "legendary",
+        "buildTags": [
+          "sustain"
+        ],
+        "effects": {
+          "phoenixRevive": {
+            "explosionMult": 2,
+            "reviveDelayMs": 3000,
+            "perBattle": 1
+          }
+        }
+      },
+      {
+        "id": "time_warp_device",
+        "name": "时间扭曲器",
+        "description": "战斗时间流速-20%（友方不受影响，等效友方加速25%）。",
+        "rarity": "legendary",
+        "buildTags": [
+          "tempo"
+        ],
+        "effects": {
+          "allyTimeScale": 1.25,
+          "globalTimeScale": 0.8
+        }
+      },
+      {
+        "id": "mirror_core",
+        "name": "镜像核心",
+        "description": "开场复制全队（镜像50%属性，持续10秒）。",
+        "rarity": "legendary",
+        "buildTags": [
+          "wall"
+        ],
+        "effects": {
+          "battleStartMirror": {
+            "statMult": 0.5,
+            "durationMs": 10000
+          }
+        }
+      },
+      {
+        "id": "scorching_touch",
+        "name": "灼热之触",
+        "description": "攻击附带燃烧（每秒5%攻击，3秒）。",
+        "rarity": "rare",
+        "buildTags": [
+          "fire",
+          "mage"
+        ],
+        "effects": {
+          "onHitDot": {
+            "type": "burn",
+            "pctOfAttack": 0.05,
+            "durationMs": 3000,
+            "tickMs": 1000
+          }
+        }
+      },
+      {
+        "id": "frost_core",
+        "name": "寒冰核心",
+        "description": "攻击附带冰冻（减速30%，2秒）。",
+        "rarity": "rare",
+        "buildTags": [
+          "ice",
+          "control"
+        ],
+        "effects": {
+          "onHitSlow": {
+            "value": 0.3,
+            "durationMs": 2000
+          }
+        }
+      },
+      {
+        "id": "lightning_chain_relic",
+        "name": "闪电链",
+        "description": "攻击弹射2次（每次50%伤害）。",
+        "rarity": "rare",
+        "buildTags": [
+          "chain",
+          "mage"
+        ],
+        "effects": {
+          "chainLightning": {
+            "jumps": 2,
+            "damageMult": 0.5
+          }
+        }
+      },
+      {
+        "id": "arcane_amp",
+        "name": "奥术增幅",
+        "description": "技能伤害+20%。",
+        "rarity": "rare",
+        "buildTags": [
+          "mage"
+        ],
+        "effects": {
+          "skillDamageMult": 1.2
+        }
+      },
+      {
+        "id": "blood_pact_synergy",
+        "name": "鲜血契约",
+        "description": "生命每降低10%，攻击+5%。",
+        "rarity": "legendary",
+        "buildTags": [
+          "lifesteal",
+          "warrior"
+        ],
+        "effects": {
+          "lowHpAttackScaling": {
+            "per10PctHp": 0.05
+          }
+        }
+      },
+      {
+        "id": "guardian_angel",
+        "name": "守护天使",
+        "description": "死亡时复活一次（50%生命）。",
+        "rarity": "legendary",
+        "buildTags": [
+          "sustain"
+        ],
+        "effects": {
+          "reviveOnDeath": {
+            "hpPct": 0.5,
+            "perBattle": 1
+          }
+        }
+      },
+      {
+        "id": "gambler_dice",
+        "name": "赌徒骰子",
+        "description": "每场战斗随机一项属性+50%，随机一项属性-30%。",
+        "rarity": "curse",
+        "buildTags": [
+          "gamble"
+        ],
+        "effects": {
+          "positive": {
+            "randomStatBoost": 0.5
+          },
+          "negative": {
+            "randomStatPenalty": 0.3
+          },
+          "riskLevel": 2
+        }
+      },
+      {
+        "id": "parasitic_armor",
+        "name": "寄生铠甲",
+        "description": "防御+50%，每场战斗后-5%最大生命。",
+        "rarity": "curse",
+        "buildTags": [
+          "wall"
+        ],
+        "effects": {
+          "positive": {
+            "defenseMult": 1.5
+          },
+          "negative": {
+            "permanentHpLoss": 0.05,
+            "trigger": "after_battle"
+          },
+          "riskLevel": 3
+        }
+      },
+      {
+        "id": "rage_ring",
+        "name": "狂怒戒指",
+        "description": "暴击率+25%，被暴击时受到300%伤害。",
+        "rarity": "curse",
+        "buildTags": [
+          "crit"
+        ],
+        "effects": {
+          "positive": {
+            "critChance": 0.25
+          },
+          "negative": {
+            "critTakenMult": 3
+          },
+          "riskLevel": 3
+        }
+      },
+      {
+        "id": "silence_mask",
+        "name": "沉默面具",
+        "description": "技能伤害+40%，禁用普攻。",
+        "rarity": "curse",
+        "buildTags": [
+          "mage"
+        ],
+        "effects": {
+          "positive": {
+            "skillDamageMult": 1.4
+          },
+          "negative": {
+            "disableBasicAttack": true
+          },
+          "riskLevel": 3
+        }
+      },
+      {
+        "id": "twin_curse",
+        "name": "双生诅咒",
+        "description": "所有效果翻倍（正面和负面）。",
+        "rarity": "curse",
+        "buildTags": [
+          "chaos"
+        ],
+        "effects": {
+          "positive": {
+            "effectMult": 2
+          },
+          "negative": {
+            "effectMult": 2
+          },
+          "riskLevel": 4
+        }
+      },
+      {
+        "id": "pact_chain",
+        "name": "契约锁链",
+        "description": "遗物上限+8，每多1个遗物生命上限-5%。",
+        "rarity": "curse",
+        "buildTags": [
+          "economy"
+        ],
+        "effects": {
+          "positive": {
+            "relicCapBonus": 8
+          },
+          "negative": {
+            "hpPerRelicPenalty": 0.05
+          },
+          "riskLevel": 4
+        }
+      },
+      {
+        "id": "doomsday_clock",
+        "name": "末日时钟",
+        "description": "攻击速度+50%，战斗时限-20秒。",
+        "rarity": "curse",
+        "buildTags": [
+          "tempo"
+        ],
+        "effects": {
+          "positive": {
+            "attackSpeedMult": 1.5
+          },
+          "negative": {
+            "combatTimeLimitReduceMs": 20000
+          },
+          "riskLevel": 3
+        }
+      },
+      {
+        "id": "soul_mortgage",
+        "name": "灵魂抵押",
+        "description": "开局获得3个随机传说遗物，失败时本局所有Meta进度清零。",
+        "rarity": "curse",
+        "buildTags": [
+          "economy"
+        ],
+        "effects": {
+          "positive": {
+            "startLegendaryRelics": 3
+          },
+          "negative": {
+            "wipeMetaOnFailure": true
+          },
+          "riskLevel": 5
+        }
+      }
+    ],
+    "synergyBinary": {
+      "eternal_blade": {
+        "name": "永动之刃",
+        "description": "普攻连击几率提升至50%，且可无限连击",
+        "required": [
+          "combo_gloves",
+          "infinite_blade"
+        ],
+        "effect": {
+          "type": "combo_chain",
+          "extraAttackChance": 0.5,
+          "infiniteCombo": true
+        },
+        "vfx": "blade_storm",
+        "uiColor": "#ffcc44"
+      },
+      "ice_poison_spread": {
+        "name": "冰毒蔓延",
+        "description": "中毒目标同时被冰冻，且DOT伤害+50%",
+        "required": [
+          "vipers_fang",
+          "frost_ring"
+        ],
+        "effect": {
+          "type": "dot_synergy",
+          "freezeOnPoison": true,
+          "dotMult": 1.5
+        },
+        "vfx": "ice_poison",
+        "uiColor": "#66ccaa"
+      },
+      "thunder_wrath": {
+        "name": "雷神之怒",
+        "description": "闪电弹射+5次，每次弹射伤害只衰减10%",
+        "required": [
+          "thunder_staff",
+          "lightning_chain_relic"
+        ],
+        "effect": {
+          "type": "chain_bonus",
+          "extraJumps": 5,
+          "decayMult": 0.9
+        },
+        "vfx": "thunder_burst",
+        "uiColor": "#ffee66"
+      },
+      "shadow_kill": {
+        "name": "影杀",
+        "description": "闪避后下次攻击无视防御且必暴击，伤害×3",
+        "required": [
+          "shadowstep_shoes",
+          "void_blade"
+        ],
+        "effect": {
+          "type": "dodge_crit",
+          "ignoreArmor": true,
+          "damageMult": 3
+        },
+        "vfx": "shadow_slash",
+        "uiColor": "#8844aa"
+      },
+      "phoenix_immortal": {
+        "name": "不死鸟",
+        "description": "保留1血触发后，立即满血复活（每场2次）",
+        "required": [
+          "holy_amulet",
+          "rebirth_cross"
+        ],
+        "effect": {
+          "type": "double_revive",
+          "fullHealOnCheatDeath": true,
+          "maxTriggers": 2
+        },
+        "vfx": "phoenix_glow",
+        "uiColor": "#ff8844"
+      },
+      "gold_cascade": {
+        "name": "黄金瀑布",
+        "description": "击杀时金币飞溅（AOE范围内敌人也掉金币）",
+        "required": [
+          "greedy_hand",
+          "greedy_purse"
+        ],
+        "effect": {
+          "type": "gold_splash",
+          "aoeRadius": 100,
+          "goldPerKillMult": 1.5
+        },
+        "vfx": "gold_rain",
+        "uiColor": "#ffd700"
+      },
+      "full_assault": {
+        "name": "全军突击",
+        "description": "战斗开始全队攻击+25%，持续8秒，且不可被驱散",
+        "required": [
+          "war_horn",
+          "battle_cry_ability"
+        ],
+        "effect": {
+          "type": "battle_start_buff",
+          "attackMult": 1.25,
+          "durationMs": 8000,
+          "undispellable": true
+        },
+        "vfx": "war_horn",
+        "uiColor": "#cc6622"
+      },
+      "thorn_tank": {
+        "name": "反伤坦克",
+        "description": "最大生命+25%，反弹伤害提升至25%",
+        "required": [
+          "giant_belt",
+          "thorn_cloak"
+        ],
+        "effect": {
+          "type": "thorns_tank",
+          "maxHpMult": 1.25,
+          "thornsPct": 0.25
+        },
+        "vfx": "thorn_pulse",
+        "uiColor": "#44aa66"
+      },
+      "sniper_arcane": {
+        "name": "超视距打击",
+        "description": "技能射程+30%，且对超出原射程的目标伤害+20%",
+        "required": [
+          "magic_lens",
+          "arcane_amp"
+        ],
+        "effect": {
+          "type": "range_bonus",
+          "skillRangeMult": 1.3,
+          "overRangeDamageBonus": 0.2
+        },
+        "vfx": "arcane_beam",
+        "uiColor": "#6688ff"
+      },
+      "berserk_pact": {
+        "name": "濒死狂暴",
+        "description": "生命低于30%时攻击+50%，且吸血+20%",
+        "required": [
+          "frenzy_totem",
+          "blood_pact_synergy"
+        ],
+        "effect": {
+          "type": "low_hp_berserk",
+          "threshold": 0.3,
+          "attackMult": 1.5,
+          "lifesteal": 0.2
+        },
+        "vfx": "blood_frenzy",
+        "uiColor": "#cc2244"
+      }
+    },
+    "synergyTernary": {
+      "phantom_blade_dance": {
+        "name": "幻影剑舞",
+        "description": "每次普攻有10%几率触发剑舞（对周围所有敌人进行1次普攻）",
+        "required": [
+          "combo_gloves",
+          "infinite_blade",
+          "shadowstep_shoes"
+        ],
+        "effect": {
+          "type": "blade_dance",
+          "chance": 0.1,
+          "aoeRadius": 80
+        },
+        "vfx": "phantom_dance",
+        "uiColor": "#aa88ff"
+      },
+      "elemental_plague": {
+        "name": "元素瘟疫",
+        "description": "所有元素DOT互相刷新持续时间，且可叠加",
+        "required": [
+          "vipers_fang",
+          "frost_ring",
+          "thunder_staff"
+        ],
+        "effect": {
+          "type": "element_dot_stack",
+          "refreshDuration": true,
+          "stackable": true
+        },
+        "vfx": "plague_cloud",
+        "uiColor": "#66ff88"
+      },
+      "immortal_one": {
+        "name": "永生者",
+        "description": "死亡时优先触发凤凰爆炸，3秒后满血复活，若再死触发圣光保留1血",
+        "required": [
+          "holy_amulet",
+          "rebirth_cross",
+          "phoenix_feather"
+        ],
+        "effect": {
+          "type": "revive_chain",
+          "priority": [
+            "phoenix",
+            "cheat_death"
+          ]
+        },
+        "vfx": "immortal_aura",
+        "uiColor": "#ffaa44"
+      },
+      "midas_touch": {
+        "name": "点金术",
+        "description": "普通敌人有5%几率被点金（立即死亡+10倍金币）",
+        "required": [
+          "greedy_hand",
+          "greedy_purse",
+          "fortune_coin"
+        ],
+        "effect": {
+          "type": "midas",
+          "statueChance": 0.05,
+          "goldMult": 10
+        },
+        "vfx": "midas_flash",
+        "uiColor": "#ffcc00"
+      },
+      "iron_hedgehog": {
+        "name": "钢铁刺猬",
+        "description": "受击时反弹50%伤害，且反弹伤害可暴击",
+        "required": [
+          "giant_belt",
+          "thorn_cloak",
+          "guardian_angel"
+        ],
+        "effect": {
+          "type": "thorns_crit",
+          "thornsPct": 0.5,
+          "thornsCanCrit": true
+        },
+        "vfx": "iron_spikes",
+        "uiColor": "#8899aa"
+      }
+    },
+    "synergyQuaternary": {
+      "elemental_lord": {
+        "name": "元素领主",
+        "description": "所有攻击同时附带火+冰+雷，且元素反应伤害×2",
+        "required": [
+          "scorching_touch",
+          "frost_core",
+          "lightning_chain_relic",
+          "chaos_orb"
+        ],
+        "effect": {
+          "type": "elemental_lord",
+          "elements": [
+            "fire",
+            "ice",
+            "lightning"
+          ],
+          "reactionMult": 2
+        },
+        "vfx": "elemental_lord",
+        "uiColor": "#ff44aa"
+      },
+      "timestop_assassin": {
+        "name": "时停刺客",
+        "description": "闪避时触发1秒时停（仅对敌人），且时停中每次攻击必暴击",
+        "required": [
+          "infinite_blade",
+          "shadowstep_shoes",
+          "void_blade",
+          "time_warp_device"
+        ],
+        "effect": {
+          "type": "dodge_timestop",
+          "timeStopMs": 1000,
+          "critInTimestop": true
+        },
+        "vfx": "time_slash",
+        "uiColor": "#66ddff"
+      },
+      "true_phoenix": {
+        "name": "真·不死鸟",
+        "description": "死亡→爆炸→满血→保留1血→20%复活，循环3次",
+        "required": [
+          "holy_amulet",
+          "rebirth_cross",
+          "phoenix_feather",
+          "immortal_one"
+        ],
+        "effect": {
+          "type": "revive_loop",
+          "maxCycles": 3
+        },
+        "vfx": "true_phoenix",
+        "uiColor": "#ff6622"
+      }
+    },
+    "zones": {
+      "corrupt_swamp": {
+        "id": "corrupt_swamp",
+        "name": "腐化沼泽",
+        "layers": 8,
+        "actIndex": 4,
+        "branchZone": true,
+        "trait": {
+          "id": "marsh_gas",
+          "name": "沼气",
+          "description": "每5秒全场随机1人中毒（每秒2%，5秒）",
+          "effect": {
+            "poisonIntervalMs": 5000,
+            "poisonDpsPct": 0.02,
+            "durationMs": 5000
+          }
+        },
+        "hazard": {
+          "id": "poison_pool",
+          "name": "毒池",
+          "description": "站在毒池上中毒叠加",
+          "effect": {
+            "poisonStack": true
+          }
+        },
+        "enemyPool": [
+          "ab_poisoner",
+          "ab_corrupt_worm",
+          "ab_trap_spider"
+        ],
+        "specialNodes": [
+          "antidote_shrine"
+        ]
+      },
+      "frozen_citadel": {
+        "id": "frozen_citadel",
+        "name": "冰封要塞",
+        "layers": 10,
+        "actIndex": 4,
+        "branchZone": true,
+        "trait": {
+          "id": "extreme_cold",
+          "name": "极寒",
+          "description": "所有角色攻速-15%",
+          "effect": {
+            "attackSpeedMult": 0.85
+          }
+        },
+        "hazard": {
+          "id": "ice_floor",
+          "name": "冰面",
+          "description": "移动时有20%滑倒（眩晕0.5秒）",
+          "effect": {
+            "slipChance": 0.2,
+            "stunMs": 500
+          }
+        },
+        "enemyPool": [
+          "ab_ice_demon",
+          "ab_wraith",
+          "ab_guard"
+        ],
+        "specialNodes": [
+          "hearth_fire"
+        ]
+      },
+      "thunder_plateau": {
+        "id": "thunder_plateau",
+        "name": "雷霆高原",
+        "layers": 8,
+        "actIndex": 4,
+        "branchZone": true,
+        "trait": {
+          "id": "thunderstorm",
+          "name": "雷暴",
+          "description": "每8秒随机劈下闪电（敌我不分，100伤害）",
+          "effect": {
+            "lightningIntervalMs": 8000,
+            "damage": 100
+          }
+        },
+        "hazard": {
+          "id": "lightning_rod",
+          "name": "避雷针",
+          "description": "站在上面引雷但获得攻击+20%",
+          "effect": {
+            "attackMult": 1.2,
+            "attractsLightning": true
+          }
+        },
+        "enemyPool": [
+          "ab_thunder_bird",
+          "ab_berserker",
+          "ab_sniper"
+        ],
+        "specialNodes": [
+          "storm_altar"
+        ]
+      },
+      "mirror_labyrinth": {
+        "id": "mirror_labyrinth",
+        "name": "镜像迷宫",
+        "layers": 10,
+        "actIndex": 4,
+        "branchZone": true,
+        "trait": {
+          "id": "illusion",
+          "name": "幻象",
+          "description": "每场战斗有1个敌人是幻象（0伤害，但会吸引火力）",
+          "effect": {
+            "phantomCount": 1
+          }
+        },
+        "hazard": {
+          "id": "true_sight_shrine",
+          "name": "真视祭坛",
+          "description": "花费金币揭示幻象",
+          "effect": {
+            "revealCostGold": 30
+          }
+        },
+        "enemyPool": [
+          "ab_shadow",
+          "ab_phantom",
+          "ab_illusionist"
+        ],
+        "specialNodes": [
+          "true_sight_shrine"
+        ]
+      },
+      "golden_vault": {
+        "id": "golden_vault",
+        "name": "黄金国库",
+        "layers": 6,
+        "actIndex": 4,
+        "branchZone": true,
+        "trait": {
+          "id": "greed_field",
+          "name": "贪婪",
+          "description": "敌人掉落金币+100%，但攻击+20%",
+          "effect": {
+            "goldDropMult": 2,
+            "enemyAttackMult": 1.2
+          }
+        },
+        "hazard": {
+          "id": "gild_trap",
+          "name": "金化陷阱",
+          "description": "拾取金币时有5%几率被金化（眩晕1秒）",
+          "effect": {
+            "gildChance": 0.05,
+            "stunMs": 1000
+          }
+        },
+        "enemyPool": [
+          "ab_grunt",
+          "ab_archer",
+          "ab_war_drum"
+        ],
+        "specialNodes": [
+          "treasure_chest"
+        ]
+      },
+      "time_rift": {
+        "id": "time_rift",
+        "name": "时间裂隙",
+        "layers": 12,
+        "actIndex": 4,
+        "branchZone": true,
+        "trait": {
+          "id": "time_chaos",
+          "name": "时乱",
+          "description": "每10秒全场角色位置随机交换",
+          "effect": {
+            "swapIntervalMs": 10000
+          }
+        },
+        "hazard": {
+          "id": "time_anchor",
+          "name": "时间锚点",
+          "description": "可花费TE免疫一次时乱",
+          "effect": {
+            "teCost": 25,
+            "immuneOnce": true
+          }
+        },
+        "enemyPool": [
+          "ab_void_weaver",
+          "ab_abyss_eye",
+          "ab_wraith"
+        ],
+        "specialNodes": [
+          "time_anchor"
+        ]
+      }
+    },
+    "bossPhases": {
+      "ab_boss_corrupt_mother": {
+        "name": "腐化之母",
+        "zone": "corrupt_swamp",
+        "phases": [
+          {
+            "threshold": 1,
+            "id": "p1",
+            "label": "毒池",
+            "hint": "优先清理毒池",
+            "spawnPoisonPools": true
+          },
+          {
+            "threshold": 0.66,
+            "id": "p2",
+            "label": "毒雾",
+            "hint": "使用净化指令清除DOT",
+            "globalDot": true,
+            "healReverse": true
+          },
+          {
+            "threshold": 0.33,
+            "id": "p3",
+            "label": "巨化",
+            "hint": "吸收毒池后体型变大",
+            "absorbPools": true,
+            "sizeMult": 1.5
+          }
+        ]
+      },
+      "ab_boss_frost_king": {
+        "name": "霜冻之王",
+        "zone": "frozen_citadel",
+        "phases": [
+          {
+            "threshold": 1,
+            "id": "p1",
+            "label": "冰甲",
+            "hint": "用火伤破甲",
+            "iceArmor": true
+          },
+          {
+            "threshold": 0.66,
+            "id": "p2",
+            "label": "冻结",
+            "hint": "消耗TE解冻全队",
+            "freezeAll": true
+          },
+          {
+            "threshold": 0.33,
+            "id": "p3",
+            "label": "暴风雪",
+            "hint": "时停+集火破甲",
+            "blizzard": true,
+            "aoe": true
+          }
+        ]
+      },
+      "ab_boss_thunder_tyrant": {
+        "name": "雷霆暴君",
+        "zone": "thunder_plateau",
+        "phases": [
+          {
+            "threshold": 1,
+            "id": "p1",
+            "label": "落雷",
+            "hint": "后撤躲避落雷",
+            "randomLightning": true
+          },
+          {
+            "threshold": 0.55,
+            "id": "p2",
+            "label": "充能",
+            "hint": "打断充能避免秒杀",
+            "chargeKill": true
+          },
+          {
+            "threshold": 0.25,
+            "id": "p3",
+            "label": "狂暴",
+            "hint": "战吼+时停rush",
+            "attackSpeedMult": 2
+          }
+        ]
+      },
+      "ab_boss_thousand_faces": {
+        "name": "千面魔",
+        "zone": "mirror_labyrinth",
+        "phases": [
+          {
+            "threshold": 1,
+            "id": "p1",
+            "label": "复制",
+            "hint": "标记真身集火",
+            "mirrorAllies": 1
+          },
+          {
+            "threshold": 0.75,
+            "id": "p2",
+            "label": "双影",
+            "hint": "识别复制体",
+            "mirrorAllies": 2
+          },
+          {
+            "threshold": 0.5,
+            "id": "p3",
+            "label": "群像",
+            "hint": "优先清理复制体",
+            "mirrorAllies": 4
+          },
+          {
+            "threshold": 0.25,
+            "id": "p4",
+            "label": "真身",
+            "hint": "复制体消失，全力输出",
+            "revealTrueForm": true
+          }
+        ]
+      },
+      "ab_boss_gold_giant": {
+        "name": "黄金巨人",
+        "zone": "golden_vault",
+        "phases": [
+          {
+            "threshold": 1,
+            "id": "p1",
+            "label": "金盾",
+            "hint": "消耗金币破盾",
+            "goldShield": true
+          },
+          {
+            "threshold": 0.55,
+            "id": "p2",
+            "label": "金币雨",
+            "hint": "拾取金币回血",
+            "goldRain": true
+          },
+          {
+            "threshold": 0.25,
+            "id": "p3",
+            "label": "自爆",
+            "hint": "倒计时内击杀",
+            "selfDestructTimerMs": 15000
+          }
+        ]
+      },
+      "ab_boss_time_worm": {
+        "name": "时之蠕虫",
+        "zone": "time_rift",
+        "phases": [
+          {
+            "threshold": 1,
+            "id": "p1",
+            "label": "加速",
+            "hint": "敌人2倍速",
+            "enemyTimeScale": 2
+          },
+          {
+            "threshold": 0.75,
+            "id": "p2",
+            "label": "减速",
+            "hint": "友方0.5倍速",
+            "allyTimeScale": 0.5
+          },
+          {
+            "threshold": 0.5,
+            "id": "p3",
+            "label": "倒流",
+            "hint": "时间回溯指令纠错",
+            "rewindMs": 10000
+          },
+          {
+            "threshold": 0.25,
+            "id": "p4",
+            "label": "崩溃",
+            "hint": "随机时停区域",
+            "randomTimeStopZones": true
+          }
+        ]
+      }
+    },
+    "eventChains": {
+      "alchemist_legacy": {
+        "id": "alchemist_legacy",
+        "name": "炼金术士的遗产",
+        "zone": "any",
+        "nodes": [
+          {
+            "id": "al_1",
+            "eventId": "alchemist_notes",
+            "choices": [
+              {
+                "id": "study",
+                "label": "研究笔记",
+                "next": "al_2a"
+              },
+              {
+                "id": "burn",
+                "label": "烧毁笔记",
+                "next": "al_2b"
+              },
+              {
+                "id": "sell",
+                "label": "出售笔记",
+                "next": "al_2c",
+                "gold": 80
+              }
+            ]
+          },
+          {
+            "id": "al_2a",
+            "eventId": "potion_success",
+            "choices": [
+              {
+                "id": "drink",
+                "label": "服用药剂",
+                "next": "al_3a",
+                "rewards": {
+                  "permanentBuff": "random"
+                }
+              }
+            ]
+          },
+          {
+            "id": "al_2b",
+            "eventId": "potion_explosion",
+            "choices": [
+              {
+                "id": "endure",
+                "label": "承受爆炸",
+                "next": null,
+                "costHpPct": 0.2
+              }
+            ]
+          },
+          {
+            "id": "al_2c",
+            "eventId": "sell_notes",
+            "choices": [
+              {
+                "id": "take_gold",
+                "label": "收取金币",
+                "next": null,
+                "gold": 150,
+                "startChain": "merchant_revenge"
+              }
+            ]
+          },
+          {
+            "id": "al_3a",
+            "eventId": "alchemist_ghost",
+            "choices": [
+              {
+                "id": "accept_aid",
+                "label": "接受幽灵助战",
+                "next": null,
+                "allyNpc": "alchemist_ghost",
+                "unlockMeta": "alchemist_aid"
+              }
+            ]
+          }
+        ]
+      },
+      "traitor_knight": {
+        "id": "traitor_knight",
+        "name": "背叛的骑士",
+        "zone": "ashen_wastes",
+        "nodes": [
+          {
+            "id": "tk_1",
+            "eventId": "defected_knight",
+            "choices": [
+              {
+                "id": "recruit",
+                "label": "招募骑士",
+                "next": "tk_2a"
+              },
+              {
+                "id": "kill",
+                "label": "击杀骑士",
+                "next": "tk_2b"
+              },
+              {
+                "id": "report",
+                "label": "举报骑士",
+                "next": "tk_2c"
+              }
+            ]
+          },
+          {
+            "id": "tk_2a",
+            "eventId": "knight_joins",
+            "choices": [
+              {
+                "id": "accept",
+                "label": "接受加入",
+                "next": "tk_3a",
+                "tempAlly": "traitor_knight",
+                "battles": 1
+              }
+            ]
+          },
+          {
+            "id": "tk_2b",
+            "eventId": "knight_loot",
+            "choices": [
+              {
+                "id": "loot",
+                "label": "获得装备",
+                "next": null,
+                "rewards": {
+                  "gear": "knight_set"
+                }
+              }
+            ]
+          },
+          {
+            "id": "tk_2c",
+            "eventId": "demon_pursuit",
+            "choices": [
+              {
+                "id": "flee",
+                "label": "逃离追杀",
+                "next": null,
+                "startEncounter": "demon_hunters"
+              }
+            ]
+          },
+          {
+            "id": "tk_3a",
+            "eventId": "knight_betrayal",
+            "choices": [
+              {
+                "id": "fight",
+                "label": "迎战背叛",
+                "next": null,
+                "forcedCombat": true,
+                "enemyTemplate": "mirror_avg_hero"
+              }
+            ]
+          }
+        ]
+      },
+      "abyss_whisper": {
+        "id": "abyss_whisper",
+        "name": "深渊的低语",
+        "zone": "any",
+        "trigger": "rest",
+        "nodes": [
+          {
+            "id": "aw_1",
+            "eventId": "abyss_whisper",
+            "choices": [
+              {
+                "id": "accept",
+                "label": "接受力量",
+                "next": "aw_2a"
+              },
+              {
+                "id": "refuse",
+                "label": "拒绝低语",
+                "next": "aw_2b"
+              },
+              {
+                "id": "seal",
+                "label": "尝试封印",
+                "next": "aw_2c"
+              }
+            ]
+          },
+          {
+            "id": "aw_2a",
+            "eventId": "curse_gift",
+            "choices": [
+              {
+                "id": "take",
+                "label": "获得诅咒遗物",
+                "next": null,
+                "rewards": {
+                  "curseRelic": "random_powerful"
+                },
+                "corruption": 50
+              }
+            ]
+          },
+          {
+            "id": "aw_2b",
+            "eventId": "purify_unlock",
+            "choices": [
+              {
+                "id": "endure",
+                "label": "无效果",
+                "next": null,
+                "unlockEvent": "purify_ritual"
+              }
+            ]
+          },
+          {
+            "id": "aw_2c",
+            "eventId": "seal_fail",
+            "choices": [
+              {
+                "id": "fight",
+                "label": "强制腐化Boss战",
+                "next": null,
+                "forcedCombat": "corruption_boss"
+              }
+            ]
+          }
+        ]
+      },
+      "arena_champion": {
+        "id": "arena_champion",
+        "name": "竞技场冠军",
+        "zone": "any",
+        "nodes": [
+          {
+            "id": "ac_1",
+            "eventId": "underground_arena",
+            "choices": [
+              {
+                "id": "enter",
+                "label": "参赛",
+                "next": "ac_2a"
+              },
+              {
+                "id": "watch",
+                "label": "观战",
+                "next": null,
+                "gold": 20
+              },
+              {
+                "id": "leave",
+                "label": "离开",
+                "next": null
+              }
+            ]
+          },
+          {
+            "id": "ac_2a",
+            "eventId": "arena_trials",
+            "choices": [
+              {
+                "id": "fight",
+                "label": "连续3场",
+                "next": "ac_3a",
+                "battlesInRow": 3,
+                "failDeath": true,
+                "rewards": {
+                  "relic": "legendary_random"
+                }
+              }
+            ]
+          },
+          {
+            "id": "ac_3a",
+            "eventId": "champion_duel",
+            "choices": [
+              {
+                "id": "duel",
+                "label": "挑战冠军",
+                "next": null,
+                "forcedCombat": "mirror_match",
+                "rewards": {
+                  "relic": "arena_crown",
+                  "gold": 200
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "dragon_hoard": {
+        "id": "dragon_hoard",
+        "name": "龙的宝藏",
+        "zone": "magma_rift",
+        "nodes": [
+          {
+            "id": "dh_1",
+            "eventId": "dragon_lair",
+            "choices": [
+              {
+                "id": "sneak",
+                "label": "潜入龙穴",
+                "next": "dh_2a"
+              },
+              {
+                "id": "charge",
+                "label": "正面闯入",
+                "next": "dh_2b"
+              },
+              {
+                "id": "leave",
+                "label": "离开",
+                "next": null
+              }
+            ]
+          },
+          {
+            "id": "dh_2a",
+            "eventId": "steal_treasure",
+            "choices": [
+              {
+                "id": "steal",
+                "label": "偷取宝藏",
+                "next": "dh_3a",
+                "rewards": {
+                  "gear": "legendary",
+                  "curseRelic": "random"
+                }
+              }
+            ]
+          },
+          {
+            "id": "dh_2b",
+            "eventId": "dragon_battle",
+            "choices": [
+              {
+                "id": "fight",
+                "label": "与龙战斗",
+                "next": "dh_3a",
+                "forcedCombat": "dragon_boss",
+                "rewards": {
+                  "relic": "dragon_heart"
+                }
+              }
+            ]
+          },
+          {
+            "id": "dh_3a",
+            "eventId": "dragon_pursuit",
+            "choices": [
+              {
+                "id": "endure",
+                "label": "承受追杀",
+                "next": null,
+                "randomEncounter": "dragon_breath"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "demonPacts": {
+      "flesh_sacrifice": {
+        "id": "flesh_sacrifice",
+        "name": "血肉献祭",
+        "description": "开局生命只有50%，但攻击+30%",
+        "stars": 1,
+        "teamHpMult": 0.5,
+        "teamAttackMult": 1.3,
+        "rewardMult": 1.1
+      },
+      "poverty_vow": {
+        "id": "poverty_vow",
+        "name": "贫穷誓言",
+        "description": "无法获得金币，但经验+50%",
+        "stars": 2,
+        "goldGainMult": 0,
+        "expRewardMult": 1.5,
+        "rewardMult": 1.15
+      },
+      "cyclops": {
+        "id": "cyclops",
+        "name": "独眼巨人",
+        "description": "只能看到战场左侧（右侧黑屏）",
+        "stars": 2,
+        "visionHalf": "left",
+        "rewardMult": 1.2
+      },
+      "silence_oath": {
+        "id": "silence_oath",
+        "name": "沉默誓言",
+        "description": "禁用所有指挥官指令",
+        "stars": 3,
+        "disableCommander": true,
+        "rewardMult": 1.25
+      },
+      "flesh_maze": {
+        "id": "flesh_maze",
+        "name": "血肉迷宫",
+        "description": "地图节点不可见（盲选）",
+        "stars": 2,
+        "blindMap": true,
+        "rewardMult": 1.15
+      },
+      "hunger_curse": {
+        "id": "hunger_curse",
+        "name": "饥饿诅咒",
+        "description": "休息处无法回血",
+        "stars": 1,
+        "noRestHeal": true,
+        "rewardMult": 1.1
+      },
+      "gear_ban": {
+        "id": "gear_ban",
+        "name": "装备禁令",
+        "description": "无法装备任何装备",
+        "stars": 3,
+        "disableGear": true,
+        "rewardMult": 1.2
+      },
+      "skill_seal": {
+        "id": "skill_seal",
+        "name": "技能封印",
+        "description": "只能使用开局1个技能",
+        "stars": 3,
+        "maxActiveSkills": 1,
+        "rewardMult": 1.25
+      },
+      "double_enemies": {
+        "id": "double_enemies",
+        "name": "双倍敌人",
+        "description": "所有战斗敌人数量×2",
+        "stars": 3,
+        "enemyCountMult": 2,
+        "rewardMult": 1.2
+      },
+      "boss_rush": {
+        "id": "boss_rush",
+        "name": "Boss Rush",
+        "description": "只有Boss战，无普通战斗",
+        "stars": 4,
+        "bossesOnly": true,
+        "rewardMult": 1.3
+      },
+      "one_hit_kill": {
+        "id": "one_hit_kill",
+        "name": "一击必杀",
+        "description": "敌我双方都是一击必杀",
+        "stars": 4,
+        "oneHitKill": true,
+        "rewardMult": 1.35
+      },
+      "true_mode": {
+        "id": "true_mode",
+        "name": "真实模式",
+        "description": "无HUD，无伤害数字，无情报",
+        "stars": 5,
+        "noHud": true,
+        "noDamageNumbers": true,
+        "noIntel": true,
+        "rewardMult": 1.4
+      }
+    },
+    "weatherConfig": {
+      "spawnChance": 0.4,
+      "weathers": {
+        "blood_moon": {
+          "id": "blood_moon",
+          "name": "血月",
+          "description": "敌人攻击+20%，击杀恢复生命+10%",
+          "durationBattles": 3,
+          "effects": {
+            "enemyAttackMult": 1.2,
+            "killHealPct": 0.1
+          }
+        },
+        "fog": {
+          "id": "fog",
+          "name": "迷雾",
+          "description": "射程-30%，闪避+15%",
+          "durationBattles": 2,
+          "effects": {
+            "rangeMult": 0.7,
+            "dodgeBonus": 0.15
+          }
+        },
+        "rainstorm": {
+          "id": "rainstorm",
+          "name": "暴雨",
+          "description": "火伤-30%，雷伤+30%",
+          "durationBattles": 4,
+          "effects": {
+            "fireDamageMult": 0.7,
+            "lightningDamageMult": 1.3
+          }
+        },
+        "sandstorm": {
+          "id": "sandstorm",
+          "name": "沙尘暴",
+          "description": "每3秒全场-3%生命（敌我不分）",
+          "durationBattles": 2,
+          "effects": {
+            "globalDotPct": 0.03,
+            "tickIntervalMs": 3000
+          }
+        },
+        "aurora": {
+          "id": "aurora",
+          "name": "极光",
+          "description": "技能CD-20%，但普攻伤害-20%",
+          "durationBattles": 3,
+          "effects": {
+            "cooldownMult": 0.8,
+            "basicDamageMult": 0.8
+          }
+        }
+      }
+    },
+    "bondConfig": {
+      "bonds": {
+        "iron_frontline": {
+          "id": "iron_frontline",
+          "name": "钢铁前线",
+          "description": "战士+战士相邻时互相分担40%伤害",
+          "requiredClasses": {
+            "warrior": 2
+          },
+          "adjacent": true,
+          "effect": {
+            "type": "damage_share",
+            "sharePct": 0.4
+          }
+        },
+        "elemental_resonance": {
+          "id": "elemental_resonance",
+          "name": "元素共鸣",
+          "description": "法师+法师相邻时技能有30%几率触发另一名法师的技能",
+          "requiredClasses": {
+            "mage": 2
+          },
+          "adjacent": true,
+          "effect": {
+            "type": "mage_echo",
+            "chance": 0.3
+          }
+        },
+        "shadow_dance": {
+          "id": "shadow_dance",
+          "name": "影舞",
+          "description": "刺客+刺客相邻时闪避后另一名刺客也获得闪避",
+          "requiredClasses": {
+            "assassin": 2
+          },
+          "adjacent": true,
+          "effect": {
+            "type": "assassin_dodge_share",
+            "durationMs": 1500
+          }
+        },
+        "arrow_rain": {
+          "id": "arrow_rain",
+          "name": "箭雨",
+          "description": "弓箭手+弓箭手相邻时普攻有20%几率触发另一名弓箭手的普攻",
+          "requiredClasses": {
+            "archer": 2
+          },
+          "adjacent": true,
+          "effect": {
+            "type": "archer_echo_attack",
+            "chance": 0.2
+          }
+        },
+        "light_dark_balance": {
+          "id": "light_dark_balance",
+          "name": "光暗平衡",
+          "description": "法师+刺客相邻时法师技能伤害+20%，刺客暴击+15%",
+          "requiredClasses": {
+            "mage": 1,
+            "assassin": 1
+          },
+          "adjacent": true,
+          "effect": {
+            "type": "mage_assassin_synergy",
+            "mageSkillDamageMult": 1.2,
+            "assassinCritBonus": 0.15
+          }
+        },
+        "war_hunt_combo": {
+          "id": "war_hunt_combo",
+          "name": "战猎协同",
+          "description": "战士+弓箭手相邻时战士嘲讽期间弓箭手对其目标伤害+50%",
+          "requiredClasses": {
+            "warrior": 1,
+            "archer": 1
+          },
+          "adjacent": true,
+          "effect": {
+            "type": "taunt_mark_bonus",
+            "damageBonus": 0.5
+          }
+        }
+      }
+    },
+    "mutatedNodeConfig": {
+      "spawnChance": 0.05,
+      "types": {
+        "reverse_battle": {
+          "id": "reverse_battle",
+          "name": "反转战斗",
+          "description": "你控制敌人，AI控制你的队伍",
+          "reverseControl": true
+        },
+        "duel_1v1": {
+          "id": "duel_1v1",
+          "name": "1v1决斗",
+          "description": "只上阵1人，敌人也只有1个（属性×4）"
+        },
+        "survival_mode": {
+          "id": "survival_mode",
+          "name": "生存模式",
+          "description": "无限波次敌人，坚持越久奖励越好"
+        },
+        "mirror_match": {
+          "id": "mirror_match",
+          "name": "镜像对决",
+          "description": "敌人是你的完全镜像（装备/技能/遗物）"
+        },
+        "element_only": {
+          "id": "element_only",
+          "name": "元素限定",
+          "description": "只有特定元素伤害有效"
+        },
+        "no_gear_battle": {
+          "id": "no_gear_battle",
+          "name": "无装备战",
+          "description": "临时卸下所有装备，纯靠技能和遗物",
+          "stripGear": true
+        }
+      }
+    }
+  }
+}

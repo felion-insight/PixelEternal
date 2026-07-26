@@ -1,0 +1,61 @@
+{
+  "ascension": {
+    "commanderMode": {
+      "enabled": true,
+      "tutorialBossRequired": true
+    },
+    "skirmishMode": {
+      "enabled": true,
+      "powerRatioThreshold": 1.5,
+      "alwaysSkirmishWhenEligible": false
+    },
+    "bossPhases": {
+      "enabled": true,
+      "affectedBosses": ["ab_boss_warden", "ab_boss_tyrant", "ab_boss_harbinger", "ab_final", "ab_boss_corrupt_mother", "ab_boss_frost_king", "ab_boss_thunder_tyrant", "ab_boss_thousand_faces", "ab_boss_gold_giant", "ab_boss_time_worm"]
+    },
+    "synergyMatrix": {
+      "enabled": true,
+      "maxActiveSynergies": 5
+    },
+    "zoneEcology": {
+      "enabled": true,
+      "zoneLayout": ["ashen_wastes", "magma_rift", "void_abyss", "throne_of_end"]
+    },
+    "curseSystem": {
+      "enabled": true,
+      "corruptionEnabled": true
+    },
+    "demonPact": {
+      "enabled": true,
+      "unlockAfterVictory": true
+    },
+    "preCombatIntel": {
+      "enabled": true,
+      "accuracy": 0.9
+    },
+    "deathNarrative": {
+      "enabled": true
+    },
+    "eventChains": {
+      "enabled": true,
+      "maxConcurrentChains": 3
+    },
+    "juiceSystem": {
+      "enabled": true,
+      "hitStopEnabled": true,
+      "screenShakeEnabled": true,
+      "damageNumbersEnabled": true,
+      "killComboEnabled": true,
+      "lootFlyEnabled": true
+    },
+    "battleSpeed": {
+      "enabled": true,
+      "unlockX2AfterVictory": true,
+      "unlockX3AfterVictory": false,
+      "defaultScale": 1
+    },
+    "combatPacing": {
+      "maxDurationMs": 60000
+    }
+  }
+}

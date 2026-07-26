@@ -1,0 +1,136 @@
+{
+  "COMMANDER_CONFIG": {
+    "energy": {
+      "maxEnergy": 100,
+      "startEnergy": 20,
+      "regenPerSecond": 5,
+      "regenPerKill": 8,
+      "regenPerAllyDeath": 15,
+      "regenPerDamageTaken": 0.5,
+      "overflowCap": 120
+    },
+    "slotCount": 3,
+    "maxSlotCount": 5,
+    "abilities": {
+      "focus_fire": {
+        "id": "focus_fire",
+        "name": "集火标记",
+        "cost": 25,
+        "cooldownMs": 8000,
+        "type": "instant",
+        "effectType": "focus_fire",
+        "durationMs": 6000,
+        "damageBonus": 0.3,
+        "basic": true
+      },
+      "tactical_retreat": {
+        "id": "tactical_retreat",
+        "name": "紧急后撤",
+        "cost": 35,
+        "cooldownMs": 12000,
+        "type": "instant",
+        "effectType": "tactical_retreat",
+        "distance": 2,
+        "invulnDurationMs": 1500,
+        "basic": true
+      },
+      "shield_burst": {
+        "id": "shield_burst",
+        "name": "护盾爆发",
+        "cost": 40,
+        "cooldownMs": 15000,
+        "type": "instant",
+        "effectType": "shield_burst",
+        "shieldPct": 0.15,
+        "durationMs": 5000,
+        "basic": true
+      },
+      "time_stop": {
+        "id": "time_stop",
+        "name": "时停",
+        "cost": 60,
+        "cooldownMs": 25000,
+        "type": "instant",
+        "effectType": "time_stop",
+        "durationMs": 2500,
+        "basic": true
+      },
+      "battle_cry": {
+        "id": "battle_cry",
+        "name": "战吼鼓舞",
+        "cost": 30,
+        "cooldownMs": 10000,
+        "type": "instant",
+        "effectType": "battle_cry",
+        "attackMult": 1.25,
+        "speedMult": 1.15,
+        "durationMs": 5000,
+        "basic": true
+      },
+      "tactical_withdraw": {
+        "id": "tactical_withdraw",
+        "name": "战术撤退",
+        "cost": 50,
+        "cooldownMs": 20000,
+        "type": "instant",
+        "effectType": "tactical_withdraw",
+        "basic": true
+      },
+      "soul_link": {
+        "id": "soul_link",
+        "name": "灵魂链接",
+        "cost": 45,
+        "cooldownMs": 18000,
+        "type": "instant",
+        "effectType": "soul_link",
+        "durationMs": 8000,
+        "sharePct": 0.5,
+        "unlockRelic": "soul_pact_relic"
+      },
+      "void_banish": {
+        "id": "void_banish",
+        "name": "虚空放逐",
+        "cost": 70,
+        "cooldownMs": 30000,
+        "type": "instant",
+        "effectType": "void_banish",
+        "durationMs": 10000,
+        "unlockRelic": "void_key_relic"
+      },
+      "time_rewind": {
+        "id": "time_rewind",
+        "name": "时间回溯",
+        "cost": 80,
+        "cooldownMs": 35000,
+        "type": "instant",
+        "effectType": "time_rewind",
+        "rewindMs": 5000,
+        "unlockRelic": "hourglass_relic"
+      },
+      "blood_frenzy": {
+        "id": "blood_frenzy",
+        "name": "血祭狂暴",
+        "cost": 0,
+        "cooldownMs": 22000,
+        "type": "instant",
+        "effectType": "blood_frenzy",
+        "hpCostPct": 0.2,
+        "critBonus": 0.5,
+        "durationMs": 5000,
+        "unlockCurse": "blood_pact_curse"
+      },
+      "summon_reinforcements": {
+        "id": "summon_reinforcements",
+        "name": "召唤援军",
+        "cost": 55,
+        "cooldownMs": 28000,
+        "type": "instant",
+        "effectType": "summon_reinforcements",
+        "durationMs": 15000,
+        "count": 2,
+        "statMult": 0.5,
+        "unlockChain": "lost_legion"
+      }
+    }
+  }
+}

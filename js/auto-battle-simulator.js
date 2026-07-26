@@ -294,6 +294,31 @@
         return best;
     }
 
+    /** 反转战斗：命中敌方单位 */
+    function hitTestEnemyUnit(board, origin, canvasX, canvasY, enemies) {
+        const cell = board.cellSize || 72;
+        const radius = unitSpriteRadius(cell);
+        const padX = radius * 1.35;
+        const padTop = radius + 32;
+        const padBottom = radius + 28;
+        let best = null;
+        let bestScore = Infinity;
+        (enemies || []).forEach((u) => {
+            if (!u.alive || u.hp <= 0) return;
+            const dx = canvasX - u.x;
+            const dy = canvasY - u.y;
+            if (Math.abs(dx) > padX || dy < -padTop || dy > padBottom) return;
+            const nx = dx / padX;
+            const ny = dy < 0 ? dy / padTop : dy / padBottom;
+            const score = nx * nx + ny * ny;
+            if (score <= 1 && score < bestScore) {
+                bestScore = score;
+                best = u;
+            }
+        });
+        return best;
+    }
+
     /** 己方棋盘 + 精灵外扩后的布阵交互矩形（canvas 像素） */
     function deployPickBounds(board, origin, canvasWidth, canvasHeight) {
         const cols = board.cols || 4;
@@ -357,6 +382,11 @@
         let gearCrit = 0;
         let gearCdMult = 1;
         let gearOnHitHeal = 0;
+        let weaponRange = null;
+        let basicIntervalMult = 1;
+        let basicCleave = false;
+        let basicPierce = false;
+        let gearPassive = null;
         Object.keys(heroRun.equipment || {}).forEach((slot) => {
             const g = heroRun.equipment[slot];
             if (!g) return;
@@ -367,6 +397,11 @@
             if (g.critChance) gearCrit += g.critChance;
             if (g.cooldownMult) gearCdMult *= g.cooldownMult;
             if (g.onHitHeal) gearOnHitHeal += g.onHitHeal;
+            if (g.range != null) weaponRange = g.range;
+            if (g.basicIntervalMult) basicIntervalMult *= g.basicIntervalMult;
+            if (g.basicCleave) basicCleave = true;
+            if (g.basicPierce) basicPierce = true;
+            if (g.passive) gearPassive = { type: g.passive, pct: g.passivePct || 0 };
         });
         attack *= (relicFx.attackMult || 1);
         defense += (relicFx.flatDefense || 0);
@@ -403,12 +438,15 @@
             attack: attack,
             defense: defense,
             speed: stats.speed,
-            range: stats.range,
+            range: weaponRange != null ? weaponRange : stats.range,
             skillMult: skillMult,
             critChance: gearCrit,
             cooldownMult: gearCdMult,
             onHitHeal: gearOnHitHeal,
-            basicInterval: Math.floor(basicBase * (relicFx.basicIntervalMult || 1)),
+            basicCleave: basicCleave,
+            basicPierce: basicPierce,
+            gearPassive: gearPassive,
+            basicInterval: Math.floor(basicBase * (relicFx.basicIntervalMult || 1) * basicIntervalMult),
             basicCd: 0,
             skills: (heroRun.skillSlots || []).filter(Boolean).map((entry) => {
                 const RSS = window.RunStateSystem;
@@ -501,7 +539,7 @@
         return unit;
     }
 
-    function scaleForNode(nodeType, layer) {
+    function scaleForNode(nodeType, layer, run) {
         const sc = cfg().enemyScaling || {};
         const step = sc.layerPerStep != null ? sc.layerPerStep : 0.08;
         const base = sc.baseMult != null ? sc.baseMult : 1;
@@ -525,6 +563,9 @@
             }
         }
         if (nodeType === 'boss_final') s *= sc.bossFinalMult != null ? sc.bossFinalMult : 1.55;
+        if (window.DemonPact && run) {
+            s = window.DemonPact.modifyEnemyScaling(s, run);
+        }
         return s;
     }
 
@@ -568,14 +609,14 @@
         return units;
     }
 
-    function generateEnemies(nodeType, layer, rng) {
+    function generateEnemies(nodeType, layer, rng, run) {
         const templates = cfg().enemyTemplates || [];
         const r = rng || Math.random;
         const find = (id) => templates.find((t) => t.id === id) || templates[0];
         const encLayer = (window.TowerRunMap && window.TowerRunMap.toEncounterLayer)
             ? window.TowerRunMap.toEncounterLayer(layer)
             : layer;
-        const s = scaleForNode(nodeType, layer);
+        const s = scaleForNode(nodeType, layer, run);
         const ECS = window.EnemyCompositionSystem;
 
         if (ECS && ECS.pickComposition) {
@@ -648,11 +689,19 @@
         return Math.sqrt(dx * dx + dy * dy);
     }
 
-    function pickTarget(unit, enemies) {
+    function pickTarget(unit, enemies, battle) {
         const ECS = window.EnemyCompositionSystem;
+        if (unit.side === 'enemy' && battle && window.CombatEffectsBridge) {
+            const taunt = window.CombatEffectsBridge.pickEnemyTarget(unit, enemies, battle);
+            if (taunt) return taunt;
+        }
         if (ECS && ECS.pickTarget) {
             const picked = ECS.pickTarget(unit, enemies);
             if (picked) return picked;
+        }
+        let pool = enemies;
+        if (battle && window.CommanderAbilities && unit.side === 'ally') {
+            pool = window.CommanderAbilities.modifyPickTarget(battle, unit, enemies);
         }
         let best = null;
         let bestD = Infinity;
@@ -662,7 +711,7 @@
         const meleeR = (cfg().combat && cfg().combat.meleeRange) || 42;
         const backBias = preferBack ? Math.max(48, meleeR * 1.4) : 0;
         const seekR = preferBack ? Math.max(200, meleeR * 5) : Infinity;
-        enemies.forEach((e) => {
+        pool.forEach((e) => {
             if (!e.alive || e.hp <= 0) return;
             let d = dist(unit, e);
             if (preferBack) {
@@ -2380,7 +2429,7 @@
         return !!(unit.statuses || []).some((s) => s.type === 'stun' && s.t > 0);
     }
 
-    function attackBuffMult(unit) {
+    function attackBuffMult(unit, battle) {
         let mult = 1;
         (unit.statuses || []).forEach((s) => {
             if (s.type === 'buff' && s.stat === 'attack' && s.t > 0) mult *= (1 + (s.pct || 0));
@@ -2388,6 +2437,13 @@
         (unit.statuses || []).forEach((s) => {
             if (s.type === 'debuff' && s.stat === 'attack' && s.t > 0) mult *= Math.max(0.2, 1 - (s.pct || 0));
         });
+        const b = battle || unit._battleRef;
+        if (b && window.CombatEffectsBridge) {
+            mult *= window.CombatEffectsBridge.getAttackBuffMult(unit, b);
+        }
+        if (b && b.bondFx && unit.baseClass === 'assassin' && b.bondFx.assassinCritBonus) {
+            unit.critChance = (unit.critChance || 0) + b.bondFx.assassinCritBonus;
+        }
         return mult;
     }
 
@@ -2478,7 +2534,13 @@
     }
 
     function healUnit(battle, unit, amount) {
-        if (!unit || !unit.alive || amount <= 0) return 0;
+        if (!unit || amount <= 0) return 0;
+        if (battle && battle.bossHealReverse && unit.side === 'ally' && unit.alive) {
+            unit.hp = Math.max(0, unit.hp - amount);
+            if (unit.hp <= 0) unit.alive = false;
+            return -amount;
+        }
+        if (!unit.alive) return 0;
         const before = unit.hp;
         unit.hp = Math.min(unit.maxHp, unit.hp + amount);
         const healed = unit.hp - before;
@@ -2516,7 +2578,9 @@
                 s.nextTick = (s.nextTick || 0) - dtMs;
                 while (s.nextTick <= 0 && s.t > 0) {
                     const stacks = s.stacks || 1;
-                    const raw = (s.pctOfAttack || 0) * (s.sourceAttack || 0) * stacks;
+                    let raw = (s.pctOfAttack || 0) * (s.sourceAttack || 0) * stacks;
+                    if (relicFx && relicFx.dotMult) raw *= relicFx.dotMult;
+                    if (battle && battle.synergyFx && battle.synergyFx.dotMult) raw *= battle.synergyFx.dotMult;
                     if (raw > 0 && unit.alive) {
                         let dmg = Math.max(1, Math.floor(raw - defenseValue(unit) * 0.35));
                         unit.hp -= dmg;
@@ -2590,7 +2654,8 @@
                 let first = pool[0] || target;
                 const chainP = skillVfxProfile(sk.id);
                 const jumpBonus = sk.chainJumpBonus || 0;
-                const jumpCount = (eff.jumps || 3) + jumpBonus;
+                const extraJumps = (relicFx && relicFx.extraChainJumps) || 0;
+                const jumpCount = (eff.jumps || 3) + jumpBonus + extraJumps;
                 const lifeBonus = sk.lifestealBonus || 0;
                 let prevX = unit.x;
                 let prevY = unit.y - 4;
@@ -2619,7 +2684,10 @@
                         });
                     }
                     const baseFall = eff.falloff != null ? eff.falloff : 0.85;
-                    const fallBonus = (relicFx && relicFx.chainFalloffBonus) || 0;
+                    let fallBonus = (relicFx && relicFx.chainFalloffBonus) || 0;
+                    if (relicFx && relicFx.chainDecayMult != null) {
+                        fallBonus += Math.max(0, 1 - relicFx.chainDecayMult) * 0.12;
+                    }
                     mult *= Math.min(1, baseFall + fallBonus);
                 }
                 return;
@@ -2632,8 +2700,13 @@
                     tickMs: eff.tickMs || 1000,
                     nextTick: 0,
                     pctOfAttack: eff.pctOfAttack || 0.15,
-                    sourceAttack: unit.attack * (unit.skillMult || 1) * attackBuffMult(unit)
+                    sourceAttack: unit.attack * (unit.skillMult || 1) * attackBuffMult(unit),
+                    element: eff.element || sk.element
                 });
+                if (battle && battle.synergyFx && battle.synergyFx.freezeOnPoison &&
+                    (eff.element === 'poison' || sk.element === 'poison')) {
+                    addStatus(target, { type: 'stun', t: 1200 });
+                }
                 return;
             case 'stack_dot':
                 if (!target || !target.alive) return;
@@ -2757,7 +2830,15 @@
 
     function applyDamage(battle, attacker, target, raw, relicFx, meta) {
         meta = meta || {};
+        if (window.CombatEffectsBridge && window.CombatEffectsBridge.isInvulnerable(battle, target)) return 0;
+        if (window.CombatEffectsBridge) {
+            raw = window.CombatEffectsBridge.modifyOutgoingDamage(battle, attacker, target, raw, meta, relicFx);
+        }
         let dmg = Math.max(1, raw - defenseValue(target) * 0.5);
+        if (meta.ignoreArmor) dmg = Math.max(1, raw * 0.85);
+        if (relicFx && relicFx.armorPenPct && attacker.side === 'ally') {
+            dmg = Math.max(1, raw - defenseValue(target) * 0.5 * (1 - relicFx.armorPenPct));
+        }
         let crit = false;
         const ECS = window.EnemyCompositionSystem;
         const bias = attacker.side === 'ally' ? classCombatBias(attacker.baseClass) : {};
@@ -2779,6 +2860,10 @@
                 dmg *= 1.5;
                 crit = true;
             }
+        }
+        if (target.side === 'ally' && !meta.isThorn && (target.dodgeBonus || 0) > 0 && Math.random() < target.dodgeBonus) {
+            if (window.CombatEffectsBridge) window.CombatEffectsBridge.onUnitDodge(battle, target);
+            return 0;
         }
         if (attacker.side === 'enemy' && ECS && ECS.modifyOutgoingDamage) {
             dmg = ECS.modifyOutgoingDamage(battle, attacker, target, dmg);
@@ -2806,15 +2891,31 @@
             return 0;
         }
         dmg = Math.floor(dmg);
+        if (window.CombatEffectsBridge) {
+            dmg = window.CombatEffectsBridge.modifyIncomingDamage(battle, target, dmg, attacker, meta);
+        }
         dmg = absorbShield(target, dmg);
         if (dmg <= 0) return 0;
         target.hp -= dmg;
         target.hitFlash = meta.isSkill ? 220 : 140;
         if (meta.crit == null) meta.crit = crit;
+        if (attacker) attacker._lastHitWasCrit = crit;
+        if (window.CombatEffectsBridge) {
+            window.CombatEffectsBridge.onDamageDealt(battle, attacker, target, dmg, meta);
+        }
+        if (attacker.side === 'ally' && relicFx && relicFx.lifesteal && dmg > 0 && attacker.alive) {
+            healUnit(battle, attacker, Math.floor(dmg * relicFx.lifesteal));
+        }
         recordCombatDamage(battle, attacker, target, dmg, meta);
+        if (window.AscensionHub) {
+            window.AscensionHub.onDamage(battle, attacker, target, dmg, meta);
+        }
         if (target.hp <= 0) {
             target.hp = 0;
             target.alive = false;
+            if (window.AscensionHub) {
+                window.AscensionHub.onKill(battle, attacker, target);
+            }
             pushFx(battle, {
                 type: 'death', x: target.x, y: target.y,
                 color: target.color || '#fff', life: 420, maxLife: 420
@@ -4051,7 +4152,9 @@
         effects.forEach((eff) => {
             applySkillEffect(battle, unit, sk, eff, target, foes, allies, relicFx);
         });
-        const cdMult = unit.side === 'ally' ? (relicFx.cooldownMult || 1) : 1;
+        const cdMult = unit.side === 'ally'
+            ? (relicFx.cooldownMult || 1) * (battle.weatherSkillCdMult || 1)
+            : 1;
         const feel = (combat && combat.skillCooldownMult) != null ? combat.skillCooldownMult : 0.75;
         sk.cd = sk.cooldownMs * cdMult * feel;
         // 技能后短暂锁普攻，避免技能瞬间被普攻淹没
@@ -4074,6 +4177,24 @@
             side: unit.side
         });
         if (battle.log.length > 24) battle.log.splice(0, battle.log.length - 24);
+        if (unit.side === 'ally' && unit.baseClass === 'mage' && battle.bondFx && battle.bondFx.mageEchoChance &&
+            Math.random() < battle.bondFx.mageEchoChance) {
+            effects.forEach((eff) => {
+                applySkillEffect(battle, unit, sk, eff, target, foes, allies, relicFx);
+            });
+        }
+        if (unit.side === 'ally' && relicFx.randomElementOnSkill && relicFx.randomElementOnSkill.length) {
+            const pool = relicFx.randomElementOnSkill;
+            const el = pool[Math.floor(Math.random() * pool.length)];
+            const foes2 = living(foes);
+            const t2 = target || foes2[0];
+            if (t2 && window.AutoBattleSimulator) {
+                const dotMeta = { isSkill: true, fire: el === 'fire', ice: el === 'ice', lightning: el === 'lightning' };
+                window.AutoBattleSimulator.applyTraitDamage(
+                    battle, unit, t2, Math.floor(unit.attack * 0.4), dotMeta
+                );
+            }
+        }
     }
 
     function placeUnits(battle) {
@@ -4130,24 +4251,61 @@
             .filter((h) => isHeroCombatReady(h))
             .map((h) => buildAllyUnit(h, relicFx))
             .filter((u) => u.alive && u.hp > 0);
+        if (run.ascension && run.ascension.tempAllies && run.ascension.tempAllies.length) {
+            run.ascension.tempAllies.forEach((ta, i) => {
+                if ((ta.battlesLeft || 0) <= 0) return;
+                ta.battlesLeft -= 1;
+                allies.push({
+                    id: 'temp_ally_' + i + '_' + (ta.id || 'merc'),
+                    side: 'ally',
+                    name: ta.id || '佣兵',
+                    col: i % 4,
+                    row: 1,
+                    hp: 120,
+                    maxHp: 120,
+                    attack: 18,
+                    defense: 4,
+                    speed: 65,
+                    range: 48,
+                    skillMult: 1,
+                    basicInterval: 900,
+                    basicCd: 0,
+                    skills: [],
+                    alive: true,
+                    tempAlly: true,
+                    color: '#88aa66'
+                });
+            });
+            run.ascension.tempAllies = run.ascension.tempAllies.filter((t) => (t.battlesLeft || 0) > 0);
+        }
         // 放大后同步攻击距离；技能射程至少覆盖普攻距离，避免永远放不出技
         allies.forEach((u, idx) => {
             if ((u.range || 0) > 90) u.range = combat.rangedRange;
             else u.range = Math.max(combat.meleeRange, (u.range || 48) * scaleR);
+            const rangeMult = relicFx.skillRangeMult || 1;
             (u.skills || []).forEach((sk, si) => {
-                const baseR = (sk.range || u.range) * scaleR;
+                const baseR = (sk.range || u.range) * scaleR * rangeMult;
                 sk.range = Math.max(baseR, u.range);
                 // 错开开局就绪，避免同一帧全员齐放看不清
                 sk.cd = sk.startReady ? 0 : (si * 120 + idx * 80);
             });
-            u.speed = (u.speed || 70) * Math.max(1, scaleR * 0.85);
+            const moveMult = relicFx.moveSpeedMult || 1;
+            u.speed = (u.speed || 70) * Math.max(1, scaleR * 0.85) * moveMult;
             u.skillCasts = 0;
             u.castFlash = 0;
             u.lastSkillName = '';
         });
         const nodeSeed = ((run.seed || 1) ^ ((node.layer + 1) * 9973) ^ ((node.id || '').length * 131)) >>> 0;
         const rng = window.RunStateSystem.mulberry32(nodeSeed);
-        const enemies = generateEnemies(node.type, node.layer, rng);
+        let enemies = generateEnemies(node.type, node.layer, rng, run);
+        const pact = run.ascension && run.ascension.pact;
+        if (pact && pact.enemyCountMult > 1) {
+            const dup = enemies.map((e, i) => Object.assign({}, e, {
+                id: (e.id || 'e') + '_dup' + i,
+                col: ((e.col || 0) + 2) % (board.cols || 4)
+            }));
+            enemies = enemies.concat(dup);
+        }
         enemies.forEach((u) => {
             if ((u.range || 0) > 90) u.range = combat.rangedRange;
             else u.range = Math.max(combat.meleeRange, (u.range || 48) * scaleR);
@@ -4208,7 +4366,7 @@
             });
         const nodeSeed = ((run.seed || 1) ^ ((node.layer + 1) * 9973) ^ ((node.id || '').length * 131)) >>> 0;
         const rng = window.RunStateSystem.mulberry32(nodeSeed);
-        const enemies = generateEnemies(node.type, node.layer, rng).map((e) => {
+        const enemies = generateEnemies(node.type, node.layer, rng, run).map((e) => {
             e.preview = true;
             return e;
         });
@@ -4284,11 +4442,13 @@
         tickUnitAuras(unit, dtMs);
         if (unit.hitFlash > 0) unit.hitFlash = Math.max(0, unit.hitFlash - dtMs);
         if (isStunned(unit)) return;
+        if (unit.side === 'enemy' && battle.enemyTimeStopUntil != null &&
+            (battle.elapsed || 0) < battle.enemyTimeStopUntil) return;
         unit.basicCd = Math.max(0, unit.basicCd - dtMs);
         (unit.skills || []).forEach((sk) => { sk.cd = Math.max(0, sk.cd - dtMs); });
 
         const foes = unit.side === 'ally' ? enemies : allies;
-        let target = foes.find((f) => f.id === unit.targetId && f.alive) || pickTarget(unit, living(foes));
+        let target = foes.find((f) => f.id === unit.targetId && f.alive) || pickTarget(unit, living(foes), battle);
         if (!target) return;
         unit.targetId = target.id;
 
@@ -4296,6 +4456,8 @@
 
         // 优先释放就绪技能（在技能射程内即可，不必贴到普攻距离）
         const skills = unit.skills || [];
+        const silenced = window.CombatEffectsBridge && window.CombatEffectsBridge.isSilenced(battle, unit);
+        if (!silenced) {
         for (let i = 0; i < skills.length; i++) {
             const sk = skills[i];
             if (!sk || sk.cd > 0) continue;
@@ -4304,13 +4466,17 @@
                 return;
             }
         }
+        }
 
         const range = unit.range || 48;
         const d = dist(unit, target);
         if (d <= range) {
-            if (unit.basicCd <= 0) {
+            if (unit.basicCd <= 0 && (!window.CombatEffectsBridge || window.CombatEffectsBridge.canBasicAttack(battle, unit))) {
                 spawnAttackFx(battle, unit, target, false, false, null);
-                applyDamage(battle, unit, target, unit.attack * attackBuffMult(unit), relicFx, { isSkill: false });
+                applyDamage(battle, unit, target, unit.attack * attackBuffMult(unit, battle), relicFx, { isSkill: false });
+                if (window.CombatEffectsBridge) {
+                    window.CombatEffectsBridge.onBasicAttackHit(battle, unit, target, relicFx);
+                }
                 if (unit.side === 'ally') {
                     const healAmt = (relicFx.onHitHeal || 0) + (unit.onHitHeal || 0);
                     if (healAmt) unit.hp = Math.min(unit.maxHp, unit.hp + healAmt);
@@ -4595,26 +4761,63 @@
             tickVictoryFinale(battle, dtMs);
             return battle;
         }
+
+        let effectiveDt = dtMs;
+        if (window.AscensionHub) {
+            effectiveDt = window.AscensionHub.onTickBattle(battle, dtMs);
+            if (effectiveDt === 0) {
+                tickFx(battle, dtMs);
+                if (window.JuiceVfx) window.JuiceVfx.tick(battle, dtMs);
+                return battle;
+            }
+        }
+        if (window.ZoneEcology && window.ZoneEcology.tickZoneBattle) {
+            window.ZoneEcology.tickZoneBattle(battle, effectiveDt);
+        }
+        if (window.JuiceVfx) window.JuiceVfx.tick(battle, effectiveDt);
+
         const combat = battle.combat || {};
-        const maxDur = combat.maxDurationMs || 90000;
-        battle.elapsed += dtMs;
+        const maxDur = (window.CombatPacing && window.CombatPacing.getMaxCombatDurationMs)
+            ? window.CombatPacing.getMaxCombatDurationMs()
+            : (combat.maxDurationMs || 90000);
+        battle.elapsed += effectiveDt;
 
         const ECS = window.EnemyCompositionSystem;
-        if (ECS && ECS.tickBattle) ECS.tickBattle(battle, dtMs);
+        if (ECS && ECS.tickBattle) ECS.tickBattle(battle, effectiveDt);
+        if (window.CombatEffectsBridge) window.CombatEffectsBridge.tickBattle(battle, effectiveDt);
 
+        const enemyDt = battle.mutationReverse ? 0 : effectiveDt * (battle.enemyTimeScale != null ? battle.enemyTimeScale : 1);
         const step = combat.tickMs || 50;
-        let left = dtMs;
+        let left = effectiveDt;
         while (left > 0 && !battle.finished) {
             const slice = Math.min(step, left);
-            battle.allies.forEach((u) => tickUnit(battle, u, battle.allies, battle.enemies, slice, battle.relicFx, combat));
-            battle.enemies.forEach((u) => tickUnit(battle, u, battle.allies, battle.enemies, slice, battle.relicFx, combat));
+            const allyDt = slice * (battle.allyTimeScale != null ? battle.allyTimeScale : 1);
+            battle.allies.forEach((u) => tickUnit(battle, u, battle.allies, battle.enemies, Math.min(slice, allyDt), battle.relicFx, combat));
+            if (battle.mutationReverse) {
+                battle.enemies.forEach((u) => {
+                    if (u.playerControlled && u.alive) {
+                        tickUnit(battle, u, battle.enemies, battle.allies, slice, battle.relicFx, combat);
+                    }
+                });
+            } else if (enemyDt > 0) {
+                battle.enemies.forEach((u) => tickUnit(battle, u, battle.allies, battle.enemies, Math.min(slice, enemyDt), battle.relicFx, combat));
+            }
             left -= slice;
 
             if (!living(battle.enemies).length) {
-                beginVictoryFinale(battle);
+                if (battle.mutationReverse) {
+                    battle.finished = true;
+                    battle.victory = false;
+                } else {
+                    beginVictoryFinale(battle);
+                }
             } else if (!living(battle.allies).length) {
-                battle.finished = true;
-                battle.victory = false;
+                if (battle.mutationReverse) {
+                    beginVictoryFinale(battle);
+                } else {
+                    battle.finished = true;
+                    battle.victory = false;
+                }
             }
         }
 
@@ -6180,6 +6383,7 @@
         unitSpriteRadius,
         hitTestAllyCell,
         hitTestAllyUnit,
+        hitTestEnemyUnit,
         deployPickBounds,
         reanchorBattle,
         createBattle,
@@ -6187,6 +6391,7 @@
         tickBattle,
         generateEnemies,
         applyTraitDamage,
+        spawnTraitEnemy,
         spawnEnemyTraitHitFx,
         spawnEnemyTraitDamageFx,
         syncHeroHpFromBattle,

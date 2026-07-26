@@ -91,47 +91,51 @@
     "battleChance": 0.42,
     "acts": [
       {
-        "name": "入门层",
-        "preBossSteps": 15,
+        "name": "灰烬荒原",
+        "zoneId": "ashen_wastes",
+        "preBossSteps": 9,
         "bossType": "boss",
         "eliteMax": 1,
-        "restMin": 3,
-        "shopMin": 2,
-        "banEliteFirst": 11,
-        "forceRestAt": [2, 5, 8, 13],
-        "forceShopAt": [4, 10]
-      },
-      {
-        "name": "炼狱层",
-        "preBossSteps": 14,
-        "bossType": "boss",
-        "eliteMax": 3,
         "restMin": 2,
         "shopMin": 1,
-        "banEliteFirst": 0,
-        "forceRestAt": [6, 12],
+        "banEliteFirst": 7,
+        "forceRestAt": [2, 5, 8],
         "forceShopAt": [4]
       },
       {
-        "name": "深渊层",
-        "preBossSteps": 14,
+        "name": "熔岩裂谷",
+        "zoneId": "magma_rift",
+        "preBossSteps": 9,
         "bossType": "boss",
-        "eliteMax": 3,
+        "eliteMax": 2,
         "restMin": 2,
         "shopMin": 1,
         "banEliteFirst": 0,
-        "forceRestAt": [6, 12],
+        "forceRestAt": [4, 8],
+        "forceShopAt": [3]
+      },
+      {
+        "name": "虚空深渊",
+        "zoneId": "void_abyss",
+        "preBossSteps": 9,
+        "bossType": "boss",
+        "eliteMax": 2,
+        "restMin": 2,
+        "shopMin": 1,
+        "banEliteFirst": 0,
+        "forceRestAt": [4, 8],
         "forceShopAt": [5]
       },
       {
-        "name": "终末层",
-        "preBossSteps": 6,
+        "name": "终末王座",
+        "zoneId": "throne_of_end",
+        "preBossSteps": 4,
         "bossType": "boss_final",
         "eliteMax": 2,
         "restMin": 1,
         "shopMin": 1,
         "banEliteFirst": 0,
-        "forceRestAt": [4],
+        "forceRestAt": [3],
         "forceShopAt": [2]
       }
     ]
@@ -221,62 +225,11 @@
       "uncommon": 1.15,
       "rare": 1.35,
       "legendary": 1.6
-    },
-    "affixCountByRarity": {
-      "common": [
-        0,
-        0
-      ],
-      "uncommon": [
-        0,
-        1
-      ],
-      "rare": [
-        1,
-        2
-      ],
-      "legendary": [
-        1,
-        2
-      ]
-    },
-    "affixes": [
-      {
-        "id": "keen",
-        "name": "锐利",
-        "stat": "critChance",
-        "min": 0.03,
-        "max": 0.08
-      },
-      {
-        "id": "swift",
-        "name": "迅捷",
-        "stat": "cooldownMult",
-        "min": 0.92,
-        "max": 0.97
-      },
-      {
-        "id": "siphon",
-        "name": "汲取",
-        "stat": "onHitHeal",
-        "min": 1,
-        "max": 4
-      },
-      {
-        "id": "arcane",
-        "name": "奥术",
-        "stat": "skillDamageMult",
-        "min": 1.05,
-        "max": 1.14
-      }
-    ]
+    }
   },
   "equipmentSlots": [
     "weapon",
-    "head",
-    "chest",
-    "hands",
-    "feet"
+    "armor"
   ],
   "partyOrder": [
     "warrior",
@@ -314,10 +267,11 @@
     "mage": "法师",
     "assassin": "刺客"
   },
-  "skillProgression": {
-    "maxStars": 5,
-    "starDamageMultPerStar": 0.12,
-    "starCooldownMultPerStar": 0.04,
+    "skillProgression": {
+    "maxStars": 3,
+    "starDamageMultPerStar": 0,
+    "starCooldownMultPerStar": 0,
+    "useStarMutations": true,
     "chainJumpBonusAtStar": 3,
     "lifestealBonusAtStar": 5,
     "lifestealBonusPct": 0.08
@@ -925,6 +879,72 @@
       "speed": 54,
       "range": 56,
       "color": "#ee2277"
+    },
+    {
+      "id": "ab_boss_corrupt_mother",
+      "name": "腐化之母",
+      "hp": 480,
+      "attack": 19,
+      "defense": 11,
+      "speed": 52,
+      "range": 54,
+      "color": "#55aa44",
+      "isBoss": true
+    },
+    {
+      "id": "ab_boss_frost_king",
+      "name": "霜冻之王",
+      "hp": 520,
+      "attack": 18,
+      "defense": 14,
+      "speed": 50,
+      "range": 52,
+      "color": "#88ccff",
+      "isBoss": true
+    },
+    {
+      "id": "ab_boss_thunder_tyrant",
+      "name": "雷霆暴君",
+      "hp": 460,
+      "attack": 22,
+      "defense": 10,
+      "speed": 58,
+      "range": 160,
+      "color": "#ffdd44",
+      "isBoss": true
+    },
+    {
+      "id": "ab_boss_thousand_faces",
+      "name": "千面魔",
+      "hp": 440,
+      "attack": 20,
+      "defense": 9,
+      "speed": 62,
+      "range": 130,
+      "color": "#aa88ff",
+      "isBoss": true
+    },
+    {
+      "id": "ab_boss_gold_giant",
+      "name": "黄金巨人",
+      "hp": 600,
+      "attack": 16,
+      "defense": 16,
+      "speed": 46,
+      "range": 50,
+      "color": "#ffcc00",
+      "isBoss": true
+    },
+    {
+      "id": "ab_boss_time_worm",
+      "name": "时之蠕虫",
+      "hp": 500,
+      "attack": 21,
+      "defense": 11,
+      "speed": 55,
+      "range": 140,
+      "color": "#6688cc",
+      "isBoss": true
     },
     {
       "id": "ab_boss",
@@ -4077,6 +4097,210 @@
         "startAllSkillsReady": true,
         "maxHpMult": 0.9
       }
+    },
+    {
+      "id": "tactical_goggles",
+      "name": "战术目镜",
+      "description": "战前情报准确度 100%。",
+      "rarity": "rare",
+      "buildTags": ["tempo"],
+      "effects": { "intelAccuracy": 1 }
+    },
+    {
+      "id": "energy_core_relic",
+      "name": "能量核心",
+      "description": "战术能量上限 +50，恢复 +2/秒。",
+      "rarity": "rare",
+      "buildTags": ["tempo"],
+      "effects": { "commanderMaxEnergy": 50, "commanderRegenBonus": 2 }
+    },
+    {
+      "id": "commander_ring",
+      "name": "指挥官之戒",
+      "description": "指令冷却 -30%。",
+      "rarity": "legendary",
+      "buildTags": ["tempo"],
+      "effects": { "commanderCooldownMult": 0.7 }
+    },
+    {
+      "id": "soul_pact_relic",
+      "name": "灵魂契约",
+      "description": "解锁「灵魂链接」指令。",
+      "rarity": "legendary",
+      "buildTags": ["wall"],
+      "effects": { "unlockCommander": "soul_link" }
+    },
+    {
+      "id": "void_key_relic",
+      "name": "虚空之钥",
+      "description": "解锁「虚空放逐」指令。",
+      "rarity": "legendary",
+      "buildTags": ["control"],
+      "effects": { "unlockCommander": "void_banish" }
+    },
+    {
+      "id": "hourglass_relic",
+      "name": "时之沙漏",
+      "description": "解锁「时间回溯」指令；技能 CD -20%。",
+      "rarity": "legendary",
+      "buildTags": ["tempo"],
+      "effects": { "unlockCommander": "time_rewind", "cooldownMult": 0.8 }
+    },
+    {
+      "id": "scorching_touch",
+      "name": "灼热之触",
+      "description": "攻击附带燃烧（每秒 5% 攻击，3 秒）。",
+      "rarity": "rare",
+      "buildTags": ["burn"],
+      "effects": { "onHitBurnPct": 0.05, "burnDurationMs": 3000 }
+    },
+    {
+      "id": "frost_core",
+      "name": "寒冰核心",
+      "description": "攻击附带冰冻（减速 30%，2 秒）。",
+      "rarity": "rare",
+      "buildTags": ["control"],
+      "effects": { "onHitSlowPct": 0.3, "slowDurationMs": 2000 }
+    },
+    {
+      "id": "lightning_chain_relic",
+      "name": "闪电链",
+      "description": "攻击弹射 2 次（每次 50% 伤害）。",
+      "rarity": "rare",
+      "buildTags": ["chain"],
+      "effects": { "chainJumps": 2, "chainDamageMult": 0.5 }
+    },
+    {
+      "id": "vamp_fang",
+      "name": "吸血獠牙",
+      "description": "攻击吸血 10%。",
+      "rarity": "rare",
+      "buildTags": ["lifesteal"],
+      "effects": { "lifestealPct": 0.1 }
+    },
+    {
+      "id": "blood_pact_synergy",
+      "name": "鲜血契约",
+      "description": "生命每降低 10%，攻击 +5%。",
+      "rarity": "legendary",
+      "buildTags": ["execute"],
+      "effects": { "lowHpAttackScale": 0.05 }
+    },
+    {
+      "id": "guardian_angel",
+      "name": "守护天使",
+      "description": "死亡时复活一次（50% 生命）。",
+      "rarity": "legendary",
+      "buildTags": ["sustain"],
+      "effects": { "reviveOnce": true, "reviveHpPct": 0.5 }
+    },
+    {
+      "id": "time_sandglass",
+      "name": "时间沙漏",
+      "description": "技能冷却 -20%。",
+      "rarity": "rare",
+      "buildTags": ["tempo"],
+      "effects": { "cooldownMult": 0.8 }
+    },
+    {
+      "id": "arcane_amp",
+      "name": "奥术增幅",
+      "description": "技能伤害 +20%。",
+      "rarity": "rare",
+      "buildTags": ["mage"],
+      "effects": { "skillDamageMult": 1.2 }
+    },
+    {
+      "id": "sharp_edge",
+      "name": "锐利",
+      "description": "暴击率 +8%。",
+      "rarity": "uncommon",
+      "buildTags": ["tempo"],
+      "effects": { "critChance": 0.08 }
+    },
+    {
+      "id": "stun_brand",
+      "name": "震慑烙印",
+      "description": "战士非辅助技能附带短眩晕。",
+      "rarity": "rare",
+      "buildTags": ["warrior", "control"],
+      "effects": { "warriorStunOnSkill": true }
+    },
+    {
+      "id": "blood_oath_seal",
+      "name": "血誓印",
+      "description": "最大生命 -8%；攻击 +12%。",
+      "rarity": "rare",
+      "buildTags": ["execute"],
+      "effects": { "maxHpMult": 0.92, "teamAttackMult": 1.12 }
+    },
+    {
+      "id": "golden_rule_relic",
+      "name": "黄金律",
+      "description": "金币 +15%；商店稀有度略升。",
+      "rarity": "rare",
+      "buildTags": ["economy"],
+      "effects": { "goldMult": 1.15 }
+    },
+    {
+      "id": "split_formation",
+      "name": "裂阵纹章",
+      "description": "战士顺劈技能范围 +20%。",
+      "rarity": "uncommon",
+      "buildTags": ["warrior", "cleave"],
+      "effects": { "warriorAoeMult": 1.2 }
+    },
+    {
+      "id": "oath_seal",
+      "name": "守誓纹章",
+      "description": "前排伤害减免 +10%。",
+      "rarity": "uncommon",
+      "buildTags": ["wall"],
+      "effects": { "frontRowDamageTakenMult": 0.9 }
+    },
+    {
+      "id": "purifying_flame",
+      "name": "净化之焰",
+      "description": "每场战斗后腐化 -5。",
+      "rarity": "rare",
+      "buildTags": ["sustain"],
+      "effects": { "purifyCorruptionPerBattle": 5 }
+    },
+    {
+      "id": "bloodthirst_blade",
+      "name": "血渴之刃",
+      "description": "全队攻击 +30%；每场战后随机 1 人永久 -10% 最大生命。",
+      "rarity": "legendary",
+      "buildTags": ["execute"],
+      "cursed": true,
+      "effects": { "teamAttackMult": 1.3 }
+    },
+    {
+      "id": "time_thief",
+      "name": "时间窃贼",
+      "description": "战斗金币 +50%；战斗时限缩短至 45 秒。",
+      "rarity": "rare",
+      "buildTags": ["economy"],
+      "cursed": true,
+      "effects": { "goldMult": 1.5 }
+    },
+    {
+      "id": "void_seed",
+      "name": "虚空之种",
+      "description": "每场随机获得/失去临时遗物。",
+      "rarity": "legendary",
+      "cursed": true,
+      "buildTags": ["economy"],
+      "effects": {}
+    },
+    {
+      "id": "martyr_chain",
+      "name": "殉道者之链",
+      "description": "复活保留 50% 属性，但不可再次复活。",
+      "rarity": "legendary",
+      "cursed": true,
+      "buildTags": ["sustain"],
+      "effects": { "reviveStatRetain": 0.5, "noSecondRevive": true }
     }
   ],
   "events": [

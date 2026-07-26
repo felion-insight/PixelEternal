@@ -1,0 +1,45 @@
+{
+  "JUICE_CONFIG": {
+    "particlePoolMax": 100,
+    "hitStop": {
+      "critFrames": 2,
+      "killFrames": 3,
+      "bossPhaseFrames": 5
+    },
+    "screenShake": {
+      "crit": { "intensity": 3, "durationMs": 150 },
+      "kill": { "intensity": 4, "durationMs": 250 },
+      "bossPhase": { "intensity": 8, "durationMs": 500 },
+      "synergy": { "intensity": 5, "durationMs": 750 }
+    },
+    "damageNumbers": {
+      "normal": { "color": "#ffffff", "size": 16 },
+      "crit": { "color": "#ffcc44", "size": 24, "outline": "#000000" },
+      "skill": { "color": "#88ccff", "size": 20 },
+      "kill": { "color": "#ff4444", "size": 28, "outline": "#000000" },
+      "heal": { "color": "#44ff88", "size": 18, "prefix": "+" },
+      "gold": { "color": "#ffd700", "size": 16 }
+    },
+    "killCombo": {
+      "windowMs": 3000,
+      "labels": { "2": "双杀", "3": "三杀", "4": "四杀" }
+    },
+    "lowHpVignette": {
+      "threshold": 0.3,
+      "strength": 0.3
+    },
+    "lootFly": {
+      "durationMs": 800,
+      "arcHeight": 60
+    },
+    "audioStub": {
+      "hit": 0.6,
+      "crit": 0.8,
+      "kill": 0.9,
+      "combo": 0.7,
+      "bossPhase": 1.0,
+      "synergy": 0.9,
+      "ability": 0.75
+    }
+  }
+}

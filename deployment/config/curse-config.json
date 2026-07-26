@@ -1,0 +1,85 @@
+{
+  "CURSE_CONFIG": {
+    "corruptionThresholds": [
+      { "at": 20, "effect": { "enemyAttackMult": 1.1 }, "label": "敌人攻击+10%" },
+      { "at": 40, "effect": { "shopPriceMult": 1.2 }, "label": "商店价格+20%" },
+      { "at": 60, "effect": { "restHealMult": 0.7 }, "label": "休息回血-30%" },
+      { "at": 80, "effect": { "randomElite": true }, "label": "随机精英敌人" },
+      { "at": 100, "effect": { "corruptionBoss": true }, "label": "腐化爆发" }
+    ],
+    "corruptionSources": {
+      "void_rift": 20,
+      "curse_relic_per_battle": 5,
+      "event_min": 10,
+      "event_max": 30
+    },
+    "purify": {
+      "restCostGold": 50,
+      "restAmount": 20,
+      "holy_spring": 30,
+      "purifying_flame_per_battle": 5
+    },
+    "cursedRelics": {
+      "bloodthirst_blade": {
+        "id": "bloodthirst_blade",
+        "name": "血渴之刃",
+        "positive": { "teamAttackMult": 1.3 },
+        "negative": { "type": "permanent_hp_loss", "value": 0.1, "trigger": "after_battle" },
+        "riskLevel": 3,
+        "corruptionPerBattle": 5
+      },
+      "time_thief": {
+        "id": "time_thief",
+        "name": "时间窃贼",
+        "positive": { "goldMult": 1.5 },
+        "negative": { "type": "combat_time_limit", "value": 45000 },
+        "riskLevel": 2,
+        "corruptionPerBattle": 3
+      },
+      "greedy_grasp": {
+        "id": "greedy_grasp",
+        "name": "贪婪之握",
+        "positive": { "shopDiscountMult": 0.7 },
+        "negative": { "type": "exp_mult", "value": 0.6 },
+        "riskLevel": 2
+      },
+      "berserker_mask": {
+        "id": "berserker_mask",
+        "name": "狂战面具",
+        "positive": { "critDamageMult": 1.6 },
+        "negative": { "type": "crit_taken_mult", "value": 1.4 },
+        "riskLevel": 3
+      },
+      "void_seed": {
+        "id": "void_seed",
+        "name": "虚空之种",
+        "positive": { "type": "random_temp_relic" },
+        "negative": { "type": "random_lose_relic" },
+        "riskLevel": 4,
+        "corruptionPerBattle": 8
+      },
+      "martyr_chain": {
+        "id": "martyr_chain",
+        "name": "殉道者之链",
+        "positive": { "reviveStatRetain": 0.5 },
+        "negative": { "type": "no_revive" },
+        "riskLevel": 5
+      },
+      "demon_tome": {
+        "id": "demon_tome",
+        "name": "恶魔契约书",
+        "positive": { "commanderRegenMult": 2.0 },
+        "negative": { "type": "disable_commander_slots", "value": 2 },
+        "riskLevel": 3
+      },
+      "corrupt_chalice": {
+        "id": "corrupt_chalice",
+        "name": "腐化圣杯",
+        "positive": { "healMult": 1.5 },
+        "negative": { "type": "enemy_heal_mirror" },
+        "riskLevel": 3
+      }
+    },
+    "purifyingFlameRelic": "purifying_flame"
+  }
+}

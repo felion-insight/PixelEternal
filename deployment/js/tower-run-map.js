@@ -169,6 +169,12 @@
     function rollTypesForLayer(map, layer, rng) {
         const rc = runCfg();
         const choicesN = rc.choicesPerStep != null ? rc.choicesPerStep : 3;
+        const run = map._runRef;
+        if (run && window.DemonPact && window.DemonPact.isBossRushOnly(run)) {
+            const act = getActLayoutForLayer(layer);
+            if (act && layer === act.bossLayer) return [act.bossType || 'boss'];
+            return ['boss'];
+        }
         const act = getActLayoutForLayer(layer);
         if (!act) return ['battle'];
 
@@ -249,6 +255,9 @@
         const nodes = [];
         for (let i = 0; i < types.length; i++) {
             const node = makeNode(layer, i, types[i]);
+            if (window.MutatedNodeSystem && window.MutatedNodeSystem.maybeMutateNode) {
+                window.MutatedNodeSystem.maybeMutateNode(map._runRef || null, node, r);
+            }
             map.nodes.push(node);
             nodes.push(node);
         }

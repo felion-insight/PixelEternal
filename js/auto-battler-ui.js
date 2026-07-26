@@ -15,7 +15,8 @@
         warrior: 'tone-warrior', archer: 'tone-archer', mage: 'tone-mage', assassin: 'tone-assassin'
     };
     const SLOT_LABEL = {
-        weapon: '武器', head: '头', chest: '胸', hands: '手', feet: '鞋'
+        weapon: '武器', armor: '护甲',
+        head: '头', chest: '胸', hands: '手', feet: '鞋'
     };
     const KIND_LABEL = {
         relic_pick: '选择遗物', skill_pick: '选择技能',
@@ -110,22 +111,23 @@
         return `<div class="ab-gear-doll-slot${isTarget ? ' ab-slot-target' : ''}" data-slot="${slot}">${inner}</div>`;
     }
 
-    /** 左：头/胸/鞋 · 中：职业精灵图 · 右：武器/手套 */
+    /** 精简构筑：武器 + 护甲 两格装备栏 */
     function gearDollHtml(hero, opts) {
         opts = opts || {};
+        const RSS = opts.RSS || window.RunStateSystem;
+        const slots = (RSS && RSS.EQUIP_SLOTS) || ['weapon', 'armor'];
         const SAP = window.StaticArtPaths;
         let spriteStyle = '';
         if (SAP && hero && hero.baseClass) {
             const url = SAP.resolveDisplayIconUrl(SAP.getAutoBattlerHeroUrl(hero.baseClass));
             if (url) spriteStyle = ` style="background-image:url(&quot;${url}&quot;)"`;
         }
-        let html = '<div class="ab-gear-doll">';
-        ['head', 'chest', 'feet'].forEach((slot) => { html += gearDollSlotHtml(hero, slot, opts); });
+        let html = '<div class="ab-gear-doll ab-gear-doll-simple">';
         html += `<div class="ab-gear-doll-center">
             <span class="ab-gear-doll-sprite"${spriteStyle}></span>
             <strong class="ab-gear-doll-name">${esc(hero.displayName || '')}</strong>
         </div>`;
-        ['weapon', 'hands'].forEach((slot) => { html += gearDollSlotHtml(hero, slot, opts); });
+        slots.forEach((slot) => { html += gearDollSlotHtml(hero, slot, opts); });
         html += '</div>';
         return html;
     }
@@ -389,9 +391,20 @@
         if (gear.skillDamageMult && gear.skillDamageMult !== 1) {
             lines.push(`技能伤害 ×${Number(gear.skillDamageMult).toFixed(2)}`);
         }
+        if (gear.traitLines && gear.traitLines.length) {
+            gear.traitLines.forEach((line) => lines.push(line));
+        } else if (gear.desc) {
+            lines.push(gear.desc);
+        } else if (gear.passive) {
+            lines.push('被动：' + gear.passive + (gear.passivePct ? ' ' + Math.round(gear.passivePct * 100) + '%' : ''));
+        }
+        if (gear.basicCleave) lines.push('普攻：顺劈');
+        if (gear.basicPierce) lines.push('普攻：穿透');
+        if (gear.basicChain) lines.push('普攻：弹射×' + gear.basicChain);
+        if (gear.basicMultihit) lines.push('普攻：连击×' + gear.basicMultihit);
         if (gear.affixLines && gear.affixLines.length) {
             gear.affixLines.forEach((line) => lines.push(line));
-        } else {
+        } else if (!gear.traitLines) {
             if (gear.critChance) lines.push(`暴击 +${Math.round(gear.critChance * 100)}%`);
             if (gear.cooldownMult && gear.cooldownMult !== 1) {
                 lines.push(`技能冷却 ×${Number(gear.cooldownMult).toFixed(2)}`);
@@ -694,6 +707,32 @@
         const pending = run.pendingLevelPoints || 0;
         const gold = run.gold || 0;
         const relics = run.relics || [];
+        const corruption = run.ascension ? (run.ascension.corruption || 0) : 0;
+        const zone = window.ZoneEcology && window.ZoneEcology.getZoneDisplay
+            ? window.ZoneEcology.getZoneDisplay(run) : null;
+        const synHtml = window.SynergyMatrix && window.SynergyMatrix.getActiveDisplay
+            ? window.SynergyMatrix.getActiveDisplay(run).map((s) =>
+                `<span class="ab-syn-chip" title="${esc(s.description || s.name)}" style="border-color:${s.color || '#888'}">${esc(s.name)}</span>`
+            ).join('') : '';
+        const weather = window.WeatherSystem && window.WeatherSystem.getDisplay
+            ? window.WeatherSystem.getDisplay(run) : null;
+        const bonds = window.BondSystem && window.BondSystem.computeActiveBonds
+            ? window.BondSystem.computeActiveBonds(run) : [];
+        const bondHtml = bonds.length ? bonds.map((b) =>
+            `<span class="ab-syn-chip ab-bond-chip" title="站位羁绊">${esc(b.name)}</span>`
+        ).join('') : '';
+        const mutNode = run.map && run.currentNodeId && window.TowerRunMap
+            ? window.TowerRunMap.getNode(run.map, run.currentNodeId) : null;
+        const mutLabel = mutNode && (mutNode.mutationName || mutNode.mutationType) || null;
+        const mutTip = mutNode && (mutNode.mutationDesc || mutNode.mutationName || mutNode.mutationType) || '';
+        const chains = run.ascension && run.ascension.activeChains || [];
+        const chainHtml = chains.length && window.EventChainSystem
+            ? chains.map((c) => {
+                const def = (window.EventChainSystem.chainCfg().chains || {})[c.chainId];
+                const name = def && def.name || c.chainId;
+                return `<span class="ab-syn-chip ab-chain-chip" title="事件链 · 进度 ${(c.progress || 0) + 1}">${esc(name)}</span>`;
+            }).join('')
+            : '';
         return `
             <div class="ab-stat-block gold">
                 <span class="ab-stat-label">金币</span>
@@ -708,9 +747,30 @@
                 <strong class="ab-stat-value">${party.alive}/${party.total}</strong>
                 <span class="ab-stat-sub">${party.pct}%</span>
             </div>
+            <div class="ab-stat-block corruption" title="腐化值：阈值触发全局负面">
+                <span class="ab-stat-label">腐化</span>
+                <strong class="ab-stat-value">${corruption}</strong>
+                <span class="ab-stat-sub ab-corruption-bar"><span style="width:${Math.min(100, corruption)}%"></span></span>
+            </div>
+            ${zone ? `<div class="ab-stat-block zone" title="${esc(zone.trait && zone.trait.description || '')}">
+                <span class="ab-stat-label">${esc(zone.name)}</span>
+            </div>` : ''}
+            ${weather ? `<div class="ab-stat-block weather" title="剩余${weather.battlesLeft}场">
+                <span class="ab-stat-label">天气</span>
+                <strong class="ab-stat-value ab-stat-sm">${esc(weather.name)}</strong>
+            </div>` : ''}
+            ${mutLabel ? `<div class="ab-stat-block mutation" title="${esc(mutTip)}">
+                <span class="ab-stat-label">变异</span>
+                <strong class="ab-stat-value ab-stat-sm">${esc(mutLabel)}</strong>
+            </div>` : ''}
+            ${chainHtml ? `<div class="ab-stat-block chains" title="进行中的事件链">
+                <span class="ab-stat-label">事件链</span>
+                <div class="ab-hud-synergies">${chainHtml}</div>
+            </div>` : ''}
             <div class="ab-stat-block relics">
                 <span class="ab-stat-label">遗物${relics.length ? ' · ' + relics.length : ''}</span>
                 <div class="ab-hud-relics">${hudRelicIconsHtml(relics)}</div>
+                ${synHtml || bondHtml ? `<div class="ab-hud-synergies">${synHtml}${bondHtml}</div>` : ''}
             </div>`;
     }
 
@@ -790,7 +850,22 @@
 
                     <div id="ab-combat-bar" class="ab-hud-combat" style="display:none;" aria-hidden="true">
                         <div class="ab-combat-heroes" id="ab-combat-heroes"></div>
+                        <div id="ab-commander-bar" class="ab-commander-bar" style="display:none;">
+                            <div class="ab-te-wrap">
+                                <span class="ab-te-label">战术能量</span>
+                                <div class="ab-te-track"><div id="ab-te-fill" class="ab-te-fill"></div></div>
+                                <span id="ab-te-text" class="ab-te-text">0/100</span>
+                            </div>
+                            <div id="ab-commander-abilities" class="ab-commander-abilities"></div>
+                            <div class="ab-battle-speed">
+                                <button type="button" class="ab-btn ab-btn-ghost ab-speed-btn" data-speed="1">×1</button>
+                                <button type="button" class="ab-btn ab-btn-ghost ab-speed-btn" data-speed="2">×2</button>
+                                <button type="button" class="ab-btn ab-btn-ghost ab-speed-btn" data-speed="3">×3</button>
+                            </div>
+                        </div>
                     </div>
+
+                    <div id="ab-intel-panel" class="ab-intel-panel" style="display:none;"></div>
 
                     <div id="ab-deploy-layer" class="ab-deploy-layer" style="display:none;" aria-hidden="true"></div>
 
@@ -930,6 +1005,11 @@
             canvas.addEventListener('click', (e) => {
                 if (this._deployInteractBlocked()) return;
                 const { x, y } = this._canvasCoords(e);
+                const run = this.controller.run;
+                const battle = this.controller.battle;
+                if (run && run.phase === 'combat' && battle && battle.mutationReverse) {
+                    if (this.controller.handleReverseCombatClick(x, y)) return;
+                }
                 this.controller.handleCanvasClick(x, y);
             });
         }
@@ -1046,6 +1126,7 @@
         refreshCombatBar(battle) {
             if (!battle || !battle.allies) return;
             this.renderCombatBarShell(battle);
+            this.renderCommanderBar(battle);
             const el = document.getElementById('ab-combat-heroes');
             if (!el) return;
             battle.allies.forEach((u) => {
@@ -1736,6 +1817,23 @@
 
         _syncEncounterPanel() {
             const panel = document.getElementById('ab-encounter-panel');
+            const synEl = document.getElementById('ab-encounter-synergy');
+            const run = this.controller && this.controller.run;
+            const battle = this.controller && this.controller.battle;
+            const synId = battle && battle.encounterSynergy;
+            const inCombat = run && (run.phase === 'deploy' || run.phase === 'combat');
+            if (synEl) {
+                if (synId && inCombat) {
+                    const cfg = (typeof CONFIG !== 'undefined' && CONFIG.ENCOUNTERS_CONFIG)
+                        || window.ENCOUNTERS_CONFIG || {};
+                    const def = (cfg.encounterSynergies || {})[synId];
+                    synEl.textContent = def && def.desc ? def.desc : ('遭遇协同：' + synId);
+                    synEl.style.display = 'block';
+                } else {
+                    synEl.textContent = '';
+                    synEl.style.display = 'none';
+                }
+            }
             if (panel) {
                 panel.style.display = 'none';
                 panel.setAttribute('aria-hidden', 'true');
@@ -1979,6 +2077,7 @@
                         }
                     }
                     if (!entering) this.refreshBench();
+                    this.renderDeployIntel();
                     this._hideScene(true);
                     this.game.paused = !!entering ? false : true;
                 }
@@ -2025,6 +2124,12 @@
             if (combatBar && run.phase !== 'combat') {
                 combatBar.style.display = 'none';
             }
+            const hud = document.getElementById('ab-hud');
+            const hideTrueHud = !!(this.controller.battle && this.controller.battle.trueModeNoHud && run.phase === 'combat');
+            if (hud) {
+                hud.style.opacity = hideTrueHud ? '0' : '';
+                hud.style.pointerEvents = hideTrueHud ? 'none' : '';
+            }
         }
 
         refreshBench() {
@@ -2036,7 +2141,8 @@
                 const hpPct = Math.max(0, Math.min(100, Math.floor((h.hp / Math.max(1, h.maxHp)) * 100)));
                 const stats = previewHeroStats(run, h);
                 const skillCount = (h.skillSlots || []).filter(Boolean).length;
-                const gearCount = Object.keys(h.equipment || {}).filter((s) => h.equipment[s]).length;
+                const gearSlots = (window.RunStateSystem && window.RunStateSystem.EQUIP_SLOTS) || ['weapon', 'armor'];
+                const gearCount = gearSlots.filter((s) => h.equipment && h.equipment[s]).length;
                 const wrap = document.createElement('div');
                 wrap.className = 'ab-bench-wrap';
                 const btn = document.createElement('button');
@@ -2048,7 +2154,7 @@
                     <span class="ab-bench-name">${esc(h.displayName)}</span>
                     <span class="ab-bench-stats">攻${stats.attack} · 防${stats.defense}</span>
                     <span class="ab-chip-hp"><i style="width:${hpPct}%"></i></span>
-                    <span class="ab-bench-pos">${h.boardCol >= 0 ? '已上场' : '待命'} · 技${skillCount}/4 · 装${gearCount}/5</span>`;
+                    <span class="ab-bench-pos">${h.boardCol >= 0 ? '已上场' : '待命'} · 技${skillCount}/${window.DemonPact ? window.DemonPact.getMaxActiveSkills(run) : 4} · 装${gearCount}/${gearSlots.length}</span>`;
                 btn.onclick = () => {
                     this._selectedHero = h.heroId;
                     this.refreshBench();
@@ -2125,14 +2231,15 @@
                 <div class="ab-layer-banner-host" id="ab-layer-banner-host"></div>
                 ${histHtml}
                 <div class="ab-map ab-map-choices">`;
+            const blindMap = !!(run.ascension && run.ascension.blindMap);
             choices.forEach((n, idx) => {
-                const label = TRM.nodeTypeLabel(n.type);
-                const cls = ['ab-node', 'ab-choice-node', n.type, 'reachable',
+                const label = blindMap ? '未知路线' : TRM.nodeTypeLabel(n.type);
+                const cls = ['ab-node', 'ab-choice-node', blindMap ? 'blind' : n.type, 'reachable',
                     !this._reduceMotion ? 'ab-map-layer-stagger' : ''].join(' ');
                 html += `<button type="button" class="${cls}" data-node="${n.id}" style="--ab-layer-i:${idx}">
-                    ${nodeIconHtml(n.type)}
+                    ${blindMap ? '<span class="ab-node-icon ab-node-icon-blind">?</span>' : nodeIconHtml(n.type)}
                     <span class="ab-node-name">${esc(label)}</span>
-                    <span class="ab-node-sub">选项 ${idx + 1}</span>
+                    <span class="ab-node-sub">${blindMap ? '盲选' : ('选项 ' + (idx + 1))}</span>
                 </button>`;
             });
             if (!choices.length) {
@@ -2377,9 +2484,9 @@
                     <div class="ab-event-choices">`;
 
             (ev.choices || []).forEach((ch) => {
-                const afford = window.AutoBattlerEvents
+                const afford = ev.chainId ? true : (window.AutoBattlerEvents
                     ? window.AutoBattlerEvents.canAffordChoice(run, ch)
-                    : true;
+                    : true);
                 html += eventChoiceCardHtml(ch, afford);
             });
 
@@ -2520,6 +2627,7 @@
                 <div class="ab-rest-choices">
                     <button type="button" class="ab-btn ab-btn-primary" data-rest="heal">回血 ${healPct}%</button>
                     <button type="button" class="ab-btn ab-btn-gold" data-rest="star">随机已装技能升星</button>
+                    <button type="button" class="ab-btn" data-rest="purify">净化仪式 (-20腐化 · 50金)</button>
                     <button type="button" class="ab-btn" data-rest="leave">直接离开</button>
                 </div>
                 <p class="ab-rest-msg" id="ab-rest-msg"></p>
@@ -2559,11 +2667,202 @@
         }
 
 
+        renderCommanderBar(battle) {
+            const bar = document.getElementById('ab-commander-bar');
+            if (!bar) return;
+            const cm = battle && battle.commanderMode;
+            const show = !!(cm && window.AscensionHub && window.AscensionHub.isEnabled('commanderMode'));
+            bar.style.display = show ? 'flex' : 'none';
+            if (!show || !cm) return;
+            const fill = document.getElementById('ab-te-fill');
+            const text = document.getElementById('ab-te-text');
+            const pct = Math.min(100, (cm.energy / Math.max(1, cm.maxEnergy)) * 100);
+            if (fill) fill.style.width = pct + '%';
+            if (text) text.textContent = Math.floor(cm.energy) + '/' + cm.maxEnergy;
+            const abEl = document.getElementById('ab-commander-abilities');
+            if (!abEl) return;
+            const abilities = window.CommanderMode.allAbilities();
+            const run = this.controller.run;
+            const unlocked = new Set(window.CommanderMode.unlockedAbilityIds(run));
+            const allIds = Object.keys(abilities).sort((a, b) => {
+                const au = abilities[a];
+                const bu = abilities[b];
+                if (au.basic && !bu.basic) return -1;
+                if (!au.basic && bu.basic) return 1;
+                return (au.name || a).localeCompare(bu.name || b);
+            });
+            abEl.innerHTML = allIds.map((id) => {
+                const def = abilities[id];
+                if (!def) return '';
+                const locked = !unlocked.has(id);
+                const cd = cm.cooldowns[id] || 0;
+                const ready = !locked && window.CommanderMode.canUse(cm, id);
+                return `<button type="button" class="ab-cmd-btn ${locked ? 'locked' : ''} ${ready ? '' : 'disabled'}" data-cmd="${id}" ${locked ? 'disabled' : ''} title="${esc(def.name)} · ${def.cost}TE${locked ? ' · 未解锁' : ''}">
+                    ${esc(def.name)}${locked ? ' 🔒' : ''}${cd > 0 && !locked ? ' (' + Math.ceil(cd / 1000) + 's)' : ''}
+                </button>`;
+            }).join('');
+            abEl.querySelectorAll('.ab-cmd-btn').forEach((btn) => {
+                btn.onclick = () => {
+                    if (btn.classList.contains('locked')) return;
+                    const id = btn.getAttribute('data-cmd');
+                    const def = abilities[id];
+                    if (!def) return;
+                    if (window.CommanderMode.needsTotemPick(def)) {
+                        this._showTotemPicker(cm, id, def, battle);
+                        return;
+                    }
+                    const target = window.CommanderMode.pickAbilityTarget(cm, def, battle);
+                    window.CommanderMode.useAbility(cm, id, target);
+                    this.refreshCombatBar(battle);
+                };
+            });
+            bar.querySelectorAll('.ab-speed-btn').forEach((btn) => {
+                btn.onclick = () => {
+                    const sp = parseInt(btn.getAttribute('data-speed'), 10) || 1;
+                    const meta = this.controller.ensurePartyMeta();
+                    const unlock = meta.ascension && meta.ascension.speedUnlock;
+                    if (sp > 1 && unlock && !unlock['x' + sp]) return;
+                    battle.timeScale = sp;
+                    if (this.controller.run && this.controller.run.ascension) {
+                        this.controller.run.ascension.battleSpeedScale = sp;
+                    }
+                    bar.querySelectorAll('.ab-speed-btn').forEach((b) => b.classList.toggle('active', b === btn));
+                };
+            });
+        }
+
+        _showTotemPicker(cm, abilityId, def, battle) {
+            const types = def.totemTypes || ['heal', 'attack', 'taunt'];
+            const labels = { heal: '治疗图腾', attack: '攻击图腾', taunt: '嘲讽图腾' };
+            const overlay = document.createElement('div');
+            overlay.className = 'ab-totem-picker-overlay';
+            overlay.innerHTML = `<div class="ab-totem-picker">
+                <h4>选择图腾类型</h4>
+                <div class="ab-actions">${types.map((t) =>
+                    `<button type="button" class="ab-btn" data-totem="${t}">${esc(labels[t] || t)}</button>`
+                ).join('')}</div>
+                <button type="button" class="ab-btn ab-btn-sm ab-muted-btn" id="ab-totem-cancel">取消</button>
+            </div>`;
+            document.body.appendChild(overlay);
+            overlay.querySelectorAll('[data-totem]').forEach((btn) => {
+                btn.onclick = () => {
+                    const totemType = btn.getAttribute('data-totem');
+                    window.CommanderMode.useAbility(cm, abilityId, { totemType: totemType });
+                    overlay.remove();
+                    this.refreshCombatBar(battle);
+                };
+            });
+            overlay.querySelector('#ab-totem-cancel').onclick = () => overlay.remove();
+        }
+
+        renderDeployIntel() {
+            const panel = document.getElementById('ab-intel-panel');
+            const run = this.controller.run;
+            const hideIntel = !!(run && run.ascension && run.ascension.pact && run.ascension.pact.noIntel);
+            if (!panel || !run || run.phase !== 'deploy' || hideIntel) {
+                if (panel) panel.style.display = 'none';
+                return;
+            }
+            const node = window.TowerRunMap.getNode(run.map, run.currentNodeId);
+            const preview = this.controller.battle || {};
+            const intel = window.PreCombatIntel
+                ? window.PreCombatIntel.analyze(run, { enemies: preview.enemies || [] }, node)
+                : null;
+            if (!intel || !intel.enabled) {
+                panel.style.display = 'none';
+                return;
+            }
+            panel.style.display = 'block';
+            const intents = (intel.intents || []).map((i) =>
+                `<li>${esc(i.name)}：${esc(i.intent)} → ${esc(i.targetRow)}</li>`
+            ).join('');
+            const form = (intel.formation || []).map((f) =>
+                `<li>${esc(f.hero)} ${f.row != null ? '第' + (f.row + 1) + '排' : ''} · ${esc(f.tip)}</li>`
+            ).join('');
+            const synList = (intel.synergies || []).map((s) =>
+                `<li><span style="color:${s.color || '#888'}">${esc(s.name || s.id)}</span> — ${esc(s.description || '')}</li>`
+            ).join('');
+            const phaseList = (intel.bossPhases || []).map((p) =>
+                `<li>${esc(p.name || p.id || '阶段')} · ${esc(p.hint || p.description || '')}</li>`
+            ).join('');
+            panel.innerHTML = `<div class="ab-intel-card">
+                <h4>战前情报 <span class="ab-muted">(${Math.round(intel.accuracy * 100)}%)</span></h4>
+                <p>威胁：<strong>${esc(intel.threat)}</strong> · ${esc(intel.commanderHint)}</p>
+                <ul class="ab-intel-list">${intents || '<li>无特殊意图</li>'}</ul>
+                <p class="ab-muted">推荐站位</p>
+                <ul class="ab-intel-list">${form}</ul>
+                ${synList ? `<p class="ab-muted">激活协同</p><ul class="ab-intel-list">${synList}</ul>` : ''}
+                ${phaseList ? `<p class="ab-muted">Boss 阶段</p><ul class="ab-intel-list">${phaseList}</ul>` : ''}
+            </div>`;
+        }
+
+        showSkirmishChoice(node, encounter) {
+            this._showSceneView('ab-map-view', 'skirmish');
+            const el = document.getElementById('ab-map-view');
+            if (!el) return;
+            const p = window.CombatPacing.calculatePower(this.controller.run, encounter);
+            el.innerHTML = `<div class="ab-skirmish-choice">
+                <h3>碾压遭遇</h3>
+                <p>战力比 ${p.ratio.toFixed(2)}：可选择瞬间结算（约 3 秒）或观看完整战斗。</p>
+                <div class="ab-actions">
+                    <button type="button" id="ab-skirmish-yes" class="ab-btn ab-btn-primary">瞬间结算</button>
+                    <button type="button" id="ab-skirmish-no" class="ab-btn">观看战斗</button>
+                </div>
+                <label class="ab-skirmish-pref"><input type="checkbox" id="ab-skirmish-always"> 满足条件时始终瞬间结算</label>
+            </div>`;
+            document.getElementById('ab-skirmish-yes').onclick = () => {
+                const always = document.getElementById('ab-skirmish-always');
+                if (always && always.checked && this.controller.run.ascension) {
+                    this.controller.run.ascension.skirmishPreference = true;
+                }
+                this.controller.resolveSkirmish(node, true);
+            };
+            document.getElementById('ab-skirmish-no').onclick = () => this.controller.resolveSkirmish(node, false);
+        }
+
+        showPactSelect(meta) {
+            this._showSceneView('ab-map-view', 'pact');
+            const el = document.getElementById('ab-map-view');
+            if (!el || !window.DemonPact) return;
+            const choices = window.DemonPact.listChoices(meta);
+            el.innerHTML = `<div class="ab-pact-select">
+                <h3>恶魔契约</h3>
+                <p class="ab-muted">选择挑战与星级（1–5 星），星级越高奖励与难度越高（可跳过）</p>
+                <div class="ab-pact-grid">${choices.map((c) =>
+                    `<div class="ab-pact-card" data-pact="${c.id}">
+                        <strong>${esc(c.name)}</strong>
+                        <span>${esc(c.description)}</span>
+                        <div class="ab-pact-stars">${[1, 2, 3, 4, 5].map((s) =>
+                            `<button type="button" class="ab-pact-star" data-pact="${c.id}" data-stars="${s}" title="${s} 星">${s}★</button>`
+                        ).join('')}</div>
+                    </div>`
+                ).join('')}</div>
+                <button type="button" id="ab-pact-skip" class="ab-btn ab-btn-ghost">不签订契约</button>
+            </div>`;
+            el.querySelectorAll('.ab-pact-star').forEach((btn) => {
+                btn.onclick = () => {
+                    const stars = parseInt(btn.getAttribute('data-stars'), 10) || 1;
+                    this.controller.applyPactChoice(btn.getAttribute('data-pact'), stars);
+                    this._hideScene(true);
+                };
+            });
+            document.getElementById('ab-pact-skip').onclick = () => {
+                this.controller.skipPactChoice();
+                this._hideScene(true);
+            };
+        }
+
         showRunSummary(summary) {
             this.show();
             this._postRunSummaryActive = true;
             const el = document.getElementById('ab-summary-view');
             if (!el) return;
+            const dn = summary.deathNarrative;
+            const narrativeHtml = dn ? `<div class="ab-death-narrative">
+                <h4>${esc(dn.title || '死亡档案')}</h4>
+                <p>击杀 ${dn.kills || 0} · 推进 ${dn.layers || 0} 层 · 协同 ${dn.maxSynergies || 0}</p>
+                ${(dn.newUnlocks && dn.newUnlocks.length) ? '<p>解锁：' + dn.newUnlocks.map(esc).join('、') + '</p>' : ''}
+            </div>` : '';
             el.innerHTML = `<div class="ab-summary ${summary.victory ? 'win' : 'lose'}">
                 <h3>${summary.victory ? '通关成功' : '挑战失败'}</h3>
                 <div class="ab-summary-stats">
@@ -2571,6 +2870,7 @@
                     <div><span>未分配点数</span><strong>${summary.pendingLevelPoints || 0}</strong></div>
                     <div><span>推进节点</span><strong>${summary.layersCleared}</strong></div>
                 </div>
+                ${narrativeHtml}
                 <p class="ab-muted" style="margin:8px 0 0;">等级不带出塔外；下次从 Lv.1 再开一局，在休息处分配成长。</p>
                 <div class="ab-actions">
                     <button type="button" id="ab-summary-town" class="ab-btn ab-btn-primary">返回主城</button>
@@ -2663,7 +2963,8 @@
             html += lineageProgressHtml(run);
             html += '<div class="ab-panel-section"><div class="ab-panel-section-title">技能槽</div>';
             html += '<div class="ab-skill-hotbar">';
-            for (let i = 0; i < 4; i++) {
+            const maxSk = window.DemonPact ? window.DemonPact.getMaxActiveSkills(run) : 4;
+            for (let i = 0; i < maxSk; i++) {
                 const entry = RSS.normalizeSkillEntry(hero.skillSlots[i]);
                 const sid = entry ? entry.id : null;
                 const stars = entry && entry.stars ? entry.stars : 1;
@@ -2798,7 +3099,8 @@
             if (bag.kind === 'skill') {
                 html += '<div class="ab-panel-section"><div class="ab-panel-section-title">技能</div>';
                 html += '<div class="ab-skill-hotbar ab-skill-hotbar-compact">';
-                for (let i = 0; i < 4; i++) {
+                const maxSk = window.DemonPact ? window.DemonPact.getMaxActiveSkills(run) : 4;
+                for (let i = 0; i < maxSk; i++) {
                     const entry = hero.skillSlots[i];
                     const sid = RSS.skillEntryId(entry);
                     const stars = entry && entry.stars ? entry.stars : 1;

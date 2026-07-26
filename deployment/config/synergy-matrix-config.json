@@ -1,0 +1,114 @@
+{
+  "SYNERGY_MATRIX_CONFIG": {
+    "binary": {
+      "steam_explosion": {
+        "name": "蒸汽爆炸",
+        "description": "火+冰同时存在时触发300%AOE爆炸",
+        "required": ["scorching_touch", "frost_core"],
+        "effect": { "type": "elemental_reaction", "damageMult": 3.0, "aoeRadius": 80 },
+        "vfx": "steam_burst",
+        "uiColor": "#88ccff"
+      },
+      "blood_rage": {
+        "name": "血怒狂潮",
+        "description": "低血时吸血提升至30%，攻击附带流血",
+        "required": ["vamp_fang", "blood_pact_synergy"],
+        "effect": { "type": "lifesteal_boost", "threshold": 0.3, "lifesteal": 0.3 },
+        "vfx": "blood_wave",
+        "uiColor": "#cc2244"
+      },
+      "arcane_storm": {
+        "name": "奥术风暴",
+        "description": "闪电链弹射+3，每次弹射小范围爆炸",
+        "required": ["lightning_chain_relic", "arcane_amp"],
+        "effect": { "type": "chain_bonus", "extraJumps": 3, "explosionRadius": 50 },
+        "vfx": "arcane_burst",
+        "uiColor": "#aa66ff"
+      },
+      "time_loop": {
+        "name": "时之轮回",
+        "description": "复活时回溯10秒前状态",
+        "required": ["guardian_angel", "time_sandglass"],
+        "effect": { "type": "revive_rewind", "rewindMs": 10000 },
+        "vfx": "time_spiral",
+        "uiColor": "#66ddff"
+      },
+      "golden_rule": {
+        "name": "黄金律",
+        "description": "金币+50%，每100金币全队攻击+1%",
+        "required": ["greedy_purse", "fortune_coin"],
+        "effect": { "type": "gold_attack", "goldMult": 1.5, "attackPer100Gold": 0.01 },
+        "vfx": "gold_shimmer",
+        "uiColor": "#ffd700"
+      },
+      "crit_stun": {
+        "name": "暴击震荡",
+        "description": "暴击时100%眩晕0.5秒（Boss减半）",
+        "required": ["sharp_edge", "stun_brand"],
+        "effect": { "type": "crit_stun", "durationMs": 500, "bossMult": 0.5 },
+        "vfx": "shock_ring",
+        "uiColor": "#ffaa00"
+      }
+    },
+    "ternary": {
+      "elemental_cataclysm": {
+        "name": "元素大灾变",
+        "description": "火/冰/雷互相触发连锁反应",
+        "required": ["scorching_touch", "frost_core", "lightning_chain_relic"],
+        "effect": { "type": "elemental_chain" },
+        "vfx": "elemental_storm",
+        "uiColor": "#ff44aa"
+      },
+      "blood_god": {
+        "name": "血神降临",
+        "description": "伤害50%转护盾，护盾上限=2×最大生命",
+        "required": ["vamp_fang", "blood_pact_synergy", "blood_oath_seal"],
+        "effect": { "type": "damage_to_shield", "convertPct": 0.5, "shieldCapMult": 2 },
+        "vfx": "blood_god",
+        "uiColor": "#aa0022"
+      },
+      "midas_hand": {
+        "name": "迈达斯之手",
+        "description": "敌人20%变金雕像；Boss战+500金币",
+        "required": ["greedy_purse", "fortune_coin", "golden_rule_relic"],
+        "effect": { "type": "midas", "statueChance": 0.2, "bossGoldBonus": 500 },
+        "vfx": "midas",
+        "uiColor": "#ffcc00"
+      },
+      "war_king": {
+        "name": "战争之王",
+        "description": "战士技能双重释放",
+        "required": ["split_formation", "oath_seal", "stun_brand"],
+        "effect": { "type": "warrior_double_cast", "secondDamageMult": 0.5 },
+        "vfx": "war_crown",
+        "uiColor": "#cc6622"
+      }
+    },
+    "classSynergy": {
+      "iron_front": {
+        "name": "钢铁阵线",
+        "description": "两名战士相邻时分担30%伤害",
+        "requiredClasses": { "warrior": 2 },
+        "effect": { "type": "adjacent_share", "sharePct": 0.3 }
+      },
+      "arcane_resonance": {
+        "name": "奥术共鸣",
+        "description": "法师技能25%触发另一名法师技能",
+        "requiredClasses": { "mage": 2 },
+        "effect": { "type": "mage_echo", "chance": 0.25 }
+      },
+      "hunt_combo": {
+        "name": "猎杀组合",
+        "description": "刺客标记的敌人，弓箭手伤害+50%",
+        "requiredClasses": { "assassin": 1, "archer": 1 },
+        "effect": { "type": "mark_bonus", "damageBonus": 0.5 }
+      },
+      "balanced_force": {
+        "name": "均衡之力",
+        "description": "四职业全队全属性+10%，指挥官能量+50%",
+        "requiredClasses": { "warrior": 1, "archer": 1, "mage": 1, "assassin": 1 },
+        "effect": { "type": "all_stat", "statMult": 1.1, "commanderRegenMult": 1.5 }
+      }
+    }
+  }
+}

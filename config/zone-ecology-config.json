@@ -1,0 +1,75 @@
+{
+  "ZONE_ECOLOGY_CONFIG": {
+    "zones": {
+      "ashen_wastes": {
+        "id": "ashen_wastes",
+        "name": "灰烬荒原",
+        "layers": 10,
+        "actIndex": 0,
+        "trait": {
+          "id": "ash_shroud",
+          "name": "灰烬弥漫",
+          "description": "每3场战斗后视野-20%",
+          "applyEveryNBattles": 3,
+          "effect": { "visionReduce": 0.2 }
+        },
+        "enemyPool": ["ab_grunt", "ab_archer", "ab_imp", "ab_skirmisher"],
+        "specialNodes": ["ember_shrine"],
+        "branchPaths": ["shadow_path", "golden_road", "blood_road"]
+      },
+      "magma_rift": {
+        "id": "magma_rift",
+        "name": "熔岩裂谷",
+        "layers": 10,
+        "actIndex": 1,
+        "trait": {
+          "id": "geothermal",
+          "name": "地热喷发",
+          "description": "每场战斗随机1格变为岩浆",
+          "applyEveryNBattles": 1,
+          "effect": { "lavaCell": true, "lavaDpsPct": 0.05 }
+        },
+        "enemyPool": ["ab_bomber", "ab_flame", "ab_berserker"],
+        "specialNodes": ["lava_forge"],
+        "branchPaths": ["shadow_path", "golden_road", "blood_road"]
+      },
+      "void_abyss": {
+        "id": "void_abyss",
+        "name": "虚空深渊",
+        "layers": 10,
+        "actIndex": 2,
+        "trait": {
+          "id": "spatial_warp",
+          "name": "空间扭曲",
+          "description": "每5秒随机交换位置",
+          "effect": { "swapIntervalMs": 5000 }
+        },
+        "enemyPool": ["ab_shadow", "ab_wraith", "ab_void_weaver"],
+        "specialNodes": ["void_rift"],
+        "branchPaths": ["shadow_path", "golden_road", "blood_road"]
+      },
+      "throne_of_end": {
+        "id": "throne_of_end",
+        "name": "终末王座",
+        "layers": 5,
+        "actIndex": 3,
+        "trait": {
+          "id": "despair_field",
+          "name": "绝望领域",
+          "description": "休息处不可复活；指挥官能量恢复-50%",
+          "effect": { "noRestRevive": true, "commanderRegenMult": 0.5 }
+        },
+        "enemyPool": ["ab_elite_mix"],
+        "specialNodes": ["demon_trial"],
+        "branchPaths": []
+      }
+    },
+    "specialNodeTypes": {
+      "ember_shrine": { "name": "余烬祭坛", "costGold": 30, "revealLayers": 3 },
+      "lava_forge": { "name": "熔岩锻造", "attackBonusPct": 0.05 },
+      "void_rift": { "name": "虚空裂隙", "corruptionGain": 20 },
+      "demon_trial": { "name": "魔王试炼", "battlesInRow": 3 },
+      "curse_encounter": { "name": "诅咒遭遇", "forceCurseRelic": true }
+    }
+  }
+}

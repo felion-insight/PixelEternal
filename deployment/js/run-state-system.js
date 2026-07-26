@@ -12,7 +12,7 @@
 
 
 
-    const EQUIP_SLOTS = ['weapon', 'head', 'chest', 'hands', 'feet'];
+    const EQUIP_SLOTS = ['weapon', 'armor'];
 
 
 
@@ -257,7 +257,7 @@
 
             basicAttackId: PMS.getBasicAttackId(metaHero),
 
-            equipment: emptyEquipment(),
+            equipment: migrateEquipment(metaHero.equipment || null) || emptyEquipment(),
 
             hp: 0,
 
@@ -330,7 +330,25 @@
 
             victory: false,
 
-            phase: 'map'
+            phase: 'map',
+
+            ascension: (window.AscensionHub && window.AscensionHub.createDefaultRunAscension)
+                ? window.AscensionHub.createDefaultRunAscension()
+                : {
+                    corruption: 0,
+                    pact: null,
+                    activeChains: [],
+                    synergies: [],
+                    commanderUnlocks: [],
+                    deathStats: {},
+                    zoneId: null,
+                    battlesInZone: 0,
+                    triggeredCorruptionThresholds: [],
+                    visionPenalty: 0,
+                    cursedRelicIds: [],
+                    skirmishPreference: false,
+                    battleSpeedScale: 1
+                }
 
         };
 
@@ -426,13 +444,46 @@
 
 
 
+    function syncStarMutations(entry) {
+        const sc = skillProgressionCfg();
+        if (!sc.useStarMutations) return entry;
+        const table = sc.starMutations || cfg().starMutations || {};
+        const map = table[entry.id];
+        if (!map) return entry;
+        entry.branchMods = entry.branchMods || [];
+        const stars = entry.stars || 1;
+        for (let s = 2; s <= stars; s++) {
+            const upId = map[String(s)];
+            if (upId && entry.branchMods.indexOf(upId) < 0) entry.branchMods.push(upId);
+        }
+        return entry;
+    }
+
+    function migrateEquipment(equip) {
+        const slots = cfg().equipmentSlots || EQUIP_SLOTS;
+        if (!equip || typeof equip !== 'object') return emptyEquipment();
+        if (slots.indexOf('armor') >= 0 && !('head' in equip) && !('chest' in equip)) {
+            const out = emptyEquipment();
+            out.weapon = equip.weapon || null;
+            out.armor = equip.armor || null;
+            return out;
+        }
+        const legacy = ['head', 'chest', 'hands', 'feet'].map((s) => equip[s]).filter(Boolean);
+        const best = legacy.sort((a, b) => ((b.defense || 0) + (b.maxHp || 0)) - ((a.defense || 0) + (a.maxHp || 0)))[0] || null;
+        return { weapon: equip.weapon || null, armor: best };
+    }
+
     function getStarScaling(stars) {
 
         const sc = skillProgressionCfg();
 
-        const maxStars = sc.maxStars || 5;
+        const maxStars = sc.maxStars || 3;
 
         const s = Math.min(maxStars, Math.max(1, stars | 0 || 1));
+
+        if (sc.useStarMutations) {
+            return { stars: s, damageMult: 1, cooldownMult: 1, chainJumpBonus: 0, lifestealBonus: 0 };
+        }
 
         const bonus = s - 1;
 
@@ -464,7 +515,7 @@
 
         const s = Math.max(1, stars | 0 || 1);
 
-        return '★'.repeat(s) + '☆'.repeat(Math.max(0, (skillProgressionCfg().maxStars || 5) - s));
+        return '★'.repeat(s) + '☆'.repeat(Math.max(0, (skillProgressionCfg().maxStars || 3) - s));
 
     }
 
@@ -493,9 +544,7 @@
 
 
     function canHeroWearGear(hero, gear) {
-
         if (!hero || !gear) return false;
-
         const tags = gear.classTags || [];
 
         if (!tags.length || tags.includes('generic')) return true;
@@ -552,6 +601,8 @@
 
                     slot.stars = Math.min(maxStars, slot.stars + 1);
 
+                    syncStarMutations(slot);
+
                     hero.skillSlots[i] = slot;
 
                     return {
@@ -579,6 +630,8 @@
             if (inv && inv.stars < maxStars) {
 
                 inv.stars = Math.min(maxStars, inv.stars + 1);
+
+                syncStarMutations(inv);
 
                 run.inventorySkills[invIdx] = inv;
 
@@ -646,10 +699,10 @@
 
         if (slotIndex < 0 || slotIndex > 3) return { ok: false, message: '槽位无效' };
 
-
+        const maxSk = window.DemonPact ? window.DemonPact.getMaxActiveSkills(run) : 4;
+        if (slotIndex >= maxSk) return { ok: false, message: '契约限制：最多' + maxSk + '个技能' };
 
         let entry = normalizeSkillEntry(skillIdOrEntry);
-
         const invIdx = findInventorySkillIndex(run, skillId);
 
         if (invIdx >= 0) {
@@ -679,6 +732,10 @@
         const hero = findHero(run, heroId);
 
         if (!hero || !gear || !gear.slot) return { ok: false, message: '无效装备' };
+
+        if (window.DemonPact && !window.DemonPact.canEquipGear(run)) {
+            return { ok: false, message: '契约禁止装备' };
+        }
 
         if (!canHeroWearGear(hero, gear)) {
 
@@ -754,9 +811,11 @@
 
         const RS = window.RelicSystem;
 
-        if (RS && RS.atSoftCap && RS.atSoftCap(run.relics)) return false;
+        if (RS && RS.atSoftCap && RS.atSoftCap(run.relics, run)) return false;
 
         run.relics.push(relicId);
+
+        if (window.AscensionHub) window.AscensionHub.onRelicAcquired(run, relicId);
 
         return true;
 
@@ -824,6 +883,124 @@
 
     function makeGearLoot(rng, preferSlot, preferClass) {
 
+        const r = rng || Math.random;
+
+        const gearLoot = cfg().gearLoot || {};
+
+        const arch = cfg().gearArchetypes || {};
+
+        const weaponShare = gearLoot.weaponShare != null ? gearLoot.weaponShare : 0.5;
+
+        let slot = preferSlot;
+
+        if (!slot) slot = r() < weaponShare ? 'weapon' : 'armor';
+
+        const pool = slot === 'weapon' ? (arch.weapons || []) : (arch.armors || []);
+
+        if (!pool.length) return makeGearLootLegacy(rng, preferSlot, preferClass);
+
+        let filtered = pool;
+
+        if (preferClass) {
+
+            filtered = pool.filter((a) => {
+
+                const tags = a.classTags || ['generic'];
+
+                return tags.includes('generic') || tags.includes(preferClass);
+
+            });
+
+            if (!filtered.length) filtered = pool;
+
+        }
+
+        const base = filtered[Math.floor(r() * filtered.length)];
+
+        const rarityRoll = r();
+
+        let rarity = 'common';
+
+        if (rarityRoll > 0.92) rarity = 'legendary';
+
+        else if (rarityRoll > 0.75) rarity = 'rare';
+
+        else if (rarityRoll > 0.45) rarity = 'uncommon';
+
+        const rarityMult = (gearLoot.rarityStatMult && gearLoot.rarityStatMult[rarity]) || 1;
+
+        const mult = (v) => Math.max(0, Math.round((v || 0) * rarityMult));
+
+        const lines = [];
+
+        if (base.desc) lines.push(base.desc);
+
+        if (base.passive) {
+
+            const pl = { thorns: '受击反伤', dodge: '闪避', frontline: '前排减伤', backline: '后排增伤' };
+
+            lines.push((pl[base.passive] || base.passive) + (base.passivePct ? ' ' + Math.round(base.passivePct * 100) + '%' : ''));
+
+        }
+
+        return {
+
+            type: 'gear',
+
+            uid: 'g_' + Date.now().toString(36) + '_' + Math.floor(r() * 1e6),
+
+            slot: slot,
+
+            archetypeId: base.id,
+
+            name: base.name,
+
+            rarity: rarity,
+
+            classTags: base.classTags || ['generic'],
+
+            attack: mult(base.attack),
+
+            defense: mult(base.defense),
+
+            maxHp: mult(base.maxHp),
+
+            skillDamageMult: base.skillDamageMult || 1,
+
+            critChance: base.critChance || 0,
+
+            cooldownMult: base.cooldownMult || 1,
+
+            onHitHeal: 0,
+
+            basicIntervalMult: base.basicIntervalMult || 1,
+
+            basicCleave: !!base.basicCleave,
+
+            basicPierce: !!base.basicPierce,
+
+            basicChain: base.basicChain || 0,
+
+            basicMultihit: base.basicMultihit || 1,
+
+            range: base.range || null,
+
+            passive: base.passive || null,
+
+            passivePct: base.passivePct || 0,
+
+            traitLines: lines,
+
+            affixLines: lines
+
+        };
+
+    }
+
+
+
+    function makeGearLootLegacy(rng, preferSlot, preferClass) {
+
         const slots = cfg().equipmentSlots || EQUIP_SLOTS;
 
         const r = rng || Math.random;
@@ -838,7 +1015,7 @@
 
         if (!slot) {
 
-            slot = r() < weaponShare ? 'weapon' : slots.filter((s) => s !== 'weapon')[Math.floor(r() * 4)] || 'chest';
+            slot = r() < weaponShare ? 'weapon' : slots.filter((s) => s !== 'weapon')[Math.floor(r() * Math.max(1, slots.length - 1))] || 'armor';
 
         }
 
@@ -1357,9 +1534,16 @@
 
         const pick = slots[Math.floor(r() * slots.length)];
 
-        const next = Math.min((skillProgressionCfg().maxStars) || 5, (pick.entry.stars || 1) + 1);
+        const next = Math.min((skillProgressionCfg().maxStars) || 3, (pick.entry.stars || 1) + 1);
 
-        pick.hero.skillSlots[pick.idx] = makeSkillEntry(pick.entry.id, next);
+        const upgraded = makeSkillEntry(pick.entry.id, next, {
+            branchMods: (pick.entry.branchMods || []).slice(),
+            evolvedId: pick.entry.evolvedId
+        });
+
+        syncStarMutations(upgraded);
+
+        pick.hero.skillSlots[pick.idx] = upgraded;
 
         return {
 
@@ -1498,6 +1682,8 @@
         makeSkillLoot,
 
         makeGearLoot,
+
+        syncStarMutations,
 
         pickSkillFromPool,
 

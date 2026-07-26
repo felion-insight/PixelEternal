@@ -61,6 +61,11 @@
     }
 
     function lookupUpgrade(upgradeId) {
+        const starUps = cfg().starUpgrades || {};
+        if (starUps[upgradeId]) {
+            const su = starUps[upgradeId];
+            return { upgrade: { id: upgradeId, mutate: su.mutate || su }, branch: null, lineage: null };
+        }
         return upgradeIndex()[upgradeId] || null;
     }
 

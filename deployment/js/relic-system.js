@@ -60,13 +60,21 @@
         return def.iconId || def.id;
     }
 
-    function softCap() {
+    function softCap(run) {
         const n = (cfg().rewards || {}).relicSoftCap;
-        return n != null ? n : 16;
+        let cap = n != null ? n : 16;
+        if (run && run.ascension && window.CurseSystem) {
+            (run.ascension.cursedRelicIds || []).forEach((rid) => {
+                const def = window.CurseSystem.cursedRelics()[rid];
+                const pos = def && (def.positive || (def.effects && def.effects.positive));
+                if (pos && pos.relicCapBonus) cap += pos.relicCapBonus;
+            });
+        }
+        return cap;
     }
 
-    function atSoftCap(ownedIds) {
-        return (ownedIds || []).length >= softCap();
+    function atSoftCap(ownedIds, run) {
+        return (ownedIds || []).length >= softCap(run);
     }
 
     function skillDefById(skillId) {
@@ -151,7 +159,7 @@
      */
     function pickRelicChoices(rng, count, ownedIds, source, run) {
         const r = rng || Math.random;
-        if (atSoftCap(ownedIds)) return [];
+        if (atSoftCap(ownedIds, run)) return [];
         const owned = new Set(ownedIds || []);
         const pool = allRelics().filter((x) => !owned.has(x.id));
         if (!pool.length) return [];
@@ -353,13 +361,37 @@
             belowHpRatio: 0,
             belowHpDamageMult: 1,
             skillMutators: [],
-            reduceGearDrop: false
+            reduceGearDrop: false,
+            extraAttackChance: 0,
+            onHitDot: null,
+            moveSpeedMult: 1,
+            armorBreak: null,
+            skillRangeMult: 1,
+            battleStartHealPct: 0,
+            thornsPct: 0,
+            lowHpAttackMult: null,
+            meleeOnHit: null,
+            skillChainChance: null,
+            dodgeNextCrit: false,
+            cheatDeath: null,
+            killGoldBonus: 0,
+            skillExpMult: 1,
+            battleStartBuff: null,
+            armorPenPct: 0,
+            reviveOnDeath: null,
+            disableBasicAttack: false,
+            lifesteal: 0,
+            battleStartMirror: null,
+            basicAttackIntervalMult: 1,
+            phoenixRevive: null,
+            chainLightning: null
         };
+        const CEB = window.CombatEffectsBridge;
         (relicEntries || []).forEach((entry) => {
             const id = typeof entry === 'string' ? entry : entry.id;
             const def = getRelicDef(id);
             if (!def || !def.effects) return;
-            const e = def.effects;
+            const e = CEB && CEB.flattenRelicEntry ? CEB.flattenRelicEntry(def) : def.effects;
             if (e.attackMult) agg.attackMult *= e.attackMult;
             if (e.maxHpMult) agg.maxHpMult *= e.maxHpMult;
             if (e.flatDefense) agg.flatDefense += e.flatDefense;
@@ -367,20 +399,49 @@
             if (e.cooldownMult) agg.cooldownMult *= e.cooldownMult;
             if (e.skillDamageMult) agg.skillDamageMult *= e.skillDamageMult;
             if (e.expMult) agg.expMult *= e.expMult;
+            if (e.skillExpMult) agg.expMult *= e.skillExpMult;
             if (e.onHitHeal) agg.onHitHeal += e.onHitHeal;
             if (e.goldMult) agg.goldMult *= e.goldMult;
+            if (e.killGoldBonus) agg.killGoldBonus = (agg.killGoldBonus || 0) + e.killGoldBonus;
             if (e.backRowDamageMult) agg.backRowDamageMult *= e.backRowDamageMult;
             if (e.frontRowDamageTakenMult) agg.frontRowDamageTakenMult *= e.frontRowDamageTakenMult;
             if (e.startSkillReady) agg.startSkillReady = true;
             if (e.startAllSkillsReady) agg.startAllSkillsReady = true;
             if (e.suppressStartSkillReady) agg.suppressStartSkillReady = true;
             if (e.basicIntervalMult) agg.basicIntervalMult *= e.basicIntervalMult;
+            if (e.basicAttackIntervalMult != null) {
+                agg.basicIntervalMult *= e.basicAttackIntervalMult === 0 ? 0.12 : e.basicAttackIntervalMult;
+            }
             if (e.onKillHeal) agg.onKillHeal += e.onKillHeal;
             if (e.executeBelow) agg.executeBelow = Math.max(agg.executeBelow, e.executeBelow);
             if (e.executeDamageMult) agg.executeDamageMult *= e.executeDamageMult;
             if (e.belowHpRatio) agg.belowHpRatio = Math.max(agg.belowHpRatio, e.belowHpRatio);
             if (e.belowHpDamageMult) agg.belowHpDamageMult *= e.belowHpDamageMult;
             if (e.reduceGearDrop) agg.reduceGearDrop = true;
+            if (e.extraAttackChance) agg.extraAttackChance = Math.max(agg.extraAttackChance, e.extraAttackChance);
+            if (e.onHitDot) agg.onHitDot = e.onHitDot;
+            if (e.moveSpeedMult) agg.moveSpeedMult *= e.moveSpeedMult;
+            if (e.armorBreak) agg.armorBreak = e.armorBreak;
+            if (e.skillRangeMult) agg.skillRangeMult *= e.skillRangeMult;
+            if (e.battleStartHealPct) agg.battleStartHealPct = Math.max(agg.battleStartHealPct, e.battleStartHealPct);
+            if (e.thornsPct) agg.thornsPct = Math.max(agg.thornsPct, e.thornsPct);
+            if (e.lowHpAttackMult) agg.lowHpAttackMult = e.lowHpAttackMult;
+            if (e.meleeOnHit) agg.meleeOnHit = e.meleeOnHit;
+            if (e.skillChainChance) agg.skillChainChance = e.skillChainChance;
+            if (e.dodgeNextCrit) agg.dodgeNextCrit = true;
+            if (e.cheatDeath) agg.cheatDeath = e.cheatDeath;
+            if (e.battleStartBuff) agg.battleStartBuff = e.battleStartBuff;
+            if (e.armorPenPct) agg.armorPenPct = Math.max(agg.armorPenPct, e.armorPenPct);
+            if (e.reviveOnDeath) agg.reviveOnDeath = e.reviveOnDeath;
+            if (e.disableBasicAttack) agg.disableBasicAttack = true;
+            if (e.lifesteal) agg.lifesteal = e.lifesteal;
+            if (e.battleStartMirror) agg.battleStartMirror = e.battleStartMirror;
+            if (e.phoenixRevive) agg.phoenixRevive = e.phoenixRevive;
+            if (e.chainLightning) agg.chainLightning = e.chainLightning;
+            if (e.randomElementOnSkill) agg.randomElementOnSkill = e.randomElementOnSkill;
+            if (e.onHitSlow) agg.onHitSlow = e.onHitSlow;
+            if (e.defenseMult) { /* curse positive handled in buildBattleModifiers */ }
+            if (e.attackSpeedMult) agg.basicIntervalMult /= e.attackSpeedMult;
             if (e.skillMutators && e.skillMutators.length) {
                 agg.skillMutators = agg.skillMutators.concat(e.skillMutators);
             }

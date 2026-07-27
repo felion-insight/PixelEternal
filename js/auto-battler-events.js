@@ -188,11 +188,14 @@
             messages.push('离开了');
         }
 
+        const eventTitle = window.EventChainSystem && window.EventChainSystem.resolveEventDisplayTitle
+            ? window.EventChainSystem.resolveEventDisplayTitle(ev)
+            : ev.title;
         return {
             ok: true,
             messages: messages,
             pendingEquip: result.pendingEquip,
-            eventTitle: ev.title
+            eventTitle: eventTitle
         };
     }
 

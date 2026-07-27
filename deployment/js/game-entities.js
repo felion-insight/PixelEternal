@@ -2935,21 +2935,8 @@ class TownScene {
         this.gameInstance = gameInstance;
         this.width = CONFIG.CANVAS_WIDTH;
         this.height = CONFIG.CANVAS_HEIGHT;
-        this.buildings = {
-            skillTrainer: { x: 200, y: 150, size: 48, name: '技能训练师', type: 'skill_trainer' },
-            enchanter: { x: 1000, y: 150, size: 48, name: '附魔师', type: 'enchanter' },
-            shop: { x: 1000, y: 300, size: 50, name: '商店', type: 'shop' },
-            chronicleStone: { x: 1000, y: 450, size: 48, name: '编年史石碑', type: 'chronicle_stone' },
-            towerEntrance: { x: 600, y: 380, size: 64, name: '恶魔塔入口', type: 'tower_entrance' },
-            classMaster: { x: 780, y: 380, size: 48, name: '转职官', type: 'class_master' },
-            blacksmith: { x: 200, y: 300, size: 50, name: '铁匠铺', type: 'blacksmith' },
-            jeweler: { x: 200, y: 450, size: 48, name: '珠宝匠', type: 'jeweler' },
-            trainingGround: { x: 200, y: 620, size: 50, name: '训练场', type: 'training_ground' },
-            partyHall: { x: 400, y: 620, size: 50, name: '编队大厅', type: 'party_hall' },
-            materialRealm: { x: 600, y: 620, size: 48, name: '材料秘境', type: 'material_realm' },
-            awakeningGate: { x: 1000, y: 620, size: 52, name: '觉醒之门', type: 'awakening_gate' }
-        };
-        // 自走棋主城布局：只保留攀塔入口
+        this.buildings = {};
+        // 自走棋主城：仅保留攀塔入口
         this.autoBattlerBuildings = {
             towerEntrance: { x: 600, y: 360, size: 72, name: '开始攀塔', type: 'tower_entrance' }
         };
@@ -2964,8 +2951,7 @@ class TownScene {
     }
 
     getVisibleBuildings() {
-        if (this._isAutoBattlerTown()) return Object.values(this.autoBattlerBuildings);
-        return Object.values(this.buildings);
+        return Object.values(this.autoBattlerBuildings);
     }
 
     async _preloadTextures() {

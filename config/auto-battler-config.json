@@ -70,13 +70,13 @@
     }
   },
   "enemyScaling": {
-    "baseMult": 0.88,
-    "layerPerStep": 0.024,
-    "hpMult": 1.05,
-    "attackMult": 1.0,
+    "baseMult": 0.96,
+    "layerPerStep": 0.025,
+    "hpMult": 1.06,
+    "attackMult": 1.03,
     "defenseMult": 1.0,
     "earlyPressureLayers": 8,
-    "earlyPressureMax": 0.03,
+    "earlyPressureMax": 0.07,
     "eliteMult": 1.15,
     "bossMult": 1.08,
     "firstBossMult": 0.7,
@@ -543,8 +543,8 @@
     {
       "id": "ab_grunt",
       "name": "魔卒",
-      "hp": 110,
-      "attack": 10,
+      "hp": 120,
+      "attack": 11,
       "defense": 3,
       "speed": 70,
       "range": 42,
@@ -553,8 +553,8 @@
     {
       "id": "ab_archer",
       "name": "魔弓",
-      "hp": 75,
-      "attack": 13,
+      "hp": 82,
+      "attack": 14,
       "defense": 2,
       "speed": 75,
       "range": 150,
@@ -563,8 +563,8 @@
     {
       "id": "ab_imp",
       "name": "小恶魔",
-      "hp": 55,
-      "attack": 9,
+      "hp": 62,
+      "attack": 10,
       "defense": 1,
       "speed": 92,
       "range": 40,
@@ -573,8 +573,8 @@
     {
       "id": "ab_skirmisher",
       "name": "魔突兵",
-      "hp": 88,
-      "attack": 12,
+      "hp": 98,
+      "attack": 13,
       "defense": 2,
       "speed": 80,
       "range": 44,
@@ -971,8 +971,8 @@
     "battle": [
       {
         "layerMax": 5,
-        "countMin": 2,
-        "countMax": 3,
+        "countMin": 3,
+        "countMax": 4,
         "pool": [
           {
             "id": "ab_grunt",

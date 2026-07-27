@@ -8,9 +8,41 @@
 // ====================================================================
 
 /**
- * 启动游戏
- * 页面加载完成后创建游戏实例并预加载资源
+ * 在加载界面显示初始化错误
+ * @param {string} title
+ * @param {string} message
+ * @param {Function} [onRetry]
  */
+function showInitError(title, message, onRetry) {
+    const loadingScreen = document.getElementById('loading-screen');
+    const panel = document.getElementById('loading-error-panel');
+    const titleEl = document.getElementById('loading-error-title');
+    const msgEl = document.getElementById('loading-error-message');
+    const retryBtn = document.getElementById('loading-retry-btn');
+    const statusText = document.getElementById('loading-status-text');
+
+    if (loadingScreen) {
+        loadingScreen.style.display = 'flex';
+        loadingScreen.style.visibility = 'visible';
+        loadingScreen.style.opacity = '1';
+    }
+    if (statusText) statusText.textContent = title || '初始化失败';
+    if (panel) panel.style.display = 'block';
+    if (titleEl) titleEl.textContent = title || '初始化失败';
+    if (msgEl) msgEl.textContent = message || '';
+    if (retryBtn) {
+        if (typeof onRetry === 'function') {
+            retryBtn.style.display = '';
+            retryBtn.onclick = () => {
+                if (panel) panel.style.display = 'none';
+                onRetry();
+            };
+        } else {
+            retryBtn.style.display = 'none';
+        }
+    }
+}
+
 console.log('init.js 脚本已加载，当前文档状态:', document.readyState);
 
 // 防止重复初始化
@@ -31,8 +63,27 @@ if (window.gameInitialized) {
             try {
                 await configLoader.loadAll();
                 console.log('配置文件加载完成');
+                if (configLoader.degradedMode) {
+                    showInitError(
+                        '配置降级模式',
+                        '当前以 file:// 打开或部分配置未加载，游戏功能可能受限。\n\n建议使用本地服务器运行：\n  python start-server.py\n  或 python -m http.server 8000\n\n然后访问 http://localhost:8000/index.html',
+                        () => initializeGame()
+                    );
+                }
             } catch (error) {
                 console.error('配置文件加载失败:', error);
+                showInitError(
+                    '配置文件加载失败',
+                    (error && error.message ? error.message : String(error))
+                        + '\n\n请使用本地 HTTP 服务器运行游戏（python start-server.py）。',
+                    () => {
+                        if (typeof configLoader !== 'undefined') {
+                            configLoader.loaded = false;
+                            configLoader.configs = {};
+                        }
+                        initializeGame();
+                    }
+                );
                 return;
             }
         }
@@ -42,6 +93,14 @@ if (window.gameInitialized) {
             initRetryCount++;
             if (initRetryCount >= MAX_INIT_RETRIES) {
                 console.error('Game 类在1秒内仍未加载，停止重试。请检查 game-main.js 是否有语法错误。');
+                showInitError(
+                    '游戏脚本加载失败',
+                    'Game 类未定义，请检查 game-main.js 是否有语法错误，或刷新页面重试。',
+                    () => {
+                        initRetryCount = 0;
+                        initializeGame();
+                    }
+                );
                 return;
             }
             console.warn(`Game 类尚未定义，等待100ms后重试... (${initRetryCount}/${MAX_INIT_RETRIES})`);
@@ -83,15 +142,11 @@ if (window.gameInitialized) {
             game.startGame();
         } catch (error) {
             console.error('游戏初始化出错:', error, error.stack);
-            // 即使出错也尝试启动游戏
-            const gameContainer = document.getElementById('game-container');
-            const loadingScreen = document.getElementById('loading-screen');
-            if (loadingScreen) {
-                loadingScreen.style.display = 'none';
-            }
-            if (gameContainer) {
-                gameContainer.style.display = 'block';
-            }
+            showInitError(
+                '游戏初始化失败',
+                (error && error.message ? error.message : String(error)),
+                () => initializeGame()
+            );
         }
     };
 
@@ -104,6 +159,14 @@ if (window.gameInitialized) {
             retryCount++;
             if (retryCount >= MAX_RETRIES) {
                 console.error('Game 类在5秒内仍未加载，停止重试。请检查 game-main.js 是否有语法错误。');
+                showInitError(
+                    '游戏脚本加载失败',
+                    'Game 类在 5 秒内未加载，请检查控制台错误或刷新页面。',
+                    () => {
+                        retryCount = 0;
+                        tryInitializeWithRetry();
+                    }
+                );
                 return;
             }
             console.log(`Game 类尚未定义，等待100ms后重试... (${retryCount}/${MAX_RETRIES})`);

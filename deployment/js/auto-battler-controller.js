@@ -225,6 +225,19 @@
             }
         }
 
+        /** ESC 菜单：自走棋 Run 中打开游戏菜单（与主城一致） */
+        handleEscape() {
+            if (this.game && typeof this.game.showEscMenu === 'function') {
+                this.game.showEscMenu();
+            }
+        }
+
+        /** 菜单「退出恶魔塔」：结束本局并回主城 */
+        abortRun() {
+            if (this.run) this.endRun(false);
+            this.returnToTown();
+        }
+
         selectNode(nodeId) {
             if (!this.run || this.run.phase !== 'map') return false;
             const map = this.run.map;

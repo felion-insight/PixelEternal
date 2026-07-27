@@ -7,6 +7,25 @@ class ConfigLoader {
     constructor() {
         this.configs = {};
         this.loaded = false;
+        this.degradedMode = false;
+        this.loadErrors = [];
+    }
+
+    /**
+     * 安全提取配置值，防止原型链污染
+     * @param {Object|null} data
+     * @param {string} [key]
+     * @returns {*}
+     */
+    safeExtractConfig(data, key) {
+        const cloneFn = typeof window.peSafeCloneJson === 'function'
+            ? window.peSafeCloneJson
+            : (v) => v;
+        if (!data || typeof data !== 'object') return data;
+        if (key && Object.prototype.hasOwnProperty.call(data, key)) {
+            return cloneFn(data[key]);
+        }
+        return cloneFn(data);
     }
 
     /**
@@ -16,12 +35,25 @@ class ConfigLoader {
     async loadAll() {
         if (this.loaded) return;
 
+        this.loadErrors = [];
+        const isFileProtocol = typeof window !== 'undefined' && window.location.protocol === 'file:';
+
+        if (isFileProtocol) {
+            console.warn('file:// 协议无法 fetch JSON 配置，将使用 config.js 内置默认值（功能受限）');
+            this.degradedMode = true;
+            this.loadErrors.push('file:// 协议：无法加载外部 JSON 配置，已降级为内置默认值');
+            this.bootstrapFromWindowDefaults();
+            this.assignToGlobals();
+            this.loaded = true;
+            return;
+        }
+
         try {
             // 加载基础配置
             const gameConfig = await this.loadJSON('config/game-config.json');
             // game-config.json 包含多个配置项，直接合并
             if (gameConfig && typeof gameConfig === 'object') {
-                Object.assign(this.configs, gameConfig);
+                Object.assign(this.configs, this.safeExtractConfig(gameConfig));
             }
 
             // 加载其他配置文件
@@ -40,15 +72,7 @@ class ConfigLoader {
                 { key: 'CLASS_BUILD_EQUIPMENT', file: 'config/class-build-equipment.json' },
                 { key: 'CLASS_BUILD_PASSIVES', file: 'config/class-build-passives.json' },
                 { key: 'SKILL_ENTITY_CONFIG', file: 'config/skill-entity-config.json' },
-                { key: 'BASE_TYPES', file: 'config/base-types.json' },
-                { key: 'AFFIX_POOL', file: 'config/affix-pool.json' },
-                { key: 'LEGENDARY_POWERS', file: 'config/legendary-powers.json' },
-                { key: 'SET_DEFINITIONS_V2', file: 'config/set-config-v2.json' },
-                { key: 'CHRONICLE_CONFIG', file: 'config/chronicle-config.json' },
-                { key: 'TRIAL_CONFIG', file: 'config/trial-config.json' },
-                { key: 'TALENT_CONFIG', file: 'config/talent-config.json' },
-                { key: 'TUTORIAL_CONFIG', file: 'config/tutorial-config.json' },
-                { key: 'MATERIAL_DEFINITIONS', file: 'config/material-config.json' },
+                { key: 'SPRITE_ANIMATIONS', file: 'config/sprite-animations.json' },
                 { key: 'AUTO_BATTLER_CONFIG', file: 'config/auto-battler-config.json' },
                 { key: 'AUTO_BATTLER_ENCOUNTERS', file: 'config/auto-battler-encounters.json' },
                 { key: 'ASCENSION_CONFIG', file: 'config/ascension-config.json' },
@@ -58,31 +82,23 @@ class ConfigLoader {
                 { key: 'ZONE_ECOLOGY_CONFIG', file: 'config/zone-ecology-config.json' },
                 { key: 'CURSE_CONFIG', file: 'config/curse-config.json' },
                 { key: 'DEMON_PACT_CONFIG', file: 'config/demon-pact-config.json' },
-                { key: 'EVENT_CHAINS_CONFIG', file: 'config/event-chains-config.json' },
-                { key: 'SPRITE_ANIMATIONS', file: 'config/sprite-animations.json' }
+                { key: 'EVENT_CHAINS_CONFIG', file: 'config/event-chains-config.json' }
             ];
 
             for (const { key, file } of configFiles) {
                 try {
                     const data = await this.loadJSON(file);
-                    // 如果 JSON 对象中有一个与 key 同名的属性，提取该属性的值
-                    // 例如：{EQUIPMENT_DEFINITIONS: [...]} -> 提取数组
-                    if (data && typeof data === 'object' && key in data) {
-                        this.configs[key] = data[key];
-                    } else {
-                        // 否则使用整个对象（向后兼容）
-                        this.configs[key] = data;
-                    }
+                    this.configs[key] = this.safeExtractConfig(data, key);
                 } catch (error) {
                     console.warn(`Failed to load ${file}:`, error);
+                    this.loadErrors.push(`${file}: ${error.message || error}`);
                 }
             }
 
-            // 深塔追加怪物模板（与 demon 等 baseMonster 组合），合并进 MONSTER_TYPES（训练场列表、塔内生成等均依赖）
             try {
                 const deepMonAdd = await this.loadJSON('config/deep-monsters-add.json');
                 if (deepMonAdd && typeof deepMonAdd === 'object' && this.configs.MONSTER_TYPES && typeof this.configs.MONSTER_TYPES === 'object') {
-                    Object.assign(this.configs.MONSTER_TYPES, deepMonAdd);
+                    Object.assign(this.configs.MONSTER_TYPES, this.safeExtractConfig(deepMonAdd));
                 }
             } catch (e) {
                 console.warn('deep-monsters-add.json 未加载或合并失败（深阶追加怪将缺失）:', e);
@@ -91,21 +107,10 @@ class ConfigLoader {
             try {
                 const projSprites = await this.loadJSON('config/projectile-sprites.json');
                 if (projSprites && typeof projSprites === 'object') {
-                    this.configs.PROJECTILE_SPRITE_MAP = projSprites;
+                    this.configs.PROJECTILE_SPRITE_MAP = this.safeExtractConfig(projSprites);
                 }
             } catch (e) {
                 console.warn('projectile-sprites.json 未加载（飞射体将回退为几何绘制）:', e);
-            }
-
-            try {
-                const dungeonCfg = await this.loadJSON('config/dungeon-config.json');
-                if (dungeonCfg && typeof dungeonCfg === 'object') {
-                    if (dungeonCfg.DUNGEON_DEFINITIONS) this.configs.DUNGEON_DEFINITIONS = dungeonCfg.DUNGEON_DEFINITIONS;
-                    if (dungeonCfg.RIFT_AFFIXES) this.configs.RIFT_AFFIXES = dungeonCfg.RIFT_AFFIXES;
-                    if (dungeonCfg.TEAM_RAIDS) this.configs.TEAM_RAIDS = dungeonCfg.TEAM_RAIDS;
-                }
-            } catch (e) {
-                console.warn('dungeon-config.json 未加载:', e);
             }
 
             try {
@@ -126,13 +131,24 @@ class ConfigLoader {
                 console.warn('content-expansion.json 未加载:', e);
             }
 
+            try {
+                const eventNarr = await this.loadJSON('config/auto-battler-event-narratives.json');
+                if (eventNarr && eventNarr.EVENT_NARRATIVES) {
+                    this.mergeEventNarratives(eventNarr.EVENT_NARRATIVES);
+                }
+            } catch (e) {
+                console.warn('auto-battler-event-narratives.json 未加载:', e);
+            }
+
             // 将配置赋值给全局变量
             this.assignToGlobals();
             this.loaded = true;
             if (typeof window.validatePhase3EquipmentConfig === 'function') {
                 const equipmentErrors = window.validatePhase3EquipmentConfig();
                 if (equipmentErrors.length) {
-                    throw new Error(`Phase 3 装备配置存在 ${equipmentErrors.length} 个错误`);
+                    console.warn(
+                        `[Phase3Equipment] 配置校验 ${equipmentErrors.length} 项未通过（自走棋模式不阻断启动）`
+                    );
                 }
             }
         } catch (error) {
@@ -147,42 +163,31 @@ class ConfigLoader {
      * @returns {Promise<Object>}
      */
     async loadJSON(path) {
-        // 检查是否是 file:// 协议
-        if (window.location.protocol === 'file:') {
-            const errorMsg = `
-╔═══════════════════════════════════════════════════════════════╗
-║  CORS 错误：无法在 file:// 协议下加载配置文件                ║
-║                                                               ║
-║  请使用本地服务器运行游戏：                                   ║
-║                                                               ║
-║  方法 1: 运行 start-server.py                                 ║
-║    python3 start-server.py                                    ║
-║                                                               ║
-║  方法 2: 运行 start-server.sh                                 ║
-║    ./start-server.sh                                          ║
-║                                                               ║
-║  方法 3: 使用 Python 内置服务器                               ║
-║    python3 -m http.server 8000                                ║
-║    然后访问: http://localhost:8000/index.html               ║
-╚═══════════════════════════════════════════════════════════════╝
-            `;
-            console.error(errorMsg);
-            throw new Error(`CORS 错误：无法在 file:// 协议下加载 ${path}。请使用本地服务器运行游戏。`);
-        }
-        
         try {
             const response = await fetch(path);
             if (!response.ok) {
                 throw new Error(`Failed to load ${path}: ${response.statusText}`);
             }
-            return await response.json();
+            const raw = await response.json();
+            return this.safeExtractConfig(raw);
         } catch (error) {
-            if (error.message.includes('CORS')) {
-                throw error; // 重新抛出 CORS 错误
-            }
-            // 其他错误也抛出
             throw new Error(`加载 ${path} 失败: ${error.message}`);
         }
+    }
+
+    /**
+     * file:// 降级：从 config.js 已挂载的 window 全局变量引导最小配置
+     */
+    bootstrapFromWindowDefaults() {
+        const pick = (key) => (typeof window[key] !== 'undefined' ? window[key] : undefined);
+        const keys = [
+            'CONFIG', 'QUALITY_COLORS', 'QUALITY_NAMES', 'SLOT_NAMES', 'ROOM_TYPES', 'SCENE_TYPES',
+            'MONSTER_TYPES', 'CLASS_CONFIG', 'SKILL_CONFIG', 'MAPPINGS'
+        ];
+        keys.forEach((key) => {
+            const val = pick(key);
+            if (val !== undefined) this.configs[key] = this.safeExtractConfig(val);
+        });
     }
 
     /**
@@ -248,6 +253,91 @@ class ConfigLoader {
         if (exp.weatherConfig) this.configs.WEATHER_CONFIG = exp.weatherConfig;
         if (exp.bondConfig) this.configs.BOND_CONFIG = exp.bondConfig;
         if (exp.mutatedNodeConfig) this.configs.MUTATED_NODE_CONFIG = exp.mutatedNodeConfig;
+    }
+
+    /**
+     * 合并事件专属剧情与选项叙述
+     */
+    mergeEventNarratives(narratives) {
+        if (!narratives || typeof narratives !== 'object') return;
+        const ab = this.configs.AUTO_BATTLER_CONFIG;
+        const applyChoiceNarratives = (choices, map, preserveHint) => {
+            if (!choices || !map) return;
+            choices.forEach((ch) => {
+                const text = map[ch.id];
+                if (!text) return;
+                if (preserveHint && ch.desc && !ch.effectHint) ch.effectHint = ch.desc;
+                ch.narrative = text;
+                ch.desc = text;
+            });
+        };
+
+        if (ab && narratives.events) {
+            (ab.events || []).forEach((ev) => {
+                const n = narratives.events[ev.id];
+                if (!n) return;
+                if (n.title) ev.title = n.title;
+                if (n.narrative) {
+                    ev.narrative = n.narrative;
+                    ev.desc = n.narrative;
+                }
+                applyChoiceNarratives(ev.choices, n.choices, true);
+            });
+            if (Array.isArray(narratives.newEvents)) {
+                ab.events = ab.events || [];
+                narratives.newEvents.forEach((ev) => {
+                    if (!ev || !ev.id) return;
+                    if (ab.events.some((e) => e.id === ev.id)) return;
+                    ab.events.push(ev);
+                });
+            }
+        }
+
+        const evt = this.configs.EVENT_CHAINS_CONFIG;
+        const root = evt && (evt.EVENT_CHAINS_CONFIG || evt);
+        if (!root) return;
+
+        if (narratives.chainNodes) {
+            Object.keys(root.chains || {}).forEach((chainId) => {
+                const chain = root.chains[chainId];
+                (chain.nodes || []).forEach((node) => {
+                    const n = narratives.chainNodes[chainId + '/' + node.id];
+                    if (!n) return;
+                    if (n.title) node.title = n.title;
+                    if (n.narrative) {
+                        node.narrative = n.narrative;
+                        node.description = n.narrative;
+                    }
+                    applyChoiceNarratives(node.choices, n.choices, false);
+                });
+            });
+        }
+
+        if (narratives.standalone) {
+            Object.keys(root.standaloneEvents || {}).forEach((id) => {
+                const ev = root.standaloneEvents[id];
+                const n = narratives.standalone[id];
+                if (!ev || !n) return;
+                if (n.name) ev.name = n.name;
+                if (n.narrative) {
+                    ev.narrative = n.narrative;
+                    ev.description = n.narrative;
+                }
+                applyChoiceNarratives(ev.choices, n.choices, false);
+            });
+        }
+
+        if (narratives.eventIdTitles) {
+            root.eventIdTitles = Object.assign({}, root.eventIdTitles || {}, narratives.eventIdTitles);
+            Object.keys(root.chains || {}).forEach((chainId) => {
+                const titles = narratives.eventIdTitles;
+                (root.chains[chainId].nodes || []).forEach((node) => {
+                    if (!node.title && node.eventId && titles[node.eventId]) {
+                        node.title = titles[node.eventId];
+                    }
+                });
+            });
+        }
     }
 
     /**

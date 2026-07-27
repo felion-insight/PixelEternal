@@ -9,7 +9,8 @@
     };
     const PHASE_LABEL = {
         map: '选路', deploy: '布阵', combat: '激战', reward: '战利品',
-        shop: '商店', event: '事件', rest: '休整', summary: '结算', transition: '前进'
+        shop: '商店', event: '事件', rest: '休整', summary: '结算', transition: '前进',
+        skirmish_choice: '碾压抉择', pact: '恶魔契约'
     };
     const CLASS_TONE = {
         warrior: 'tone-warrior', archer: 'tone-archer', mage: 'tone-mage', assassin: 'tone-assassin'
@@ -182,6 +183,24 @@
         return `<img src="${esc(url)}" alt="" class="ab-event-emblem-img" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ab-event-emblem-fallback',textContent:'${fallback}'}))"/>`;
     }
 
+    function displayEventTitle(ev) {
+        if (window.EventChainSystem && window.EventChainSystem.resolveEventDisplayTitle) {
+            return window.EventChainSystem.resolveEventDisplayTitle(ev);
+        }
+        if (!ev || !ev.title) return '遭遇';
+        return ev.title;
+    }
+
+    function eventNarrative(ev) {
+        if (!ev) return '';
+        return ev.narrative || ev.description || ev.desc || '';
+    }
+
+    function choiceNarrative(ch) {
+        if (!ch) return '';
+        return ch.narrative || ch.desc || '';
+    }
+
     function flattenEffectTypes(effects, out) {
         out = out || [];
         (effects || []).forEach((eff) => {
@@ -222,6 +241,9 @@
             ? `<span class="ab-event-choice-cost">${choice.costGold}<small>G</small></span>`
             : '';
         const riskTag = choice.risk ? '<span class="ab-event-choice-risk">风险</span>' : '';
+        const hintHtml = choice.effectHint
+            ? `<span class="ab-event-choice-hint">${esc(choice.effectHint)}</span>`
+            : '';
         return `<button type="button" class="ab-event-choice ${kind} ${afford ? '' : 'disabled'}"
             data-choice="${esc(choice.id)}" ${afford ? '' : 'disabled'}>
             <span class="ab-event-choice-icon" aria-hidden="true">${icon}</span>
@@ -231,7 +253,8 @@
                     ${riskTag}${costTag}
                 </span>
                 <span class="ab-event-choice-name">${esc(choice.label)}</span>
-                <span class="ab-event-choice-desc">${esc(choice.desc)}</span>
+                <span class="ab-event-choice-desc">${esc(choiceNarrative(choice))}</span>
+                ${hintHtml}
             </span>
             <span class="ab-event-choice-arrow" aria-hidden="true">›</span>
         </button>`;
@@ -701,6 +724,20 @@
         }).join('');
     }
 
+    function mapActProgress(focusLayer) {
+        const TRM = window.TowerRunMap;
+        const act = TRM && TRM.getActLayoutForLayer ? TRM.getActLayoutForLayer(focusLayer) : null;
+        if (!act) return { name: '', step: 0, max: 1, pct: 0 };
+        const step = Math.min(act.preBossSteps + 1, (focusLayer - act.layerStart) + 1);
+        const max = act.preBossSteps + 1;
+        return {
+            name: act.name,
+            step: step,
+            max: max,
+            pct: Math.round((step / Math.max(1, max)) * 100)
+        };
+    }
+
     function hudStatsHtml(run) {
         if (!run) return '';
         const party = partyHudSummary(run);
@@ -729,48 +766,41 @@
         const chainHtml = chains.length && window.EventChainSystem
             ? chains.map((c) => {
                 const def = (window.EventChainSystem.chainCfg().chains || {})[c.chainId];
-                const name = def && def.name || c.chainId;
-                return `<span class="ab-syn-chip ab-chain-chip" title="事件链 · 进度 ${(c.progress || 0) + 1}">${esc(name)}</span>`;
+                const chainNames = window.EventChainSystem.CHAIN_DISPLAY_NAMES || {};
+                const name = (def && def.name) || chainNames[c.chainId] || '途中遭遇';
+                return `<span class="ab-syn-chip ab-chain-chip" title="${esc(name)}">${esc(name)}</span>`;
             }).join('')
             : '';
+        const relicInner = relics.length
+            ? hudRelicIconsHtml(relics)
+            : '<span class="ab-hud-relics-empty">—</span>';
+        const chips = `${synHtml}${bondHtml}${chainHtml}${weather ? `<span class="ab-syn-chip ab-weather-chip" title="剩余${weather.battlesLeft}场">${esc(weather.name)}</span>` : ''}${mutLabel ? `<span class="ab-syn-chip ab-mut-chip" title="${esc(mutTip)}">${esc(mutLabel)}</span>` : ''}`;
         return `
-            <div class="ab-stat-block gold">
-                <span class="ab-stat-label">金币</span>
-                <strong class="ab-stat-value">${gold}</strong>
-            </div>
-            <div class="ab-stat-block exp" title="战斗积累，在休息处分配给角色">
-                <span class="ab-stat-label">等级</span>
-                <strong class="ab-stat-value">${pending}</strong>
-            </div>
-            <div class="ab-stat-block party" title="存活 ${party.alive}/${party.total} · 生命 ${party.pct}%">
-                <span class="ab-stat-label">队伍</span>
-                <strong class="ab-stat-value">${party.alive}/${party.total}</strong>
-                <span class="ab-stat-sub">${party.pct}%</span>
-            </div>
-            <div class="ab-stat-block corruption" title="腐化值：阈值触发全局负面">
-                <span class="ab-stat-label">腐化</span>
-                <strong class="ab-stat-value">${corruption}</strong>
-                <span class="ab-stat-sub ab-corruption-bar"><span style="width:${Math.min(100, corruption)}%"></span></span>
-            </div>
-            ${zone ? `<div class="ab-stat-block zone" title="${esc(zone.trait && zone.trait.description || '')}">
-                <span class="ab-stat-label">${esc(zone.name)}</span>
-            </div>` : ''}
-            ${weather ? `<div class="ab-stat-block weather" title="剩余${weather.battlesLeft}场">
-                <span class="ab-stat-label">天气</span>
-                <strong class="ab-stat-value ab-stat-sm">${esc(weather.name)}</strong>
-            </div>` : ''}
-            ${mutLabel ? `<div class="ab-stat-block mutation" title="${esc(mutTip)}">
-                <span class="ab-stat-label">变异</span>
-                <strong class="ab-stat-value ab-stat-sm">${esc(mutLabel)}</strong>
-            </div>` : ''}
-            ${chainHtml ? `<div class="ab-stat-block chains" title="进行中的事件链">
-                <span class="ab-stat-label">事件链</span>
-                <div class="ab-hud-synergies">${chainHtml}</div>
-            </div>` : ''}
-            <div class="ab-stat-block relics">
-                <span class="ab-stat-label">遗物${relics.length ? ' · ' + relics.length : ''}</span>
-                <div class="ab-hud-relics">${hudRelicIconsHtml(relics)}</div>
-                ${synHtml || bondHtml ? `<div class="ab-hud-synergies">${synHtml}${bondHtml}</div>` : ''}
+            <div class="ab-hud-strip">
+                <div class="ab-hud-cluster ab-hud-cluster--res">
+                    <span class="ab-hud-kv gold" title="局内金币"><span class="ab-hud-kv-label">金</span><b>${gold}</b></span>
+                    <span class="ab-hud-kv exp" title="战斗积累，在休息处分配给角色"><span class="ab-hud-kv-label">级</span><b>${pending}</b></span>
+                </div>
+                <div class="ab-hud-cluster ab-hud-cluster--party">
+                    <span class="ab-hud-kv party" title="存活 ${party.alive}/${party.total} · 生命 ${party.pct}%">
+                        <span class="ab-hud-kv-label">队</span>
+                        <b>${party.alive}/${party.total}</b>
+                        <small>${party.pct}%</small>
+                    </span>
+                    <span class="ab-hud-kv corruption" title="腐化值：阈值触发全局负面">
+                        <span class="ab-hud-kv-label">腐</span>
+                        <b>${corruption}</b>
+                        <span class="ab-corruption-bar"><span style="width:${Math.min(100, corruption)}%"></span></span>
+                    </span>
+                </div>
+                ${zone ? `<span class="ab-hud-zone" title="${esc(zone.trait && zone.trait.description || '')}">${esc(zone.name)}</span>` : ''}
+                <div class="ab-hud-cluster ab-hud-cluster--relics">
+                    <span class="ab-hud-kv relics" title="已收集遗物">
+                        <span class="ab-hud-kv-label">遗</span>
+                        <span class="ab-hud-relics">${relicInner}</span>
+                    </span>
+                    ${chips ? `<span class="ab-hud-chips">${chips}</span>` : ''}
+                </div>
             </div>`;
     }
 
@@ -844,8 +874,13 @@
                     </header>
 
                     <div id="ab-bench" class="ab-hud-bench" style="display:none;">
-                        <div class="ab-bench-heroes" id="ab-bench-heroes"></div>
-                        <button type="button" id="ab-start-combat" class="ab-btn ab-btn-primary ab-btn-lg">开战</button>
+                        <div class="ab-bench-inner">
+                            <p class="ab-deploy-hint">拖拽棋盘调整站位 · 点击角色选中后落子</p>
+                            <div class="ab-bench-row">
+                                <div class="ab-bench-heroes" id="ab-bench-heroes"></div>
+                                <button type="button" id="ab-start-combat" class="ab-btn ab-deploy-start-btn">开战</button>
+                            </div>
+                        </div>
                     </div>
 
                     <div id="ab-combat-bar" class="ab-hud-combat" style="display:none;" aria-hidden="true">
@@ -1815,6 +1850,17 @@
             }
         }
 
+        _syncIntelPanel(run) {
+            const panel = document.getElementById('ab-intel-panel');
+            if (!panel) return;
+            if (!run || run.phase !== 'deploy') {
+                panel.style.display = 'none';
+                panel.innerHTML = '';
+                return;
+            }
+            this.renderDeployIntel();
+        }
+
         _syncEncounterPanel() {
             const panel = document.getElementById('ab-encounter-panel');
             const synEl = document.getElementById('ab-encounter-synergy');
@@ -2053,6 +2099,7 @@
             const phaseEl = document.getElementById('ab-phase-label');
             this._setPhaseLabel(phaseEl, run.phase);
             this._syncEncounterPanel();
+            this._syncIntelPanel(run);
 
             const bench = document.getElementById('ab-bench');
             const combatBar = document.getElementById('ab-combat-bar');
@@ -2077,7 +2124,6 @@
                         }
                     }
                     if (!entering) this.refreshBench();
-                    this.renderDeployIntel();
                     this._hideScene(true);
                     this.game.paused = !!entering ? false : true;
                 }
@@ -2213,39 +2259,54 @@
             const progressLabel = TRM.getProgressLabel
                 ? TRM.getProgressLabel(run.map, focusLayer)
                 : ('第 ' + (focusLayer + 1) + ' 层');
-            const history = (run.map.history || []).slice(-5);
+            const actProgress = mapActProgress(focusLayer);
+            const history = (run.map.history || []).slice(-6);
             let histHtml = '';
             if (history.length) {
-                histHtml = '<div class="ab-map-history"><span class="ab-muted">近期</span>' +
-                    history.map((h) => `<span class="ab-map-hist-chip ${esc(h.type)}">${esc(TRM.nodeTypeLabel(h.type))}</span>`).join('') +
-                    '</div>';
+                histHtml = '<div class="ab-map-trail"><span class="ab-map-trail-label">来路</span><div class="ab-map-trail-chips">' +
+                    history.map((h, i) => {
+                        const sep = i > 0 ? '<span class="ab-map-trail-sep" aria-hidden="true">›</span>' : '';
+                        return sep + `<span class="ab-map-hist-chip ${esc(h.type)}">${esc(TRM.nodeTypeLabel(h.type))}</span>`;
+                    }).join('') +
+                    '<span class="ab-map-trail-sep ab-map-trail-sep--next" aria-hidden="true">›</span></div></div>';
             }
             const choiceHint = choices.length === 1
-                ? '进入下一节点'
-                : '从以下路线中选择一条';
-            let html = `<div class="ab-scene-hero">
-                <h2>${esc(progressLabel)}</h2>
-                <p class="ab-muted">${esc(choiceHint)}</p>
-            </div>
-            <div class="ab-map-stage">
-                <div class="ab-layer-banner-host" id="ab-layer-banner-host"></div>
+                ? '前方仅此一路，踏入即战'
+                : '恶魔塔分岔在前，择一而行';
+            let html = `<div class="ab-map-screen">
+                <header class="ab-map-header">
+                    <div class="ab-map-act">
+                        <div class="ab-map-act-top">
+                            <span class="ab-map-act-name">${esc(actProgress.name || progressLabel.split(' · ')[0] || '恶魔塔')}</span>
+                            <span class="ab-map-act-step">${esc(progressLabel)}</span>
+                        </div>
+                        <div class="ab-map-progress-track" role="progressbar" aria-valuenow="${actProgress.pct}" aria-valuemin="0" aria-valuemax="100">
+                            <div class="ab-map-progress-fill" style="width:${actProgress.pct}%"></div>
+                        </div>
+                    </div>
+                    <p class="ab-map-hint">${esc(choiceHint)}</p>
+                </header>
                 ${histHtml}
-                <div class="ab-map ab-map-choices">`;
+                <div class="ab-map-stage">
+                    <div class="ab-layer-banner-host" id="ab-layer-banner-host"></div>
+                    <div class="ab-map ab-map-choices">`;
             const blindMap = !!(run.ascension && run.ascension.blindMap);
             choices.forEach((n, idx) => {
                 const label = blindMap ? '未知路线' : TRM.nodeTypeLabel(n.type);
+                const hint = blindMap ? '迷雾遮蔽，踏入方知' : (TRM.nodeTypeHint ? TRM.nodeTypeHint(n.type) : '');
                 const cls = ['ab-node', 'ab-choice-node', blindMap ? 'blind' : n.type, 'reachable',
                     !this._reduceMotion ? 'ab-map-layer-stagger' : ''].join(' ');
                 html += `<button type="button" class="${cls}" data-node="${n.id}" style="--ab-layer-i:${idx}">
+                    <span class="ab-node-frame"></span>
                     ${blindMap ? '<span class="ab-node-icon ab-node-icon-blind">?</span>' : nodeIconHtml(n.type)}
                     <span class="ab-node-name">${esc(label)}</span>
-                    <span class="ab-node-sub">${blindMap ? '盲选' : ('选项 ' + (idx + 1))}</span>
+                    <span class="ab-node-sub">${esc(hint)}</span>
                 </button>`;
             });
             if (!choices.length) {
-                html += '<p class="ab-muted">暂无可选节点</p>';
+                html += '<p class="ab-muted ab-map-empty">暂无可选节点</p>';
             }
-            html += '</div></div>';
+            html += '</div></div></div>';
             el.innerHTML = html;
             if (layerAdvanced) {
                 this._flashLayerBanner(document.getElementById('ab-layer-banner-host'), progressLabel);
@@ -2282,8 +2343,13 @@
             let html = `<div class="ab-reward-scene${firstOpen ? ' ab-reward-scene-enter' : ''}">
                 <div class="ab-reward-panel">
                     <header class="ab-reward-header">
-                        <h2>战利品</h2>
-                        ${pendingCount ? '' : '<p class="ab-reward-desc">奖励已领完</p>'}
+                        <div class="ab-reward-header-main">
+                            <span class="ab-reward-emblem" aria-hidden="true">✦</span>
+                            <div>
+                                <h2>战利品</h2>
+                                ${pendingCount ? '<p class="ab-reward-desc">选择一项奖励强化构筑</p>' : '<p class="ab-reward-desc">奖励已领完</p>'}
+                            </div>
+                        </div>
                         <div class="ab-reward-loot-chips">
                             <span class="ab-chip-stat gold"><i></i>+${loot.gold}</span>
                             <span class="ab-chip-stat exp"><i></i>+${loot.exp}</span>
@@ -2308,7 +2374,9 @@
                     }
 
                     if (ch.kind === 'relic_pick') {
-                        html += '<div class="ab-reward-pick-grid">';
+                        const pickCount = (ch.options || []).length;
+                        const gridCls = pickCount === 3 ? ' ab-reward-pick-grid--triple' : '';
+                        html += `<div class="ab-reward-pick-grid${gridCls}">`;
                         (ch.options || []).forEach((opt, oi) => {
                             html += rewardPreviewRelicHtml(opt, {
                                 attrs: `role="button" tabindex="0" class="ab-reward-tap" data-reward-claim="${ci}" data-reward-oi="${oi}" data-open="none"`
@@ -2316,7 +2384,9 @@
                         });
                         html += '</div>';
                     } else if (ch.kind === 'skill_pick') {
-                        html += '<div class="ab-reward-pick-grid">';
+                        const pickCount = (ch.options || []).length;
+                        const gridCls = pickCount === 3 ? ' ab-reward-pick-grid--triple' : '';
+                        html += `<div class="ab-reward-pick-grid${gridCls}">`;
                         (ch.options || []).forEach((opt, oi) => {
                             const id = opt.id || opt;
                             html += rewardPreviewSkillHtml(id, {
@@ -2325,7 +2395,9 @@
                         });
                         html += '</div>';
                     } else if (ch.kind === 'battle_pick') {
-                        html += '<div class="ab-reward-pick-grid">';
+                        const pickCount = (ch.options || []).length;
+                        const gridCls = pickCount === 3 ? ' ab-reward-pick-grid--triple' : '';
+                        html += `<div class="ab-reward-pick-grid${gridCls}">`;
                         (ch.options || []).forEach((opt, oi) => {
                             const open = opt.type === 'skill' ? 'skill' : (opt.type === 'gear' ? 'gear' : 'none');
                             html += rewardPreviewDraftOptHtml(opt,
@@ -2364,36 +2436,49 @@
             if (!this.shopStock) this.shopStock = this.controller.generateShopStock();
             const run = this.controller.run;
             const avgAtk = Math.floor(run.heroes.reduce((s, h) => s + previewHeroStats(run, h).attack, 0) / Math.max(1, run.heroes.length));
-            let html = `<div class="ab-scene-hero">
-                <h2>商店</h2>
-                <p><strong class="ab-gold">${run.gold}</strong> G</p>
-            </div><div class="ab-shop-list ab-shop-grid">`;
+            const stockCount = this.shopStock.length;
+            let html = `<div class="ab-shop-screen">
+                <header class="ab-shop-header">
+                    <span class="ab-shop-emblem" aria-hidden="true">◈</span>
+                    <div class="ab-shop-header-text">
+                        <h3>隙间商铺</h3>
+                        <p>购入技能、装备与遗物 · 共 ${stockCount} 件</p>
+                    </div>
+                    <div class="ab-shop-wallet"><span class="ab-shop-wallet-label">持有</span><strong>${run.gold}</strong><small>G</small></div>
+                </header>
+                <div class="ab-shop-grid">`;
             this.shopStock.forEach((item, idx) => {
                 let card = '';
+                const typeLabel = item.type === 'skill' ? '技能' : (item.type === 'gear' ? '装备' : '遗物');
                 if (item.type === 'skill') {
                     card = skillCardHtml(item.id, {
                         attack: avgAtk,
-                        extra: `<div class="ab-shop-buyrow"><span class="ab-shop-price">${item.price}<small>G</small></span>
+                        extra: `<div class="ab-shop-buyrow"><span class="ab-shop-type">${typeLabel}</span><span class="ab-shop-price">${item.price}<small>G</small></span>
                             <button type="button" class="ab-btn ab-btn-sm ab-btn-primary" data-shop="${idx}">购买</button></div>`
                     });
                 } else if (item.type === 'gear') {
                     card = gearCardHtml(item.gear, {
-                        extra: `<div class="ab-shop-buyrow"><span class="ab-shop-price">${item.price}<small>G</small></span>
+                        extra: `<div class="ab-shop-buyrow"><span class="ab-shop-type">${typeLabel}</span><span class="ab-shop-price">${item.price}<small>G</small></span>
                             <button type="button" class="ab-btn ab-btn-sm ab-btn-primary" data-shop="${idx}">购买</button></div>`
                     });
                 } else if (item.type === 'relic') {
                     const def = window.RelicSystem.getRelicDef(item.id) || { id: item.id, name: item.name, description: '' };
                     card = relicCardHtml(def, {
-                        extra: `<div class="ab-shop-buyrow"><span class="ab-shop-price">${item.price}<small>G</small></span>
+                        extra: `<div class="ab-shop-buyrow"><span class="ab-shop-type">${typeLabel}</span><span class="ab-shop-price">${item.price}<small>G</small></span>
                             <button type="button" class="ab-btn ab-btn-sm ab-btn-primary" data-shop="${idx}">购买</button></div>`
                     });
                 }
-                html += card;
+                html += `<div class="ab-shop-slot">${card}</div>`;
             });
-            html += `</div><div class="ab-actions">
-                <button type="button" id="ab-shop-skills" class="ab-btn ab-btn-ghost">技能背包</button>
-                <button type="button" id="ab-shop-gear" class="ab-btn ab-btn-gold">装备背包</button>
-                <button type="button" id="ab-shop-leave" class="ab-btn ab-btn-primary ab-btn-lg">离开商铺</button>
+            if (!stockCount) {
+                html += '<p class="ab-shop-empty ab-muted">货架已空，下次再来</p>';
+            }
+            html += `</div>
+                <footer class="ab-shop-footer">
+                    <button type="button" id="ab-shop-skills" class="ab-btn ab-btn-ghost">技能背包</button>
+                    <button type="button" id="ab-shop-gear" class="ab-btn ab-btn-gold">装备背包</button>
+                    <button type="button" id="ab-shop-leave" class="ab-btn ab-btn-primary ab-btn-lg">离开商铺</button>
+                </footer>
             </div>`;
             el.innerHTML = html;
             this._showSceneView('ab-shop-view', 'shop');
@@ -2467,17 +2552,19 @@
                 return;
             }
 
-            const tone = EVENT_TONE[ev.id] || 'tone-mystic';
-            let html = `<div class="ab-event-scene ${tone}">
+            const tone = EVENT_TONE[ev.id] || EVENT_TONE[ev.eventId] || 'tone-mystic';
+            let html = `<div class="ab-event-screen">
+                <div class="ab-event-scene ${tone}">
                 <div class="ab-event-backdrop"></div>
                 <div class="ab-event-panel">
                     <div class="ab-event-header">
                         <div class="ab-event-emblem">${eventEmblemHtml()}</div>
                         <div class="ab-event-header-text">
-                            <h2>${esc(ev.title)}</h2>
-                            <p class="ab-event-desc">${esc(ev.desc)}</p>
+                            <h2>${esc(displayEventTitle(ev))}</h2>
+                            <p class="ab-event-desc ab-event-narrative">${esc(eventNarrative(ev))}</p>
                         </div>
                         <div class="ab-event-wallet">
+                            <span class="ab-event-wallet-label">金币</span>
                             <span class="ab-chip-stat gold"><i></i>${run.gold}</span>
                         </div>
                     </div>
@@ -2493,7 +2580,7 @@
             html += `</div>
                     <div id="ab-event-result" class="ab-event-result" style="display:none;"></div>
                 </div>
-            </div>`;
+            </div></div>`;
             this._showSceneView('ab-event-view', 'event');
             el.innerHTML = html;
             el.querySelectorAll('[data-choice]').forEach((btn) => {
@@ -2574,7 +2661,7 @@
             box.style.display = 'block';
             box.innerHTML = `
                 <div class="ab-event-result-card">
-                    <h3>${esc(result.eventTitle || '结果')}</h3>
+                    <h3>${esc(displayEventTitle(result.eventTitle ? { title: result.eventTitle } : null))}</h3>
                     ${lines.length
                         ? `<ul class="ab-event-result-list">${lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ul>`
                         : (hasLoot ? '' : '<p class="ab-muted">没有变化</p>')}
@@ -2599,10 +2686,15 @@
                 this.controller.finishNonCombatNode();
             };
             if (run && run.restResolved) {
-                el.innerHTML = `<div class="ab-rest-card ab-rest-scene">
-                    <h3>营地</h3>
-                    <p>休整已完成</p>
-                    <button type="button" id="ab-rest-ok" class="ab-btn ab-btn-primary ab-btn-lg">离开</button>
+                el.innerHTML = `<div class="ab-rest-screen">
+                    <div class="ab-rest-panel ab-rest-panel--done">
+                        <div class="ab-rest-header">
+                            <span class="ab-rest-emblem" aria-hidden="true">✚</span>
+                            <h3>休整完成</h3>
+                            <p>营地补给已领取，可以继续攀塔</p>
+                        </div>
+                        <button type="button" id="ab-rest-ok" class="ab-btn ab-btn-primary ab-btn-lg">离开营地</button>
+                    </div>
                 </div>`;
                 this._showSceneView('ab-rest-view', 'rest');
                 document.getElementById('ab-rest-ok').onclick = leave;
@@ -2614,23 +2706,53 @@
             const heroBtns = (run.heroes || []).map((h) => {
                 const lv = h.runLevel || 0;
                 const disabled = pending <= 0 ? ' disabled' : '';
-                return `<button type="button" class="ab-btn ab-btn-sm ab-rest-level" data-hero="${esc(h.heroId)}"${disabled}>${esc(h.displayName)} <small>局内+${lv}</small></button>`;
+                const tone = CLASS_TONE[h.baseClass] || '';
+                return `<button type="button" class="ab-rest-hero-btn ab-btn ${tone}${disabled}" data-hero="${esc(h.heroId)}"${disabled}>
+                    <span class="ab-rest-hero-name">${esc(h.displayName)}</span>
+                    <span class="ab-rest-hero-lv">局内 Lv.${lv}</span>
+                    <span class="ab-rest-hero-action">+1 等级</span>
+                </button>`;
             }).join('');
-            el.innerHTML = `<div class="ab-rest-card ab-rest-scene">
-                <h3>营地</h3>
-                <p>战斗积累的等级点在此分配（可多次）</p>
-                <div class="ab-rest-level-row">
-                    <span>可分配点数：<strong id="ab-rest-pending">${pending}</strong></span>
-                    <div class="ab-rest-level-btns">${heroBtns}</div>
+            el.innerHTML = `<div class="ab-rest-screen">
+                <div class="ab-rest-panel">
+                    <div class="ab-rest-header">
+                        <span class="ab-rest-emblem" aria-hidden="true">✚</span>
+                        <h3>休整营地</h3>
+                        <p>分配战斗积累的等级点，并选择一项补给后离开</p>
+                    </div>
+                    <section class="ab-rest-section">
+                        <div class="ab-rest-section-head">
+                            <h4>等级分配</h4>
+                            <span class="ab-rest-pending-badge">剩余 <strong id="ab-rest-pending">${pending}</strong> 点</span>
+                        </div>
+                        <div class="ab-rest-hero-grid">${heroBtns}</div>
+                    </section>
+                    <section class="ab-rest-section ab-rest-supplies">
+                        <div class="ab-rest-section-head">
+                            <h4>营地补给</h4>
+                            <span class="ab-muted">选一项 · 未分配点数保留至下次</span>
+                        </div>
+                        <div class="ab-rest-choice-grid">
+                            <button type="button" class="ab-rest-choice-card heal" data-rest="heal">
+                                <span class="ab-rest-choice-title">篝火疗愈</span>
+                                <span class="ab-rest-choice-desc">全队回复 ${healPct}% 生命</span>
+                            </button>
+                            <button type="button" class="ab-rest-choice-card star" data-rest="star">
+                                <span class="ab-rest-choice-title">技能升星</span>
+                                <span class="ab-rest-choice-desc">随机强化已装备技能</span>
+                            </button>
+                            <button type="button" class="ab-rest-choice-card purify" data-rest="purify">
+                                <span class="ab-rest-choice-title">净化仪式</span>
+                                <span class="ab-rest-choice-desc">腐化 −20 · 消耗 50 金</span>
+                            </button>
+                            <button type="button" class="ab-rest-choice-card leave" data-rest="leave">
+                                <span class="ab-rest-choice-title">直接离开</span>
+                                <span class="ab-rest-choice-desc">不领取补给，保留等级点</span>
+                            </button>
+                        </div>
+                    </section>
+                    <p class="ab-rest-msg" id="ab-rest-msg"></p>
                 </div>
-                <p class="ab-muted" style="margin:8px 0 4px;">补给（选一项后离开，未分配点数会保留到下次休息）：</p>
-                <div class="ab-rest-choices">
-                    <button type="button" class="ab-btn ab-btn-primary" data-rest="heal">回血 ${healPct}%</button>
-                    <button type="button" class="ab-btn ab-btn-gold" data-rest="star">随机已装技能升星</button>
-                    <button type="button" class="ab-btn" data-rest="purify">净化仪式 (-20腐化 · 50金)</button>
-                    <button type="button" class="ab-btn" data-rest="leave">直接离开</button>
-                </div>
-                <p class="ab-rest-msg" id="ab-rest-msg"></p>
             </div>`;
             this._showSceneView('ab-rest-view', 'rest');
             const msg = document.getElementById('ab-rest-msg');
@@ -2644,7 +2766,9 @@
                     const hero = (this.controller.run.heroes || []).find((h) => h.heroId === hid);
                     const lv = hero ? (hero.runLevel || 0) : 0;
                     const name = hero ? hero.displayName : hid;
-                    btn.innerHTML = `${esc(name)} <small>局内+${lv}</small>`;
+                    btn.innerHTML = `<span class="ab-rest-hero-name">${esc(name)}</span>
+                        <span class="ab-rest-hero-lv">局内 Lv.${lv}</span>
+                        <span class="ab-rest-hero-action">+1 等级</span>`;
                 });
             };
             el.querySelectorAll('[data-rest]').forEach((btn) => {
@@ -2801,14 +2925,19 @@
             const el = document.getElementById('ab-map-view');
             if (!el) return;
             const p = window.CombatPacing.calculatePower(this.controller.run, encounter);
-            el.innerHTML = `<div class="ab-skirmish-choice">
-                <h3>碾压遭遇</h3>
-                <p>战力比 ${p.ratio.toFixed(2)}：可选择瞬间结算（约 3 秒）或观看完整战斗。</p>
-                <div class="ab-actions">
-                    <button type="button" id="ab-skirmish-yes" class="ab-btn ab-btn-primary">瞬间结算</button>
-                    <button type="button" id="ab-skirmish-no" class="ab-btn">观看战斗</button>
+            el.innerHTML = `<div class="ab-modal-screen ab-skirmish-screen">
+                <div class="ab-modal-panel ab-skirmish-panel">
+                    <div class="ab-modal-glow ab-modal-glow--gold" aria-hidden="true"></div>
+                    <span class="ab-modal-emblem" aria-hidden="true">⚡</span>
+                    <h3>碾压遭遇</h3>
+                    <p class="ab-skirmish-ratio">战力比 <strong>${p.ratio.toFixed(2)}</strong> · 可瞬间了结此战</p>
+                    <p class="ab-muted">约 3 秒跳过，或直接观看完整战斗</p>
+                    <div class="ab-actions ab-skirmish-actions">
+                        <button type="button" id="ab-skirmish-yes" class="ab-btn ab-btn-primary">瞬间结算</button>
+                        <button type="button" id="ab-skirmish-no" class="ab-btn ab-btn-ghost">观看战斗</button>
+                    </div>
+                    <label class="ab-skirmish-pref"><input type="checkbox" id="ab-skirmish-always"> 满足条件时始终瞬间结算</label>
                 </div>
-                <label class="ab-skirmish-pref"><input type="checkbox" id="ab-skirmish-always"> 满足条件时始终瞬间结算</label>
             </div>`;
             document.getElementById('ab-skirmish-yes').onclick = () => {
                 const always = document.getElementById('ab-skirmish-always');
@@ -2825,19 +2954,23 @@
             const el = document.getElementById('ab-map-view');
             if (!el || !window.DemonPact) return;
             const choices = window.DemonPact.listChoices(meta);
-            el.innerHTML = `<div class="ab-pact-select">
-                <h3>恶魔契约</h3>
-                <p class="ab-muted">选择挑战与星级（1–5 星），星级越高奖励与难度越高（可跳过）</p>
-                <div class="ab-pact-grid">${choices.map((c) =>
-                    `<div class="ab-pact-card" data-pact="${c.id}">
-                        <strong>${esc(c.name)}</strong>
-                        <span>${esc(c.description)}</span>
-                        <div class="ab-pact-stars">${[1, 2, 3, 4, 5].map((s) =>
-                            `<button type="button" class="ab-pact-star" data-pact="${c.id}" data-stars="${s}" title="${s} 星">${s}★</button>`
-                        ).join('')}</div>
-                    </div>`
-                ).join('')}</div>
-                <button type="button" id="ab-pact-skip" class="ab-btn ab-btn-ghost">不签订契约</button>
+            el.innerHTML = `<div class="ab-modal-screen ab-pact-screen">
+                <div class="ab-modal-panel ab-pact-panel">
+                    <div class="ab-modal-glow ab-modal-glow--blood" aria-hidden="true"></div>
+                    <span class="ab-modal-emblem ab-modal-emblem--pact" aria-hidden="true">☠</span>
+                    <h3>恶魔契约</h3>
+                    <p class="ab-muted">选择挑战与星级（1–5 星），星级越高奖励与难度越高</p>
+                    <div class="ab-pact-grid">${choices.map((c) =>
+                        `<div class="ab-pact-card" data-pact="${c.id}">
+                            <strong>${esc(c.name)}</strong>
+                            <span class="ab-pact-desc">${esc(c.description)}</span>
+                            <div class="ab-pact-stars">${[1, 2, 3, 4, 5].map((s) =>
+                                `<button type="button" class="ab-pact-star" data-pact="${c.id}" data-stars="${s}" title="${s} 星">${s}★</button>`
+                            ).join('')}</div>
+                        </div>`
+                    ).join('')}</div>
+                    <button type="button" id="ab-pact-skip" class="ab-btn ab-btn-ghost ab-pact-skip">不签订契约</button>
+                </div>
             </div>`;
             el.querySelectorAll('.ab-pact-star').forEach((btn) => {
                 btn.onclick = () => {
@@ -2858,22 +2991,35 @@
             const el = document.getElementById('ab-summary-view');
             if (!el) return;
             const dn = summary.deathNarrative;
-            const narrativeHtml = dn ? `<div class="ab-death-narrative">
+            const badge = summary.victory ? '通关' : '战败';
+            const title = summary.victory ? '恶魔塔已征服' : '攀登中止';
+            const subtitle = summary.victory
+                ? '四人编队完成了本次恶魔塔征途'
+                : '队伍未能抵达塔顶，但征途尚未终结';
+            const narrativeHtml = dn ? `<section class="ab-summary-narrative">
                 <h4>${esc(dn.title || '死亡档案')}</h4>
-                <p>击杀 ${dn.kills || 0} · 推进 ${dn.layers || 0} 层 · 协同 ${dn.maxSynergies || 0}</p>
-                ${(dn.newUnlocks && dn.newUnlocks.length) ? '<p>解锁：' + dn.newUnlocks.map(esc).join('、') + '</p>' : ''}
-            </div>` : '';
-            el.innerHTML = `<div class="ab-summary ${summary.victory ? 'win' : 'lose'}">
-                <h3>${summary.victory ? '通关成功' : '挑战失败'}</h3>
-                <div class="ab-summary-stats">
-                    <div><span>本局经验</span><strong>+${summary.expEarned}</strong></div>
-                    <div><span>未分配点数</span><strong>${summary.pendingLevelPoints || 0}</strong></div>
-                    <div><span>推进节点</span><strong>${summary.layersCleared}</strong></div>
+                <div class="ab-summary-narrative-stats">
+                    <span>击杀 <strong>${dn.kills || 0}</strong></span>
+                    <span>推进 <strong>${dn.layers || 0}</strong> 层</span>
+                    <span>协同 <strong>${dn.maxSynergies || 0}</strong></span>
                 </div>
-                ${narrativeHtml}
-                <p class="ab-muted" style="margin:8px 0 0;">等级不带出塔外；下次从 Lv.1 再开一局，在休息处分配成长。</p>
-                <div class="ab-actions">
-                    <button type="button" id="ab-summary-town" class="ab-btn ab-btn-primary">返回主城</button>
+                ${(dn.newUnlocks && dn.newUnlocks.length) ? '<p class="ab-summary-unlocks">新解锁：' + dn.newUnlocks.map(esc).join('、') + '</p>' : ''}
+            </section>` : '';
+            el.innerHTML = `<div class="ab-summary-screen">
+                <div class="ab-summary-panel ${summary.victory ? 'win' : 'lose'}">
+                    <div class="ab-summary-glow" aria-hidden="true"></div>
+                    <span class="ab-summary-badge">${badge}</span>
+                    <span class="ab-summary-emblem" aria-hidden="true">${summary.victory ? '♚' : '✚'}</span>
+                    <h3>${title}</h3>
+                    <p class="ab-summary-sub">${subtitle}</p>
+                    <div class="ab-summary-stats">
+                        <div class="ab-summary-stat"><span>本局经验</span><strong>+${summary.expEarned}</strong></div>
+                        <div class="ab-summary-stat"><span>未分配点数</span><strong>${summary.pendingLevelPoints || 0}</strong></div>
+                        <div class="ab-summary-stat"><span>推进节点</span><strong>${summary.layersCleared}</strong></div>
+                    </div>
+                    ${narrativeHtml}
+                    <p class="ab-summary-footnote">等级不带出塔外 · 下次从 Lv.1 再开一局，在休息处分配成长</p>
+                    <button type="button" id="ab-summary-town" class="ab-btn ab-btn-primary ab-btn-lg ab-summary-cta">返回主城</button>
                 </div>
             </div>`;
             this._showSceneView('ab-summary-view', 'summary');
@@ -2919,9 +3065,11 @@
                 return;
             }
 
-            let html = `<div class="ab-section-head">
-                    <h3>构筑</h3>
-                </div>`;
+            let html = `<div class="ab-loadout-screen">
+                <header class="ab-loadout-header">
+                    <h3>队伍构筑</h3>
+                    <p class="ab-muted">管理技能、装备与遗物</p>
+                </header>`;
 
             html += '<div class="ab-hero-tabs">';
             heroPool.forEach((h) => {
@@ -3075,9 +3223,9 @@
             }
             html += '</div></div></div>';
 
-            html += `<div class="ab-actions">
+            html += `<div class="ab-loadout-actions">
                 <button type="button" id="ab-loadout-done" class="ab-btn ab-btn-primary">关闭</button>
-            </div>`;
+            </div></div>`;
             el.innerHTML = html;
         }
 

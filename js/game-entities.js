@@ -2935,21 +2935,8 @@ class TownScene {
         this.gameInstance = gameInstance;
         this.width = CONFIG.CANVAS_WIDTH;
         this.height = CONFIG.CANVAS_HEIGHT;
-        this.buildings = {
-            skillTrainer: { x: 200, y: 150, size: 48, name: '技能训练师', type: 'skill_trainer' },
-            enchanter: { x: 1000, y: 150, size: 48, name: '附魔师', type: 'enchanter' },
-            shop: { x: 1000, y: 300, size: 50, name: '商店', type: 'shop' },
-            chronicleStone: { x: 1000, y: 450, size: 48, name: '编年史石碑', type: 'chronicle_stone' },
-            towerEntrance: { x: 600, y: 380, size: 64, name: '恶魔塔入口', type: 'tower_entrance' },
-            classMaster: { x: 780, y: 380, size: 48, name: '转职官', type: 'class_master' },
-            blacksmith: { x: 200, y: 300, size: 50, name: '铁匠铺', type: 'blacksmith' },
-            jeweler: { x: 200, y: 450, size: 48, name: '珠宝匠', type: 'jeweler' },
-            trainingGround: { x: 200, y: 620, size: 50, name: '训练场', type: 'training_ground' },
-            partyHall: { x: 400, y: 620, size: 50, name: '编队大厅', type: 'party_hall' },
-            materialRealm: { x: 600, y: 620, size: 48, name: '材料秘境', type: 'material_realm' },
-            awakeningGate: { x: 1000, y: 620, size: 52, name: '觉醒之门', type: 'awakening_gate' }
-        };
-        // 自走棋主城布局：只保留攀塔入口
+        this.buildings = {};
+        // 自走棋主城：仅保留攀塔入口
         this.autoBattlerBuildings = {
             towerEntrance: { x: 600, y: 360, size: 72, name: '开始攀塔', type: 'tower_entrance' }
         };
@@ -2964,8 +2951,7 @@ class TownScene {
     }
 
     getVisibleBuildings() {
-        if (this._isAutoBattlerTown()) return Object.values(this.autoBattlerBuildings);
-        return Object.values(this.buildings);
+        return Object.values(this.autoBattlerBuildings);
     }
 
     async _preloadTextures() {
@@ -3026,12 +3012,24 @@ class TownScene {
         }
 
         if (abTown) {
-            ctx.fillStyle = 'rgba(212, 180, 90, 0.08)';
-            ctx.fillRect(0, 0, this.width, 70);
-            ctx.fillStyle = 'rgba(232, 228, 216, 0.85)';
-            ctx.font = '16px "Courier New", "Microsoft YaHei", monospace';
+            const g = ctx.createLinearGradient(0, 0, 0, 90);
+            g.addColorStop(0, 'rgba(8, 10, 16, 0.82)');
+            g.addColorStop(1, 'rgba(8, 10, 16, 0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, this.width, 90);
+            ctx.strokeStyle = 'rgba(212, 180, 90, 0.18)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, 89);
+            ctx.lineTo(this.width, 89);
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(232, 228, 216, 0.9)';
+            ctx.font = 'bold 18px "Courier New", "Microsoft YaHei", monospace';
             ctx.textAlign = 'center';
-            ctx.fillText('开始攀塔（等级在休息处分配）', this.width / 2, 42);
+            ctx.fillText('恶魔塔 · 攀塔入口', this.width / 2, 34);
+            ctx.font = '13px "Courier New", "Microsoft YaHei", monospace';
+            ctx.fillStyle = 'rgba(200, 196, 184, 0.65)';
+            ctx.fillText('等级在休息处分配 · 每次从零开荒', this.width / 2, 58);
             ctx.textAlign = 'left';
         }
         

@@ -124,6 +124,7 @@ if (typeof window.SCENE_TYPES === 'undefined') {
         SKILL_LAB: 'skill_lab',
         EQUIPMENT_LAB: 'equipment_lab',
         ANIM_PREVIEW: 'anim_preview',
+        AB_SKILL_VFX_LAB: 'ab_skill_vfx_lab',
         AUTO_BATTLER: 'auto_battler'
     };
 } else if (!window.SCENE_TYPES.AUTO_BATTLER) {
@@ -131,6 +132,9 @@ if (typeof window.SCENE_TYPES === 'undefined') {
 }
 if (typeof window.SCENE_TYPES !== 'undefined' && !window.SCENE_TYPES.ANIM_PREVIEW) {
     window.SCENE_TYPES.ANIM_PREVIEW = 'anim_preview';
+}
+if (typeof window.SCENE_TYPES !== 'undefined' && !window.SCENE_TYPES.AB_SKILL_VFX_LAB) {
+    window.SCENE_TYPES.AB_SKILL_VFX_LAB = 'ab_skill_vfx_lab';
 }
 
 // 为了向后兼容，创建局部常量引用

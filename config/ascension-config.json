@@ -7,6 +7,12 @@
     "skirmishMode": {
       "enabled": true,
       "powerRatioThreshold": 1.5,
+      "skirmishMinLayer": 0,
+      "earlyLayerThresholds": [
+        { "layerMax": 2, "threshold": 2.0 },
+        { "layerMax": 5, "threshold": 1.75 },
+        { "layerMax": 9, "threshold": 1.55 }
+      ],
       "alwaysSkirmishWhenEligible": false
     },
     "bossPhases": {

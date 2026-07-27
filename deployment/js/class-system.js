@@ -29,18 +29,20 @@
     };
 
     window.normalizeEquipmentSlot = function normalizeEquipmentSlot(slot) {
-        if (!slot || !EQUIPMENT_SLOT_ORDER.includes(slot)) {
-            throw new Error('无效装备槽位: ' + slot);
+        if (slot && EQUIPMENT_SLOT_ORDER.includes(slot)) {
+            return slot;
         }
-        return slot;
+        console.warn('normalizeEquipmentSlot: 无效装备槽位，已回退为 weapon:', slot);
+        return 'weapon';
     };
 
     window.normalizeEquipmentQuality = function normalizeEquipmentQuality(quality) {
         const q = String(quality || 'normal');
-        if (!QUALITY_GS_MULTIPLIER[q]) {
-            throw new Error('无效装备品质: ' + quality);
+        if (QUALITY_GS_MULTIPLIER[q]) {
+            return q;
         }
-        return q;
+        console.warn('normalizeEquipmentQuality: 无效装备品质，已回退为 normal:', quality);
+        return 'normal';
     };
 
     window.resolveQualityDisplay = function resolveQualityDisplay(quality) {
@@ -70,17 +72,21 @@
 
         // 兼容旧存档：baseClass 误存为一转/二转 id（如 marksman、paladin）
         if (!validBases.includes(baseClass) && cfg) {
+            let recoveredBase = null;
             if (cfg.secondAdvancements && cfg.secondAdvancements[baseClass]) {
                 const sec = cfg.secondAdvancements[baseClass];
                 secondAdvancement = secondAdvancement || baseClass;
                 firstAdvancement = firstAdvancement || sec.firstAdvancement || null;
                 if (firstAdvancement && cfg.firstAdvancements && cfg.firstAdvancements[firstAdvancement]) {
-                    baseClass = cfg.firstAdvancements[firstAdvancement].baseClass;
+                    recoveredBase = cfg.firstAdvancements[firstAdvancement].baseClass;
                 }
             } else if (cfg.firstAdvancements && cfg.firstAdvancements[baseClass]) {
                 const first = cfg.firstAdvancements[baseClass];
                 firstAdvancement = firstAdvancement || baseClass;
-                baseClass = first.baseClass;
+                recoveredBase = first.baseClass;
+            }
+            if (recoveredBase && validBases.includes(recoveredBase)) {
+                baseClass = recoveredBase;
             }
         }
 

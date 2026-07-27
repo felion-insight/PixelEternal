@@ -360,13 +360,26 @@
         const m = {
             battle: '战斗',
             elite: '精英',
-            rest: '恢复',
+            rest: '休整',
             event: '事件',
             shop: '商店',
             boss: 'Boss',
-            boss_final: '最终Boss'
+            boss_final: '最终 Boss'
         };
         return m[type] || type;
+    }
+
+    function nodeTypeHint(type) {
+        const m = {
+            battle: '常规遭遇 · 金币与技能',
+            elite: '强敌挑战 · 遗物三选一',
+            rest: '分配等级 · 回血或升星',
+            event: '随机叙事 · 风险与收益',
+            shop: '花费金币 · 装备与遗物',
+            boss: '章末首领 · 高价值奖励',
+            boss_final: '终局决战 · 通关恶魔塔'
+        };
+        return m[type] || '';
     }
 
     function getProgressLabel(map, layer) {
@@ -390,6 +403,7 @@
         totalLayers,
         computeActLayout,
         nodeTypeLabel,
+        nodeTypeHint,
         getProgressLabel
     };
 })();

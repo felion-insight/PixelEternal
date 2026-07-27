@@ -25,6 +25,7 @@
             this.roomTransition = null;
             this.deployEnter = null;
             this._deployDrag = null;
+            this._postRunSummaryVictory = null;
         }
 
         _easeOutCubic(t) {
@@ -206,6 +207,7 @@
                 deathNarrative: !victory && this.run.ascension ? this.run.ascension.deathStats : null
             };
             this.battle = null;
+            this._postRunSummaryVictory = summary.victory;
             if (this.ui) this.ui.showRunSummary(summary);
             this.run = null;
             return summary;
@@ -214,6 +216,7 @@
         returnToTown() {
             this.battle = null;
             this.run = null;
+            this._postRunSummaryVictory = null;
             if (this.ui) this.ui.hide();
             if (typeof this.game.setAutoBattlerPresentation === 'function') {
                 this.game.setAutoBattlerPresentation(false);
@@ -223,6 +226,19 @@
             } else {
                 this.game.currentScene = 'town';
             }
+        }
+
+        /** ESC 菜单：自走棋 Run 中打开游戏菜单（与主城一致） */
+        handleEscape() {
+            if (this.game && typeof this.game.showEscMenu === 'function') {
+                this.game.showEscMenu();
+            }
+        }
+
+        /** 菜单「退出恶魔塔」：结束本局并回主城 */
+        abortRun() {
+            if (this.run) this.endRun(false);
+            this.returnToTown();
         }
 
         selectNode(nodeId) {
@@ -1039,7 +1055,12 @@
         }
 
         render(ctx) {
-            if (!this.run) return;
+            if (!this.run) {
+                if (this._postRunSummaryVictory != null) {
+                    this.renderNodeSceneBackground(ctx, 'summary', { victory: this._postRunSummaryVictory });
+                }
+                return;
+            }
             this.renderArena(ctx);
         }
 
@@ -1255,20 +1276,31 @@
             ctx.restore();
         }
 
-        renderNodeSceneBackground(ctx, phase) {
+        renderNodeSceneBackground(ctx, phase, opts) {
+            opts = opts || {};
             const w = this.game.canvas.width;
             const h = this.game.canvas.height;
+            const SBG = window.AutoBattlerSceneBg;
 
-            if (phase === 'shop' || phase === 'event') {
+            if (phase === 'map') {
+                this._drawSceneBg(ctx, 'battle', w, h, { dim: 0.78 });
+                this._drawMapSceneOverlay(ctx, w, h);
+            } else if (phase === 'rest') {
+                this._drawSceneBg(ctx, 'event', w, h, { dim: 0.62 });
+                this._drawRestSceneOverlay(ctx, w, h);
+            } else if (phase === 'reward') {
+                this._drawSceneBg(ctx, 'battle', w, h, { dim: 0.82 });
+            } else if (phase === 'shop' || phase === 'event') {
                 this._drawSceneBg(ctx, phase, w, h, { dim: 0.4 });
+            } else if (phase === 'summary') {
+                const victory = opts.victory != null ? opts.victory
+                    : !!(this.run && this.run.victory);
+                this._drawSummarySceneBackground(ctx, w, h, victory);
             } else {
                 const themes = {
-                    map: ['#0e1420', '#1a2438', '#0a1018'],
-                    rest: ['#0e1814', '#1a2820', '#0a120e'],
-                    reward: ['#16120e', '#241c14', '#0e0a08'],
                     summary: ['#121018', '#1c1824', '#0a0a10']
                 };
-                const c = themes[phase] || themes.map;
+                const c = themes[phase] || themes.summary;
                 const g = ctx.createLinearGradient(0, 0, w, h);
                 g.addColorStop(0, c[0]);
                 g.addColorStop(0.55, c[1]);
@@ -1276,21 +1308,79 @@
                 ctx.fillStyle = g;
                 ctx.fillRect(0, 0, w, h);
             }
+        }
 
-            ctx.strokeStyle = 'rgba(212, 180, 90, 0.12)';
+        _drawSummarySceneBackground(ctx, w, h, victory) {
+            const win = !!victory;
+            const c = win
+                ? ['#0e1410', '#182018', '#0a0c08']
+                : ['#141014', '#201418', '#0a080c'];
+            const g = ctx.createLinearGradient(0, 0, w, h * 0.85);
+            g.addColorStop(0, c[0]);
+            g.addColorStop(0.55, c[1]);
+            g.addColorStop(1, c[2]);
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, w, h);
+
+            ctx.save();
+            const cx = w / 2;
+            const cy = h * 0.42;
+            const rg = ctx.createRadialGradient(cx, cy, 24, cx, cy, Math.max(w, h) * 0.42);
+            if (win) {
+                rg.addColorStop(0, 'rgba(106, 170, 122, 0.16)');
+                rg.addColorStop(0.45, 'rgba(60, 100, 70, 0.06)');
+                rg.addColorStop(1, 'rgba(8, 10, 16, 0)');
+            } else {
+                rg.addColorStop(0, 'rgba(180, 70, 80, 0.14)');
+                rg.addColorStop(0.45, 'rgba(80, 30, 40, 0.06)');
+                rg.addColorStop(1, 'rgba(8, 10, 16, 0)');
+            }
+            ctx.fillStyle = rg;
+            ctx.fillRect(0, 0, w, h);
+
+            ctx.strokeStyle = win ? 'rgba(201, 162, 39, 0.12)' : 'rgba(196, 68, 68, 0.1)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([6, 14]);
+            ctx.beginPath();
+            ctx.moveTo(w * 0.12, h * 0.72);
+            ctx.lineTo(w * 0.88, h * 0.72);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+        }
+
+        _drawMapSceneOverlay(ctx, w, h) {
+            ctx.save();
+            const cx = w / 2;
+            const top = h * 0.18;
+            const bot = h * 0.88;
+            ctx.strokeStyle = 'rgba(212, 180, 90, 0.14)';
             ctx.lineWidth = 2;
-            ctx.strokeRect(28, 56, w - 56, h - 100);
-            ctx.fillStyle = 'rgba(212, 180, 90, 0.35)';
-            ctx.font = '13px "Courier New", monospace';
-            const titles = {
-                map: 'ROUTE SELECT',
-                shop: 'GAP SHOP',
-                event: 'STRANGE EVENT',
-                rest: 'REST CAMP',
-                reward: 'SPOILS',
-                summary: 'RUN RESULT'
-            };
-            ctx.fillText(titles[phase] || 'SCENE', 40, 48);
+            ctx.setLineDash([8, 10]);
+            ctx.beginPath();
+            ctx.moveTo(cx, top);
+            ctx.lineTo(cx, bot);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            const g = ctx.createRadialGradient(cx, h * 0.55, 40, cx, h * 0.55, Math.max(w, h) * 0.45);
+            g.addColorStop(0, 'rgba(142, 200, 255, 0.07)');
+            g.addColorStop(1, 'rgba(8, 10, 16, 0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, w, h);
+            ctx.restore();
+        }
+
+        _drawRestSceneOverlay(ctx, w, h) {
+            ctx.save();
+            const cx = w / 2;
+            const cy = h * 0.52;
+            const g = ctx.createRadialGradient(cx, cy, 20, cx, cy, Math.min(w, h) * 0.38);
+            g.addColorStop(0, 'rgba(106, 170, 122, 0.18)');
+            g.addColorStop(0.55, 'rgba(40, 70, 50, 0.08)');
+            g.addColorStop(1, 'rgba(8, 10, 16, 0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, w, h);
+            ctx.restore();
         }
 
         renderRoomTransition(ctx) {

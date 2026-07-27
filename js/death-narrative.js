@@ -35,9 +35,30 @@
         };
     }
 
+    const META_UNLOCK_LABELS = {
+        intel_basic: '战情简报增强',
+        commander_slot: '指挥官槽位+1',
+        hunter_ally: '猎手盟友档案',
+        alchemist_aid: '炼金援助',
+        first_victory: '首次胜利纪念'
+    };
+
+    const CHAIN_COMPLETE_LABELS = {
+        demon_hunter_revenge: '恶魔猎手的复仇',
+        lost_legion: '失落军团',
+        merchant_revenge: '商人的复仇',
+        alchemist_legacy: '炼金术士的遗产',
+        traitor_knight: '背叛的骑士',
+        abyss_whisper: '深渊的低语',
+        arena_champion: '竞技场冠军',
+        dragon_hoard: '龙的宝藏'
+    };
+
     function checkMetaUnlocks(meta, narrative) {
         if (!meta) return [];
         meta.ascension = meta.ascension || window.AscensionHub.createDefaultMetaAscension();
+        meta.ascension._narratedUnlocks = meta.ascension._narratedUnlocks || [];
+        meta.ascension._narratedChains = meta.ascension._narratedChains || [];
         const unlocks = [];
         if (narrative.layers >= 5 && meta.ascension.metaUnlocks.indexOf('intel_basic') < 0) {
             meta.ascension.metaUnlocks.push('intel_basic');
@@ -47,6 +68,22 @@
             meta.ascension.metaUnlocks.push('commander_slot');
             unlocks.push('指挥官槽位+1');
         }
+        (meta.ascension.metaUnlocks || []).forEach((id) => {
+            if (meta.ascension._narratedUnlocks.indexOf(id) >= 0) return;
+            const label = META_UNLOCK_LABELS[id];
+            if (label) {
+                unlocks.push(label);
+                meta.ascension._narratedUnlocks.push(id);
+            }
+        });
+        (meta.ascension.completedChains || []).forEach((chainId) => {
+            if (meta.ascension._narratedChains.indexOf(chainId) >= 0) return;
+            const label = CHAIN_COMPLETE_LABELS[chainId];
+            if (label) {
+                unlocks.push('完成事件链：' + label);
+                meta.ascension._narratedChains.push(chainId);
+            }
+        });
         return unlocks;
     }
 

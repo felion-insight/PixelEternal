@@ -22,6 +22,18 @@ for (const f of ['js/pe-security.js', 'js/config-loader.js', 'js/config.js', 'js
 (async () => {
     try {
         await ctx.configLoader.loadAll();
+        const assert = require('assert');
+        assert(ctx.window.ASCENSION_CONFIG && ctx.window.ASCENSION_CONFIG.ascension, 'ASCENSION_CONFIG loaded');
+        assert(ctx.window.ZONE_MUTATIONS_CONFIG, 'ZONE_MUTATIONS_CONFIG global');
+        assert(ctx.window.ENEMY_MUTATIONS_CONFIG, 'ENEMY_MUTATIONS_CONFIG global');
+        assert(ctx.window.BOSS_PHASES_EXPANSION, 'BOSS_PHASES_EXPANSION merged');
+        assert(ctx.window.BOSS_PHASES_EXPANSION.ab_boss_corrupt_mother, 'expansion boss phases merged');
+        const pacts = (ctx.window.DEMON_PACT_CONFIG && ctx.window.DEMON_PACT_CONFIG.pacts) || {};
+        assert(Object.keys(pacts).length >= 28, 'demon pacts merged from content-expansion');
+        const zones = (ctx.window.ZONE_ECOLOGY_CONFIG && ctx.window.ZONE_ECOLOGY_CONFIG.zones) || {};
+        assert(zones.corrupt_swamp, 'branch zone corrupt_swamp merged');
+        const branch = ctx.window.ZONE_ECOLOGY_CONFIG.branchZones || [];
+        assert(branch.indexOf('corrupt_swamp') >= 0, 'branchZones includes expansion zones');
         console.log('config load: OK');
         process.exit(0);
     } catch (e) {

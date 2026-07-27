@@ -126,4 +126,57 @@ Hub.onBattleStart(run, fakeBattle, { type: 'battle', layer: 1 });
 assert(fakeBattle.commanderMode || !Hub.isEnabled('commanderMode'), 'commander attached when enabled');
 assert(fakeBattle.juiceSystem, 'juice attached');
 
+// P0：cyclops 契约 visionHalf 保留字符串方向
+const contentExp = JSON.parse(fs.readFileSync(path.join(__dirname, '../config/content-expansion.json'), 'utf8')).CONTENT_EXPANSION;
+window.DEMON_PACT_CONFIG = window.CONFIG.DEMON_PACT_CONFIG || { pacts: {} };
+window.DEMON_PACT_CONFIG.pacts = Object.assign({}, window.DEMON_PACT_CONFIG.pacts || {}, contentExp.demonPacts || {});
+require('../js/combat-effects-bridge.js');
+const visionRun = RSS.createRunState(meta2);
+window.DemonPact.applyPact(visionRun, 'cyclops', 1);
+const visionBattle = { allies: [], enemies: [], elapsed: 0, relicFx: {}, runRef: visionRun };
+window.CombatEffectsBridge.finalizeBattle(visionBattle, visionRun);
+assert(visionRun.ascension.visionHalf === 'left', 'cyclops pact sets visionHalf left string');
+
+// P1：指挥官 TE 友方阵亡 +15
+const cmBattle = {
+    allies: [], enemies: [], elapsed: 0,
+    boardOriginX: 100, boardOriginY: 200,
+    combat: {}, relicFx: {}, runRef: run
+};
+Hub.onBattleStart(run, cmBattle, { type: 'battle', layer: 1 });
+const cm = cmBattle.commanderMode;
+assert(cm, 'commander mode for TE test');
+const beforeTe = cm.energy;
+window.CommanderMode.onAllyDeath(cm);
+assert(cm.energy >= beforeTe + 14, 'onAllyDeath grants ~15 TE');
+
+// P1：时停指令
+const tsBattle = {
+    allies: [], enemies: [], elapsed: 0,
+    boardOriginX: 100, boardOriginY: 200,
+    combat: {}, relicFx: {}, timeStopRemaining: 0, runRef: run
+};
+cm.battle = tsBattle;
+window.COMMANDER_CONFIG = window.CONFIG.COMMANDER_CONFIG;
+window.CommanderAbilities.execute(cm, window.COMMANDER_CONFIG.abilities.time_stop, null);
+assert(tsBattle.timeStopRemaining > 0, 'time_stop sets timeStopRemaining');
+
+// 指挥官编成：局内仅携带 slotCount 个指令
+run.ascension.commanderLoadout = [];
+run.ascension.commanderLoadoutCustomized = false;
+window.CommanderMode.ensureLoadout(run);
+const slots = window.CommanderMode.getSlotCount(run);
+assert.equal(slots, 4, 'default slot count is 4');
+const loadout = window.CommanderMode.getLoadout(run);
+assert.equal(loadout.length, slots, 'default loadout fills all slots');
+assert(window.CommanderMode.setLoadout(run, loadout.slice(0, 2)) === false, 'partial loadout rejected');
+assert(window.CommanderMode.setLoadout(run, loadout) === true, 'full loadout saved');
+const cmLoadoutBattle = {
+    allies: [], enemies: [], elapsed: 0,
+    boardOriginX: 100, boardOriginY: 200,
+    combat: {}, relicFx: {}, runRef: run
+};
+Hub.onBattleStart(run, cmLoadoutBattle, { type: 'battle', layer: 1 });
+assert.equal(cmLoadoutBattle.commanderMode.abilityIds.length, slots, 'battle uses equipped loadout only');
+
 console.log('test_ascension_systems: all assertions passed');

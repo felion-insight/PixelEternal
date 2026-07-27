@@ -9,8 +9,9 @@
       "regenPerDamageTaken": 0.5,
       "overflowCap": 120
     },
-    "slotCount": 3,
+    "slotCount": 4,
     "maxSlotCount": 5,
+    "defaultLoadout": ["focus_fire", "shield_burst", "battle_cry", "tactical_retreat"],
     "abilities": {
       "focus_fire": {
         "id": "focus_fire",

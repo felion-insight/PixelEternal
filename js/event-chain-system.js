@@ -38,16 +38,41 @@
 
     function applyChoiceEffects(run, choice, result) {
         const RSS = window.RunStateSystem;
+        const rw = choice.rewards || {};
         if (choice.costHpPct && run.heroes) {
             run.heroes.forEach((h) => {
                 h.hp = Math.max(1, h.hp - Math.floor(h.maxHp * choice.costHpPct));
             });
         }
+        if (rw.permanentBuff && run.heroes) {
+            const h = run.heroes[Math.floor(Math.random() * run.heroes.length)];
+            if (h) h.maxHp = Math.floor(h.maxHp * 1.1);
+        }
         if (choice.rewards && choice.rewards.permanentBuff && run.heroes) {
             const h = run.heroes[Math.floor(Math.random() * run.heroes.length)];
             if (h) h.maxHp = Math.floor(h.maxHp * 1.1);
         }
-        if (choice.rewards && choice.rewards.curseRelic && window.CurseSystem) {
+        if (rw.gold) run.gold = (run.gold || 0) + rw.gold;
+        if (rw.relic && RSS) {
+            const relicId = rw.relic;
+            if (relicId === 'legendary_random' && window.RelicSystem) {
+                const rng = RSS.rngFromRun(run);
+                const picks = window.RelicSystem.pickRelicChoices(rng, 1, run.relics, 'chain', run);
+                const leg = (picks || []).find((r) => r.rarity === 'legendary') || (picks && picks[0]);
+                if (leg && leg.id && RSS.addRelic(run, leg.id) && result) result.relicGranted = leg.id;
+            } else if (RSS.addRelic(run, relicId) && result) {
+                result.relicGranted = relicId;
+            }
+        }
+        if (rw.gear && RSS) {
+            const rng = RSS.rngFromRun(run);
+            const hero = (run.heroes || [])[0];
+            const gear = RSS.makeGearLoot(rng, null, hero && hero.baseClass);
+            run.inventoryGear = run.inventoryGear || [];
+            run.inventoryGear.push(gear);
+            if (result) result.gearGranted = gear;
+        }
+        if (rw.curseRelic && window.CurseSystem) {
             const ids = Object.keys(window.CurseSystem.cursedRelics());
             const pick = ids[Math.floor(Math.random() * ids.length)];
             if (pick && RSS) RSS.addRelic(run, pick);
@@ -61,7 +86,17 @@
             run.ascension.tempAllies = run.ascension.tempAllies || [];
             run.ascension.tempAllies.push({ id: choice.tempAlly, battlesLeft: choice.battles || 1 });
         }
-        if (choice.forcedCombat) run.ascension.pendingForcedCombat = choice.forcedCombat;
+        if (choice.forcedCombat || choice.startEncounter) {
+            run.ascension.pendingForcedCombat = choice.forcedCombat || choice.startEncounter;
+        }
+        if (choice.randomEncounter) {
+            run.ascension.pendingForcedCombat = choice.randomEncounter === true ? 'battle' : choice.randomEncounter;
+        }
+        if (choice.battlesInRow) {
+            run.ascension.chainArenaBattles = (run.ascension.chainArenaBattles || 0) + 1;
+            run.ascension.chainArenaRequired = choice.battlesInRow;
+            if (choice.failDeath) run.ascension.chainArenaFailDeath = true;
+        }
         if (choice.startChain) startChain(run, choice.startChain);
         if (choice.unlockMeta && window.__partyMetaRef && window.__partyMetaRef.ascension) {
             const mu = window.__partyMetaRef.ascension.metaUnlocks || [];
@@ -324,12 +359,32 @@
         return keys.length ? keys[Math.floor(Math.random() * keys.length)] : null;
     }
 
+    function tryStartChainByTrigger(run, trigger, zoneId) {
+        if (!window.AscensionHub || !window.AscensionHub.isEnabled('eventChains')) return null;
+        if (!run || !run.ascension) return null;
+        if (run.ascension.activeChains.length >= maxConcurrent()) return null;
+        const chains = chainCfg().chains || {};
+        const candidates = Object.keys(chains).filter((k) => {
+            const def = chains[k];
+            const first = (def.nodes || [])[0];
+            if (!first) return false;
+            const t = first.trigger || def.trigger || 'event_node';
+            if (t !== trigger) return false;
+            const z = def.zone;
+            if (z && z !== 'any' && zoneId && z !== zoneId) return false;
+            if (run.ascension.activeChains.some((c) => c.chainId === k)) return false;
+            return true;
+        });
+        if (!candidates.length) return null;
+        const rng = window.RunStateSystem ? window.RunStateSystem.rngFromRun(run) : Math.random;
+        const r = typeof rng === 'function' ? rng : Math.random;
+        if (r() > 0.35) return null;
+        const pick = candidates[Math.floor(r() * candidates.length)];
+        return startChain(run, pick) ? pick : null;
+    }
+
     function maybeStartChainOnEvent(run, zoneId) {
-        if (!window.AscensionHub || !window.AscensionHub.isEnabled('eventChains')) return false;
-        if (run.ascension.activeChains.length >= maxConcurrent()) return false;
-        const id = pickRandomChainForZone(zoneId || 'any');
-        if (!id || Math.random() > 0.35) return false;
-        return startChain(run, id);
+        return !!tryStartChainByTrigger(run, 'event_node', zoneId);
     }
 
     window.EventChainSystem = {
@@ -344,6 +399,7 @@
         pickRandomStandalone,
         standaloneToCurrentEvent,
         pickRandomChainForZone,
+        tryStartChainByTrigger,
         maybeStartChainOnEvent,
         maxConcurrent,
         looksLikeInternalId,

@@ -1,4 +1,8 @@
 {
+  "_meta": {
+    "doc": "Ascension 功能开关说明见 README.md「Ascension 开关」与 kimi_advice/ascension_implementation_todo.md",
+    "rollback": "将对应项 enabled 设为 false 即可禁用子系统，无需改 JS"
+  },
   "ascension": {
     "commanderMode": {
       "enabled": true,
@@ -62,6 +66,30 @@
     },
     "combatPacing": {
       "maxDurationMs": 60000
-    }
+    },
+    "intelTiers": {
+      "enabled": false,
+      "defaultTier": "count_only",
+      "relicBoosts": {
+        "tactical_goggles": "types",
+        "scout_eye": "intents_1",
+        "prophecy_scroll": "full"
+      }
+    },
+    "runZoneRandomizer": {
+      "enabled": false,
+      "minZones": 3,
+      "maxZones": 5
+    },
+    "enemyMutations": {
+      "enabled": false,
+      "chance": 0.3
+    },
+    "skillRunMutations": { "enabled": false },
+    "classVariants": { "enabled": false },
+    "buildCommitment": { "enabled": false },
+    "runMechanics": { "enabled": false },
+    "relicExclusivity": { "enabled": false },
+    "negativeSynergies": { "enabled": false }
   }
 }

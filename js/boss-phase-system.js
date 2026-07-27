@@ -9,8 +9,8 @@
             name: '狱门守将',
             phases: [
                 { threshold: 1.0, id: 'p1', label: '守门', hint: '使用集火突破护盾' },
-                { threshold: 0.66, id: 'p2', label: '狱火', hint: '后撤躲避范围技', spawnAdds: 2 },
-                { threshold: 0.33, id: 'p3', label: '狂怒', hint: '护盾爆发抵挡爆发', attackMult: 1.3 }
+                { threshold: 0.60, id: 'p2', label: '狱火', hint: '后撤躲避范围技', spawnAdds: 2 },
+                { threshold: 0.25, id: 'p3', label: '狂怒', hint: '护盾爆发抵挡爆发', attackMult: 1.3 }
             ]
         },
         ab_boss_tyrant: {
@@ -33,7 +33,7 @@
             name: '终末魔王',
             phases: [
                 { threshold: 1.0, id: 'p1', label: '镜像', hint: '识别真身', mirror: true },
-                { threshold: 0.75, id: 'p2', label: '禁令', hint: '指挥官受限', disableCommander: true },
+                { threshold: 0.75, id: 'p2', label: '禁令', hint: '指挥官受限 5 秒', disableCommanderMs: 5000 },
                 { threshold: 0.5, id: 'p3', label: '加速', hint: '时间压力', timeScale: 1.5 },
                 { threshold: 0.25, id: 'p4', label: '幻影', hint: '三 Boss 幻影', phantomBosses: 3 }
             ]
@@ -75,8 +75,15 @@
             bps.boss.attack = Math.floor((bps.boss.baseAttack || bps.boss.attack) * phaseDef.attackMult);
         }
         if (phaseDef.timeScale) battle.timeScale = phaseDef.timeScale;
-        if (phaseDef.disableCommander && battle.commanderMode) {
-            battle.commanderMode.enabled = false;
+        if (battle.commanderMode) {
+            if (phaseDef.disableCommanderMs) {
+                const now = battle.elapsed != null ? battle.elapsed : 0;
+                battle.commanderMode.enabled = false;
+                battle.commanderMode.commanderDisabledUntil = now + phaseDef.disableCommanderMs;
+            } else if (phaseDef.disableCommander) {
+                battle.commanderMode.enabled = false;
+                battle.commanderMode.commanderDisabledUntil = null;
+            }
         }
         if (phaseDef.spawnAdds && window.AutoBattleSimulator && window.AutoBattleSimulator.spawnTraitEnemy) {
             for (let i = 0; i < phaseDef.spawnAdds; i++) {
@@ -180,12 +187,18 @@
         return (def.phases || []).map((p) => ({ label: p.label, hint: p.hint, threshold: p.threshold }));
     }
 
+    function getBossForZone(zoneId) {
+        const phases = BOSS_PHASES;
+        return Object.keys(phases).find((id) => phases[id].zone === zoneId) || null;
+    }
+
     window.BossPhaseSystem = {
         BOSS_PHASES,
         onBattleStart,
         tick,
         attachBattleRef,
         getPhasePreview,
+        getBossForZone,
         findBoss
     };
 })();

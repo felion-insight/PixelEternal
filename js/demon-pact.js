@@ -41,6 +41,21 @@
         return run.ascension.pact.difficultyMult || 1;
     }
 
+    function getShopPriceMult(run) {
+        const p = getPact(run);
+        return (p && p.shopPriceMult) || 1;
+    }
+
+    function getRelicDropMult(run) {
+        const p = getPact(run);
+        return (p && p.relicDropMult) || 1;
+    }
+
+    function getEnemyAttackMult(run) {
+        const p = getPact(run);
+        return (p && p.enemyAttackMult) || 1;
+    }
+
     function modifyEnemyScaling(mult, run) {
         return mult * getDifficultyMult(run);
     }
@@ -65,6 +80,48 @@
     function canRestHeal(run) {
         const p = getPact(run);
         return !(p && p.noRestHeal);
+    }
+
+    function canRestRevive(run) {
+        const p = getPact(run);
+        return !(p && p.noRestRevive);
+    }
+
+    function getCommanderCooldownMult(run) {
+        const p = getPact(run);
+        return (p && p.commanderCooldownMult) || 1;
+    }
+
+    function getEnemyHpMult(run) {
+        const p = getPact(run);
+        return (p && p.enemyHpMult) || 1;
+    }
+
+    function getBossHpMult(run) {
+        const p = getPact(run);
+        return (p && p.bossHpMult) || 1;
+    }
+
+    function getEnemySpeedMult(run) {
+        const p = getPact(run);
+        return (p && p.enemySpeedMult) || 1;
+    }
+
+    function getMaxActiveHeroes(run) {
+        const p = getPact(run);
+        if (p && p.maxActiveHeroes != null) return p.maxActiveHeroes;
+        return null;
+    }
+
+    function listChoicesGrouped(meta) {
+        const choices = listChoices(meta);
+        const groups = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+        choices.forEach((c) => {
+            const s = c.stars || 1;
+            const bucket = s >= 5 ? 5 : (s >= 4 ? 4 : (s >= 3 ? 3 : (s >= 2 ? 2 : 1)));
+            groups[bucket].push(c);
+        });
+        return groups;
     }
 
     function canEquipGear(run) {
@@ -146,16 +203,26 @@
         applyPact,
         getRewardMult,
         getDifficultyMult,
+        getShopPriceMult,
+        getRelicDropMult,
+        getEnemyAttackMult,
         modifyEnemyScaling,
         modifyRewards,
         getPact,
         canRestHeal,
+        canRestRevive,
         canEquipGear,
         getMaxActiveSkills,
+        getMaxActiveHeroes,
+        getCommanderCooldownMult,
+        getEnemyHpMult,
+        getBossHpMult,
+        getEnemySpeedMult,
         isBossRushOnly,
         applyToRun,
         shouldWipeMetaOnFailure,
         wipeMetaOnFailure,
-        listChoices
+        listChoices,
+        listChoicesGrouped
     };
 })();

@@ -375,6 +375,9 @@
             classData: heroRun.classData
         };
         const stats = PMS.heroCombatStats(metaLike);
+        if (window.ClassVariantSystem) {
+            window.ClassVariantSystem.applyToCombatStats(stats, heroRun);
+        }
         let attack = stats.attack;
         let defense = stats.defense;
         let maxHp = stats.hp;
@@ -466,9 +469,10 @@
                 const sk = {
                     id: sid,
                     baseSkillId: baseId,
-                    name: d.name || sid,
+                    name: norm.displayName || d.name || sid,
                     stars: norm.stars || 1,
                     branchMods: branchMods.slice(),
+                    runMutations: (norm.runMutations || []).slice(),
                     damageMult: (d.damageMult || 1.5) * scale.damageMult,
                     cooldownMs: Math.floor((d.cooldownMs || 5000) * scale.cooldownMult * gearCdMult),
                     range: d.range || stats.range,
@@ -479,6 +483,9 @@
                 };
                 if (SMS && SMS.applyBranchModsToInstance) {
                     SMS.applyBranchModsToInstance(sk, d, branchMods);
+                }
+                if (window.SkillRunMutationSystem && norm.runMutations && norm.runMutations.length) {
+                    window.SkillRunMutationSystem.applyToInstance(sk, d, norm.runMutations);
                 }
                 if (RS && RS.applySkillMutatorsToInstance) {
                     RS.applySkillMutatorsToInstance(sk, d, mutators);
@@ -565,6 +572,15 @@
         if (nodeType === 'boss_final') s *= sc.bossFinalMult != null ? sc.bossFinalMult : 1.55;
         if (window.DemonPact && run) {
             s = window.DemonPact.modifyEnemyScaling(s, run);
+            s *= window.DemonPact.getEnemyHpMult ? window.DemonPact.getEnemyHpMult(run) : 1;
+        }
+        if (nodeType === 'boss' || nodeType === 'boss_final') {
+            if (window.DemonPact && run && window.DemonPact.getBossHpMult) {
+                s *= window.DemonPact.getBossHpMult(run);
+            }
+        }
+        if (window.ZoneMutationRuntime && run) {
+            s = window.ZoneMutationRuntime.modifyEnemyScale(s, run);
         }
         return s;
     }
@@ -1926,6 +1942,9 @@
 
     function pushDamageNumber(battle, target, dmg, opts) {
         opts = opts || {};
+        const n = Number(dmg);
+        if (!Number.isFinite(n) || n <= 0) return;
+        dmg = Math.floor(n);
         const isSkill = !!opts.isSkill;
         const crit = !!opts.crit;
         const ally = opts.ally !== false;
@@ -2439,7 +2458,8 @@
         });
         const b = battle || unit._battleRef;
         if (b && window.CombatEffectsBridge) {
-            mult *= window.CombatEffectsBridge.getAttackBuffMult(unit, b);
+            const buff = window.CombatEffectsBridge.getAttackBuffMult(unit, b);
+            if (Number.isFinite(buff)) mult *= buff;
         }
         if (b && b.bondFx && unit.baseClass === 'assassin' && b.bondFx.assassinCritBonus) {
             unit.critChance = (unit.critChance || 0) + b.bondFx.assassinCritBonus;
@@ -2831,9 +2851,13 @@
     function applyDamage(battle, attacker, target, raw, relicFx, meta) {
         meta = meta || {};
         if (window.CombatEffectsBridge && window.CombatEffectsBridge.isInvulnerable(battle, target)) return 0;
+        raw = Number(raw);
+        if (!Number.isFinite(raw)) raw = 0;
         if (window.CombatEffectsBridge) {
             raw = window.CombatEffectsBridge.modifyOutgoingDamage(battle, attacker, target, raw, meta, relicFx);
         }
+        raw = Number(raw);
+        if (!Number.isFinite(raw)) raw = 0;
         let dmg = Math.max(1, raw - defenseValue(target) * 0.5);
         if (meta.ignoreArmor) dmg = Math.max(1, raw * 0.85);
         if (relicFx && relicFx.armorPenPct && attacker.side === 'ally') {
@@ -2891,9 +2915,12 @@
             return 0;
         }
         dmg = Math.floor(dmg);
+        if (!Number.isFinite(dmg)) return 0;
         if (window.CombatEffectsBridge) {
             dmg = window.CombatEffectsBridge.modifyIncomingDamage(battle, target, dmg, attacker, meta);
         }
+        dmg = Number(dmg);
+        if (!Number.isFinite(dmg)) return 0;
         dmg = absorbShield(target, dmg);
         if (dmg <= 0) return 0;
         target.hp -= dmg;
@@ -2911,10 +2938,22 @@
             window.AscensionHub.onDamage(battle, attacker, target, dmg, meta);
         }
         if (target.hp <= 0) {
+            if (target.side === 'enemy' && window.EnemyMutationSystem &&
+                window.EnemyMutationSystem.tryRevive(battle, target)) {
+                pushFx(battle, {
+                    type: 'heal_burst', x: target.x, y: target.y,
+                    color: target.mutationAura || '#ffdd44', life: 320, maxLife: 320
+                });
+                return dmg;
+            }
             target.hp = 0;
             target.alive = false;
             if (window.AscensionHub) {
                 window.AscensionHub.onKill(battle, attacker, target);
+            }
+            if (target.side === 'enemy' && window.EnemyMutationSystem &&
+                window.EnemyMutationSystem.onKill) {
+                window.EnemyMutationSystem.onKill(battle, target);
             }
             pushFx(battle, {
                 type: 'death', x: target.x, y: target.y,
@@ -2999,6 +3038,12 @@
         }
         if (meta.lifestealPct && attacker.alive) {
             healUnit(battle, attacker, Math.floor(dmg * meta.lifestealPct));
+        }
+        if (attacker.lifestealPct && attacker.alive && dmg > 0) {
+            healUnit(battle, attacker, Math.floor(dmg * attacker.lifestealPct));
+        }
+        if (target.reflectPct && attacker.side === 'ally' && attacker.alive && dmg > 0) {
+            applyDamage(battle, target, attacker, Math.floor(dmg * target.reflectPct), relicFx, { trait: 'mutation_thorns' });
         }
         return dmg;
     }
@@ -4156,7 +4201,22 @@
             ? (relicFx.cooldownMult || 1) * (battle.weatherSkillCdMult || 1)
             : 1;
         const feel = (combat && combat.skillCooldownMult) != null ? combat.skillCooldownMult : 0.75;
-        sk.cd = sk.cooldownMs * cdMult * feel;
+        const skillHunger = battle.skillHunger || (unit.side === 'ally' && relicFx && relicFx.skillNoCooldown);
+        if (skillHunger) {
+            sk.cd = 0;
+            let hpCost = 0;
+            if (battle.skillHunger && window.RunMechanicSystem) {
+                hpCost = window.RunMechanicSystem.hpCostPerSkillCast(battle.runRef);
+            } else if (relicFx && relicFx.skillHpCostPct) {
+                hpCost = relicFx.skillHpCostPct;
+            }
+            if (hpCost > 0 && unit.alive) {
+                unit.hp = Math.max(0, unit.hp - Math.floor(unit.maxHp * hpCost));
+                if (unit.hp <= 0) unit.alive = false;
+            }
+        } else {
+            sk.cd = sk.cooldownMs * cdMult * feel;
+        }
         // 技能后短暂锁普攻，避免技能瞬间被普攻淹没
         const lock = (combat && combat.skillCastLockMs) != null ? combat.skillCastLockMs : 420;
         unit.basicCd = Math.max(unit.basicCd, lock);
@@ -4251,11 +4311,14 @@
             .filter((h) => isHeroCombatReady(h))
             .map((h) => buildAllyUnit(h, relicFx))
             .filter((u) => u.alive && u.hp > 0);
+        const maxHeroes = window.DemonPact && window.DemonPact.getMaxActiveHeroes
+            ? window.DemonPact.getMaxActiveHeroes(run) : null;
+        const alliesFiltered = maxHeroes != null ? allies.slice(0, maxHeroes) : allies;
         if (run.ascension && run.ascension.tempAllies && run.ascension.tempAllies.length) {
             run.ascension.tempAllies.forEach((ta, i) => {
                 if ((ta.battlesLeft || 0) <= 0) return;
                 ta.battlesLeft -= 1;
-                allies.push({
+                alliesFiltered.push({
                     id: 'temp_ally_' + i + '_' + (ta.id || 'merc'),
                     side: 'ally',
                     name: ta.id || '佣兵',
@@ -4279,7 +4342,7 @@
             run.ascension.tempAllies = run.ascension.tempAllies.filter((t) => (t.battlesLeft || 0) > 0);
         }
         // 放大后同步攻击距离；技能射程至少覆盖普攻距离，避免永远放不出技
-        allies.forEach((u, idx) => {
+        alliesFiltered.forEach((u, idx) => {
             if ((u.range || 0) > 90) u.range = combat.rangedRange;
             else u.range = Math.max(combat.meleeRange, (u.range || 48) * scaleR);
             const rangeMult = relicFx.skillRangeMult || 1;
@@ -4298,7 +4361,19 @@
         const nodeSeed = ((run.seed || 1) ^ ((node.layer + 1) * 9973) ^ ((node.id || '').length * 131)) >>> 0;
         const rng = window.RunStateSystem.mulberry32(nodeSeed);
         let enemies = generateEnemies(node.type, node.layer, rng, run);
+        if (window.EnemyMutationSystem && window.EnemyMutationSystem.isEnabled()) {
+            enemies = window.EnemyMutationSystem.mutateEncounterEnemies(enemies, rng);
+        }
         const pact = run.ascension && run.ascension.pact;
+        if (pact && pact.extraEliteEnemies && node.type === 'elite') {
+            const extra = pact.extraEliteEnemies | 0;
+            const templates = cfg().enemyTemplates || [];
+            const findExtra = (id) => templates.find((t) => t.id === id) || templates[0];
+            const extraScale = scaleForNode(node.type, node.layer, run) * 0.85;
+            for (let ei = 0; ei < extra; ei++) {
+                enemies.push(buildEnemyUnit(findExtra('ab_brute'), (enemies.length + ei) % 4, 0, extraScale));
+            }
+        }
         if (pact && pact.enemyCountMult > 1) {
             const dup = enemies.map((e, i) => Object.assign({}, e, {
                 id: (e.id || 'e') + '_dup' + i,
@@ -4309,14 +4384,25 @@
         enemies.forEach((u) => {
             if ((u.range || 0) > 90) u.range = combat.rangedRange;
             else u.range = Math.max(combat.meleeRange, (u.range || 48) * scaleR);
-            u.speed = (u.speed || 70) * Math.max(1, scaleR * 0.85);
+            const speedMult = window.DemonPact && window.DemonPact.getEnemySpeedMult
+                ? window.DemonPact.getEnemySpeedMult(run) : 1;
+            u.speed = (u.speed || 70) * Math.max(1, scaleR * 0.85) * speedMult;
+            if (pact && pact.enemyExtraSkill) {
+                u.skills = u.skills || [];
+                if (!u.skills.length) {
+                    u.skills.push({
+                        id: 'pact_bolt', name: '魔化弹', damageMult: 1.2,
+                        cooldownMs: 6000, range: u.range, cd: 2000
+                    });
+                }
+            }
         });
         const origin = battleOrigin(cw, ch, board);
         const battle = {
             board: board,
             combat: combat,
             relicFx: relicFx,
-            allies: allies,
+            allies: alliesFiltered,
             enemies: enemies,
             origin: origin,
             fx: [],
@@ -4326,7 +4412,7 @@
             log: []
         };
         placeUnits(battle);
-        allies.forEach((u) => {
+        alliesFiltered.forEach((u) => {
             if (relicFx.suppressStartSkillReady) return;
             if (relicFx.startAllSkillsReady) {
                 (u.skills || []).forEach((sk) => { sk.cd = 0; });
@@ -4342,6 +4428,8 @@
         }
         const ECS = window.EnemyCompositionSystem;
         if (ECS && ECS.initBattle) ECS.initBattle(battle);
+        if (relicFx.allyTimeScale) battle.allyTimeScale = relicFx.allyTimeScale;
+        if (relicFx.globalTimeScale != null) battle.enemyTimeScale = relicFx.globalTimeScale;
         return battle;
     }
 
@@ -4366,7 +4454,11 @@
             });
         const nodeSeed = ((run.seed || 1) ^ ((node.layer + 1) * 9973) ^ ((node.id || '').length * 131)) >>> 0;
         const rng = window.RunStateSystem.mulberry32(nodeSeed);
-        const enemies = generateEnemies(node.type, node.layer, rng, run).map((e) => {
+        const enemiesRaw = generateEnemies(node.type, node.layer, rng, run);
+        const enemies = (window.EnemyMutationSystem && window.EnemyMutationSystem.isEnabled())
+            ? window.EnemyMutationSystem.mutateEncounterEnemies(enemiesRaw, rng)
+            : enemiesRaw;
+        const enemiesMapped = enemies.map((e) => {
             e.preview = true;
             return e;
         });
@@ -4374,7 +4466,7 @@
         const battle = {
             board: board,
             allies: allies,
-            enemies: enemies,
+            enemies: enemiesMapped,
             origin: origin,
             preview: true,
             relicFx: relicFx,
@@ -4426,6 +4518,9 @@
             }
         });
         battle.origin = next;
+        if (window.CommanderMode && window.CommanderMode.syncGhostWithBattle) {
+            window.CommanderMode.syncGhostWithBattle(battle, oldOrigin, scale);
+        }
     }
 
     function living(units) {
@@ -6089,6 +6184,16 @@
             const pos = getUnitRenderPos(unit);
             const ux = pos.x;
             const uy = pos.y - 4;
+            if (unit.mutationAura && unit.mutationId) {
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.strokeStyle = unit.mutationAura;
+                ctx.globalAlpha = 0.55;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(ux, uy, 18, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            }
             (unit.auras || []).forEach((aura) => {
                 const lifeT = aura.maxT ? Math.max(0, aura.t / aura.maxT) : 1;
 

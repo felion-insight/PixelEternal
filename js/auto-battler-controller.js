@@ -25,6 +25,8 @@
             this.roomTransition = null;
             this.deployEnter = null;
             this._deployDrag = null;
+            this._ghostDragging = false;
+            this._commanderHoverTarget = null;
             this._postRunSummaryVictory = null;
         }
 
@@ -156,7 +158,11 @@
             this.game.paused = false;
             if (this.ui) this.ui.show();
             this.ui && this.ui.refresh();
-            if (this._pendingPactSelect && this.ui && this.ui.showPactSelect) {
+            if (window.ClassVariantSystem && window.ClassVariantSystem.isEnabled() &&
+                window.ClassVariantSystem.needsSelection(this.run)) {
+                this.run.phase = 'class_variant';
+                this.ui && this.ui.showClassVariantSelect && this.ui.showClassVariantSelect();
+            } else if (this._pendingPactSelect && this.ui && this.ui.showPactSelect) {
                 this._pendingPactSelect = false;
                 this.ui.showPactSelect(meta);
             }
@@ -174,6 +180,30 @@
         skipPactChoice() {
             this._pendingPactSelect = false;
             this.ui && this.ui.refresh();
+        }
+
+        applyClassVariantChoice(heroId, variantId) {
+            if (!window.ClassVariantSystem || !this.run) return;
+            window.ClassVariantSystem.applyChoice(this.run, heroId, variantId);
+            if (!window.ClassVariantSystem.needsSelection(this.run)) {
+                if (this._pendingPactSelect && this.ui && this.ui.showPactSelect) {
+                    this.run.phase = 'pact';
+                    this._pendingPactSelect = false;
+                    this.ui.showPactSelect(this.ensurePartyMeta());
+                } else {
+                    this.run.phase = 'map';
+                }
+            }
+            this.ui && this.ui.refresh();
+        }
+
+        applyCommitmentChoice(choiceId) {
+            if (!this.run || !window.BuildCommitmentSystem) return;
+            const node = window.TowerRunMap.getNode(this.run.map, this.run.currentNodeId);
+            const layer = node ? node.layer : 0;
+            const res = window.BuildCommitmentSystem.applyChoice(this.run, choiceId, layer);
+            if (res.ok) this.finishNonCombatNode();
+            else if (this.ui) this.ui.toast && this.ui.toast(res.message || '选择失败');
         }
 
         _canvasSize() {
@@ -320,11 +350,14 @@
                     this.run.phase = 'rest';
                     this.run.restResolved = false;
                     break;
+                case 'commitment':
+                    this.run.phase = 'commitment';
+                    break;
                 case 'event':
                     this.run.phase = 'event';
                     if (window.EventChainSystem) {
                         const zoneId = this.run.ascension && this.run.ascension.zoneId;
-                        window.EventChainSystem.maybeStartChainOnEvent(this.run, zoneId);
+                        window.EventChainSystem.tryStartChainByTrigger(this.run, 'event_node', zoneId);
                         const chainEv = window.EventChainSystem.getActiveChainEvent(this.run);
                         if (chainEv) {
                             this.run.currentEvent = chainEv;
@@ -366,6 +399,7 @@
 
         applyRest() {
             if (window.DemonPact && !window.DemonPact.canRestHeal(this.run)) return;
+            if (window.ZoneMutationRuntime && !window.ZoneMutationRuntime.canRestHeal(this.run)) return;
             const pct = ((cfg().rewards || {}).restHealPct != null)
                 ? cfg().rewards.restHealPct
                 : 0.4;
@@ -373,6 +407,12 @@
             const healMult = corrFx && corrFx.restHealMult ? corrFx.restHealMult : 1;
             this.run.heroes.forEach((h) => {
                 const cur = Math.max(0, h.hp || 0);
+                const dead = cur <= 0;
+                if (dead && window.DemonPact && !window.DemonPact.canRestRevive(this.run)) return;
+                if (dead) {
+                    h.hp = Math.floor(h.maxHp * pct * healMult);
+                    return;
+                }
                 h.hp = Math.min(h.maxHp, cur + Math.floor(h.maxHp * pct * healMult));
             });
         }
@@ -388,6 +428,9 @@
             const rng = window.RunStateSystem.rngFromRun(this.run);
             let result = { ok: true, choice: choiceId, leave: false };
             if (choiceId === 'heal') {
+                if (window.ZoneMutationRuntime && !window.ZoneMutationRuntime.canRestHeal(this.run)) {
+                    return { ok: false, message: '当前区域禁疗，无法回血' };
+                }
                 this.applyRest();
                 result.message = '全队回复生命';
                 result.leave = true;
@@ -529,7 +572,27 @@
             const preview = window.AutoBattleSimulator.createDeployPreview(this.run, node, this._canvasSize());
             const rng = window.RunStateSystem.rngFromRun(this.run);
             const result = window.CombatPacing.resolveSkirmish(this.run, { enemies: preview.enemies }, rng);
-            this.run.phase = 'map';
+            this._skirmishNode = node;
+            this._skirmishResult = result;
+            this._skirmishAnimMs = 0;
+            this.run.phase = 'skirmish_anim';
+            if (this.ui && this.ui.showSkirmishAnim) {
+                this.ui.showSkirmishAnim(node, result);
+            } else {
+                this._finishSkirmish();
+            }
+        }
+
+        _finishSkirmish() {
+            const node = this._skirmishNode;
+            const result = this._skirmishResult;
+            if (!node || !result) return;
+            if (window.CombatPacing && window.CombatPacing.applySkirmishResult) {
+                window.CombatPacing.applySkirmishResult(this.run, result);
+            }
+            this._skirmishNode = null;
+            this._skirmishResult = null;
+            this._skirmishAnimMs = 0;
             if (result.victory) {
                 node.cleared = true;
                 this.run.path.push(node.id);
@@ -546,6 +609,107 @@
             }
         }
 
+        _commanderGhostHit(canvasX, canvasY) {
+            const b = this.battle;
+            const cm = b && b.commanderMode;
+            if (!cm || cm.enabled === false) return false;
+            const fallback = window.CommanderMode && window.CommanderMode.defaultGhostPosition
+                ? window.CommanderMode.defaultGhostPosition(b)
+                : { x: 400, y: 80 };
+            const g = cm.ghost || fallback;
+            const dx = canvasX - g.x;
+            const dy = canvasY - g.y;
+            return (dx * dx + dy * dy) <= 28 * 28;
+        }
+
+        handleCombatPointerDown(canvasX, canvasY) {
+            const b = this.battle;
+            const cm = b && b.commanderMode;
+            if (!this.run || this.run.phase !== 'combat' || !cm || !window.CommanderMode) return false;
+            if (!cm.enabled) return false;
+            if (!window.AscensionHub || !window.AscensionHub.isEnabled('commanderMode')) return false;
+            if (cm.pendingAbilityId) return false;
+            this._ghostDragging = true;
+            window.CommanderMode.setGhostPosition(cm, canvasX, canvasY);
+            if (this.ui && this.ui._syncBattleLayer) this.ui._syncBattleLayer();
+            return true;
+        }
+
+        handleCombatPointerUp() {
+            this._ghostDragging = false;
+            if (this.ui && this.ui._syncBattleLayer) this.ui._syncBattleLayer();
+        }
+
+        handleCombatCommanderClick(canvasX, canvasY) {
+            const b = this.battle;
+            const cm = b && b.commanderMode;
+            if (!b || !cm || !cm.pendingAbilityId || !window.CommanderMode) return false;
+            const def = window.CommanderMode.allAbilities()[cm.pendingAbilityId];
+            if (!def) { cm.pendingAbilityId = null; return false; }
+            const ABS = window.AutoBattleSimulator;
+            const spec = window.CommanderMode.getTargetSpec(def);
+            let target = null;
+            if (spec === 'enemy' && ABS.hitTestEnemyUnit) {
+                target = ABS.hitTestEnemyUnit(b.board, b.origin, canvasX, canvasY, b.enemies);
+            } else if ((spec === 'ally' || spec === 'ally_low_hp' || spec === 'ally_dead') && ABS.hitTestAllyUnit) {
+                target = ABS.hitTestAllyUnit(b.board, b.origin, canvasX, canvasY, b.allies);
+                if (spec === 'ally_dead' && target && target.alive !== false && (target.hp == null || target.hp > 0)) {
+                    target = null;
+                }
+                if (spec === 'ally_low_hp' && target && (target.hp / Math.max(1, target.maxHp)) > 0.5) {
+                    target = null;
+                }
+            }
+            if (!target) {
+                if (this.ui && this.ui.rejectCommanderAction) this.ui.rejectCommanderAction('invalid_target');
+                return false;
+            }
+            const ok = window.CommanderMode.useAbility(cm, cm.pendingAbilityId, target);
+            cm.pendingAbilityId = null;
+            this._commanderHoverTarget = null;
+            if (this.ui) {
+                if (!ok && this.ui.rejectCommanderAction) {
+                    this.ui.rejectCommanderAction('use_failed');
+                } else if (this.ui.toast) {
+                    this.ui.toast(ok ? '指令已释放' : '无法释放');
+                }
+                this.ui.refreshCombatBar(b);
+                if (this.ui._syncBattleLayer) this.ui._syncBattleLayer();
+            }
+            return ok;
+        }
+
+        handleCombatPointerMove(canvasX, canvasY) {
+            const b = this.battle;
+            const cm = b && b.commanderMode;
+            if (!this.run || this.run.phase !== 'combat' || !cm || !window.CommanderMode) return;
+            if (!window.AscensionHub || !window.AscensionHub.isEnabled('commanderMode')) return;
+            if (this._ghostDragging) {
+                window.CommanderMode.setGhostPosition(cm, canvasX, canvasY);
+                return;
+            }
+            if (cm.pendingAbilityId) {
+                const def = window.CommanderMode.allAbilities()[cm.pendingAbilityId];
+                const ABS = window.AutoBattleSimulator;
+                const spec = def ? window.CommanderMode.getTargetSpec(def) : 'none';
+                let hover = null;
+                if (spec === 'enemy' && ABS.hitTestEnemyUnit) {
+                    hover = ABS.hitTestEnemyUnit(b.board, b.origin, canvasX, canvasY, b.enemies);
+                } else if ((spec === 'ally' || spec === 'ally_low_hp' || spec === 'ally_dead') && ABS.hitTestAllyUnit) {
+                    hover = ABS.hitTestAllyUnit(b.board, b.origin, canvasX, canvasY, b.allies);
+                    if (spec === 'ally_dead' && hover && hover.alive !== false && (hover.hp == null || hover.hp > 0)) {
+                        hover = null;
+                    }
+                    if (spec === 'ally_low_hp' && hover && (hover.hp / Math.max(1, hover.maxHp)) > 0.5) {
+                        hover = null;
+                    }
+                }
+                this._commanderHoverTarget = hover;
+            } else {
+                this._commanderHoverTarget = null;
+            }
+        }
+
         startCombat() {
             if (!this.run || this.run.phase !== 'deploy') return false;
             if (this.deployEnter) return false;
@@ -554,6 +718,11 @@
             const node = window.TowerRunMap.getNode(this.run.map, this.run.currentNodeId);
             this.battle = window.AutoBattleSimulator.createBattle(this.run, node, this._canvasSize());
             this.battle.runRef = this.run;
+            if (this.battle.commanderMode && window.CommanderMode && window.CommanderMode.syncGhostWithBattle) {
+                window.CommanderMode.syncGhostWithBattle(this.battle);
+            }
+            this._ghostDragging = false;
+            this._commanderHoverTarget = null;
             const meta = this.ensurePartyMeta();
             const speedUnlock = meta.ascension && meta.ascension.speedUnlock;
             let scale = (this.run.ascension && this.run.ascension.battleSpeedScale) || 1;
@@ -705,6 +874,15 @@
                 this._updateDeployEnter(dtMs);
                 return;
             }
+            if (this.run && this.run.phase === 'skirmish_anim') {
+                this._skirmishAnimMs = (this._skirmishAnimMs || 0) + dtMs;
+                if (this.ui && this.ui.refreshSkirmishAnim) {
+                    this.ui.refreshSkirmishAnim(this._skirmishAnimMs, this._skirmishResult);
+                }
+                const dur = (this._skirmishResult && this._skirmishResult.durationMs) || 3000;
+                if (this._skirmishAnimMs >= dur) this._finishSkirmish();
+                return;
+            }
             if (!this.run || this.run.phase !== 'combat' || !this.battle) return;
             window.AutoBattleSimulator.tickBattle(this.battle, dtMs);
             if (this.ui) this.ui.refreshCombatBar(this.battle);
@@ -792,13 +970,22 @@
             }
 
             const gold = Math.floor((goldMin + rng() * (goldMax - goldMin)) * (relicFx.goldMult || 1));
+            let goldFinal = window.ZoneMutationRuntime
+                ? window.ZoneMutationRuntime.modifyGoldReward(gold, this.run)
+                : gold;
+            if (window.RunMechanicSystem && window.RunMechanicSystem.modifyGoldReward) {
+                goldFinal = window.RunMechanicSystem.modifyGoldReward(goldFinal, this.run);
+            }
+            if (this.battle && window.ZoneTraitRuntime && window.ZoneTraitRuntime.modifyZoneGoldReward) {
+                goldFinal = window.ZoneTraitRuntime.modifyZoneGoldReward(goldFinal, this.battle);
+            }
             let exp = Math.floor((expMin + rng() * (expMax - expMin)) * (relicFx.expMult || 1));
             if (window.DemonPact) {
-                const mod = window.DemonPact.modifyRewards(gold, exp, this.run);
+                const mod = window.DemonPact.modifyRewards(goldFinal, exp, this.run);
                 this.run.gold += mod.gold;
                 exp = mod.exp;
             } else {
-                this.run.gold += gold;
+                this.run.gold += goldFinal;
             }
             this.run.runExpEarned += exp;
             // 局内成长：战斗经验转化为「可分配等级点」，仅在休息处手动加到角色
@@ -808,6 +995,9 @@
                 : 0;
 
             const choices = [];
+            const relicDropMult = window.DemonPact && window.DemonPact.getRelicDropMult
+                ? window.DemonPact.getRelicDropMult(this.run) : 1;
+            const bossRelicSkip = Math.max(0.05, 0.4 / Math.max(1, relicDropMult));
             if (node.type === 'elite') {
                 const relics = window.RelicSystem.pickRelicChoices(rng, 3, this.run.relics, 'elite', this.run);
                 if (relics.length) choices.push({ kind: 'relic_pick', options: relics });
@@ -820,7 +1010,7 @@
                     skills.push(window.RunStateSystem.makeSkillLoot(sk.id));
                 }
                 choices.push({ kind: 'skill_pick', options: skills });
-                if (rng() > 0.4) {
+                if (rng() > bossRelicSkip) {
                     const relics = window.RelicSystem.pickRelicChoices(rng, 3, this.run.relics, 'boss', this.run);
                     if (relics.length) choices.push({ kind: 'relic_pick', options: relics });
                 }
@@ -833,7 +1023,7 @@
             }
 
             this.run.pendingLoot = {
-                gold: gold,
+                gold: goldFinal,
                 exp: exp,
                 inRunLevels: levelsGained,
                 choices: choices
@@ -939,8 +1129,25 @@
 
         buyShopItem(item) {
             if (!this.run || this.run.phase !== 'shop' || !item) return false;
-            if (this.run.gold < item.price) return false;
-            this.run.gold -= item.price;
+            const usesHp = window.RunMechanicSystem && window.RunMechanicSystem.shopUsesHp(this.run);
+            if (usesHp) {
+                const def = window.RunMechanicSystem.getDef(this.run);
+                const mult = (def && def.hpCostMult) || 0.08;
+                const totalMax = (this.run.heroes || []).reduce((s, h) => s + (h.maxHp || h.hp || 0), 0);
+                const hpCost = Math.max(1, Math.floor(item.price * mult * Math.max(1, totalMax / 100)));
+                let remaining = hpCost;
+                for (let i = 0; i < (this.run.heroes || []).length; i++) {
+                    const h = this.run.heroes[i];
+                    const pay = Math.min(h.hp || 0, remaining);
+                    h.hp = Math.max(0, (h.hp || 0) - pay);
+                    remaining -= pay;
+                    if (remaining <= 0) break;
+                }
+                if (remaining > 0) return false;
+            } else {
+                if (this.run.gold < item.price) return false;
+                this.run.gold -= item.price;
+            }
             if (item.type === 'skill') {
                 const res = window.RunStateSystem.addSkillToInventory(this.run, item.id, 1);
                 this.run.skillsGainedThisRun = (this.run.skillsGainedThisRun || 0) + 1;
@@ -968,10 +1175,17 @@
                 return a + Math.floor(rng() * Math.max(1, b - a + 1));
             };
             const stock = [];
+            const shopMult = window.DemonPact && window.DemonPact.getShopPriceMult
+                ? window.DemonPact.getShopPriceMult(this.run) : 1;
             for (let i = 0; i < 3; i++) {
                 const hero = this.run.heroes[i % 4];
                 const sk = window.RunStateSystem.pickSkillFromPool(rng, hero);
-                stock.push({ type: 'skill', id: sk.id, name: sk.name, price: 25 + Math.floor(rng() * 20) });
+                stock.push({
+                    type: 'skill',
+                    id: sk.id,
+                    name: sk.name,
+                    price: Math.floor((25 + Math.floor(rng() * 20)) * shopMult)
+                });
             }
             for (let i = 0; i < 2; i++) {
                 const hero = this.run.heroes[i % 4];
@@ -980,7 +1194,7 @@
                     type: 'gear',
                     gear: gear,
                     name: gear.name,
-                    price: priceIn(gearPriceByR, gear.rarity || 'common', 30, 55)
+                    price: Math.floor(priceIn(gearPriceByR, gear.rarity || 'common', 30, 55) * shopMult)
                 });
             }
             if (rng() > 0.7) {
@@ -990,7 +1204,7 @@
                         type: 'relic',
                         id: relics[0].id,
                         name: relics[0].name,
-                        price: priceIn(relicPriceByR, relics[0].rarity || 'common', 55, 90)
+                        price: Math.floor(priceIn(relicPriceByR, relics[0].rarity || 'common', 55, 90) * shopMult)
                     });
                 }
             }
@@ -1048,6 +1262,9 @@
             if (node) {
                 node.cleared = true;
                 this.run.path.push(node.id);
+                if (window.RunMechanicSystem && window.RunMechanicSystem.onLayerAdvanced) {
+                    window.RunMechanicSystem.onLayerAdvanced(this.run, node.layer);
+                }
                 this._advanceMapAfterClear(node);
             }
             this.run.phase = 'map';
@@ -1096,7 +1313,12 @@
 
             // 非战斗节点：独立场景背景（不是浮在棋盘上的小窗）
             if (phase === 'map' || phase === 'shop' || phase === 'event' || phase === 'rest' ||
-                phase === 'summary' || phase === 'reward') {
+                phase === 'summary' || phase === 'reward' || phase === 'skirmish_anim') {
+                if (phase === 'skirmish_anim') {
+                    this._drawSceneBg(ctx, 'skirmish', w, h, { dim: 0.2 });
+                    this.renderSkirmishAnimOverlay(ctx, w, h);
+                    return;
+                }
                 this.renderNodeSceneBackground(ctx, phase);
                 return;
             }
@@ -1149,6 +1371,10 @@
             }
             if (b.juiceSystem && window.JuiceCore && window.JuiceCore.draw && !b.trueModeNoNumbers) {
                 window.JuiceCore.draw(ctx, b.juiceSystem, w, h);
+            }
+            if (b.commanderMode && window.AscensionHub && window.AscensionHub.isEnabled('commanderMode')) {
+                this.drawCommanderGhost(ctx, b);
+                this.drawCommanderTargetHint(ctx, b);
             }
             if (visionClip) {
                 ctx.restore();
@@ -1733,6 +1959,196 @@
                     ctx.globalAlpha = 1;
                 }
             }
+        }
+
+        drawCommanderGhost(ctx, battle) {
+            const cm = battle.commanderMode;
+            if (!cm || cm.enabled === false) return;
+            const fallback = window.CommanderMode && window.CommanderMode.defaultGhostPosition
+                ? window.CommanderMode.defaultGhostPosition(battle)
+                : { x: (battle._canvasW || 400) * 0.5, y: 80 };
+            const g = cm.ghost || fallback;
+            if (!cm.ghost) cm.ghost = { x: g.x, y: g.y };
+            const dragging = !!this._ghostDragging;
+            const pulse = 0.85 + Math.sin((battle.elapsed || 0) * 0.006) * 0.15;
+            ctx.save();
+            ctx.globalAlpha = 0.28 * pulse;
+            ctx.strokeStyle = '#aaccff';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 5]);
+            ctx.beginPath();
+            ctx.arc(g.x, g.y, dragging ? 30 : 26, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.globalAlpha = dragging ? 0.82 : 0.68;
+            ctx.fillStyle = dragging ? '#aaccff' : '#88aaff';
+            ctx.strokeStyle = dragging ? '#ffffff' : '#ddeeff';
+            ctx.lineWidth = dragging ? 3 : 2;
+            ctx.beginPath();
+            ctx.arc(g.x, g.y, dragging ? 18 : 16, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            if (dragging) {
+                ctx.setLineDash([4, 4]);
+                ctx.strokeStyle = 'rgba(200,220,255,0.5)';
+                ctx.beginPath();
+                ctx.arc(g.x, g.y, 24, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 0.85;
+            ctx.font = '11px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#eef';
+            ctx.fillText('👻', g.x, g.y + 4);
+            if (cm.pendingAbilityId) {
+                ctx.fillStyle = '#ffcc44';
+                ctx.fillText('选目标', g.x, g.y - 22);
+            } else if (!dragging) {
+                ctx.fillStyle = 'rgba(200,210,240,0.75)';
+                ctx.font = '10px monospace';
+                ctx.fillText('拖拽', g.x, g.y + 26);
+            }
+            ctx.restore();
+        }
+
+        drawCommanderTargetHint(ctx, battle) {
+            const cm = battle.commanderMode;
+            const target = this._commanderHoverTarget;
+            if (!cm || !cm.pendingAbilityId || !target || target.x == null) return;
+            const valid = true;
+            ctx.save();
+            ctx.strokeStyle = valid ? '#ffd76a' : '#ff6666';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 4]);
+            ctx.beginPath();
+            ctx.arc(target.x, target.y, 22, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = valid ? 'rgba(255,215,106,0.25)' : 'rgba(255,80,80,0.2)';
+            ctx.beginPath();
+            ctx.arc(target.x, target.y, 18, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.font = '11px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffd76a';
+            ctx.fillText('点击确认', target.x, target.y - 28);
+            ctx.restore();
+        }
+
+        renderSkirmishAnimOverlay(ctx, w, h) {
+            const ms = this._skirmishAnimMs || 0;
+            const result = this._skirmishResult;
+            const dur = (result && result.durationMs) || 3000;
+            const t = Math.min(1, ms / Math.max(1, dur));
+            const cx = w * 0.5;
+            const cy = h * 0.46;
+            const allyCount = Math.max(1, (this.run && this.run.heroes) ? this.run.heroes.length : 3);
+            const enemyCount = 3;
+            const victory = !!(result && result.victory);
+            const rushT = Math.min(1, t / 0.167);
+            const clashT = t < 0.167 ? 0 : Math.min(1, (t - 0.167) / 0.166);
+            const numT = t < 0.333 ? 0 : Math.min(1, (t - 0.333) / 0.334);
+            const fallT = t < 0.667 ? 0 : Math.min(1, (t - 0.667) / 0.166);
+            const lootT = t < 0.833 ? 0 : Math.min(1, (t - 0.833) / 0.167);
+
+            ctx.save();
+            ctx.fillStyle = 'rgba(0,0,0,0.42)';
+            ctx.fillRect(0, 0, w, h);
+
+            const drawUnitDot = (x, y, color, size, alpha) => {
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            };
+
+            for (let i = 0; i < allyCount; i++) {
+                const rowY = cy - 36 + i * 28;
+                const startX = w * 0.12;
+                const endX = cx - 28;
+                const x = startX + (endX - startX) * rushT;
+                const fallOff = victory ? 0 : fallT * 18;
+                drawUnitDot(x, rowY + fallOff, '#6a9cff', 10, 0.9);
+            }
+            for (let i = 0; i < enemyCount; i++) {
+                const rowY = cy - 28 + i * 28;
+                const startX = w * 0.88;
+                const endX = cx + 28;
+                const x = startX + (endX - startX) * rushT;
+                const fallOff = victory ? fallT * 40 : 0;
+                const alpha = victory ? Math.max(0, 1 - fallT * 1.2) : 0.9;
+                drawUnitDot(x, rowY + fallOff, '#ff6a6a', 10, alpha);
+            }
+
+            if (clashT > 0 && clashT < 1) {
+                const burst = 1 - clashT;
+                const count = 14;
+                for (let i = 0; i < count; i++) {
+                    const ang = (i / count) * Math.PI * 2 + ms * 0.004;
+                    const dist = 18 + clashT * 52;
+                    ctx.globalAlpha = burst * 0.85;
+                    ctx.fillStyle = i % 2 ? '#ffd76a' : '#ff9966';
+                    ctx.beginPath();
+                    ctx.arc(cx + Math.cos(ang) * dist, cy + Math.sin(ang) * dist * 0.6, 3 + burst * 4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = burst * 0.35;
+                ctx.fillStyle = '#fff4cc';
+                ctx.beginPath();
+                ctx.arc(cx, cy, 28 + clashT * 36, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            if (numT > 0) {
+                const lossPct = result && result.hpLossPct != null ? Math.round(result.hpLossPct * 100) : 0;
+                const nums = victory
+                    ? ['-' + Math.max(1, Math.floor(lossPct / allyCount)) + '%', '暴击!', '-' + lossPct + '% HP']
+                    : ['-' + lossPct + '%', '溃败', '全灭?'];
+                nums.forEach((label, i) => {
+                    const phase = Math.min(1, numT * 1.4 - i * 0.22);
+                    if (phase <= 0) return;
+                    const nx = cx - 60 + i * 60;
+                    const ny = cy - 70 - phase * 28;
+                    ctx.globalAlpha = Math.min(1, phase);
+                    ctx.font = 'bold ' + (14 + i * 2) + 'px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = victory ? '#ffb0b0' : '#ff8888';
+                    ctx.fillText(label, nx, ny);
+                });
+            }
+
+            ctx.globalAlpha = 1;
+            ctx.textAlign = 'center';
+            let phaseLabel = '冲锋';
+            if (t >= 0.833) phaseLabel = victory ? '战利品' : '撤离';
+            else if (t >= 0.667) phaseLabel = victory ? '胜利' : '溃败';
+            else if (t >= 0.333) phaseLabel = '交锋';
+            else if (t >= 0.167) phaseLabel = '碰撞';
+            ctx.fillStyle = '#f0d78c';
+            ctx.font = 'bold 20px monospace';
+            ctx.fillText('瞬间结算 · ' + phaseLabel, cx, h * 0.14);
+            if (result && result.winChance != null) {
+                ctx.fillStyle = '#aab';
+                ctx.font = '12px monospace';
+                ctx.fillText('预估胜率 ' + Math.round(result.winChance * 100) + '%', cx, h * 0.18);
+            }
+
+            if (lootT > 0 && victory) {
+                const icons = ['💰', '✦', '📦'];
+                icons.forEach((icon, i) => {
+                    const bounce = Math.sin(lootT * Math.PI + i) * 8;
+                    ctx.globalAlpha = lootT;
+                    ctx.font = (22 + i * 4) + 'px monospace';
+                    ctx.fillText(icon, cx - 40 + i * 40, cy + 60 - bounce);
+                });
+            }
+
+            ctx.fillStyle = '#445';
+            ctx.fillRect(w * 0.2, h * 0.88, w * 0.6, 6);
+            ctx.fillStyle = victory ? '#6a8cff' : '#cc5555';
+            ctx.fillRect(w * 0.2, h * 0.88, w * 0.6 * t, 6);
+            ctx.restore();
         }
 
         drawCombatLog(ctx, b) {

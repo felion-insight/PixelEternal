@@ -1,0 +1,73 @@
+{
+  "RUN_MECHANICS_CONFIG": {
+    "mechanics": {
+      "element_tide": {
+        "id": "element_tide",
+        "name": "元素潮汐",
+        "desc": "每5层切换全局元素，对应元素+50%",
+        "cycleLayers": 5,
+        "elements": ["fire", "ice", "lightning"],
+        "bonusMult": 1.5,
+        "penaltyMult": 0.7
+      },
+      "life_trade": {
+        "id": "life_trade",
+        "name": "生命交易",
+        "desc": "商店购买消耗生命而非金币",
+        "shopUsesHp": true,
+        "hpCostMult": 0.08
+      },
+      "skill_hunger": {
+        "id": "skill_hunger",
+        "name": "技能饥渴",
+        "desc": "技能无CD，但每次释放-5%生命",
+        "skillNoCooldown": true,
+        "hpCostPerCast": 0.05
+      },
+      "shared_vitality": {
+        "id": "shared_vitality",
+        "name": "共生契约",
+        "desc": "四人共享生命池",
+        "sharedHpPool": true
+      },
+      "weapon_master": {
+        "id": "weapon_master",
+        "name": "武器大师",
+        "desc": "无视职业武器限制",
+        "ignoreWeaponClass": true
+      },
+      "curse_carnival": {
+        "id": "curse_carnival",
+        "name": "诅咒狂欢",
+        "desc": "诅咒遗物效果翻倍（含负面）",
+        "curseEffectMult": 2
+      },
+      "time_rift": {
+        "id": "time_rift",
+        "name": "时间裂缝",
+        "desc": "每10秒全场时停2秒",
+        "timeStopIntervalMs": 10000,
+        "timeStopDurationMs": 2000
+      },
+      "gold_famine": {
+        "id": "gold_famine",
+        "name": "贫穷之神",
+        "desc": "无金币掉落，击杀额外装备机会",
+        "noGoldDrops": true,
+        "bonusGearChance": 0.25
+      },
+      "evolution_pressure": {
+        "id": "evolution_pressure",
+        "name": "进化压力",
+        "desc": "每层随机1名角色获得技能改造",
+        "mutatePerLayer": true
+      },
+      "mirror_world": {
+        "id": "mirror_world",
+        "name": "镜像世界",
+        "desc": "敌人获得友方20%属性镜像",
+        "enemyMirrorPct": 0.2
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "NEGATIVE_SYNERGY_CONFIG": {
+    "combos": {
+      "near_death_fury": {
+        "id": "near_death_fury",
+        "name": "濒死狂怒",
+        "description": "崩坏+贪婪：生命低于30%时攻击+200%",
+        "requiredRelics": ["collapse_core", "greedy_purse"],
+        "uiColor": "#cc4422",
+        "effect": {
+          "type": "low_hp_rampage",
+          "threshold": 0.3,
+          "attackMult": 3
+        }
+      },
+      "stable_output": {
+        "id": "stable_output",
+        "name": "稳定输出",
+        "description": "冰火对立：伤害附带真实伤害穿透",
+        "requiredRelics": ["scorching_touch", "frost_core"],
+        "uiColor": "#8899aa",
+        "effect": { "trueDamagePct": 0.3 }
+      },
+      "heavy_cannon": {
+        "id": "heavy_cannon",
+        "name": "重炮",
+        "description": "时缓+贪婪：技能伤害×2",
+        "requiredRelics": ["hourglass_relic", "greedy_purse"],
+        "uiColor": "#aa8844",
+        "effect": { "skillDamageMult": 2 }
+      }
+    }
+  }
+}

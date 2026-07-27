@@ -10,14 +10,13 @@
     const PHASE_LABEL = {
         map: '选路', deploy: '布阵', combat: '激战', reward: '战利品',
         shop: '商店', event: '事件', rest: '休整', summary: '结算', transition: '前进',
-        skirmish_choice: '碾压抉择', pact: '恶魔契约'
+        pact: '恶魔契约', class_variant: '职业变异', commitment: '构筑承诺'
     };
     const CLASS_TONE = {
         warrior: 'tone-warrior', archer: 'tone-archer', mage: 'tone-mage', assassin: 'tone-assassin'
     };
     const SLOT_LABEL = {
-        weapon: '武器', armor: '护甲',
-        head: '头', chest: '胸', hands: '手', feet: '鞋'
+        weapon: '武器', armor: '护甲'
     };
     const KIND_LABEL = {
         relic_pick: '选择遗物', skill_pick: '选择技能',
@@ -277,11 +276,20 @@
 
     function skillEntryDisplayName(entry) {
         if (!entry) return '';
+        if (entry.displayName) return entry.displayName;
         const SMS = window.SkillMutationSystem;
         const combatId = SMS && SMS.resolveCombatSkillId
             ? SMS.resolveCombatSkillId(entry)
             : (entry.evolvedId || entry.id);
         return skillName(combatId || entry.id);
+    }
+
+    function skillRunMutationTagsHtml(entry, compact) {
+        if (!entry || !entry.runMutations || !entry.runMutations.length) return '';
+        const SRM = window.SkillRunMutationSystem;
+        if (!SRM || !SRM.tagHtml) return '';
+        const tags = SRM.tagHtml(entry.runMutations);
+        return tags ? `<div class="ab-skill-mut-tags${compact ? ' compact' : ''}">${tags}</div>` : '';
     }
 
     function skillBranchModsHtml(entry, compact) {
@@ -500,11 +508,12 @@
         const d = skillDef(displayId) || skillDef(baseId) ||
             (typeof defOrId === 'object' ? defOrId : null);
         const id = displayId || baseId;
-        const name = skillName(id);
+        const name = entry && entry.displayName ? entry.displayName : skillName(id);
         const iconStyle = skillIconStyle(baseId || id);
         const stars = opts.stars != null ? opts.stars : (entry && entry.stars) || (d && d.stars);
         const starLine = stars ? `<div class="ab-skill-stars">${esc(window.RunStateSystem.formatStarLabel(stars))}</div>` : '';
         const branchLine = entry ? skillBranchModsHtml(entry, !!opts.compact) : '';
+        const mutLine = entry ? skillRunMutationTagsHtml(entry, !!opts.compact) : '';
         const desc = opts.compact ? '' : `<p class="ab-detail-desc ab-skill-desc">${esc(skillDescriptionText(d || id))}</p>`;
         return `<div class="ab-detail-card skill ${opts.compact ? 'ab-card-compact' : ''} ${opts.selected ? 'selected' : ''}" ${opts.attrs || ''}>
             <div class="ab-card-row">
@@ -516,6 +525,7 @@
             </div>
             ${starLine}
             ${branchLine}
+            ${mutLine}
             ${desc}
                 </div>
             </div>
@@ -638,11 +648,14 @@
             : relic;
         if (!d) return '';
         const meta = relicMetaLine(d);
+        const quality = opts.run && window.RelicExclusivitySystem
+            ? window.RelicExclusivitySystem.getQualityLabel(opts.run, d.id) : '';
         return `<div class="ab-reward-preview relic ${opts.selected ? 'selected' : ''}" ${opts.attrs || ''}>
             <div class="ab-reward-preview-icon" style="${relicIconStyle(d)}"></div>
             <div class="ab-reward-preview-body">
                 <span class="ab-reward-preview-tag">遗物</span>
                 <strong class="ab-reward-preview-name">${esc(d.name)}</strong>
+                ${quality ? `<span class="ab-relic-quality ab-reward-preview-meta">${esc(quality)}</span>` : ''}
                 <span class="ab-reward-preview-meta">${esc(d.description || '队伍被动')}</span>
                 ${meta ? `<span class="ab-reward-preview-meta ab-relic-build">${esc(meta)}</span>` : ''}
             </div>
@@ -704,7 +717,7 @@
         return { alive: alive, total: heroes.length, pct: pct, hp: hp, max: max };
     }
 
-    function hudRelicIconsHtml(relicIds) {
+    function hudRelicIconsHtml(relicIds, run) {
         const ids = relicIds || [];
         if (!ids.length) {
             return '<span class="ab-hud-relics-empty">暂无</span>';
@@ -715,12 +728,17 @@
                 : null;
             const name = (def && def.name) || id;
             const desc = (def && def.description) || '';
-            const tip = desc ? (name + ' — ' + desc) : name;
+            const quality = window.RelicExclusivitySystem && run
+                ? window.RelicExclusivitySystem.getQualityLabel(run, id) : '';
+            const tip = [name, quality, desc].filter(Boolean).join(' — ');
             const style = relicIconStyle(def || id);
+            const qBadge = quality ? `<span class="ab-relic-quality">${esc(quality)}</span>` : '';
             if (style) {
-                return `<span class="ab-hud-relic" style="${style}" title="${esc(tip)}"></span>`;
+                return `<span class="ab-hud-relic-wrap" title="${esc(tip)}">
+                    <span class="ab-hud-relic" style="${style}"></span>${qBadge}</span>`;
             }
-            return `<span class="ab-hud-relic ab-hud-relic-fallback" title="${esc(tip)}">${esc((name && name[0]) || '?')}</span>`;
+            return `<span class="ab-hud-relic-wrap" title="${esc(tip)}">
+                <span class="ab-hud-relic ab-hud-relic-fallback">${esc((name && name[0]) || '?')}</span>${qBadge}</span>`;
         }).join('');
     }
 
@@ -772,9 +790,21 @@
             }).join('')
             : '';
         const relicInner = relics.length
-            ? hudRelicIconsHtml(relics)
+            ? hudRelicIconsHtml(relics, run)
             : '<span class="ab-hud-relics-empty">—</span>';
-        const chips = `${synHtml}${bondHtml}${chainHtml}${weather ? `<span class="ab-syn-chip ab-weather-chip" title="剩余${weather.battlesLeft}场">${esc(weather.name)}</span>` : ''}${mutLabel ? `<span class="ab-syn-chip ab-mut-chip" title="${esc(mutTip)}">${esc(mutLabel)}</span>` : ''}`;
+        const buildPath = window.BuildCommitmentSystem && window.BuildCommitmentSystem.getDisplay
+            ? window.BuildCommitmentSystem.getDisplay(run) : null;
+        const buildPathChip = buildPath
+            ? `<span class="ab-syn-chip ab-path-chip" title="构筑路径已锁定">${esc(buildPath.name)}</span>` : '';
+        const runMech = window.RunMechanicSystem && window.RunMechanicSystem.getDisplay
+            ? window.RunMechanicSystem.getDisplay(run) : null;
+        const runMechChip = runMech
+            ? `<span class="ab-syn-chip ab-mech-chip" title="${esc(runMech.desc || '')}">${esc(runMech.name)}</span>` : '';
+        const negSynHtml = window.SynergyMatrix && window.SynergyMatrix.getNegativeDisplay
+            ? window.SynergyMatrix.getNegativeDisplay(run).map((s) =>
+                `<span class="ab-syn-chip ab-neg-chip" title="${esc(s.description || s.name)}" style="border-color:${s.color || '#aa6644'}">${esc(s.name)}</span>`
+            ).join('') : '';
+        const chips = `${synHtml}${bondHtml}${chainHtml}${weather ? `<span class="ab-syn-chip ab-weather-chip" title="剩余${weather.battlesLeft}场">${esc(weather.name)}</span>` : ''}${mutLabel ? `<span class="ab-syn-chip ab-mut-chip" title="${esc(mutTip)}">${esc(mutLabel)}</span>` : ''}${buildPathChip}${runMechChip}${negSynHtml}`;
         return `
             <div class="ab-hud-strip">
                 <div class="ab-hud-cluster ab-hud-cluster--res">
@@ -832,6 +862,8 @@
             this._lastPhase = null;
             this._lastMapFocusLayer = null;
             this._combatBarKey = null;
+            this._commanderBarKey = null;
+            this._commanderLoadoutPrompted = false;
             this._encounterSplashNodeId = null;
             this._encounterSplashTimer = 0;
             this._encounterSplashFadeTimer = 0;
@@ -842,6 +874,8 @@
             this._ensureDom();
             this._bind();
             this._bindCanvas();
+            this._bindBattleLayer();
+            this._bindCommanderBar();
             this._deployLayer = document.getElementById('ab-deploy-layer');
             this._bindDeployLayer();
         }
@@ -852,6 +886,7 @@
             root = document.createElement('div');
             root.id = 'auto-battler-root';
             root.innerHTML = `
+                <div id="ab-battle-layer" class="ab-battle-layer" aria-hidden="true"></div>
                 <div id="ab-hud" class="ab-hud">
                     <header class="ab-hud-top">
                         <div class="ab-brand">
@@ -873,29 +908,31 @@
                         </div>
                     </header>
 
-                    <div id="ab-bench" class="ab-hud-bench" style="display:none;">
-                        <div class="ab-bench-inner">
-                            <p class="ab-deploy-hint">拖拽棋盘调整站位 · 点击角色选中后落子</p>
-                            <div class="ab-bench-row">
-                                <div class="ab-bench-heroes" id="ab-bench-heroes"></div>
-                                <button type="button" id="ab-start-combat" class="ab-btn ab-deploy-start-btn">开战</button>
-                            </div>
-                        </div>
-                    </div>
+                    <div id="ab-bench" class="ab-hud-bench" style="display:none;" aria-hidden="true"></div>
 
                     <div id="ab-combat-bar" class="ab-hud-combat" style="display:none;" aria-hidden="true">
-                        <div class="ab-combat-heroes" id="ab-combat-heroes"></div>
-                        <div id="ab-commander-bar" class="ab-commander-bar" style="display:none;">
-                            <div class="ab-te-wrap">
-                                <span class="ab-te-label">战术能量</span>
-                                <div class="ab-te-track"><div id="ab-te-fill" class="ab-te-fill"></div></div>
-                                <span id="ab-te-text" class="ab-te-text">0/100</span>
+                        <p id="ab-deploy-hint" class="ab-deploy-hint" style="display:none;">拖放调整站位 · 编成战术指令后开战</p>
+                        <div class="ab-combat-heroes-wrap">
+                            <div class="ab-combat-heroes" id="ab-combat-heroes"></div>
+                        </div>
+                        <div id="ab-commander-bar" class="ab-commander-bar ab-commander-section" style="display:none;">
+                            <div class="ab-commander-row ab-commander-row-top">
+                                <div class="ab-te-wrap">
+                                    <span class="ab-te-label">战术能量</span>
+                                    <div class="ab-te-track"><div id="ab-te-fill" class="ab-te-fill"></div></div>
+                                    <span id="ab-te-text" class="ab-te-text">0/100</span>
+                                </div>
+                                <div class="ab-battle-speed">
+                                    <button type="button" class="ab-btn ab-btn-ghost ab-speed-btn" data-speed="1">×1</button>
+                                    <button type="button" class="ab-btn ab-btn-ghost ab-speed-btn" data-speed="2">×2</button>
+                                    <button type="button" class="ab-btn ab-btn-ghost ab-speed-btn" data-speed="3">×3</button>
+                                </div>
                             </div>
+                            <p id="ab-commander-pending" class="ab-commander-pending" style="display:none;"></p>
                             <div id="ab-commander-abilities" class="ab-commander-abilities"></div>
-                            <div class="ab-battle-speed">
-                                <button type="button" class="ab-btn ab-btn-ghost ab-speed-btn" data-speed="1">×1</button>
-                                <button type="button" class="ab-btn ab-btn-ghost ab-speed-btn" data-speed="2">×2</button>
-                                <button type="button" class="ab-btn ab-btn-ghost ab-speed-btn" data-speed="3">×3</button>
+                            <div id="ab-deploy-actions" class="ab-deploy-actions" style="display:none;">
+                                <button type="button" id="ab-cmd-loadout-btn" class="ab-btn ab-btn-ghost ab-cmd-loadout-btn">战术指令</button>
+                                <button type="button" id="ab-start-combat" class="ab-btn ab-deploy-start-btn">开战</button>
                             </div>
                         </div>
                     </div>
@@ -999,14 +1036,20 @@
                 const name = (this.controller.battle && this.controller.battle.encounterName) || '';
                 this._beginCombatIntro(name, () => {
                     if (this.controller.startCombat()) {
-                        this.game.paused = false;
-                        this.refresh();
+                        this._animateCombatBarToCombatMode(() => {
+                            this.game.paused = false;
+                            this.refresh();
+                        });
                     } else {
                         this._combatIntroActive = false;
                         this.refresh();
                     }
                 });
             };
+            const loadoutBtn = document.getElementById('ab-cmd-loadout-btn');
+            if (loadoutBtn) {
+                loadoutBtn.onclick = () => this.showCommanderLoadoutPicker({});
+            }
         }
 
         _canvasCoords(e) {
@@ -1038,14 +1081,174 @@
             if (!canvas || canvas._abClickBound) return;
             canvas._abClickBound = true;
             canvas.addEventListener('click', (e) => {
-                if (this._deployInteractBlocked()) return;
                 const { x, y } = this._canvasCoords(e);
                 const run = this.controller.run;
                 const battle = this.controller.battle;
+                if (run && run.phase === 'combat' && battle && battle.commanderMode &&
+                    battle.commanderMode.pendingAbilityId) {
+                    if (this.controller.handleCombatCommanderClick(x, y)) return;
+                }
+                if (this._deployInteractBlocked()) return;
                 if (run && run.phase === 'combat' && battle && battle.mutationReverse) {
                     if (this.controller.handleReverseCombatClick(x, y)) return;
                 }
                 this.controller.handleCanvasClick(x, y);
+            });
+            canvas.addEventListener('pointerdown', (e) => {
+                const run = this.controller.run;
+                if (!run || run.phase !== 'combat') return;
+                const { x, y } = this._canvasCoords(e);
+                if (e.button === 0 && this.controller.handleCombatPointerDown(x, y)) {
+                    canvas.setPointerCapture(e.pointerId);
+                    canvas._abGhostPointer = e.pointerId;
+                    e.preventDefault();
+                }
+            });
+            canvas.addEventListener('pointermove', (e) => {
+                const run = this.controller.run;
+                if (!run || run.phase !== 'combat') return;
+                const { x, y } = this._canvasCoords(e);
+                this.controller.handleCombatPointerMove(x, y);
+            });
+            const finishGhostDrag = (e) => {
+                if (canvas._abGhostPointer !== e.pointerId) return;
+                try { canvas.releasePointerCapture(e.pointerId); } catch (_) { /* noop */ }
+                canvas._abGhostPointer = null;
+                this.controller.handleCombatPointerUp();
+            };
+            canvas.addEventListener('pointerup', finishGhostDrag);
+            canvas.addEventListener('pointercancel', finishGhostDrag);
+        }
+
+        _bindBattleLayer() {
+            const layer = document.getElementById('ab-battle-layer');
+            if (!layer || layer._abBattleBound) return;
+            layer._abBattleBound = true;
+            let activePointer = null;
+
+            layer.addEventListener('pointerdown', (e) => {
+                const run = this.controller.run;
+                if (!run || run.phase !== 'combat' || e.button !== 0) return;
+                if (!layer.classList.contains('active')) return;
+                const { x, y } = this._canvasCoords(e);
+                const battle = this.controller.battle;
+                const cm = battle && battle.commanderMode;
+                if (cm && cm.pendingAbilityId) return;
+                activePointer = e.pointerId;
+                layer.setPointerCapture(e.pointerId);
+                this.controller.handleCombatPointerDown(x, y);
+                e.preventDefault();
+            });
+
+            layer.addEventListener('pointermove', (e) => {
+                const run = this.controller.run;
+                if (!run || run.phase !== 'combat') return;
+                const { x, y } = this._canvasCoords(e);
+                this.controller.handleCombatPointerMove(x, y);
+            });
+
+            layer.addEventListener('click', (e) => {
+                const run = this.controller.run;
+                const battle = this.controller.battle;
+                if (!run || run.phase !== 'combat' || !battle || !battle.commanderMode) return;
+                if (!battle.commanderMode.pendingAbilityId) return;
+                const { x, y } = this._canvasCoords(e);
+                if (this.controller.handleCombatCommanderClick(x, y)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            });
+
+            const finish = (e) => {
+                if (activePointer !== e.pointerId) return;
+                try { layer.releasePointerCapture(e.pointerId); } catch (_) { /* noop */ }
+                activePointer = null;
+                this.controller.handleCombatPointerUp();
+            };
+            layer.addEventListener('pointerup', finish);
+            layer.addEventListener('pointercancel', finish);
+        }
+
+        _syncBattleLayer() {
+            const layer = document.getElementById('ab-battle-layer');
+            if (!layer) return;
+            const run = this.controller.run;
+            const battle = this.controller.battle;
+            const active = !!(run && run.phase === 'combat' && !this._combatIntroActive);
+            layer.classList.toggle('active', active);
+            layer.setAttribute('aria-hidden', active ? 'false' : 'true');
+            const picking = !!(active && battle && battle.commanderMode && battle.commanderMode.pendingAbilityId);
+            layer.classList.toggle('ab-battle-pick-target', picking);
+            layer.classList.toggle('ab-battle-drag-ghost', !!(active && this.controller._ghostDragging));
+        }
+
+        _commanderBarShellKey(cm, run, abilities) {
+            if (!cm || !abilities) return '';
+            const equipped = (cm.abilityIds || []).slice().sort().join(',');
+            return equipped + '|p:' + (cm.pendingAbilityId || '');
+        }
+
+        _bindCommanderBar() {
+            const bar = document.getElementById('ab-commander-bar');
+            const abEl = document.getElementById('ab-commander-abilities');
+            if (!bar || !abEl || bar._abCmdBound) return;
+            bar._abCmdBound = true;
+
+            abEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const btn = e.target.closest('.ab-cmd-btn');
+                if (!btn || btn.classList.contains('locked') || btn.classList.contains('disabled')) return;
+                const battle = this.controller.battle;
+                const cm = battle && battle.commanderMode;
+                if (!battle || !cm || !window.CommanderMode) return;
+                const id = btn.getAttribute('data-cmd');
+                const abilities = window.CommanderMode.allAbilities();
+                const def = abilities[id];
+                if (!def) return;
+                if (window.CommanderMode.needsTotemPick(def)) {
+                    if (!window.CommanderMode.canUse(cm, id)) {
+                        this.rejectCommanderAction((cm.cooldowns[id] || 0) > 0 ? 'cooldown' : 'energy');
+                        return;
+                    }
+                    this._showTotemPicker(cm, id, def, battle);
+                    return;
+                }
+                if (window.CommanderMode.needsManualTarget(def)) {
+                    if (!window.CommanderMode.canUse(cm, id)) {
+                        this.rejectCommanderAction((cm.cooldowns[id] || 0) > 0 ? 'cooldown' : 'energy');
+                        return;
+                    }
+                    cm.pendingAbilityId = id;
+                    if (this.toast) this.toast('点击战场上的目标释放「' + def.name + '」');
+                    this.refreshCombatBar(battle);
+                    this._syncBattleLayer();
+                    return;
+                }
+                if (!window.CommanderMode.canUse(cm, id)) {
+                    this.rejectCommanderAction((cm.cooldowns[id] || 0) > 0 ? 'cooldown' : 'energy');
+                    return;
+                }
+                const target = window.CommanderMode.pickAbilityTarget(cm, def, battle);
+                const ok = window.CommanderMode.useAbility(cm, id, target);
+                if (!ok) this.rejectCommanderAction('use_failed');
+                else if (this.toast) this.toast('指令已释放：' + def.name);
+                this.refreshCombatBar(battle);
+            });
+
+            bar.querySelectorAll('.ab-speed-btn').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const battle = this.controller.battle;
+                    if (!battle) return;
+                    const sp = parseInt(btn.getAttribute('data-speed'), 10) || 1;
+                    const meta = this.controller.ensurePartyMeta();
+                    const unlock = meta.ascension && meta.ascension.speedUnlock;
+                    if (sp > 1 && unlock && !unlock['x' + sp]) return;
+                    battle.timeScale = sp;
+                    if (this.controller.run && this.controller.run.ascension) {
+                        this.controller.run.ascension.battleSpeedScale = sp;
+                    }
+                    bar.querySelectorAll('.ab-speed-btn').forEach((b) => b.classList.toggle('active', b === btn));
+                });
             });
         }
 
@@ -1105,7 +1308,54 @@
             if (!bar) return;
             bar.style.display = show ? 'flex' : 'none';
             bar.setAttribute('aria-hidden', show ? 'false' : 'true');
-            if (!show) this._combatBarKey = null;
+            if (!show) {
+                this._combatBarKey = null;
+                bar.classList.remove('ab-hud-combat--deploy', 'ab-hud-combat--combat');
+            }
+        }
+
+        _setCombatBarMode(mode) {
+            const bar = document.getElementById('ab-combat-bar');
+            if (!bar) return;
+            bar.classList.toggle('ab-hud-combat--deploy', mode === 'deploy');
+            bar.classList.toggle('ab-hud-combat--combat', mode === 'combat');
+            const hint = document.getElementById('ab-deploy-hint');
+            const showDeployChrome = mode === 'deploy' && !this._combatIntroActive;
+            if (hint) hint.style.display = showDeployChrome ? 'block' : 'none';
+            const deployActions = document.getElementById('ab-deploy-actions');
+            if (deployActions) deployActions.style.display = showDeployChrome ? 'flex' : 'none';
+            const cmdRowTop = document.querySelector('#ab-commander-bar .ab-commander-row-top');
+            if (cmdRowTop) cmdRowTop.style.display = mode === 'combat' ? 'flex' : 'none';
+        }
+
+        _animateCombatBarToCombatMode(onDone) {
+            const bar = document.getElementById('ab-combat-bar');
+            const cmdBar = document.getElementById('ab-commander-bar');
+            const finish = () => {
+                if (bar) {
+                    bar.classList.remove('ab-hud-combat--mode-switch', 'ab-hud-combat--combat-enter', 'ab-hud-combat--pre-combat');
+                }
+                if (cmdBar) cmdBar.classList.remove('ab-commander-switch-out', 'ab-commander-switch-in');
+                if (onDone) onDone();
+            };
+            if (!bar || this._reduceMotion) {
+                this._setCombatBarMode('combat');
+                if (this.controller.battle) this.refreshCombatBar(this.controller.battle);
+                finish();
+                return;
+            }
+            bar.classList.add('ab-hud-combat--mode-switch');
+            if (cmdBar) cmdBar.classList.add('ab-commander-switch-out');
+            window.setTimeout(() => {
+                this._setCombatBarMode('combat');
+                if (this.controller.battle) this.refreshCombatBar(this.controller.battle);
+                if (cmdBar) {
+                    cmdBar.classList.remove('ab-commander-switch-out');
+                    cmdBar.classList.add('ab-commander-switch-in');
+                }
+                bar.classList.add('ab-hud-combat--combat-enter');
+                window.setTimeout(finish, 340);
+            }, 200);
         }
 
         _combatBarShellKey(battle) {
@@ -1160,8 +1410,10 @@
 
         refreshCombatBar(battle) {
             if (!battle || !battle.allies) return;
+            this._setCombatBarMode('combat');
             this.renderCombatBarShell(battle);
             this.renderCommanderBar(battle);
+            this._syncBattleLayer();
             const el = document.getElementById('ab-combat-heroes');
             if (!el) return;
             battle.allies.forEach((u) => {
@@ -1190,6 +1442,85 @@
                     if (cdText) cdText.textContent = ready ? '' : this._formatSkillCd(cd);
                 });
             });
+        }
+
+        _deployHeroShellKey(run) {
+            if (!run || !run.heroes) return '';
+            return run.heroes.map((h) =>
+                h.heroId + ':' + h.boardCol + ':' + h.boardRow + ':' + h.hp + ':' + h.maxHp
+            ).join('|');
+        }
+
+        renderDeployHeroShell(run) {
+            const el = document.getElementById('ab-combat-heroes');
+            if (!el || !run || !run.heroes || !run.heroes.length) return;
+            const key = this._deployHeroShellKey(run);
+            if (key === this._combatBarKey) return;
+            this._combatBarKey = key;
+            el.innerHTML = '';
+            run.heroes.forEach((h) => {
+                const card = document.createElement('div');
+                card.className = 'ab-combat-card ab-combat-card--deploy ' + (CLASS_TONE[h.baseClass] || '');
+                card.dataset.heroId = h.heroId;
+                const placed = h.boardCol >= 0 && h.boardRow >= 0;
+                const hpPct = Math.max(0, Math.min(100, (h.hp / Math.max(1, h.maxHp)) * 100));
+                const skillCount = (h.skillSlots || []).filter(Boolean).length;
+                card.innerHTML = `
+                    <span class="ab-combat-avatar"${classIconStyle(h.baseClass)} aria-hidden="true"></span>
+                    <div class="ab-combat-body">
+                        <span class="ab-combat-name">${esc(h.displayName || h.heroId)}</span>
+                        <div class="ab-combat-hp">
+                            <div class="ab-combat-hp-track">
+                                <i class="ab-combat-hp-fill" style="width:${hpPct}%"></i>
+                            </div>
+                            <span class="ab-combat-hp-text">${Math.max(0, Math.floor(h.hp))}/${Math.max(1, Math.floor(h.maxHp))}</span>
+                        </div>
+                        <span class="ab-combat-deploy-meta">${placed ? '已上场' : '待命'} · 技${skillCount}</span>
+                    </div>`;
+                el.appendChild(card);
+            });
+        }
+
+        refreshDeployBar(run) {
+            if (!run) return;
+            this._setCombatBarMode('deploy');
+            const battle = this.controller.battle;
+            if (battle && battle.allies && battle.allies.length) {
+                this.renderCombatBarShell(battle);
+                const el = document.getElementById('ab-combat-heroes');
+                if (el) {
+                    battle.allies.forEach((u) => {
+                        const card = el.querySelector(`.ab-combat-card[data-hero-id="${u.heroId}"]`);
+                        if (!card) return;
+                        card.classList.add('ab-combat-card--deploy');
+                        const runHero = (run.heroes || []).find((h) => h.heroId === u.heroId);
+                        const placed = runHero && runHero.boardCol >= 0 && runHero.boardRow >= 0;
+                        const hp = runHero ? runHero.hp : u.hp;
+                        const maxHp = runHero ? runHero.maxHp : u.maxHp;
+                        const hpPct = Math.max(0, Math.min(100, (hp / Math.max(1, maxHp)) * 100));
+                        const fill = card.querySelector('.ab-combat-hp-fill');
+                        if (fill) fill.style.width = hpPct + '%';
+                        const hpText = card.querySelector('.ab-combat-hp-text');
+                        if (hpText) hpText.textContent = `${Math.max(0, Math.floor(hp))}/${Math.max(1, Math.floor(maxHp))}`;
+                        let meta = card.querySelector('.ab-combat-deploy-meta');
+                        if (!meta) {
+                            meta = document.createElement('span');
+                            meta.className = 'ab-combat-deploy-meta';
+                            const body = card.querySelector('.ab-combat-body');
+                            if (body) body.appendChild(meta);
+                        }
+                        const skillCount = runHero ? (runHero.skillSlots || []).filter(Boolean).length : (u.skills || []).length;
+                        meta.textContent = (placed ? '已上场' : '待命') + ' · 技' + skillCount;
+                        const skillsEl = card.querySelector('.ab-combat-skills');
+                        if (skillsEl) skillsEl.style.display = 'none';
+                    });
+                }
+            } else {
+                this.renderDeployHeroShell(run);
+            }
+            this.renderCommanderBar(null, { deploy: true });
+            this._syncCommanderLoadoutBtn(run);
+            this._syncBattleLayer();
         }
 
         show() {
@@ -1909,7 +2240,7 @@
             splash.setAttribute('aria-hidden', 'true');
         }
 
-        /** 开战前：备战席下收 → 战斗栏上展 → 配置名浮现，最后开打 */
+        /** 开战前：底栏进入预备态，遭遇名后再切到战斗模式 */
         _beginCombatIntro(name, onDone) {
             this._combatIntroActive = true;
             this.game.paused = true;
@@ -1918,11 +2249,14 @@
             const phaseEl = document.getElementById('ab-phase-label');
             if (phaseEl) phaseEl.textContent = PHASE_LABEL.combat || '激战';
 
+            const bar = document.getElementById('ab-combat-bar');
+            if (bar) bar.classList.add('ab-hud-combat--pre-combat');
+            this._showCombatBar(true);
             const battle = this.controller && this.controller.battle;
             if (battle) {
                 this.renderCombatBarShell(battle);
-                this.refreshCombatBar(battle);
             }
+            this.renderCommanderBar(null, { deploy: true });
 
             const afterBars = () => {
                 if (!name) {
@@ -1936,64 +2270,12 @@
                 });
             };
 
-            if (this._reduceMotion) {
-                const bench = document.getElementById('ab-bench');
-                if (bench) {
-                    bench.style.display = 'none';
-                    bench.classList.remove('ab-bench-enter', 'ab-bar-exit');
-                }
-                this._showCombatBar(true);
-                afterBars();
-                return;
-            }
-
-            this._playBottomBarHandoff(afterBars);
+            afterBars();
         }
 
-        /** 旧底栏向下收起，新底栏向上展开 */
+        /** @deprecated 已合并为单一底栏，保留空实现避免旧引用报错 */
         _playBottomBarHandoff(onDone) {
-            const bench = document.getElementById('ab-bench');
-            const combat = document.getElementById('ab-combat-bar');
-            const exitMs = 280;
-            const enterMs = 320;
-            const enterDelay = 120;
-
-            if (bench && bench.style.display !== 'none') {
-                bench.classList.remove('ab-bench-enter');
-                bench.classList.add('ab-bar-exit');
-                bench.style.pointerEvents = 'none';
-            } else if (bench) {
-                bench.style.display = 'none';
-            }
-
-            if (combat) {
-                combat.classList.remove('ab-bar-enter');
-                combat.style.display = 'flex';
-                combat.setAttribute('aria-hidden', 'false');
-                combat.classList.add('ab-bar-enter-prep');
-            }
-
-            this._encounterSplashTimer = setTimeout(() => {
-                if (combat) {
-                    combat.classList.remove('ab-bar-enter-prep');
-                    void combat.offsetWidth;
-                    combat.classList.add('ab-bar-enter');
-                }
-            }, enterDelay);
-
-            this._encounterSplashFadeTimer = setTimeout(() => {
-                this._encounterSplashFadeTimer = 0;
-                this._encounterSplashTimer = 0;
-                if (bench) {
-                    bench.style.display = 'none';
-                    bench.style.pointerEvents = '';
-                    bench.classList.remove('ab-bar-exit', 'ab-bench-enter');
-                }
-                if (combat) {
-                    combat.classList.remove('ab-bar-enter', 'ab-bar-enter-prep');
-                }
-                if (onDone) onDone();
-            }, Math.max(exitMs, enterDelay + enterMs) + 40);
+            if (onDone) onDone();
         }
 
         _showEncounterSplash(name, onDone) {
@@ -2103,36 +2385,34 @@
 
             const bench = document.getElementById('ab-bench');
             const combatBar = document.getElementById('ab-combat-bar');
+            if (bench) bench.style.display = 'none';
             if (run.phase === 'deploy') {
                 if (this._combatIntroActive) {
-                    // 开战过场：保持战斗底栏，勿把备战席刷回来
-                    if (bench) bench.style.display = 'none';
                     this._syncDeployLayer();
                     this._showCombatBar(true);
+                    if (this.controller.battle) {
+                        this.renderCombatBarShell(this.controller.battle);
+                    }
+                    this.renderCommanderBar(null, { deploy: true });
                     this._hideScene(true);
                     this.game.paused = true;
                 } else {
-                    this._showCombatBar(false);
                     const entering = this.controller.deployEnter;
                     this._syncDeployLayer();
-                    if (bench) {
-                        bench.style.display = entering ? 'none' : 'flex';
-                        if (!entering && !this._reduceMotion) {
-                            bench.classList.remove('ab-bench-enter');
-                            void bench.offsetWidth;
-                            bench.classList.add('ab-bench-enter');
-                        }
+                    if (entering) {
+                        this._showCombatBar(false);
+                    } else {
+                        this._showCombatBar(true);
+                        this.refreshDeployBar(run);
+                        this._maybePromptCommanderLoadout(run);
                     }
-                    if (!entering) this.refreshBench();
                     this._hideScene(true);
                     this.game.paused = !!entering ? false : true;
                 }
             } else if (run.phase === 'combat') {
                 this._syncDeployLayer();
-                if (bench) bench.style.display = 'none';
                 this._showCombatBar(true);
                 if (this.controller.battle) {
-                    this.renderCombatBarShell(this.controller.battle);
                     this.refreshCombatBar(this.controller.battle);
                 }
                 this._hideScene(true);
@@ -2140,35 +2420,35 @@
             } else if (run.phase === 'transition') {
                 this._showCombatBar(false);
                 this._syncDeployLayer();
-                if (bench) bench.style.display = 'none';
                 this._hideScene(true);
                 this.game.paused = false;
             } else if (run.phase === 'map') {
                 this._showCombatBar(false);
                 this._syncDeployLayer();
-                if (bench) bench.style.display = 'none';
                 this.renderMap();
                 this._showSceneView('ab-map-view', 'map');
                 this.game.paused = true;
             } else if (run.phase === 'shop') {
-                if (bench) bench.style.display = 'none';
+                this._showCombatBar(false);
                 this.showShop();
             } else if (run.phase === 'event') {
-                if (bench) bench.style.display = 'none';
+                this._showCombatBar(false);
                 this.showEvent();
             } else if (run.phase === 'rest') {
-                if (bench) bench.style.display = 'none';
+                this._showCombatBar(false);
                 this.showRest();
+            } else if (run.phase === 'class_variant') {
+                this._showCombatBar(false);
+                this.showClassVariantSelect();
+            } else if (run.phase === 'commitment') {
+                this._showCombatBar(false);
+                this.showCommitment();
             } else if (run.phase === 'reward') {
-                if (bench) bench.style.display = 'none';
+                this._showCombatBar(false);
             } else if (run.phase === 'summary') {
-                if (bench) bench.style.display = 'none';
+                this._showCombatBar(false);
             } else {
                 this._showCombatBar(false);
-                if (bench) bench.style.display = 'none';
-            }
-            if (combatBar && run.phase !== 'combat') {
-                combatBar.style.display = 'none';
             }
             const hud = document.getElementById('ab-hud');
             const hideTrueHud = !!(this.controller.battle && this.controller.battle.trueModeNoHud && run.phase === 'combat');
@@ -2180,44 +2460,7 @@
 
         refreshBench() {
             const run = this.controller.run;
-            const el = document.getElementById('ab-bench-heroes');
-            if (!el || !run) return;
-            el.innerHTML = '';
-            run.heroes.forEach((h) => {
-                const hpPct = Math.max(0, Math.min(100, Math.floor((h.hp / Math.max(1, h.maxHp)) * 100)));
-                const stats = previewHeroStats(run, h);
-                const skillCount = (h.skillSlots || []).filter(Boolean).length;
-                const gearSlots = (window.RunStateSystem && window.RunStateSystem.EQUIP_SLOTS) || ['weapon', 'armor'];
-                const gearCount = gearSlots.filter((s) => h.equipment && h.equipment[s]).length;
-                const wrap = document.createElement('div');
-                wrap.className = 'ab-bench-wrap';
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'ab-bench-card ' + (CLASS_TONE[h.baseClass] || '') +
-                    (this._selectedHero === h.heroId ? ' selected' : '');
-                btn.innerHTML = `
-                    <span class="ab-bench-avatar"${classIconStyle(h.baseClass)}>${esc(h.displayName[0])}</span>
-                    <span class="ab-bench-name">${esc(h.displayName)}</span>
-                    <span class="ab-bench-stats">攻${stats.attack} · 防${stats.defense}</span>
-                    <span class="ab-chip-hp"><i style="width:${hpPct}%"></i></span>
-                    <span class="ab-bench-pos">${h.boardCol >= 0 ? '已上场' : '待命'} · 技${skillCount}/${window.DemonPact ? window.DemonPact.getMaxActiveSkills(run) : 4} · 装${gearCount}/${gearSlots.length}</span>`;
-                btn.onclick = () => {
-                    this._selectedHero = h.heroId;
-                    this.refreshBench();
-                };
-                btn.ondblclick = () => this.openLoadoutSheet(h.heroId);
-                const detail = document.createElement('button');
-                detail.type = 'button';
-                detail.className = 'ab-btn ab-btn-xs ab-bench-detail';
-                detail.textContent = '详情';
-                detail.onclick = (e) => {
-                    e.stopPropagation();
-                    this.openLoadoutSheet(h.heroId);
-                };
-                wrap.appendChild(btn);
-                wrap.appendChild(detail);
-                el.appendChild(wrap);
-            });
+            if (run && run.phase === 'deploy') this.refreshDeployBar(run);
         }
 
         showDeploy() {
@@ -2273,6 +2516,28 @@
             const choiceHint = choices.length === 1
                 ? '前方仅此一路，踏入即战'
                 : '恶魔塔分岔在前，择一而行';
+            let zoneBanner = '';
+            if (run.ascension && run.ascension.zoneId && window.ZoneEcology) {
+                const zones = window.ZoneEcology.zones ? window.ZoneEcology.zones() : {};
+                const z = zones[run.ascension.zoneId];
+                const zd = window.ZoneEcology.getZoneDisplay
+                    ? window.ZoneEcology.getZoneDisplay(run)
+                    : null;
+                const zName = (zd && zd.name) || (z && z.name) || run.ascension.zoneId;
+                let mutName = '';
+                if (window.RunZoneGenerator) {
+                    const mut = window.RunZoneGenerator.getZoneMutation(run, run.ascension.zoneId);
+                    if (mut && mut.name) mutName = mut.name;
+                }
+                const battles = run.ascension.battlesInZone || 0;
+                const maxBattles = (z && z.layers) || 10;
+                zoneBanner = `<div class="ab-map-zone-banner">
+                    <span class="ab-map-zone-label">区域</span>
+                    <strong>${esc(zName)}</strong>
+                    <span class="ab-muted">${battles}/${maxBattles} 战</span>
+                    ${mutName ? `<span class="ab-map-zone-mut">${esc(mutName)}</span>` : ''}
+                </div>`;
+            }
             let html = `<div class="ab-map-screen">
                 <header class="ab-map-header">
                     <div class="ab-map-act">
@@ -2280,6 +2545,7 @@
                             <span class="ab-map-act-name">${esc(actProgress.name || progressLabel.split(' · ')[0] || '恶魔塔')}</span>
                             <span class="ab-map-act-step">${esc(progressLabel)}</span>
                         </div>
+                        ${zoneBanner}
                         <div class="ab-map-progress-track" role="progressbar" aria-valuenow="${actProgress.pct}" aria-valuemin="0" aria-valuemax="100">
                             <div class="ab-map-progress-fill" style="width:${actProgress.pct}%"></div>
                         </div>
@@ -2702,7 +2968,13 @@
             }
             const cfgRewards = ((typeof CONFIG !== 'undefined' && CONFIG.AUTO_BATTLER_CONFIG) || {}).rewards || {};
             const healPct = Math.round((cfgRewards.restHealPct != null ? cfgRewards.restHealPct : 0.4) * 100);
+            const noRestHeal = window.ZoneMutationRuntime && !window.ZoneMutationRuntime.canRestHeal(run);
+            const healDisabled = noRestHeal ? ' disabled' : '';
+            const healDesc = noRestHeal ? '当前区域禁疗' : `全队回复 ${healPct}% 生命`;
             const pending = (run && run.pendingLevelPoints) || 0;
+            const cmdSlots = window.CommanderMode && window.CommanderMode.getSlotCount
+                ? window.CommanderMode.getSlotCount(run) : 4;
+            const showCmdRest = !!(window.AscensionHub && window.AscensionHub.isEnabled('commanderMode'));
             const heroBtns = (run.heroes || []).map((h) => {
                 const lv = h.runLevel || 0;
                 const disabled = pending <= 0 ? ' disabled' : '';
@@ -2733,9 +3005,9 @@
                             <span class="ab-muted">选一项 · 未分配点数保留至下次</span>
                         </div>
                         <div class="ab-rest-choice-grid">
-                            <button type="button" class="ab-rest-choice-card heal" data-rest="heal">
+                            <button type="button" class="ab-rest-choice-card heal${healDisabled}" data-rest="heal"${healDisabled}>
                                 <span class="ab-rest-choice-title">篝火疗愈</span>
-                                <span class="ab-rest-choice-desc">全队回复 ${healPct}% 生命</span>
+                                <span class="ab-rest-choice-desc">${esc(healDesc)}</span>
                             </button>
                             <button type="button" class="ab-rest-choice-card star" data-rest="star">
                                 <span class="ab-rest-choice-title">技能升星</span>
@@ -2745,6 +3017,10 @@
                                 <span class="ab-rest-choice-title">净化仪式</span>
                                 <span class="ab-rest-choice-desc">腐化 −20 · 消耗 50 金</span>
                             </button>
+                            ${showCmdRest ? `<button type="button" class="ab-rest-choice-card commander" data-rest="commander">
+                                <span class="ab-rest-choice-title">调整战术指令</span>
+                                <span class="ab-rest-choice-desc">重新选择本局携带的 ${cmdSlots} 个指挥官技能</span>
+                            </button>` : ''}
                             <button type="button" class="ab-rest-choice-card leave" data-rest="leave">
                                 <span class="ab-rest-choice-title">直接离开</span>
                                 <span class="ab-rest-choice-desc">不领取补给，保留等级点</span>
@@ -2773,7 +3049,12 @@
             };
             el.querySelectorAll('[data-rest]').forEach((btn) => {
                 btn.onclick = () => {
-                    const res = this.controller.resolveRestChoice(btn.getAttribute('data-rest'));
+                    const choice = btn.getAttribute('data-rest');
+                    if (choice === 'commander') {
+                        this.showCommanderLoadoutPicker({});
+                        return;
+                    }
+                    const res = this.controller.resolveRestChoice(choice);
                     if (!res.ok) { if (msg) msg.textContent = res.message || '失败'; return; }
                     if (msg) msg.textContent = res.message || '完成';
                     if (res.leave) setTimeout(leave, 650);
@@ -2791,67 +3072,257 @@
         }
 
 
-        renderCommanderBar(battle) {
+        rejectCommanderAction(reason) {
+            const wrap = document.querySelector('#ab-commander-bar .ab-te-wrap');
+            const track = document.getElementById('ab-te-track');
+            const el = wrap || track;
+            if (el) {
+                el.classList.remove('ab-te-shake');
+                void el.offsetWidth;
+                el.classList.add('ab-te-shake');
+                clearTimeout(this._teShakeTimer);
+                this._teShakeTimer = setTimeout(() => el.classList.remove('ab-te-shake'), 520);
+            }
+            if (this.toast) {
+                const msg = reason === 'invalid_target'
+                    ? '请点击有效目标'
+                    : (reason === 'cooldown' ? '指令冷却中' : '战术能量不足或无法释放');
+                this.toast(msg);
+            }
+        }
+
+        _syncCommanderLoadoutBtn(run) {
+            const btn = document.getElementById('ab-cmd-loadout-btn');
+            if (!btn || !window.CommanderMode || !window.AscensionHub) return;
+            const show = !!(run && run.phase === 'deploy' && window.AscensionHub.isEnabled('commanderMode'));
+            btn.style.display = show ? 'inline-flex' : 'none';
+            if (!show) return;
+            const slots = window.CommanderMode.getSlotCount(run);
+            const loadout = window.CommanderMode.getLoadout(run);
+            btn.textContent = '战术指令 ' + loadout.length + '/' + slots;
+        }
+
+        _maybePromptCommanderLoadout(run) {
+            if (!run || run.phase !== 'deploy') return;
+            if (!window.CommanderMode || !window.AscensionHub || !window.AscensionHub.isEnabled('commanderMode')) return;
+            if (run.ascension && run.ascension.commanderLoadoutCustomized) return;
+            if (this._commanderLoadoutPrompted) return;
+            this._commanderLoadoutPrompted = true;
+            this.showCommanderLoadoutPicker({ required: true });
+        }
+
+        showCommanderLoadoutPicker(opts) {
+            opts = opts || {};
+            const run = this.controller.run;
+            if (!run || !window.CommanderMode) return;
+            const CM = window.CommanderMode;
+            const abilities = CM.allAbilities();
+            const unlocked = CM.unlockedAbilityIds(run);
+            const slots = CM.getSlotCount(run);
+            let selected = CM.getLoadout(run).slice();
+
+            const existing = document.getElementById('ab-cmd-loadout-overlay');
+            if (existing) existing.remove();
+
+            const overlay = document.createElement('div');
+            overlay.id = 'ab-cmd-loadout-overlay';
+            overlay.className = 'ab-cmd-loadout-overlay';
+
+            const renderPool = () => {
+                const pool = overlay.querySelector('#ab-cmd-loadout-pool');
+                if (!pool) return;
+                pool.innerHTML = unlocked.slice().sort((a, b) => {
+                    const au = abilities[a];
+                    const bu = abilities[b];
+                    if (au && bu && au.basic && !bu.basic) return -1;
+                    if (au && bu && !au.basic && bu.basic) return 1;
+                    return ((au && au.name) || a).localeCompare((bu && bu.name) || b);
+                }).map((id) => {
+                    const def = abilities[id];
+                    if (!def) return '';
+                    const on = selected.indexOf(id) >= 0;
+                    const full = !on && selected.length >= slots;
+                    return `<button type="button" class="ab-cmd-loadout-chip ${on ? 'selected' : ''}${full ? ' full' : ''}" data-cmd="${id}" ${full ? 'disabled' : ''}>
+                        <span class="ab-cmd-loadout-chip-name">${esc(def.name)}</span>
+                        <span class="ab-cmd-loadout-chip-meta">${def.cost} TE</span>
+                    </button>`;
+                }).join('');
+            };
+
+            const renderSlots = () => {
+                const slotEl = overlay.querySelector('#ab-cmd-loadout-slots');
+                const countEl = overlay.querySelector('#ab-cmd-loadout-count');
+                if (countEl) countEl.textContent = selected.length + ' / ' + slots;
+                if (!slotEl) return;
+                slotEl.innerHTML = selected.map((id, i) => {
+                    const def = abilities[id];
+                    return `<div class="ab-cmd-loadout-slot filled" data-slot="${i}">
+                        <span class="ab-cmd-loadout-slot-name">${esc(def ? def.name : id)}</span>
+                        <button type="button" class="ab-cmd-loadout-slot-remove" data-remove="${id}" aria-label="移除">×</button>
+                    </div>`;
+                }).join('') + Array.from({ length: Math.max(0, slots - selected.length) }, (_, i) =>
+                    `<div class="ab-cmd-loadout-slot empty" data-slot="${selected.length + i}"><span>空槽</span></div>`
+                ).join('');
+            };
+
+            overlay.innerHTML = `<div class="ab-cmd-loadout-card" role="dialog" aria-modal="true">
+                <h3>战术指令编成</h3>
+                <p class="ab-cmd-loadout-desc">本局仅携带 <strong>${slots}</strong> 个指令进入战斗。解锁更多指令后，可在休整处重新编成。</p>
+                <div class="ab-cmd-loadout-slots-wrap">
+                    <div class="ab-cmd-loadout-slots-head">已编入 <span id="ab-cmd-loadout-count">${selected.length} / ${slots}</span></div>
+                    <div id="ab-cmd-loadout-slots" class="ab-cmd-loadout-slots"></div>
+                </div>
+                <div class="ab-cmd-loadout-pool-head">可选指令（点击切换）</div>
+                <div id="ab-cmd-loadout-pool" class="ab-cmd-loadout-pool"></div>
+                <div class="ab-cmd-loadout-actions">
+                    ${opts.required ? '' : '<button type="button" class="ab-btn ab-btn-ghost" id="ab-cmd-loadout-cancel">取消</button>'}
+                    <button type="button" class="ab-btn ab-btn-primary" id="ab-cmd-loadout-confirm" disabled>确认编成</button>
+                </div>
+            </div>`;
+            document.body.appendChild(overlay);
+
+            const confirmBtn = overlay.querySelector('#ab-cmd-loadout-confirm');
+            const refresh = () => {
+                renderPool();
+                renderSlots();
+                if (confirmBtn) confirmBtn.disabled = selected.length !== slots;
+            };
+            refresh();
+
+            overlay.querySelector('#ab-cmd-loadout-pool').addEventListener('click', (e) => {
+                const chip = e.target.closest('.ab-cmd-loadout-chip');
+                if (!chip || chip.disabled) return;
+                const id = chip.getAttribute('data-cmd');
+                const idx = selected.indexOf(id);
+                if (idx >= 0) selected.splice(idx, 1);
+                else if (selected.length < slots) selected.push(id);
+                refresh();
+            });
+
+            overlay.querySelector('#ab-cmd-loadout-slots').addEventListener('click', (e) => {
+                const rm = e.target.closest('.ab-cmd-loadout-slot-remove');
+                if (!rm) return;
+                const id = rm.getAttribute('data-remove');
+                selected = selected.filter((x) => x !== id);
+                refresh();
+            });
+
+            const close = (saved) => {
+                overlay.remove();
+                if (saved) {
+                    CM.setLoadout(run, selected);
+                    if (this.controller.battle && this.controller.battle.commanderMode) {
+                        this.controller.battle.commanderMode.abilityIds = selected.slice();
+                    }
+                    this._syncCommanderLoadoutBtn(run);
+                    if (run && run.phase === 'deploy') this.refreshDeployBar(run);
+                    else if (this.controller.battle) this.refreshCombatBar(this.controller.battle);
+                    if (this.toast) this.toast('战术指令已更新');
+                }
+                if (opts.onDone) opts.onDone(saved);
+            };
+
+            if (confirmBtn) {
+                confirmBtn.onclick = () => {
+                    if (selected.length !== slots) return;
+                    close(true);
+                };
+            }
+            const cancelBtn = overlay.querySelector('#ab-cmd-loadout-cancel');
+            if (cancelBtn) cancelBtn.onclick = () => close(false);
+        }
+
+        renderCommanderBar(battle, opts) {
+            opts = opts || {};
             const bar = document.getElementById('ab-commander-bar');
             if (!bar) return;
+            const run = this.controller.run;
+            const deploy = !!opts.deploy;
             const cm = battle && battle.commanderMode;
-            const show = !!(cm && window.AscensionHub && window.AscensionHub.isEnabled('commanderMode'));
+            const show = !!(window.AscensionHub && window.AscensionHub.isEnabled('commanderMode'));
             bar.style.display = show ? 'flex' : 'none';
-            if (!show || !cm) return;
+            if (!show) return;
+
+            const abilities = window.CommanderMode.allAbilities();
+            const abEl = document.getElementById('ab-commander-abilities');
+            if (!abEl || !window.CommanderMode) return;
+
+            if (deploy) {
+                const loadout = window.CommanderMode.getLoadout(run);
+                const slots = window.CommanderMode.getSlotCount(run);
+                const shellKey = 'd:' + loadout.slice().sort().join(',');
+                if (shellKey !== this._commanderBarKey) {
+                    this._commanderBarKey = shellKey;
+                    abEl.innerHTML = loadout.map((id) => {
+                        const def = abilities[id];
+                        if (!def) return '';
+                        return `<div class="ab-cmd-btn ab-cmd-preview" data-cmd="${id}" title="${esc(def.name + ' · ' + def.cost + 'TE')}">
+                            <span class="ab-cmd-name">${esc(def.name)}</span>
+                            <span class="ab-cmd-meta">${def.cost} TE</span>
+                        </div>`;
+                    }).join('') + `<p class="ab-cmd-locked-hint">已编入 ${loadout.length}/${slots}</p>`;
+                }
+                return;
+            }
+
+            if (!cm) return;
+
             const fill = document.getElementById('ab-te-fill');
             const text = document.getElementById('ab-te-text');
+            const cap = cm.maxEnergy + (cm.overflowCap || 0);
             const pct = Math.min(100, (cm.energy / Math.max(1, cm.maxEnergy)) * 100);
             if (fill) fill.style.width = pct + '%';
             if (text) text.textContent = Math.floor(cm.energy) + '/' + cm.maxEnergy;
-            const abEl = document.getElementById('ab-commander-abilities');
-            if (!abEl) return;
-            const abilities = window.CommanderMode.allAbilities();
-            const run = this.controller.run;
-            const unlocked = new Set(window.CommanderMode.unlockedAbilityIds(run));
-            const allIds = Object.keys(abilities).sort((a, b) => {
-                const au = abilities[a];
-                const bu = abilities[b];
-                if (au.basic && !bu.basic) return -1;
-                if (!au.basic && bu.basic) return 1;
-                return (au.name || a).localeCompare(bu.name || b);
-            });
-            abEl.innerHTML = allIds.map((id) => {
-                const def = abilities[id];
-                if (!def) return '';
-                const locked = !unlocked.has(id);
-                const cd = cm.cooldowns[id] || 0;
-                const ready = !locked && window.CommanderMode.canUse(cm, id);
-                return `<button type="button" class="ab-cmd-btn ${locked ? 'locked' : ''} ${ready ? '' : 'disabled'}" data-cmd="${id}" ${locked ? 'disabled' : ''} title="${esc(def.name)} · ${def.cost}TE${locked ? ' · 未解锁' : ''}">
-                    ${esc(def.name)}${locked ? ' 🔒' : ''}${cd > 0 && !locked ? ' (' + Math.ceil(cd / 1000) + 's)' : ''}
-                </button>`;
-            }).join('');
-            abEl.querySelectorAll('.ab-cmd-btn').forEach((btn) => {
-                btn.onclick = () => {
-                    if (btn.classList.contains('locked')) return;
-                    const id = btn.getAttribute('data-cmd');
+
+            const pendingEl = document.getElementById('ab-commander-pending');
+            if (pendingEl) {
+                if (cm.pendingAbilityId) {
+                    const def = window.CommanderMode.allAbilities()[cm.pendingAbilityId];
+                    pendingEl.style.display = 'block';
+                    pendingEl.textContent = '选目标中：' + (def && def.name ? def.name : cm.pendingAbilityId) + ' · 点击棋盘上的单位';
+                } else {
+                    pendingEl.style.display = 'none';
+                    pendingEl.textContent = '';
+                }
+            }
+
+            const shellKey = this._commanderBarShellKey(cm, run, abilities);
+
+            if (shellKey !== this._commanderBarKey) {
+                this._commanderBarKey = shellKey;
+                const equippedIds = (cm.abilityIds || []).slice().sort((a, b) => {
+                    const au = abilities[a];
+                    const bu = abilities[b];
+                    if (!au || !bu) return 0;
+                    if (au.basic && !bu.basic) return -1;
+                    if (!au.basic && bu.basic) return 1;
+                    return (au.name || a).localeCompare(bu.name || b);
+                });
+                const slots = window.CommanderMode.getSlotCount ? window.CommanderMode.getSlotCount(run) : equippedIds.length;
+                abEl.innerHTML = equippedIds.map((id) => {
                     const def = abilities[id];
-                    if (!def) return;
-                    if (window.CommanderMode.needsTotemPick(def)) {
-                        this._showTotemPicker(cm, id, def, battle);
-                        return;
-                    }
-                    const target = window.CommanderMode.pickAbilityTarget(cm, def, battle);
-                    window.CommanderMode.useAbility(cm, id, target);
-                    this.refreshCombatBar(battle);
-                };
-            });
-            bar.querySelectorAll('.ab-speed-btn').forEach((btn) => {
-                btn.onclick = () => {
-                    const sp = parseInt(btn.getAttribute('data-speed'), 10) || 1;
-                    const meta = this.controller.ensurePartyMeta();
-                    const unlock = meta.ascension && meta.ascension.speedUnlock;
-                    if (sp > 1 && unlock && !unlock['x' + sp]) return;
-                    battle.timeScale = sp;
-                    if (this.controller.run && this.controller.run.ascension) {
-                        this.controller.run.ascension.battleSpeedScale = sp;
-                    }
-                    bar.querySelectorAll('.ab-speed-btn').forEach((b) => b.classList.toggle('active', b === btn));
-                };
+                    if (!def) return '';
+                    const tip = def.name + ' · ' + def.cost + 'TE';
+                    return `<button type="button" class="ab-cmd-btn" data-cmd="${id}" title="${esc(tip)}">
+                        <span class="ab-cmd-name">${esc(def.name)}</span>
+                        <span class="ab-cmd-meta">${def.cost} TE</span>
+                        <span class="ab-cmd-cd"></span>
+                    </button>`;
+                }).join('') + `<p class="ab-cmd-locked-hint ab-cmd-combat-hint">${equippedIds.length}/${slots}</p>`;
+            }
+
+            abEl.querySelectorAll('.ab-cmd-btn').forEach((btn) => {
+                const id = btn.getAttribute('data-cmd');
+                const def = abilities[id];
+                if (!def) return;
+                const cd = cm.cooldowns[id] || 0;
+                const ready = window.CommanderMode.canUse(cm, id);
+                const pending = cm.pendingAbilityId === id;
+                btn.classList.toggle('disabled', !ready);
+                btn.classList.toggle('pending', pending);
+                btn.disabled = false;
+                const cdEl = btn.querySelector('.ab-cmd-cd');
+                if (cdEl) cdEl.textContent = cd > 0 ? Math.ceil(cd / 1000) + 's' : '';
             });
         }
 
@@ -2897,25 +3368,40 @@
                 return;
             }
             panel.style.display = 'block';
-            const intents = (intel.intents || []).map((i) =>
-                `<li>${esc(i.name)}：${esc(i.intent)} → ${esc(i.targetRow)}</li>`
-            ).join('');
+            const tierLabel = {
+                none: '盲目', count_only: '数量', types: '类型',
+                intents_1: '意图·1', intents_2: '意图·2', full: '完整'
+            };
+            const tierName = tierLabel[intel.tier] || intel.tier || '完整';
+            const countLine = intel.enemyCount != null
+                ? `<p>敌军：<strong>${intel.enemyCount}</strong> 单位</p>` : '';
+            const intents = (intel.intents || []).map((i) => {
+                const mut = i.mutation ? ` <span class="ab-muted">[${esc(i.mutation)}]</span>` : '';
+                return `<li>${esc(i.name)}${mut}：${esc(i.intent)} → ${esc(i.targetRow)}</li>`;
+            }).join('');
             const form = (intel.formation || []).map((f) =>
                 `<li>${esc(f.hero)} ${f.row != null ? '第' + (f.row + 1) + '排' : ''} · ${esc(f.tip)}</li>`
             ).join('');
             const synList = (intel.synergies || []).map((s) =>
                 `<li><span style="color:${s.color || '#888'}">${esc(s.name || s.id)}</span> — ${esc(s.description || '')}</li>`
             ).join('');
+            const inactiveSyn = window.SynergyMatrix && window.SynergyMatrix.getInactiveDisplay
+                ? window.SynergyMatrix.getInactiveDisplay(run) : [];
+            const inactiveList = inactiveSyn.map((s) =>
+                `<li class="ab-muted"><span style="color:${s.color || '#666'}">${esc(s.name || s.id)}</span> — 已达协同上限</li>`
+            ).join('');
             const phaseList = (intel.bossPhases || []).map((p) =>
                 `<li>${esc(p.name || p.id || '阶段')} · ${esc(p.hint || p.description || '')}</li>`
             ).join('');
             panel.innerHTML = `<div class="ab-intel-card">
-                <h4>战前情报 <span class="ab-muted">(${Math.round(intel.accuracy * 100)}%)</span></h4>
+                <h4>战前情报 <span class="ab-muted">(${esc(tierName)} · ${Math.round(intel.accuracy * 100)}%)</span></h4>
+                ${countLine}
                 <p>威胁：<strong>${esc(intel.threat)}</strong> · ${esc(intel.commanderHint)}</p>
                 <ul class="ab-intel-list">${intents || '<li>无特殊意图</li>'}</ul>
                 <p class="ab-muted">推荐站位</p>
                 <ul class="ab-intel-list">${form}</ul>
                 ${synList ? `<p class="ab-muted">激活协同</p><ul class="ab-intel-list">${synList}</ul>` : ''}
+                ${inactiveList ? `<p class="ab-muted">未激活协同（已达上限）</p><ul class="ab-intel-list">${inactiveList}</ul>` : ''}
                 ${phaseList ? `<p class="ab-muted">Boss 阶段</p><ul class="ab-intel-list">${phaseList}</ul>` : ''}
             </div>`;
         }
@@ -2949,26 +3435,137 @@
             document.getElementById('ab-skirmish-no').onclick = () => this.controller.resolveSkirmish(node, false);
         }
 
+        showSkirmishAnim(node, result) {
+            this._showSceneView('ab-map-view', 'skirmish_anim');
+            let hud = document.getElementById('ab-skirmish-anim-hud');
+            if (!hud) {
+                hud = document.createElement('div');
+                hud.id = 'ab-skirmish-anim-hud';
+                hud.className = 'ab-skirmish-anim-hud';
+                hud.innerHTML = '<span class="ab-skirmish-anim-phase"></span><span class="ab-skirmish-anim-sub"></span>';
+                const root = document.getElementById('auto-battler-root') || document.body;
+                root.appendChild(hud);
+            }
+            hud.style.display = 'block';
+            this._skirmishAnimHud = hud;
+            this.refreshSkirmishAnim(0, result);
+        }
+
+        refreshSkirmishAnim(ms, result) {
+            const hud = this._skirmishAnimHud || document.getElementById('ab-skirmish-anim-hud');
+            if (!hud) return;
+            const dur = (result && result.durationMs) || 3000;
+            const t = Math.min(1, (ms || 0) / Math.max(1, dur));
+            const victory = !!(result && result.victory);
+            let phase = '双方冲出阵地…';
+            if (t >= 0.833) phase = victory ? '战利品入库' : '被迫撤退';
+            else if (t >= 0.667) phase = victory ? '敌人倒地' : '队伍溃败';
+            else if (t >= 0.333) phase = '伤害结算';
+            else if (t >= 0.167) phase = '中央碰撞';
+            const phaseEl = hud.querySelector('.ab-skirmish-anim-phase');
+            const subEl = hud.querySelector('.ab-skirmish-anim-sub');
+            if (phaseEl) phaseEl.textContent = phase;
+            if (subEl) {
+                const pct = Math.round(t * 100);
+                const winTxt = result && result.winChance != null
+                    ? ' · 胜率 ' + Math.round(result.winChance * 100) + '%'
+                    : '';
+                subEl.textContent = pct + '%' + winTxt;
+            }
+            if (t >= 1) {
+                hud.style.display = 'none';
+                this._skirmishAnimHud = null;
+            }
+        }
+
+        showClassVariantSelect() {
+            const el = document.getElementById('ab-map-view');
+            const run = this.controller.run;
+            if (!el || !run || !window.ClassVariantSystem) return;
+            const choices = run.ascension && run.ascension.variantChoices || {};
+            let html = `<div class="ab-modal-screen ab-variant-screen"><div class="ab-modal-panel">
+                <h3>职业变异</h3>
+                <p class="ab-muted">每名角色选择一种本局变异（不可更改）</p>
+                <div class="ab-variant-grid">`;
+            (run.heroes || []).forEach((h) => {
+                const picked = h.classVariant;
+                const opts = choices[h.heroId] || [];
+                html += `<div class="ab-variant-hero ${picked ? 'picked' : ''}">
+                    <strong>${esc(h.displayName)}</strong>
+                    <div class="ab-variant-options">${opts.map((v) =>
+                        `<button type="button" class="ab-btn ab-variant-btn${picked === v.id ? ' selected' : ''}"
+                            data-hero="${esc(h.heroId)}" data-variant="${esc(v.id)}">
+                            <span>${esc(v.name)}</span>
+                            <small>${esc(v.desc || '')}</small>
+                        </button>`
+                    ).join('')}</div></div>`;
+            });
+            html += `</div></div></div>`;
+            el.innerHTML = html;
+            this._showSceneView('ab-map-view', 'class_variant');
+            el.querySelectorAll('.ab-variant-btn').forEach((btn) => {
+                btn.onclick = () => {
+                    this.controller.applyClassVariantChoice(
+                        btn.getAttribute('data-hero'),
+                        btn.getAttribute('data-variant')
+                    );
+                };
+            });
+        }
+
+        showCommitment() {
+            const el = document.getElementById('ab-map-view');
+            const run = this.controller.run;
+            if (!el || !run || !window.BuildCommitmentSystem) return;
+            const node = window.TowerRunMap.getNode(run.map, run.currentNodeId);
+            const layer = node ? node.layer : (run.path ? run.path.length : 0);
+            const tier = window.BuildCommitmentSystem.pendingTier(run, layer);
+            const choices = window.BuildCommitmentSystem.getChoices(run, layer);
+            el.innerHTML = `<div class="ab-modal-screen ab-commit-screen"><div class="ab-modal-panel">
+                <h3>${esc((tier && tier.label) || '构筑承诺')}</h3>
+                <p class="ab-muted">选择后将锁定本局构筑方向，影响后续遗物与技能改造</p>
+                <div class="ab-commit-grid">${choices.map((c) =>
+                    `<button type="button" class="ab-btn ab-commit-card" data-commit="${esc(c.id)}">
+                        <strong>${esc(c.name)}</strong>
+                        <span>${esc(c.desc || '')}</span>
+                    </button>`
+                ).join('')}</div>
+            </div></div>`;
+            this._showSceneView('ab-map-view', 'commitment');
+            el.querySelectorAll('.ab-commit-card').forEach((btn) => {
+                btn.onclick = () => this.controller.applyCommitmentChoice(btn.getAttribute('data-commit'));
+            });
+        }
+
         showPactSelect(meta) {
             this._showSceneView('ab-map-view', 'pact');
             const el = document.getElementById('ab-map-view');
             if (!el || !window.DemonPact) return;
-            const choices = window.DemonPact.listChoices(meta);
+            const grouped = window.DemonPact.listChoicesGrouped(meta);
+            const starLabels = { 1: '1 星契约', 2: '2 星契约', 3: '3 星契约', 4: '4 星契约', 5: '5 星契约' };
+            const renderCard = (c) =>
+                `<div class="ab-pact-card" data-pact="${c.id}">
+                    <strong>${esc(c.name)}</strong>
+                    <span class="ab-pact-desc">${esc(c.description)}</span>
+                    <div class="ab-pact-stars">${[1, 2, 3, 4, 5].map((s) =>
+                        `<button type="button" class="ab-pact-star" data-pact="${c.id}" data-stars="${s}" title="${s} 星">${s}★</button>`
+                    ).join('')}</div>
+                </div>`;
+            const groupsHtml = [1, 2, 3, 4, 5].map((star) => {
+                const list = grouped[star] || [];
+                if (!list.length) return '';
+                return `<section class="ab-pact-star-group">
+                    <h4 class="ab-pact-star-heading">${starLabels[star]}</h4>
+                    <div class="ab-pact-grid">${list.map(renderCard).join('')}</div>
+                </section>`;
+            }).join('');
             el.innerHTML = `<div class="ab-modal-screen ab-pact-screen">
                 <div class="ab-modal-panel ab-pact-panel">
                     <div class="ab-modal-glow ab-modal-glow--blood" aria-hidden="true"></div>
                     <span class="ab-modal-emblem ab-modal-emblem--pact" aria-hidden="true">☠</span>
                     <h3>恶魔契约</h3>
-                    <p class="ab-muted">选择挑战与星级（1–5 星），星级越高奖励与难度越高</p>
-                    <div class="ab-pact-grid">${choices.map((c) =>
-                        `<div class="ab-pact-card" data-pact="${c.id}">
-                            <strong>${esc(c.name)}</strong>
-                            <span class="ab-pact-desc">${esc(c.description)}</span>
-                            <div class="ab-pact-stars">${[1, 2, 3, 4, 5].map((s) =>
-                                `<button type="button" class="ab-pact-star" data-pact="${c.id}" data-stars="${s}" title="${s} 星">${s}★</button>`
-                            ).join('')}</div>
-                        </div>`
-                    ).join('')}</div>
+                    <p class="ab-muted">按星级浏览挑战（1–5 星），星级越高奖励与难度越高</p>
+                    ${groupsHtml}
                     <button type="button" id="ab-pact-skip" class="ab-btn ab-btn-ghost ab-pact-skip">不签订契约</button>
                 </div>
             </div>`;
@@ -3119,6 +3716,7 @@
                 if (sid) {
                     const starLine = `<div class="ab-skill-stars">${esc(RSS.formatStarLabel(stars))}</div>`;
                     const branchLine = skillBranchModsHtml(entry, true);
+                    const mutLine = skillRunMutationTagsHtml(entry, true);
                     const canReplace = bag && bag.kind === 'skill' && RSS.canHeroUseSkill(hero, bag.id);
                     if (canReplace) {
                         html += `<button type="button" class="ab-slot-panel filled ab-skill-slot droppable ab-slot-compact" data-fill-skill="${i}">
@@ -3129,6 +3727,7 @@
                                     <strong>${esc(skillEntryDisplayName(entry))}</strong>
                                     ${starLine}
                                     ${branchLine}
+                                    ${mutLine}
                                 </div>
                             </div>
                         </button>`;
@@ -3142,6 +3741,7 @@
                                     <strong>${esc(skillEntryDisplayName(entry))}</strong>
                                     ${starLine}
                                     ${branchLine}
+                                    ${mutLine}
                                 </div>
                             </div>
                         </div>`;

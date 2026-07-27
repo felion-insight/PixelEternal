@@ -107,30 +107,50 @@
     function resolveSkirmish(run, encounter, rng) {
         rng = rng || Math.random;
         const p = calculatePower(run, encounter);
-        const winChance = Math.min(0.98, Math.max(0.55, 0.5 + (p.ratio - 1) * 0.35));
+        const ratio = Math.max(0.01, p.ratio);
+        const winChance = Math.min(0.95, Math.max(0.05, 0.5 + (ratio - 1) * 0.3));
         const victory = rng() < winChance;
-        const dmgPct = victory ? 0.08 + rng() * 0.12 : 0.35 + rng() * 0.25;
+        let hpLossPct;
+        if (victory) {
+            hpLossPct = 0.3 / ratio + rng() * 0.1;
+            hpLossPct = Math.min(0.45, Math.max(0.05, hpLossPct));
+        } else {
+            hpLossPct = 0.6 + rng() * 0.3;
+        }
         const casualties = [];
+        const heroSnapshots = [];
         if (run && run.heroes) {
             run.heroes.forEach((h) => {
                 if ((h.hp || 0) <= 0) return;
+                const before = h.hp;
+                let after = before;
                 if (victory) {
-                    h.hp = Math.max(1, Math.floor(h.hp - h.maxHp * dmgPct / run.heroes.length));
+                    after = Math.max(1, Math.floor(before - h.maxHp * hpLossPct / run.heroes.length));
                 } else {
-                    h.hp = Math.max(0, Math.floor(h.hp * (1 - dmgPct)));
-                    if (h.hp <= 0) casualties.push(h.baseClass);
+                    after = Math.max(0, Math.floor(before * (1 - hpLossPct)));
+                    if (after <= 0) casualties.push(h.baseClass);
                 }
+                heroSnapshots.push({ hero: h, before: before, after: after });
             });
         }
         return {
             victory: victory,
             power: p,
             winChance: winChance,
+            hpLossPct: hpLossPct,
             durationMs: 3000,
             casualties: casualties,
+            heroSnapshots: heroSnapshots,
             goldMult: victory ? 1 : 0,
             expMult: victory ? 0.85 : 0
         };
+    }
+
+    function applySkirmishResult(run, result) {
+        if (!run || !result || !result.heroSnapshots) return;
+        result.heroSnapshots.forEach((snap) => {
+            if (snap.hero) snap.hero.hp = snap.after;
+        });
     }
 
     function getMaxCombatDurationMs() {
@@ -150,6 +170,7 @@
         calculatePower,
         canSkirmish,
         resolveSkirmish,
+        applySkirmishResult,
         skirmishThreshold,
         resolveSkirmishLayer,
         getMaxCombatDurationMs

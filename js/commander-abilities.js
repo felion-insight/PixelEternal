@@ -233,6 +233,14 @@
         });
     }
 
+    function applyTimeRewind(cm, def) {
+        const battle = cm.battle;
+        if (!battle || !window.CombatEffectsBridge) return;
+        const ms = (def && def.rewindMs) || 5000;
+        const target = Math.max(0, (battle.elapsed || 0) - ms);
+        window.CombatEffectsBridge.restoreBattleSnapshot(battle, target);
+    }
+
     function execute(cm, def, target) {
         if (!cm || !def) return;
         switch (def.effectType) {
@@ -303,10 +311,7 @@
                 applySummonReinforcements(cm, def);
                 break;
             case 'time_rewind':
-                if (target && target._snapshot) {
-                    const u = findUnit(cm.battle, target);
-                    if (u && target._snapshot) Object.assign(u, target._snapshot);
-                }
+                applyTimeRewind(cm, def);
                 break;
             default:
                 break;

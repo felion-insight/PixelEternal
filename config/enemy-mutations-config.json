@@ -1,0 +1,61 @@
+{
+  "ENEMY_MUTATIONS_CONFIG": {
+    "spawnChance": 0.3,
+    "mutations": {
+      "frenzy": {
+        "id": "frenzy",
+        "name": "狂暴",
+        "hpMult": 0.7,
+        "attackMult": 1.5,
+        "auraColor": "#ff4444"
+      },
+      "hardened": {
+        "id": "hardened",
+        "name": "硬化",
+        "defenseMult": 1.5,
+        "speedMult": 0.7,
+        "auraColor": "#888877"
+      },
+      "split": {
+        "id": "split",
+        "name": "分裂",
+        "splitOnDeath": true,
+        "splitCount": 2,
+        "splitHpPct": 0.4,
+        "auraColor": "#44ff88"
+      },
+      "lifesteal": {
+        "id": "lifesteal",
+        "name": "吸血",
+        "lifestealPct": 0.3,
+        "auraColor": "#cc2244"
+      },
+      "thorns": {
+        "id": "thorns",
+        "name": "反伤",
+        "reflectPct": 0.2,
+        "auraColor": "#aa8844"
+      },
+      "blink": {
+        "id": "blink",
+        "name": "瞬移",
+        "blinkIntervalMs": 5000,
+        "auraColor": "#4488ff"
+      },
+      "revive": {
+        "id": "revive",
+        "name": "复活",
+        "reviveOnce": true,
+        "reviveHpPct": 0.5,
+        "auraColor": "#ffdd44"
+      },
+      "summoner": {
+        "id": "summoner",
+        "name": "召唤",
+        "summonIntervalMs": 10000,
+        "summonTemplateId": "ab_grunt",
+        "auraColor": "#8844cc"
+      }
+    }
+  }
+}

@@ -43,23 +43,71 @@
         return false;
     }
 
+    const TIER_RANK = { quaternary: 0, ternary: 1, binary: 2, class: 3 };
+
+    function sortSynergyIds(ids, defs) {
+        return ids.slice().sort((a, b) => {
+            const ra = TIER_RANK[defs[a] && defs[a].tier] != null ? TIER_RANK[defs[a].tier] : 9;
+            const rb = TIER_RANK[defs[b] && defs[b].tier] != null ? TIER_RANK[defs[b].tier] : 9;
+            if (ra !== rb) return ra - rb;
+            return String(a).localeCompare(String(b));
+        });
+    }
+
+    function negativeCfg() {
+        return (typeof CONFIG !== 'undefined' && CONFIG.NEGATIVE_SYNERGY_CONFIG) ||
+            window.NEGATIVE_SYNERGY_CONFIG || {};
+    }
+
+    function negativeDefs() {
+        const c = negativeCfg();
+        return c.combos || c.NEGATIVE_SYNERGY_CONFIG?.combos || {};
+    }
+
+    function refreshNegativeFromRun(run) {
+        if (!run || !run.ascension) return [];
+        if (!window.AscensionHub || !window.AscensionHub.isEnabled('negativeSynergies')) {
+            run.ascension.negativeSynergies = [];
+            return [];
+        }
+        const owned = ownedSet(run);
+        const matched = [];
+        Object.keys(negativeDefs()).forEach((id) => {
+            const def = negativeDefs()[id];
+            const req = def.requiredRelics || [];
+            if (req.length && req.every((r) => owned.has(r))) matched.push(id);
+        });
+        run.ascension.negativeSynergies = matched;
+        return matched;
+    }
+
+    function getNegativeDisplay(run) {
+        const defs = negativeDefs();
+        return (run && run.ascension && run.ascension.negativeSynergies || []).map((id) => {
+            const d = defs[id];
+            return d ? { id: id, name: d.name, description: d.description, color: d.uiColor } : { id: id };
+        });
+    }
+
     function refreshFromRun(run) {
         if (!run) return [];
         if (!run.ascension) run.ascension = window.AscensionHub.createDefaultRunAscension();
         const owned = ownedSet(run);
         const classes = classCounts(run);
-        const active = [];
+        const matched = [];
         const defs = allSynergyDefs();
         const maxActive = (window.AscensionHub && window.AscensionHub.flag('synergyMatrix').maxActiveSynergies) || 5;
 
         Object.keys(defs).forEach((id) => {
-            if (matches(defs[id], owned, classes)) active.push(id);
+            if (matches(defs[id], owned, classes)) matched.push(id);
         });
 
+        const sorted = sortSynergyIds(matched, defs);
         const prev = new Set(run.ascension.synergies || []);
-        run.ascension.synergies = active.slice(0, maxActive);
+        run.ascension.synergies = sorted.slice(0, maxActive);
+        run.ascension.synergiesInactive = sorted.slice(maxActive);
 
-        active.forEach((id) => {
+        run.ascension.synergies.forEach((id) => {
             if (!prev.has(id)) {
                 const def = defs[id];
                 if (run.battle && run.battle.juiceSystem && window.JuiceCore) {
@@ -68,6 +116,7 @@
                 if (window.SynergyVfx) window.SynergyVfx.onSynergy(run.battle || {}, def && def.uiColor);
             }
         });
+        refreshNegativeFromRun(run);
         return run.ascension.synergies;
     }
 
@@ -128,11 +177,14 @@
                 battle.relicFx.maxHpMult = (battle.relicFx.maxHpMult || 1) * (fx.maxHpMult || 1.25);
                 battle.relicFx.thornsPct = Math.max(battle.relicFx.thornsPct || 0, fx.thornsPct || 0.25);
             }
-            if (fx.type === 'range_snipe') {
+            if (fx.type === 'range_snipe' || fx.type === 'range_bonus') {
                 battle.relicFx = battle.relicFx || {};
                 battle.relicFx.skillRangeMult = (battle.relicFx.skillRangeMult || 1) * (fx.skillRangeMult || 1.3);
+                if (fx.overRangeDamageBonus) {
+                    battle.relicFx.overRangeDamageBonus = fx.overRangeDamageBonus;
+                }
             }
-            if (fx.type === 'low_hp_rampage') {
+            if (fx.type === 'low_hp_rampage' || fx.type === 'low_hp_berserk') {
                 battle.relicFx = battle.relicFx || {};
                 battle.relicFx.lowHpAttackMult = {
                     threshold: fx.threshold || 0.3,
@@ -168,6 +220,88 @@
                 battle.relicFx.dodgeTimestopMs = fx.timeStopMs || 1000;
                 battle.relicFx.critInTimestop = fx.critInTimestop !== false;
             }
+            if (fx.type === 'blade_dance') {
+                battle.relicFx = battle.relicFx || {};
+                battle.relicFx.bladeDanceChance = Math.max(battle.relicFx.bladeDanceChance || 0, fx.chance || 0.1);
+                battle.relicFx.bladeDanceRadius = fx.aoeRadius || 80;
+            }
+            if (fx.type === 'element_dot_stack') {
+                battle.relicFx = battle.relicFx || {};
+                battle.relicFx.elementDotStack = true;
+                battle.relicFx.elementDotRefresh = fx.refreshDuration !== false;
+            }
+            if (fx.type === 'elemental_reaction') {
+                battle.relicFx = battle.relicFx || {};
+                battle.relicFx.elementalReactionMult = Math.max(
+                    battle.relicFx.elementalReactionMult || 1, fx.damageMult || 2
+                );
+                battle.relicFx.elementalReactionRadius = fx.aoeRadius || 80;
+            }
+            if (fx.type === 'lifesteal_boost') {
+                battle.relicFx = battle.relicFx || {};
+                battle.relicFx.lowHpAttackMult = {
+                    threshold: fx.threshold || 0.3,
+                    mult: fx.attackMult || 1.2
+                };
+                battle.relicFx.lifesteal = Math.max(battle.relicFx.lifesteal || 0, fx.lifesteal || 0.2);
+            }
+            if (fx.type === 'gold_attack') {
+                battle.synergyFx.goldMult = (battle.synergyFx.goldMult || 1) * (fx.goldMult || 1);
+                battle.synergyFx.attackPer100Gold = fx.attackPer100Gold || 0.01;
+            }
+            if (fx.type === 'revive_rewind') {
+                battle.relicFx = battle.relicFx || {};
+                battle.relicFx.reviveRewindMs = fx.rewindMs || 10000;
+            }
+            if (fx.type === 'elemental_chain') {
+                battle.relicFx = battle.relicFx || {};
+                battle.relicFx.elementalLord = fx.elements || ['fire', 'ice', 'lightning'];
+                battle.relicFx.elementalReactionMult = Math.max(
+                    battle.relicFx.elementalReactionMult || 1, fx.reactionMult || 1.5
+                );
+            }
+            if (fx.type === 'damage_to_shield') {
+                battle.relicFx = battle.relicFx || {};
+                battle.relicFx.damageToShieldPct = fx.convertPct || 0.5;
+                battle.relicFx.shieldCapMult = fx.shieldCapMult || 2;
+            }
+            if (fx.type === 'warrior_double_cast') {
+                battle.synergyFx.warriorDoubleCastMult = fx.secondDamageMult || 0.5;
+            }
+            if (fx.type === 'adjacent_share' || fx.type === 'mage_echo' || fx.type === 'mark_bonus' || fx.type === 'all_stat') {
+                battle.bondFx = battle.bondFx || {};
+                if (fx.type === 'adjacent_share') {
+                    battle.bondFx.damageSharePct = Math.max(battle.bondFx.damageSharePct || 0, fx.sharePct || 0.3);
+                }
+                if (fx.type === 'mage_echo') {
+                    battle.bondFx.mageEchoChance = Math.max(battle.bondFx.mageEchoChance || 0, fx.chance || 0.25);
+                }
+                if (fx.type === 'mark_bonus') {
+                    battle.bondFx.markDamageBonus = Math.max(battle.bondFx.markDamageBonus || 0, fx.damageBonus || 0.5);
+                }
+                if (fx.type === 'all_stat') {
+                    battle.synergyFx.statMult = (battle.synergyFx.statMult || 1) * (fx.statMult || 1.1);
+                    battle.synergyFx.commanderRegenMult = (battle.synergyFx.commanderRegenMult || 1)
+                        * (fx.commanderRegenMult || 1.5);
+                }
+            }
+        });
+        const negDefs = negativeDefs();
+        (run.ascension.negativeSynergies || []).forEach((id) => {
+            const def = negDefs[id];
+            if (!def || !def.effect) return;
+            const fx = def.effect;
+            battle.relicFx = battle.relicFx || {};
+            if (fx.type === 'low_hp_rampage') {
+                battle.relicFx.lowHpAttackMult = {
+                    threshold: fx.threshold || 0.3,
+                    mult: fx.attackMult || 2
+                };
+            }
+            if (fx.trueDamagePct) battle.relicFx.trueDamagePct = fx.trueDamagePct;
+            if (fx.skillDamageMult) {
+                battle.relicFx.skillDamageMult = (battle.relicFx.skillDamageMult || 1) * fx.skillDamageMult;
+            }
         });
     }
 
@@ -179,12 +313,25 @@
         });
     }
 
+    function getInactiveDisplay(run) {
+        const defs = allSynergyDefs();
+        return (run && run.ascension && run.ascension.synergiesInactive || []).map((id) => {
+            const d = defs[id];
+            return d ? { id: id, name: d.name, description: d.description, color: d.uiColor } : { id: id };
+        });
+    }
+
     window.SynergyMatrix = {
         allSynergyDefs,
         refreshFromRun,
         onRelicAcquired,
         applyCombatEffects,
         getActiveDisplay,
+        getInactiveDisplay,
+        refreshNegativeFromRun,
+        getNegativeDisplay,
+        negativeDefs,
+        sortSynergyIds,
         matches
     };
 })();

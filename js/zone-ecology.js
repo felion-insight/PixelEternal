@@ -9,11 +9,14 @@
             window.ZONE_ECOLOGY_CONFIG || {};
     }
 
+    let _runZoneLayout = null;
+
     function zones() {
         return zoneCfg().zones || {};
     }
 
     function zoneLayout() {
+        if (_runZoneLayout && _runZoneLayout.length) return _runZoneLayout.slice();
         const hub = window.AscensionHub;
         const base = ['ashen_wastes', 'magma_rift', 'void_abyss', 'throne_of_end'];
         if (hub && hub.isEnabled('zoneEcology')) {
@@ -42,9 +45,17 @@
 
     function onRunStart(run) {
         if (!run || !run.ascension) return;
+        if (run.ascension.zoneLayout && run.ascension.zoneLayout.length) {
+            _runZoneLayout = run.ascension.zoneLayout.slice();
+        } else {
+            _runZoneLayout = null;
+        }
         run.ascension.zoneId = zoneLayout()[0];
         run.ascension.battlesInZone = 0;
         run.ascension.visionPenalty = 0;
+        if (window.ZoneMutationRuntime && run.ascension.zoneId) {
+            window.ZoneMutationRuntime.onZoneEnter(run, run.ascension.zoneId);
+        }
     }
 
     function onBattleStart(run, battle) {
@@ -56,6 +67,7 @@
         run.ascension.zoneId = zone.id;
         run.ascension.battlesInZone += 1;
         battle.zoneTrait = zone.trait || null;
+        battle.zoneHazard = zone.hazard || null;
         battle.zoneId = zone.id;
 
         const trait = zone.trait;
@@ -88,6 +100,9 @@
             if (idx >= 0 && idx < layout.length - 1) {
                 run.ascension.zoneId = layout[idx + 1];
                 run.ascension.battlesInZone = 0;
+                if (window.ZoneMutationRuntime) {
+                    window.ZoneMutationRuntime.onZoneEnter(run, run.ascension.zoneId);
+                }
             }
         }
     }

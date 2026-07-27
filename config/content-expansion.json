@@ -122,7 +122,7 @@
         "attackMult": 1.4,
         "damageTakenMult": 1.2,
         "durationMs": 6000,
-        "unlockPactStars": 7,
+        "unlockPactStars": 4,
         "description": "全队攻击+40%，受到伤害+20%，持续6秒"
       },
       "time_rift": {
@@ -134,7 +134,7 @@
         "effectType": "time_rift",
         "teRegenBlockMs": 10000,
         "resetSkillCooldowns": true,
-        "unlockPactStars": 10,
+        "unlockPactStars": 5,
         "description": "全场友方技能CD重置，但接下来10秒无法自然恢复TE"
       },
       "ultimate_sacrifice": {
@@ -146,7 +146,7 @@
         "effectType": "ultimate_sacrifice",
         "shieldFromHp": true,
         "noRevive": true,
-        "unlockPactStars": 15,
+        "unlockPactStars": 5,
         "description": "牺牲一名友方（当前生命转化为全队护盾），被牺牲者本场不可复活"
       }
     },
@@ -701,6 +701,41 @@
           },
           "riskLevel": 5
         }
+      },
+      {
+        "id": "dual_wielder",
+        "name": "双持者",
+        "description": "普攻间隔-30%，额外攻击几率+15%",
+        "rarity": "legendary",
+        "buildTags": ["tempo", "warrior"],
+        "effects": {
+          "basicIntervalMult": 0.7,
+          "extraAttackChance": 0.15,
+          "dualWeaponSlots": true
+        }
+      },
+      {
+        "id": "blood_mage",
+        "name": "血法师",
+        "description": "技能无冷却，每次释放消耗5%生命",
+        "rarity": "legendary",
+        "buildTags": ["mage", "risk"],
+        "effects": {
+          "skillNoCooldown": true,
+          "skillHpCostPct": 0.05
+        }
+      },
+      {
+        "id": "glass_cannon_curse",
+        "name": "玻璃炮",
+        "description": "攻击+100%，受到的伤害+50%",
+        "rarity": "curse",
+        "buildTags": ["warrior", "risk"],
+        "effects": {
+          "positive": { "attackMult": 2 },
+          "negative": { "frontRowDamageTakenMult": 1.5 },
+          "riskLevel": 4
+        }
       }
     ],
     "synergyBinary": {
@@ -799,7 +834,7 @@
         "description": "战斗开始全队攻击+25%，持续8秒，且不可被驱散",
         "required": [
           "war_horn",
-          "battle_cry_ability"
+          "frenzy_totem"
         ],
         "effect": {
           "type": "battle_start_buff",
@@ -987,7 +1022,7 @@
           "holy_amulet",
           "rebirth_cross",
           "phoenix_feather",
-          "immortal_one"
+          "guardian_angel"
         ],
         "effect": {
           "type": "revive_loop",
@@ -1836,6 +1871,102 @@
         "noDamageNumbers": true,
         "noIntel": true,
         "rewardMult": 1.4
+      },
+      "hardened_flesh": {
+        "id": "hardened_flesh",
+        "name": "硬化之肤",
+        "description": "敌人生命+20%",
+        "stars": 1,
+        "enemyHpMult": 1.2,
+        "rewardMult": 1.1
+      },
+      "sharpened_claws": {
+        "id": "sharpened_claws",
+        "name": "利爪强化",
+        "description": "敌人攻击+20%",
+        "stars": 1,
+        "enemyAttackMult": 1.2,
+        "rewardMult": 1.1
+      },
+      "swift_shadows": {
+        "id": "swift_shadows",
+        "name": "迅影",
+        "description": "敌人速度+15%",
+        "stars": 2,
+        "enemySpeedMult": 1.15,
+        "rewardMult": 1.15
+      },
+      "elite_swarm": {
+        "id": "elite_swarm",
+        "name": "精英蜂拥",
+        "description": "精英战额外出现1名敌人",
+        "stars": 2,
+        "extraEliteEnemies": 1,
+        "rewardMult": 1.15
+      },
+      "boss_juggernaut": {
+        "id": "boss_juggernaut",
+        "name": "Boss 巨兽",
+        "description": "Boss 生命+30%",
+        "stars": 2,
+        "bossHpMult": 1.3,
+        "rewardMult": 1.15
+      },
+      "demonic_arsenal": {
+        "id": "demonic_arsenal",
+        "name": "魔化武装",
+        "description": "敌人获得额外技能位",
+        "stars": 3,
+        "enemyExtraSkill": true,
+        "rewardMult": 1.2
+      },
+      "frail_body": {
+        "id": "frail_body",
+        "name": "脆弱之躯",
+        "description": "全队最大生命-20%",
+        "stars": 1,
+        "teamHpMult": 0.8,
+        "rewardMult": 1.1
+      },
+      "empty_purse": {
+        "id": "empty_purse",
+        "name": "空囊",
+        "description": "金币获取-20%",
+        "stars": 1,
+        "goldGainMult": 0.8,
+        "rewardMult": 1.1
+      },
+      "slow_mind": {
+        "id": "slow_mind",
+        "name": "迟缓心智",
+        "description": "指挥官指令冷却+30%",
+        "stars": 2,
+        "commanderCooldownMult": 1.3,
+        "rewardMult": 1.15
+      },
+      "time_ban": {
+        "id": "time_ban",
+        "name": "时禁",
+        "description": "禁用时停指令",
+        "stars": 3,
+        "disableTimeStop": true,
+        "rewardMult": 1.2
+      },
+      "death_permanent": {
+        "id": "death_permanent",
+        "name": "永眠",
+        "description": "休息处无法复活阵亡者",
+        "stars": 3,
+        "noRestRevive": true,
+        "rewardMult": 1.2
+      },
+      "lone_wolf": {
+        "id": "lone_wolf",
+        "name": "孤狼",
+        "description": "仅第一名上阵角色参战",
+        "stars": 4,
+        "maxActiveHeroes": 1,
+        "rewardMult": 1.3
       }
     },
     "weatherConfig": {

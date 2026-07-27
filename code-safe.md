@@ -134,4 +134,14 @@ if (data && typeof data === 'object' && key in data) {
 | **UI 完备性** | ⭐⭐⭐⭐☆ | 功能极其丰富，但无响应式、无移动端、无 a11y。 |
 | **安全性** | ⭐⭐☆☆☆ | innerHTML 大量使用、无 CSP、存档无加密、客户端完全可信。 |
 
-**结论**：这是一款功能非常丰富的像素 Roguelike 游戏原型，但在工程化、安全性和可维护性上存在显著缺陷。如果要上线或开源给公众使用，**必须优先修复 XSS 风险、拆分 game-main.js、增加存档签名验证、以及修复已确认的 HTML 结构错误**。
+---
+
+## 六、Ascension 扩展模块与回滚
+
+Ascension 子系统（指挥官、协同、区域生态、肉鸽随机等）均通过 `config/ascension-config.json` 的 `enabled` 开关控制，由 `js/ascension-hub.js` 统一读取。`js/config-loader.js` 在 HTTP 模式下加载 `config/*.json` 与 `content-expansion.json` 合并扩展内容。
+
+**安全回滚**：将对应开关设为 `"enabled": false` 后刷新页面，钩子变为 no-op，不删除代码或配置。验收：`node tools/run_ascension_tests.js`。
+
+**新增配置**（2026-07）：`zone-mutations-config.json`、`enemy-mutations-config.json`、`skill-run-mutations-config.json`、`class-variants-config.json`、`build-commitment-config.json`、`run-mechanics-config.json`、`relic-exclusivity-config.json`、`negative-synergy-config.json` — 均由 `config-loader.js` 加载并挂到 `window.*_CONFIG`。
+
+实施进度与验收项见 `kimi_advice/ascension_implementation_todo.md`。

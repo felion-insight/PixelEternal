@@ -1,0 +1,12 @@
+{
+  "ZONE_MUTATIONS_CONFIG": {
+    "mutations": {
+      "elite_rich": { "id": "elite_rich", "name": "精英密集", "eliteWeightMult": 1.5 },
+      "event_heavy": { "id": "event_heavy", "name": "事件密集", "eventWeightMult": 1.4 },
+      "cursed": { "id": "cursed", "name": "强制诅咒", "forceCurseOnEnter": true, "curseAmount": 15 },
+      "no_heal": { "id": "no_heal", "name": "禁疗", "noRestHeal": true },
+      "double_gold": { "id": "double_gold", "name": "双倍金币", "goldMult": 2, "enemyPowerMult": 1.15 },
+      "random_swap": { "id": "random_swap", "name": "战前换位", "preBattleSwap": true }
+    }
+  }
+}

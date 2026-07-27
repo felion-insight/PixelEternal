@@ -1,0 +1,27 @@
+{
+  "CLASS_VARIANTS_CONFIG": {
+    "choicesPerClass": 2,
+    "variants": {
+      "warrior": [
+        { "id": "war_berserker", "name": "狂战士", "attackMult": 1.3, "defenseMult": 0.8, "desc": "高攻低防" },
+        { "id": "war_guardian", "name": "守护者", "defenseMult": 1.4, "maxHpMult": 1.15, "desc": "高防高血" },
+        { "id": "war_weaponmaster", "name": "武器大师", "skillDamageMult": 1.12, "desc": "技能伤害提升" }
+      ],
+      "archer": [
+        { "id": "arc_sniper", "name": "狙击手", "rangeMult": 1.5, "basicIntervalMult": 1.3, "desc": "远距慢射" },
+        { "id": "arc_ranger", "name": "游侠", "speedMult": 1.15, "desc": "机动增强" },
+        { "id": "arc_bombardier", "name": "炮手", "critChance": 0.08, "aoeSplash": true, "desc": "暴击与溅射" }
+      ],
+      "mage": [
+        { "id": "mag_elementalist", "name": "元素使", "skillDamageMult": 1.2, "elementBonus": 0.5, "desc": "元素技能强化" },
+        { "id": "mag_arcanist", "name": "奥术师", "cooldownMult": 0.7, "desc": "技能冷却缩短" },
+        { "id": "mag_hexer", "name": "咒术师", "debuffMult": 1.5, "debuffDurationMult": 2, "desc": "控制延长" }
+      ],
+      "assassin": [
+        { "id": "asn_shadowdancer", "name": "影舞者", "dodgeBonus": 0.12, "desc": "闪避后更难被命中" },
+        { "id": "asn_poisoner", "name": "毒师", "dotMult": 1.5, "damageMult": 0.8, "desc": "毒伤流" },
+        { "id": "asn_backstabber", "name": "背刺者", "backstabMult": 3, "frontDamageMult": 0.5, "desc": "背后三倍" }
+      ]
+    }
+  }
+}

@@ -182,6 +182,10 @@
             return [act.bossType || 'boss'];
         }
 
+        if (run && window.BuildCommitmentSystem && window.BuildCommitmentSystem.needsCommitmentNode(run, layer)) {
+            return ['commitment'];
+        }
+
         const step = stepInAct(act, layer);
         const counts = (map.progress && map.progress.actCounts) || emptyCounts();
         const remaining = remainingPreBoss(act, layer);
@@ -212,6 +216,9 @@
         if (step < (act.banEliteFirst || 0)) {
             weights.elite = 0;
             weights.shop = Math.max(weights.shop, 0.08);
+        }
+        if (run && window.ZoneMutationRuntime) {
+            weights = window.ZoneMutationRuntime.modifyNodeWeights(weights, run);
         }
 
         const types = [];
@@ -364,7 +371,8 @@
             event: '事件',
             shop: '商店',
             boss: 'Boss',
-            boss_final: '最终 Boss'
+            boss_final: '最终 Boss',
+            commitment: '构筑承诺'
         };
         return m[type] || type;
     }
@@ -377,7 +385,8 @@
             event: '随机叙事 · 风险与收益',
             shop: '花费金币 · 装备与遗物',
             boss: '章末首领 · 高价值奖励',
-            boss_final: '终局决战 · 通关恶魔塔'
+            boss_final: '终局决战 · 通关恶魔塔',
+            commitment: '锁定构筑路径 · 影响后续掉落'
         };
         return m[type] || '';
     }

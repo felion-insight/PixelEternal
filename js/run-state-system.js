@@ -52,6 +52,10 @@
 
         if (extras && Array.isArray(extras.branchMods)) e.branchMods = extras.branchMods.slice();
 
+        if (extras && Array.isArray(extras.runMutations)) e.runMutations = extras.runMutations.slice();
+
+        if (extras && extras.displayName) e.displayName = extras.displayName;
+
         if (extras && extras.evolvedId) e.evolvedId = extras.evolvedId;
 
         return e;
@@ -70,12 +74,15 @@
 
             const extras = {
                 branchMods: Array.isArray(entry.branchMods) ? entry.branchMods : [],
+                runMutations: Array.isArray(entry.runMutations) ? entry.runMutations : [],
+                displayName: entry.displayName || null,
                 evolvedId: entry.evolvedId || null
             };
 
             const out = makeSkillEntry(entry.id, entry.stars || 1, extras);
 
-            if (!extras.evolvedId) delete out.evolvedId;
+            if (extras.runMutations.length) out.runMutations = extras.runMutations.slice();
+            if (extras.displayName) out.displayName = extras.displayName;
 
             return out;
 
@@ -589,7 +596,7 @@
 
     function tryAutoMergeSkill(run, skillId) {
 
-        const maxStars = skillProgressionCfg().maxStars || 5;
+        const maxStars = skillProgressionCfg().maxStars || 3;
 
         for (const hero of run.heroes || []) {
 
@@ -813,7 +820,16 @@
 
         if (RS && RS.atSoftCap && RS.atSoftCap(run.relics, run)) return false;
 
+        if (window.RelicExclusivitySystem && window.RelicExclusivitySystem.isEnabled()) {
+            const check = window.RelicExclusivitySystem.canAcquire(run, relicId);
+            if (!check.ok) return false;
+        }
+
         run.relics.push(relicId);
+
+        if (window.RelicExclusivitySystem && window.RelicExclusivitySystem.onRelicAcquired) {
+            window.RelicExclusivitySystem.onRelicAcquired(run, relicId, rngFromRun(run));
+        }
 
         if (window.AscensionHub) window.AscensionHub.onRelicAcquired(run, relicId);
 
@@ -847,13 +863,13 @@
 
 
 
-    function makeSkillLoot(skillId, stars) {
+    function makeSkillLoot(skillId, stars, rng, run, heroLevel) {
 
         const def = skillDefById(skillId) || { id: skillId, name: skillId };
 
         const scale = getStarScaling(stars || 1);
 
-        return {
+        const loot = {
 
             type: 'skill',
 
@@ -873,9 +889,19 @@
 
             stars: scale.stars,
 
-            description: def.description || ''
+            description: def.description || '',
+
+            branchMods: [],
+
+            runMutations: []
 
         };
+
+        if (window.SkillRunMutationSystem && window.SkillRunMutationSystem.isEnabled()) {
+            window.SkillRunMutationSystem.applyToEntry(loot, rng || Math.random, run, heroLevel);
+        }
+
+        return loot;
 
     }
 
@@ -897,7 +923,7 @@
 
         const pool = slot === 'weapon' ? (arch.weapons || []) : (arch.armors || []);
 
-        if (!pool.length) return makeGearLootLegacy(rng, preferSlot, preferClass);
+        if (!pool.length) return makeGearLootMinimal(rng, slot, preferClass);
 
         let filtered = pool;
 
@@ -998,6 +1024,27 @@
     }
 
 
+
+    function makeGearLootMinimal(rng, slot, preferClass) {
+        const r = rng || Math.random;
+        const s = slot || (r() < 0.5 ? 'weapon' : 'armor');
+        const names = {
+            weapon: ['简易长刃', '训练用弓', '学徒法杖', '钝匕'],
+            armor: ['布甲', '皮甲', '链甲', '护符甲']
+        };
+        const bag = names[s] || names.weapon;
+        return {
+            type: 'gear',
+            slot: s,
+            name: bag[Math.floor(r() * bag.length)],
+            rarity: 'common',
+            classTags: preferClass ? [preferClass] : ['generic'],
+            attack: s === 'weapon' ? 5 + Math.floor(r() * 4) : 0,
+            defense: s === 'weapon' ? 0 : 3 + Math.floor(r() * 3),
+            hp: s === 'weapon' ? 0 : 10 + Math.floor(r() * 8),
+            lines: ['精简装备：无随机词缀']
+        };
+    }
 
     function makeGearLootLegacy(rng, preferSlot, preferClass) {
 
@@ -1520,7 +1567,7 @@
 
                 const norm = normalizeSkillEntry(entry);
 
-                if ((norm.stars || 1) < ((skillProgressionCfg().maxStars) || 5)) {
+                if ((norm.stars || 1) < (skillProgressionCfg().maxStars || 3)) {
 
                     slots.push({ hero: h, idx: idx, entry: norm });
 

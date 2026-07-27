@@ -3529,8 +3529,7 @@
               ]
             },
             "mutate": {
-              "addChainJumps": 1,
-              "damageMult": 1.12
+              "addChainJumps": 1
             }
           }
         ]
@@ -3744,7 +3743,6 @@
               ]
             },
             "mutate": {
-              "damageMult": 1.12,
               "appendEffects": [
                 {
                   "type": "dot",
@@ -8065,8 +8063,7 @@
               "rarity": "uncommon",
               "mutate": {
                 "cooldownMult": 0.85,
-                "addChainJumps": 1,
-                "damageMult": 1.12
+                "addChainJumps": 1
               },
               "description": "更快，并多一段传导"
             }
@@ -8665,8 +8662,7 @@
               "rarity": "common",
               "mutate": {
                 "forceAoe": true,
-                "splashMult": 1.25,
-                "damageMult": 1.12
+                "splashMult": 1.25
               },
               "description": "刀扇成潮"
             },
@@ -8703,7 +8699,6 @@
               "name": "千刃",
               "rarity": "common",
               "mutate": {
-                "damageMult": 1.12,
                 "addChainJumps": 1,
                 "appendEffects": [
                   {
@@ -9270,8 +9265,7 @@
                 "executeBonus": {
                   "threshold": 0.32,
                   "bonusMult": 2.4
-                },
-                "damageMult": 1.12
+                }
               },
               "description": "更容易触发斩杀"
             },

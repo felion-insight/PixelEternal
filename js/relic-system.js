@@ -161,7 +161,13 @@
         const r = rng || Math.random;
         if (atSoftCap(ownedIds, run)) return [];
         const owned = new Set(ownedIds || []);
-        const pool = allRelics().filter((x) => !owned.has(x.id));
+        const pool = allRelics().filter((x) => {
+            if (owned.has(x.id)) return false;
+            if (window.RelicExclusivitySystem && window.RelicExclusivitySystem.findConflict(ownedIds, x.id)) {
+                return false;
+            }
+            return true;
+        });
         if (!pool.length) return [];
         const srcMult = SOURCE_WEIGHT_MULT[source] || SOURCE_WEIGHT_MULT.default;
         const ownedTags = collectRunBuildTags(run || null);
@@ -174,7 +180,10 @@
                 const base = RARITY_WEIGHT[item.rarity] || 20;
                 const m = srcMult[item.rarity] != null ? srcMult[item.rarity] : 1;
                 const syn = relicSynergyMult(item, ownedTags, source);
-                const w = Math.max(0.01, base * m * syn);
+                const buildMult = window.BuildCommitmentSystem && run
+                    ? window.BuildCommitmentSystem.tagWeightMult(run, item.buildTags || [])
+                    : 1;
+                const w = Math.max(0.01, base * m * syn * buildMult);
                 total += w;
                 return w;
             });
@@ -370,6 +379,9 @@
             battleStartHealPct: 0,
             thornsPct: 0,
             lowHpAttackMult: null,
+            lowHpAttackScaling: null,
+            allyTimeScale: 1,
+            globalTimeScale: null,
             meleeOnHit: null,
             skillChainChance: null,
             dodgeNextCrit: false,
@@ -384,7 +396,10 @@
             battleStartMirror: null,
             basicAttackIntervalMult: 1,
             phoenixRevive: null,
-            chainLightning: null
+            chainLightning: null,
+            skillNoCooldown: false,
+            skillHpCostPct: 0,
+            dualWeaponSlots: false
         };
         const CEB = window.CombatEffectsBridge;
         (relicEntries || []).forEach((entry) => {
@@ -405,6 +420,14 @@
             if (e.killGoldBonus) agg.killGoldBonus = (agg.killGoldBonus || 0) + e.killGoldBonus;
             if (e.backRowDamageMult) agg.backRowDamageMult *= e.backRowDamageMult;
             if (e.frontRowDamageTakenMult) agg.frontRowDamageTakenMult *= e.frontRowDamageTakenMult;
+            if (e._curseNegative) {
+                const n = e._curseNegative;
+                if (n.frontRowDamageTakenMult) agg.frontRowDamageTakenMult *= n.frontRowDamageTakenMult;
+                if (n.maxHpMult) agg.maxHpMult *= n.maxHpMult;
+            }
+            if (e.skillNoCooldown) agg.skillNoCooldown = true;
+            if (e.skillHpCostPct) agg.skillHpCostPct = Math.max(agg.skillHpCostPct || 0, e.skillHpCostPct);
+            if (e.dualWeaponSlots) agg.dualWeaponSlots = true;
             if (e.startSkillReady) agg.startSkillReady = true;
             if (e.startAllSkillsReady) agg.startAllSkillsReady = true;
             if (e.suppressStartSkillReady) agg.suppressStartSkillReady = true;
@@ -426,6 +449,12 @@
             if (e.battleStartHealPct) agg.battleStartHealPct = Math.max(agg.battleStartHealPct, e.battleStartHealPct);
             if (e.thornsPct) agg.thornsPct = Math.max(agg.thornsPct, e.thornsPct);
             if (e.lowHpAttackMult) agg.lowHpAttackMult = e.lowHpAttackMult;
+            if (e.lowHpAttackScaling) agg.lowHpAttackScaling = e.lowHpAttackScaling;
+            if (e.lowHpAttackScale != null) {
+                agg.lowHpAttackScaling = { per10PctHp: e.lowHpAttackScale };
+            }
+            if (e.allyTimeScale) agg.allyTimeScale = (agg.allyTimeScale || 1) * e.allyTimeScale;
+            if (e.globalTimeScale != null) agg.globalTimeScale = e.globalTimeScale;
             if (e.meleeOnHit) agg.meleeOnHit = e.meleeOnHit;
             if (e.skillChainChance) agg.skillChainChance = e.skillChainChance;
             if (e.dodgeNextCrit) agg.dodgeNextCrit = true;
@@ -435,7 +464,12 @@
             if (e.reviveOnDeath) agg.reviveOnDeath = e.reviveOnDeath;
             if (e.disableBasicAttack) agg.disableBasicAttack = true;
             if (e.lifesteal) agg.lifesteal = e.lifesteal;
-            if (e.battleStartMirror) agg.battleStartMirror = e.battleStartMirror;
+            if (e.battleStartMirror) {
+                const bm = Object.assign({}, e.battleStartMirror);
+                if (bm.statMult != null && bm.statPct == null) bm.statPct = bm.statMult;
+                if (bm.statMult != null && bm.hpPct == null) bm.hpPct = bm.statMult;
+                agg.battleStartMirror = bm;
+            }
             if (e.phoenixRevive) agg.phoenixRevive = e.phoenixRevive;
             if (e.chainLightning) agg.chainLightning = e.chainLightning;
             if (e.randomElementOnSkill) agg.randomElementOnSkill = e.randomElementOnSkill;

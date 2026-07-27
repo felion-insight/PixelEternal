@@ -50,7 +50,26 @@ npx http-server -p 8000
 5. 用技能、装备、遗物成型，打过四章 Boss
 6. 通关或失败后构筑清空，再开一局从零养局
 
-**Ascension 扩展**（可通过 `config/ascension-config.json` 开关）：指挥官指令、瞬间结算、Boss 阶段、遗物协同、区域生态、腐化/契约、战前情报、死亡叙事与事件链等。详见 [Pixel_Eternal_Ascension_Design_Doc.md](Pixel_Eternal_Ascension_Design_Doc.md)。
+**Ascension 扩展**（可通过 `config/ascension-config.json` 开关）：指挥官指令、瞬间结算、Boss 阶段、遗物协同、区域生态、腐化/契约、战前情报、死亡叙事与事件链等。详见 [Pixel_Eternal_Ascension_Design_Doc.md](Pixel_Eternal_Ascension_Design_Doc.md) 与实施清单 [kimi_advice/ascension_implementation_todo.md](kimi_advice/ascension_implementation_todo.md)。
+
+### Ascension 开关（`config/ascension-config.json`）
+
+| 开关键 | 默认 | 说明 |
+|--------|------|------|
+| `commanderMode` | 开 | 指挥官 TE、指令栏 |
+| `skirmishMode` | 开 | 瞬间结算（低威胁遭遇） |
+| `bossPhases` | 开 | Boss 多阶段机制 |
+| `synergyMatrix` | 开 | 遗物协同矩阵 |
+| `zoneEcology` | 开 | 区域特质与分支区 |
+| `curseSystem` | 开 | 腐化与诅咒遗物 |
+| `demonPact` | 开 | 恶魔契约（需首通解锁可选） |
+| `preCombatIntel` / `intelTiers` | 情报关/分级关 | 战前情报透明度 |
+| `eventChains` | 开 | 事件链 |
+| `runZoneRandomizer` | **关** | Run 区域顺序随机 |
+| `enemyMutations` | **关** | 敌人变异 |
+| `skillRunMutations` … `negativeSynergies` | **关** | 构筑层肉鸽（阶段 3） |
+
+将任一项 `"enabled": false` 即可回滚对应子系统，无需改代码。
 
 ## 文档
 
@@ -69,6 +88,9 @@ node tools/test_tower_run_map.js
 
 # Ascension 系统回归（开关回滚 + 命名空间）
 node tools/test_ascension_systems.js
+
+# Ascension 全套回归（配置加载 + 高级效果 + 肉鸽 + 瞬间结算）
+node tools/run_ascension_tests.js
 
 # 爬塔平衡报告（写入 artifacts/）
 node tools/test_auto_battler_balance.js

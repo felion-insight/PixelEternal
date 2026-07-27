@@ -82,7 +82,15 @@ class ConfigLoader {
                 { key: 'ZONE_ECOLOGY_CONFIG', file: 'config/zone-ecology-config.json' },
                 { key: 'CURSE_CONFIG', file: 'config/curse-config.json' },
                 { key: 'DEMON_PACT_CONFIG', file: 'config/demon-pact-config.json' },
-                { key: 'EVENT_CHAINS_CONFIG', file: 'config/event-chains-config.json' }
+                { key: 'EVENT_CHAINS_CONFIG', file: 'config/event-chains-config.json' },
+                { key: 'ENEMY_MUTATIONS_CONFIG', file: 'config/enemy-mutations-config.json' },
+                { key: 'ZONE_MUTATIONS_CONFIG', file: 'config/zone-mutations-config.json' },
+                { key: 'SKILL_RUN_MUTATIONS_CONFIG', file: 'config/skill-run-mutations-config.json' },
+                { key: 'CLASS_VARIANTS_CONFIG', file: 'config/class-variants-config.json' },
+                { key: 'BUILD_COMMITMENT_CONFIG', file: 'config/build-commitment-config.json' },
+                { key: 'RELIC_EXCLUSIVITY_CONFIG', file: 'config/relic-exclusivity-config.json' },
+                { key: 'RUN_MECHANICS_CONFIG', file: 'config/run-mechanics-config.json' },
+                { key: 'NEGATIVE_SYNERGY_CONFIG', file: 'config/negative-synergy-config.json' }
             ];
 
             for (const { key, file } of configFiles) {
@@ -191,6 +199,36 @@ class ConfigLoader {
     }
 
     /**
+     * 合并扩展区域并维护 branchZones 列表
+     */
+    mergeExpansionZones(zoneRoot, zoneMap) {
+        if (!zoneRoot || !zoneMap) return;
+        zoneRoot.zones = Object.assign(zoneRoot.zones || {}, zoneMap);
+        const branch = (zoneRoot.branchZones || []).slice();
+        Object.keys(zoneMap).forEach((zid) => {
+            const z = zoneMap[zid];
+            if (z && z.branchZone && branch.indexOf(zid) < 0) branch.push(zid);
+        });
+        zoneRoot.branchZones = branch;
+    }
+
+    /**
+     * 增量合并恶魔契约表
+     */
+    mergeExpansionPacts(pactRoot, pacts) {
+        if (!pactRoot || !pacts) return;
+        pactRoot.pacts = Object.assign(pactRoot.pacts || {}, pacts);
+    }
+
+    /**
+     * 增量合并事件链表
+     */
+    mergeExpansionChains(chainRoot, chains) {
+        if (!chainRoot || !chains) return;
+        chainRoot.chains = Object.assign(chainRoot.chains || {}, chains);
+    }
+
+    /**
      * 合并 Ascension 内容扩展包到各子系统配置
      */
     mergeContentExpansion(exp) {
@@ -234,21 +272,23 @@ class ConfigLoader {
         const zone = this.configs.ZONE_ECOLOGY_CONFIG;
         if (zone && exp.zones) {
             const root = zone.ZONE_ECOLOGY_CONFIG || zone;
-            root.zones = Object.assign(root.zones || {}, exp.zones);
-            root.branchZones = Object.keys(exp.zones);
+            this.mergeExpansionZones(root, exp.zones);
         }
         if (exp.bossPhases) {
-            this.configs.BOSS_PHASES_EXPANSION = exp.bossPhases;
+            this.configs.BOSS_PHASES_EXPANSION = Object.assign(
+                this.configs.BOSS_PHASES_EXPANSION || {},
+                exp.bossPhases
+            );
         }
         const evt = this.configs.EVENT_CHAINS_CONFIG;
         if (evt && exp.eventChains) {
             const root = evt.EVENT_CHAINS_CONFIG || evt;
-            root.chains = Object.assign(root.chains || {}, exp.eventChains);
+            this.mergeExpansionChains(root, exp.eventChains);
         }
         const pact = this.configs.DEMON_PACT_CONFIG;
         if (pact && exp.demonPacts) {
             const root = pact.DEMON_PACT_CONFIG || pact;
-            root.pacts = Object.assign(root.pacts || {}, exp.demonPacts);
+            this.mergeExpansionPacts(root, exp.demonPacts);
         }
         if (exp.weatherConfig) this.configs.WEATHER_CONFIG = exp.weatherConfig;
         if (exp.bondConfig) this.configs.BOND_CONFIG = exp.bondConfig;
@@ -455,6 +495,46 @@ class ConfigLoader {
             window.EVENT_CHAINS_CONFIG = this.configs.EVENT_CHAINS_CONFIG.EVENT_CHAINS_CONFIG || this.configs.EVENT_CHAINS_CONFIG;
             if (window.CONFIG) window.CONFIG.EVENT_CHAINS_CONFIG = window.EVENT_CHAINS_CONFIG;
         }
+        if (this.configs.ENEMY_MUTATIONS_CONFIG) {
+            window.ENEMY_MUTATIONS_CONFIG = this.configs.ENEMY_MUTATIONS_CONFIG.ENEMY_MUTATIONS_CONFIG ||
+                this.configs.ENEMY_MUTATIONS_CONFIG;
+            if (window.CONFIG) window.CONFIG.ENEMY_MUTATIONS_CONFIG = window.ENEMY_MUTATIONS_CONFIG;
+        }
+        if (this.configs.ZONE_MUTATIONS_CONFIG) {
+            window.ZONE_MUTATIONS_CONFIG = this.configs.ZONE_MUTATIONS_CONFIG.ZONE_MUTATIONS_CONFIG ||
+                this.configs.ZONE_MUTATIONS_CONFIG;
+            if (window.CONFIG) window.CONFIG.ZONE_MUTATIONS_CONFIG = window.ZONE_MUTATIONS_CONFIG;
+        }
+        if (this.configs.SKILL_RUN_MUTATIONS_CONFIG) {
+            window.SKILL_RUN_MUTATIONS_CONFIG = this.configs.SKILL_RUN_MUTATIONS_CONFIG.SKILL_RUN_MUTATIONS_CONFIG ||
+                this.configs.SKILL_RUN_MUTATIONS_CONFIG;
+            if (window.CONFIG) window.CONFIG.SKILL_RUN_MUTATIONS_CONFIG = window.SKILL_RUN_MUTATIONS_CONFIG;
+        }
+        if (this.configs.CLASS_VARIANTS_CONFIG) {
+            window.CLASS_VARIANTS_CONFIG = this.configs.CLASS_VARIANTS_CONFIG.CLASS_VARIANTS_CONFIG ||
+                this.configs.CLASS_VARIANTS_CONFIG;
+            if (window.CONFIG) window.CONFIG.CLASS_VARIANTS_CONFIG = window.CLASS_VARIANTS_CONFIG;
+        }
+        if (this.configs.BUILD_COMMITMENT_CONFIG) {
+            window.BUILD_COMMITMENT_CONFIG = this.configs.BUILD_COMMITMENT_CONFIG.BUILD_COMMITMENT_CONFIG ||
+                this.configs.BUILD_COMMITMENT_CONFIG;
+            if (window.CONFIG) window.CONFIG.BUILD_COMMITMENT_CONFIG = window.BUILD_COMMITMENT_CONFIG;
+        }
+        if (this.configs.RELIC_EXCLUSIVITY_CONFIG) {
+            window.RELIC_EXCLUSIVITY_CONFIG = this.configs.RELIC_EXCLUSIVITY_CONFIG.RELIC_EXCLUSIVITY_CONFIG ||
+                this.configs.RELIC_EXCLUSIVITY_CONFIG;
+            if (window.CONFIG) window.CONFIG.RELIC_EXCLUSIVITY_CONFIG = window.RELIC_EXCLUSIVITY_CONFIG;
+        }
+        if (this.configs.RUN_MECHANICS_CONFIG) {
+            window.RUN_MECHANICS_CONFIG = this.configs.RUN_MECHANICS_CONFIG.RUN_MECHANICS_CONFIG ||
+                this.configs.RUN_MECHANICS_CONFIG;
+            if (window.CONFIG) window.CONFIG.RUN_MECHANICS_CONFIG = window.RUN_MECHANICS_CONFIG;
+        }
+        if (this.configs.NEGATIVE_SYNERGY_CONFIG) {
+            window.NEGATIVE_SYNERGY_CONFIG = this.configs.NEGATIVE_SYNERGY_CONFIG.NEGATIVE_SYNERGY_CONFIG ||
+                this.configs.NEGATIVE_SYNERGY_CONFIG;
+            if (window.CONFIG) window.CONFIG.NEGATIVE_SYNERGY_CONFIG = window.NEGATIVE_SYNERGY_CONFIG;
+        }
         if (this.configs.WEATHER_CONFIG) {
             window.WEATHER_CONFIG = this.configs.WEATHER_CONFIG;
             if (window.CONFIG) window.CONFIG.WEATHER_CONFIG = window.WEATHER_CONFIG;
@@ -469,6 +549,7 @@ class ConfigLoader {
         }
         if (this.configs.BOSS_PHASES_EXPANSION) {
             window.BOSS_PHASES_EXPANSION = this.configs.BOSS_PHASES_EXPANSION;
+            if (window.CONFIG) window.CONFIG.BOSS_PHASES_EXPANSION = window.BOSS_PHASES_EXPANSION;
         }
         if (this.configs.SPRITE_ANIMATIONS) {
             window.SPRITE_ANIMATIONS = this.configs.SPRITE_ANIMATIONS;

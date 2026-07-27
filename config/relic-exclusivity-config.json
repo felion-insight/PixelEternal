@@ -1,0 +1,18 @@
+{
+  "RELIC_EXCLUSIVITY_CONFIG": {
+    "variance": 0.2,
+    "qualityLabels": {
+      "poor": "劣质",
+      "normal": "普通",
+      "fine": "优秀"
+    },
+    "exclusiveGroups": [
+      ["scorching_touch", "frost_core"],
+      ["greedy_purse", "poverty_curse"],
+      ["scorching_touch", "frost_core"]
+    ],
+    "groupMessages": {
+      "scorching_touch|frost_core": "灼热与寒冰无法共存"
+    }
+  }
+}

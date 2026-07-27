@@ -1,0 +1,88 @@
+{
+  "SKILL_RUN_MUTATIONS_CONFIG": {
+    "maxPerSkill": 2,
+    "mutations": {
+      "split": {
+        "id": "split",
+        "name": "分裂",
+        "tags": ["aoe"],
+        "mutate": { "forceAoe": true, "damageMult": 0.7, "splashMult": 1.1 }
+      },
+      "overload": {
+        "id": "overload",
+        "name": "超载",
+        "tags": ["risk"],
+        "mutate": { "damageMult": 1.5 },
+        "selfDamagePct": 0.1
+      },
+      "echo": {
+        "id": "echo",
+        "name": "回响",
+        "tags": ["tempo"],
+        "echoDelayMs": 1000,
+        "echoDamageMult": 0.5
+      },
+      "life_steal": {
+        "id": "life_steal",
+        "name": "吸血",
+        "tags": ["sustain"],
+        "mutate": { "addLifestealPct": 0.2 }
+      },
+      "freeze": {
+        "id": "freeze",
+        "name": "冰冻",
+        "tags": ["control", "ice"],
+        "slowPct": 0.3,
+        "slowDurationMs": 2000
+      },
+      "burn": {
+        "id": "burn",
+        "name": "燃烧",
+        "tags": ["burn", "fire"],
+        "mutate": {
+          "appendEffects": [{ "type": "dot", "pctOfAttack": 0.05, "durationMs": 3000 }]
+        }
+      },
+      "chain": {
+        "id": "chain",
+        "name": "感电",
+        "tags": ["chain", "lightning"],
+        "mutate": { "addChainJumps": 1, "damageMult": 0.85 }
+      },
+      "shred": {
+        "id": "shred",
+        "name": "破甲",
+        "tags": ["execute"],
+        "armorPenPct": 0.2
+      },
+      "crit_gamble": {
+        "id": "crit_gamble",
+        "name": "暴击",
+        "tags": ["fortune"],
+        "critBonus": 0.25,
+        "mutate": { "damageMult": 0.8 }
+      },
+      "delayed": {
+        "id": "delayed",
+        "name": "延时",
+        "tags": ["tempo"],
+        "delayMs": 1500,
+        "mutate": { "damageMult": 1.8 }
+      },
+      "thorn": {
+        "id": "thorn",
+        "name": "反伤",
+        "tags": ["wall"],
+        "reflectOnCastPct": 0.5,
+        "reflectDurationMs": 500
+      },
+      "heal_convert": {
+        "id": "heal_convert",
+        "name": "转化",
+        "tags": ["sustain"],
+        "convertToHeal": true,
+        "mutate": { "damageMult": 0.6 }
+      }
+    }
+  }
+}

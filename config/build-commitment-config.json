@@ -1,0 +1,66 @@
+{
+  "BUILD_COMMITMENT_CONFIG": {
+    "tiers": [
+      {
+        "layer": 5,
+        "label": "元素承诺",
+        "choices": [
+          {
+            "id": "fire_heart",
+            "name": "火焰之心",
+            "desc": "火系构筑 +50%，冰系 -50%",
+            "tags": ["burn", "fire"],
+            "boostTags": ["burn", "fire"],
+            "penaltyTags": ["ice", "frost"]
+          },
+          {
+            "id": "frost_core",
+            "name": "冰霜之核",
+            "desc": "冰系构筑 +50%，火系 -50%",
+            "tags": ["ice", "frost"],
+            "boostTags": ["ice", "frost", "control"],
+            "penaltyTags": ["burn", "fire"]
+          },
+          {
+            "id": "chaos_seed",
+            "name": "混沌之种",
+            "desc": "随机元素 +30%，无惩罚",
+            "tags": ["chaos"],
+            "boostTags": ["chain", "burn", "ice", "lightning"],
+            "penaltyTags": []
+          }
+        ]
+      },
+      {
+        "layer": 15,
+        "label": "生存承诺",
+        "choices": [
+          {
+            "id": "blood_thirst",
+            "name": "血之渴望",
+            "desc": "续航构筑 +50%",
+            "tags": ["sustain", "lifesteal"],
+            "boostTags": ["sustain", "lifesteal", "wall"],
+            "penaltyTags": ["glass"]
+          },
+          {
+            "id": "glass_wish",
+            "name": "玻璃之愿",
+            "desc": "高风险构筑 +50%",
+            "tags": ["glass", "fortune"],
+            "boostTags": ["glass", "fortune", "execute"],
+            "penaltyTags": ["wall", "sustain"]
+          },
+          {
+            "id": "steady_core",
+            "name": "磐石之心",
+            "desc": "防御构筑 +50%",
+            "tags": ["wall"],
+            "boostTags": ["wall", "control"],
+            "penaltyTags": ["glass"]
+          }
+        ]
+      }
+    ]
+  }
+}

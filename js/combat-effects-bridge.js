@@ -91,7 +91,9 @@
             }));
         }
         if (battle.mutationSurvival) battle.survivalWave = 1;
-        if (pact && pact.visionHalf) run.ascension.visionHalf = true;
+        if (pact && pact.visionHalf && typeof pact.visionHalf === 'string') {
+            run.ascension.visionHalf = pact.visionHalf;
+        }
         if (pact && pact.blindMap) run.ascension.blindMap = true;
 
         const rf = battle.relicFx;
@@ -160,6 +162,13 @@
         if (unit.side === 'ally' && rf.lowHpAttackMult && unit.hp / Math.max(1, unit.maxHp) <= (rf.lowHpAttackMult.threshold || 0.5)) {
             mult *= rf.lowHpAttackMult.mult || 1.15;
         }
+        if (unit.side === 'ally' && rf.lowHpAttackScaling) {
+            const missing = 1 - unit.hp / Math.max(1, unit.maxHp);
+            mult *= 1 + Math.floor(missing / 0.1) * (rf.lowHpAttackScaling.per10PctHp || 0.05);
+        }
+        if (unit.side === 'ally' && battle.synergyFx && battle.synergyFx.attackPer100Gold && battle.runRef) {
+            mult *= 1 + Math.floor((battle.runRef.gold || 0) / 100) * battle.synergyFx.attackPer100Gold;
+        }
         if (unit.side === 'ally' && battle.bondFx) {
             const bf = battle.bondFx;
             if (unit.baseClass === 'mage' && bf.mageSkillDamageMult) mult *= bf.mageSkillDamageMult;
@@ -167,6 +176,12 @@
         if (unit.side === 'enemy' && battle.weatherEnemyAttackMult) mult *= battle.weatherEnemyAttackMult;
         if (unit.side === 'enemy' && battle.corruptionFx && battle.corruptionFx.enemyAttackMult) {
             mult *= battle.corruptionFx.enemyAttackMult;
+        }
+        if (unit.side === 'enemy' && battle.pactFx && battle.pactFx.enemyAttackMult) {
+            mult *= battle.pactFx.enemyAttackMult;
+        }
+        if (unit.side === 'enemy' && battle.zoneEnemyAttackMult) {
+            mult *= battle.zoneEnemyAttackMult;
         }
         if (battle.bossPhaseAttackMult && unit.isBoss) mult *= battle.bossPhaseAttackMult;
         return mult;
@@ -197,6 +212,7 @@
     function modifyOutgoingDamage(battle, attacker, target, dmg, meta, relicFx) {
         meta = meta || {};
         relicFx = relicFx || battle.relicFx || {};
+        if (attacker && (attacker.phantomDecoy || attacker.isPhantom)) return 0;
         if (window.CommanderAbilities && window.CommanderAbilities.modifyOutgoingDamage) {
             dmg = window.CommanderAbilities.modifyOutgoingDamage(battle, attacker, target, dmg);
         }
@@ -345,6 +361,11 @@
                 st.t = 8000;
             }
         }
+        if (target.side === 'enemy' && attacker.side === 'ally' && rf.damageToShieldPct && attacker.alive) {
+            const cap = Math.floor(attacker.maxHp * (rf.shieldCapMult || 2));
+            const gain = Math.floor(dmg * rf.damageToShieldPct);
+            attacker.shield = Math.min(cap, (attacker.shield || 0) + gain);
+        }
         shareBondDamage(battle, target, dmg);
     }
 
@@ -401,6 +422,16 @@
         }
         if (relicFx.lifesteal) {
             /* lifesteal handled in applyDamage via meta */
+        }
+        if (relicFx.bladeDanceChance && Math.random() < relicFx.bladeDanceChance &&
+            window.AutoBattleSimulator && window.AutoBattleSimulator.applyTraitDamage) {
+            living(battle.enemies).forEach((foe) => {
+                if (foe !== target && foe.alive) {
+                    window.AutoBattleSimulator.applyTraitDamage(
+                        battle, attacker, foe, Math.floor(attacker.attack * 0.85), { isSkill: false }
+                    );
+                }
+            });
         }
         triggerBondEchoAttack(battle, attacker);
     }
@@ -568,6 +599,75 @@
         }
     }
 
+    function cloneUnitSnapshot(u) {
+        if (!u) return null;
+        return {
+            id: u.id,
+            heroId: u.heroId,
+            hp: u.hp,
+            maxHp: u.maxHp,
+            alive: u.alive,
+            x: u.x,
+            y: u.y,
+            col: u.col,
+            row: u.row,
+            basicCd: u.basicCd,
+            skills: (u.skills || []).map((sk) => ({ id: sk.id, cd: sk.cd }))
+        };
+    }
+
+    function recordBattleSnapshot(battle) {
+        if (!battle) return;
+        const now = elapsed(battle);
+        battle.rewindSnapshots = battle.rewindSnapshots || [];
+        const last = battle.rewindSnapshots[battle.rewindSnapshots.length - 1];
+        if (last && now - last.t < 500) return;
+        battle.rewindSnapshots.push({
+            t: now,
+            elapsed: now,
+            allies: (battle.allies || []).map(cloneUnitSnapshot),
+            enemies: (battle.enemies || []).map(cloneUnitSnapshot)
+        });
+        const maxAge = 15000;
+        while (battle.rewindSnapshots.length && now - battle.rewindSnapshots[0].t > maxAge) {
+            battle.rewindSnapshots.shift();
+        }
+    }
+
+    function restoreBattleSnapshot(battle, targetTime) {
+        const snaps = battle && battle.rewindSnapshots;
+        if (!snaps || !snaps.length) return false;
+        let snap = snaps[0];
+        for (let i = snaps.length - 1; i >= 0; i--) {
+            if (snaps[i].t <= targetTime) {
+                snap = snaps[i];
+                break;
+            }
+        }
+        const applySnap = (live, saved) => {
+            saved.forEach((s) => {
+                const u = live.find((x) => x.id === s.id || (s.heroId && x.heroId === s.heroId));
+                if (!u) return;
+                u.hp = s.hp;
+                u.maxHp = s.maxHp;
+                u.alive = s.alive;
+                u.x = s.x;
+                u.y = s.y;
+                u.col = s.col;
+                u.row = s.row;
+                u.basicCd = s.basicCd;
+                (s.skills || []).forEach((ss) => {
+                    const sk = (u.skills || []).find((sk2) => sk2.id === ss.id);
+                    if (sk) sk.cd = ss.cd;
+                });
+            });
+        };
+        applySnap(battle.allies || [], snap.allies || []);
+        applySnap(battle.enemies || [], snap.enemies || []);
+        battle.elapsed = snap.elapsed;
+        return true;
+    }
+
     function tickBattle(battle, dtMs) {
         if (!battle) return;
         const now = elapsed(battle);
@@ -641,6 +741,7 @@
                 }
             });
         }
+        recordBattleSnapshot(battle);
     }
 
     window.CombatEffectsBridge = {
@@ -657,6 +758,8 @@
         pickEnemyTarget,
         onUnitDodge,
         onKill,
-        tickBattle
+        tickBattle,
+        recordBattleSnapshot,
+        restoreBattleSnapshot
     };
 })();

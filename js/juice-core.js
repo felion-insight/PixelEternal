@@ -47,10 +47,18 @@
         if (state.battle && state.battle.trueModeNoNumbers) return;
         const asc = window.AscensionHub.flag('juiceSystem');
         if (asc.damageNumbersEnabled === false) return;
+        let label;
+        if (typeof value === 'string') {
+            label = value;
+        } else {
+            const n = Number(value);
+            if (!Number.isFinite(n)) return;
+            label = String(Math.floor(n));
+        }
         const styles = juiceCfg().damageNumbers || {};
         const style = styles[type] || styles.normal || { color: '#fff', size: 16 };
         state.damageNumbers.push({
-            x: x, y: y, value: Math.floor(value), type: type,
+            x: x, y: y, value: label, type: type,
             life: 1, vy: -60, vx: (Math.random() - 0.5) * 30,
             style: style
         });
@@ -74,6 +82,7 @@
 
     function onDamage(state, attacker, target, dmg, meta) {
         meta = meta || {};
+        if (!Number.isFinite(Number(dmg)) || dmg <= 0) return;
         const type = meta.crit ? 'crit' : (meta.isSkill ? 'skill' : 'normal');
         spawnDamageNumber(state, target.x, target.y - 20, dmg, type);
         if (meta.crit) {
@@ -181,13 +190,14 @@
             ctx.fillStyle = n.style.color || '#fff';
             ctx.font = 'bold ' + (n.style.size || 16) + 'px monospace';
             ctx.textAlign = 'center';
+            const prefix = n.style.prefix || '';
+            const text = prefix + (n.value != null ? String(n.value) : '');
             if (n.style.outline) {
                 ctx.strokeStyle = n.style.outline;
                 ctx.lineWidth = 2;
-                ctx.strokeText(n.value, 0, 0);
+                ctx.strokeText(text, 0, 0);
             }
-            const prefix = n.style.prefix || '';
-            ctx.fillText(prefix + n.value, 0, 0);
+            ctx.fillText(text, 0, 0);
             ctx.restore();
         });
 
@@ -236,6 +246,11 @@
         if (event === 'ability_cast') {
             playAudioStub('ability');
             triggerShake(state.battle, 'crit');
+        }
+        if (event === 'energy_gain_death') {
+            playAudioStub('hit');
+            spawnDamageNumber(state, (state.battle._canvasW || 400) * 0.5, 80,
+                '+' + ((data && data.amount) || 15), 'kill');
         }
     }
 

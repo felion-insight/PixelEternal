@@ -5,9 +5,11 @@
     'use strict';
 
     function ascensionCfg() {
-        return (typeof CONFIG !== 'undefined' && CONFIG.ASCENSION) ||
+        let raw = (typeof CONFIG !== 'undefined' && CONFIG.ASCENSION) ||
             (typeof window !== 'undefined' && window.ASCENSION_CONFIG) ||
             {};
+        if (raw && raw.ascension && typeof raw.ascension === 'object') return raw.ascension;
+        return raw || {};
     }
 
     function isEnabled(path) {
@@ -33,7 +35,10 @@
             pact: null,
             activeChains: [],
             synergies: [],
+            synergiesInactive: [],
             commanderUnlocks: [],
+            commanderLoadout: [],
+            commanderLoadoutCustomized: false,
             deathStats: {},
             zoneId: null,
             battlesInZone: 0,
@@ -42,7 +47,14 @@
             cursedRelicIds: [],
             analytics: null,
             skirmishPreference: false,
-            battleSpeedScale: 1
+            battleSpeedScale: 1,
+            buildPath: null,
+            commitmentLayers: [],
+            runMechanic: null,
+            relicVariance: {},
+            relicQuality: {},
+            negativeSynergies: [],
+            variantChoices: null
         };
     }
 
@@ -66,7 +78,10 @@
         def.pact = raw.pact || null;
         def.activeChains = Array.isArray(raw.activeChains) ? raw.activeChains.slice() : [];
         def.synergies = Array.isArray(raw.synergies) ? raw.synergies.slice() : [];
+        def.synergiesInactive = Array.isArray(raw.synergiesInactive) ? raw.synergiesInactive.slice() : [];
         def.commanderUnlocks = Array.isArray(raw.commanderUnlocks) ? raw.commanderUnlocks.slice() : [];
+        def.commanderLoadout = Array.isArray(raw.commanderLoadout) ? raw.commanderLoadout.slice() : [];
+        def.commanderLoadoutCustomized = !!raw.commanderLoadoutCustomized;
         def.deathStats = raw.deathStats && typeof raw.deathStats === 'object' ? Object.assign({}, raw.deathStats) : {};
         def.zoneId = raw.zoneId || null;
         def.battlesInZone = raw.battlesInZone | 0 || 0;
@@ -109,8 +124,13 @@
         if (window.RunAnalytics && isEnabled('deathNarrative')) {
             run.ascension.analytics = window.RunAnalytics.create(run);
         }
+        if (window.RunZoneGenerator && window.RunZoneGenerator.isEnabled()) {
+            window.RunZoneGenerator.onRunStart(run);
+        }
         if (window.ZoneEcology && isEnabled('zoneEcology')) {
             window.ZoneEcology.onRunStart(run);
+        } else if (window.RunZoneGenerator && run.ascension && run.ascension.zoneLayout) {
+            run.ascension.zoneId = run.ascension.zoneLayout[0];
         }
         if (window.SynergyMatrix && isEnabled('synergyMatrix')) {
             window.SynergyMatrix.refreshFromRun(run);
@@ -122,6 +142,19 @@
             window.EventChainSystem.onRunStart(run);
         }
         if (window.WeatherSystem) window.WeatherSystem.onRunStart(run);
+        if (window.ClassVariantSystem && window.ClassVariantSystem.isEnabled()) {
+            const rng = window.RunStateSystem && window.RunStateSystem.rngFromRun
+                ? window.RunStateSystem.rngFromRun(run) : Math.random;
+            window.ClassVariantSystem.onRunStart(run, rng);
+        }
+        if (window.RunMechanicSystem && window.RunMechanicSystem.isEnabled()) {
+            const rng = window.RunStateSystem && window.RunStateSystem.rngFromRun
+                ? window.RunStateSystem.rngFromRun(run) : Math.random;
+            window.RunMechanicSystem.onRunStart(run, rng);
+        }
+        if (window.CommanderMode && isEnabled('commanderMode') && window.CommanderMode.ensureLoadout) {
+            window.CommanderMode.ensureLoadout(run);
+        }
     }
 
     function onBattleStart(run, battle, node) {
@@ -159,6 +192,9 @@
             window.RunAnalytics.onBattleStart(run.ascension.analytics, battle, node);
         }
         if (window.CombatEffectsBridge) window.CombatEffectsBridge.finalizeBattle(battle, run);
+        if (window.ZoneTraitRuntime) window.ZoneTraitRuntime.onBattleStart(battle);
+        if (window.ZoneMutationRuntime) window.ZoneMutationRuntime.onBattleStart(battle, run);
+        if (window.RunMechanicSystem) window.RunMechanicSystem.onBattleStart(run, battle);
     }
 
     function onTickBattle(battle, dtMs) {
@@ -176,7 +212,15 @@
         }
 
         if (window.CommanderMode && battle.commanderMode && isEnabled('commanderMode')) {
-            window.CommanderMode.tick(battle.commanderMode, effectiveDt);
+            const cm = battle.commanderMode;
+            if (cm.commanderDisabledUntil != null && battle.elapsed != null &&
+                battle.elapsed >= cm.commanderDisabledUntil) {
+                cm.enabled = true;
+                cm.commanderDisabledUntil = null;
+            }
+            if (cm.enabled !== false) {
+                window.CommanderMode.tick(cm, effectiveDt);
+            }
         }
         if (window.BossPhaseSystem && battle.bossPhaseSystem && isEnabled('bossPhases')) {
             window.BossPhaseSystem.tick(battle.bossPhaseSystem, effectiveDt);
@@ -185,6 +229,12 @@
             window.JuiceCore.tick(battle.juiceSystem, effectiveDt);
         }
         if (window.WeatherSystem) window.WeatherSystem.tick(battle, effectiveDt);
+        if (window.ZoneTraitRuntime) window.ZoneTraitRuntime.tick(battle, effectiveDt);
+        if (window.ZoneEcology) window.ZoneEcology.tickZoneBattle(battle, effectiveDt);
+        if (window.EnemyMutationSystem && window.EnemyMutationSystem.tickBattle) {
+            window.EnemyMutationSystem.tickBattle(battle, effectiveDt);
+        }
+        if (window.RunMechanicSystem) window.RunMechanicSystem.tickBattle(battle, effectiveDt);
 
         if (battle.timeStopRemaining > 0) {
             battle.timeStopRemaining = Math.max(0, battle.timeStopRemaining - effectiveDt);
@@ -212,8 +262,13 @@
     function onKill(battle, attacker, target) {
         if (!battle) return;
         if (window.CombatEffectsBridge) window.CombatEffectsBridge.onKill(battle, attacker, target);
-        if (window.CommanderMode && battle.commanderMode && attacker && attacker.side === 'ally' && isEnabled('commanderMode')) {
-            window.CommanderMode.onAllyKill(battle.commanderMode);
+        if (window.CommanderMode && battle.commanderMode && isEnabled('commanderMode')) {
+            if (attacker && attacker.side === 'ally') {
+                window.CommanderMode.onAllyKill(battle.commanderMode);
+            }
+            if (target && target.side === 'ally' && window.CommanderMode.onAllyDeath) {
+                window.CommanderMode.onAllyDeath(battle.commanderMode);
+            }
         }
         if (window.JuiceCore && battle.juiceSystem && isEnabled('juiceSystem') && !battle.trueModeNoNumbers) {
             window.JuiceCore.onKill(battle.juiceSystem, attacker, target);
